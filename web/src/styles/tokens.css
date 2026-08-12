@@ -1,0 +1,30 @@
+:root {
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f7faf8;
+  --color-text-primary: #111827;
+  --color-text-secondary: #667085;
+  --color-text-active: #174b35;
+  --color-border-subtle: #e8ecef;
+  --color-brand: #20a862;
+  --color-brand-hover: #188a50;
+  --color-brand-soft: #eff9f2;
+  --color-brand-soft-strong: #c9f0d7;
+  --color-focus-ring: #20a862;
+
+  --sidebar-width: 226px;
+  --sidebar-gutter: 15px;
+  --sidebar-nav-item-height: 56px;
+  --sidebar-nav-gap: 0px;
+  --main-padding-x: 32px;
+  --main-padding-top: 32px;
+
+  --radius-nav: 11px;
+  --radius-profile: 11px;
+}
+
+@media (max-height: 860px) {
+  :root {
+    --sidebar-nav-item-height: 48px;
+  }
+}

@@ -1,0 +1,65 @@
+import {
+  BadgeCheck,
+  BookOpen,
+  CalendarDays,
+  CircleHelp,
+  ClipboardList,
+  Compass,
+  Home,
+  MessageSquare,
+  Settings,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
+
+export interface SidebarItem {
+  label: string;
+  icon: LucideIcon;
+  href: string;
+  badge?: number;
+  enabled: boolean;
+}
+
+export interface SidebarProfile {
+  name: string;
+  role: string;
+  initials: string;
+}
+
+export const primarySidebarItems: SidebarItem[] = [
+  { label: "Home", icon: Home, href: "/", enabled: true },
+  { label: "My Courses", icon: BookOpen, href: "/courses", enabled: false },
+  { label: "Explore", icon: Compass, href: "/explore", enabled: false },
+  { label: "Calendar", icon: CalendarDays, href: "/calendar", enabled: false },
+  {
+    label: "Assignments",
+    icon: ClipboardList,
+    href: "/assignments",
+    enabled: false,
+  },
+  {
+    label: "Certificates",
+    icon: BadgeCheck,
+    href: "/certificates",
+    enabled: false,
+  },
+  {
+    label: "Messages",
+    icon: MessageSquare,
+    href: "/messages",
+    badge: 3,
+    enabled: false,
+  },
+  { label: "Community", icon: Users, href: "/community", enabled: false },
+];
+
+export const secondarySidebarItems: SidebarItem[] = [
+  { label: "Settings", icon: Settings, href: "/settings", enabled: false },
+  { label: "Help Center", icon: CircleHelp, href: "/help", enabled: false },
+];
+
+export const sidebarProfile: SidebarProfile = {
+  name: "Juliana",
+  role: "Student",
+  initials: "J",
+};
