@@ -1,0 +1,77 @@
+@import url('https://rsms.me/inter/inter.css');
+@import "tailwindcss";
+
+:root {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    line-height: 1.65;
+    letter-spacing: -0.03em;
+    --primary-color: #29A865;
+    --secondary-color: #fefefe;
+    --paragraphs: #5b6772;
+    --text-color-black: #0C0E24;
+    --text-color-green: #1B8B45;
+    --label-color-light-green: #E7FAEF;
+
+    /* Radii */
+    --border-radius: 10px;
+    --border-radius-card: 22px;
+    --border-radius-media: 18px;
+    --border-radius-cta: 18px;
+
+    /* Border Color */
+    --color-border-color: #f2f3f5;
+
+    /* Blueprint Layout & Dimensions */
+    --card-max-width: 613px;
+    --card-padding-left: 38px;
+    --card-padding-right: 28px;
+    --card-padding-top: 31px;
+    --card-padding-bottom: 31px;
+
+    --media-width: 250px;
+    --media-height: 272px;
+    --media-details-gap: 32px;
+    --main-footer-gap: 35px;
+
+    --cta-width: 462px;
+    --cta-height: 71px;
+    --bookmark-width: 65px;
+    --bookmark-height: 72px;
+    --button-gap: 18px;
+
+    /* Typography Sizes */
+    --font-size-section-title: 26px;
+    --font-size-course-title: 30px;
+    --font-size-status-badge: 15px;
+    --font-size-progress: 16px;
+    --font-size-lesson-meta: 16px;
+    --font-size-cta: 20px;
+}
+
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+
+
+
+  --color-primary: var(--primary-color);
+  --color-secondary: var(--secondary-color);
+  --color-paragraphs: var(--paragraphs);
+  --color-text-black: var(--text-color-black);
+  --color-text-green: var(--text-color-green);
+  --color-label-light-green: var(--label-color-light-green);
+
+  --radius-custom: var(--border-radius);
+  --radius-card: var(--border-radius-card);
+  --radius-media: var(--border-radius-media);
+  --radius-cta: var(--border-radius-cta);
+  --color-border-custom: var(--color-border-color);
+
+  --text-section-title: var(--font-size-section-title);
+  --text-course-title: var(--font-size-course-title);
+  --text-status-badge: var(--font-size-status-badge);
+  --text-progress: var(--font-size-progress);
+  --text-lesson-meta: var(--font-size-lesson-meta);
+  --text-cta: var(--font-size-cta);
+}
