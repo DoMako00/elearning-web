@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Sidebar } from "../Sidebar";
-
+import { MyProgress } from "../../ui/MyProgress";
+import Continue_learning from "../../ui/Continue_Learning/continue_learning";
 export interface AppShellProps {
   children?: ReactNode;
 }
@@ -13,11 +14,16 @@ export function AppShell({ children }: AppShellProps) {
     >
       <Sidebar />
       <main
-        className="h-full min-w-0 overflow-hidden bg-[var(--color-bg)]"
+        className="h-full min-w-0 overflow-y-auto bg-[var(--color-bg)] flex flex-wrap items-start justify-center gap-6 p-8"
         aria-label="Student workspace"
         data-main-workspace
       >
-        {children}
+        {children ?? (
+          <>
+            <Continue_learning />
+            <MyProgress />
+          </>
+        )}
       </main>
     </div>
   );

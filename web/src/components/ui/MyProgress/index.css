@@ -1,0 +1,178 @@
+@import '../Continue_Learning/index.css';
+
+.my-progress-card {
+  width: 100%;
+  max-width: var(--progress-card-max-width, 296px);
+  min-height: var(--progress-card-height, 257px);
+  height: auto;
+  background: var(--secondary-color, #ffffff);
+  border-radius: 16px;
+  border: 1px solid var(--color-border-color, #f2f3f5);
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: box-shadow 0.3s ease;
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.my-progress-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.my-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.my-progress-title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+  color: var(--text-color-black, #0C0E24);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.my-progress-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-color, #f2f3f5);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--paragraphs, #5b6772);
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+  flex-shrink: 0;
+}
+
+.my-progress-icon-btn:hover {
+  background: var(--label-color-light-green, #E7FAEF);
+  color: var(--text-color-black, #0C0E24);
+}
+
+.my-progress-icon-btn-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.my-progress-body {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.my-progress-text-col {
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  pointer-events: none;
+}
+
+.my-progress-label {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--paragraphs, #5b6772);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.my-progress-percentage {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--primary-color, #29A865);
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.my-progress-chart-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.my-progress-badge {
+  position: absolute;
+  bottom: 4px;
+  right: 0px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background: var(--label-color-light-green, #E7FAEF);
+  color: var(--text-color-green, #1B8B45);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.my-progress-badge-icon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.my-progress-tooltip {
+  background: var(--text-color-black, #0C0E24);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  padding: 3px 6px;
+  pointer-events: none;
+}
+
+.my-progress-footer {
+  margin-top: auto;
+}
+
+.my-progress-cta {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 42px;
+  background: #fafcf9;
+  border: 1px solid var(--color-border-color, #eef2ed);
+  border-radius: 12px;
+  color: var(--text-color-green, #1B8B45);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.my-progress-cta:hover {
+  background: var(--label-color-light-green, #E7FAEF);
+  border-color: var(--label-color-light-green, #E7FAEF);
+  box-shadow: 0 2px 6px rgba(41, 168, 101, 0.1);
+}
+
+.my-progress-cta:active {
+  transform: scale(0.99);
+}

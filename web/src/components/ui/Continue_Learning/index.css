@@ -23,22 +23,23 @@
     --color-border-color: #f2f3f5;
 
     /* Blueprint Layout & Dimensions */
-    --card-max-width: 613px;
-    --card-padding-left: 38px;
-    --card-padding-right: 28px;
-    --card-padding-top: 31px;
-    --card-padding-bottom: 31px;
+    --card-max-width: 434px;
+    --card-height: 365px;
+    --card-padding-left: 28px;
+    --card-padding-right: 24px;
+    --card-padding-top: 24px;
+    --card-padding-bottom: 24px;
 
-    --media-width: 250px;
-    --media-height: 272px;
-    --media-details-gap: 32px;
-    --main-footer-gap: 35px;
+    --media-width: 160px;
+    --media-height: 174px;
+    --media-details-gap: 20px;
+    --main-footer-gap: 20px;
 
-    --cta-width: 462px;
-    --cta-height: 71px;
-    --bookmark-width: 65px;
-    --bookmark-height: 72px;
-    --button-gap: 18px;
+    --cta-width: 320px;
+    --cta-height: 52px;
+    --bookmark-width: 52px;
+    --bookmark-height: 52px;
+    --button-gap: 12px;
 
     /* Typography Sizes */
     --font-size-section-title: 26px;

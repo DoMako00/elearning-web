@@ -28,8 +28,8 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
   const [isBookmarked, setIsBookmarked] = useState(false);
 
   return (
-    <section className="w-full flex justify-center p-6 font-sans">
-      <div className="w-full max-w-(--card-max-width) bg-(--secondary-color) rounded-(--border-radius-card) border border-(--color-border-color) pt-(--card-padding-top) pb-(--card-padding-bottom) pl-(--card-padding-left) pr-(--card-padding-right) shadow-sm transition-all duration-300 hover:shadow-md">
+    <section className="w-full max-w-(--card-max-width) font-sans">
+      <div className="w-full bg-(--secondary-color) rounded-(--border-radius-card) border border-(--color-border-color) pt-(--card-padding-top) pb-(--card-padding-bottom) pl-(--card-padding-left) pr-(--card-padding-right) shadow-sm transition-all duration-300 hover:shadow-md">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-section-title font-bold text-(--text-color-black) tracking-tight">
             {title}
