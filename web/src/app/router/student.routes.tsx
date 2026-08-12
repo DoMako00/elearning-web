@@ -5,17 +5,21 @@ import { UserHeaderActions } from "../../components/ui/UserHeaderActions";
 
 function StudentHeaderPreview() {
   return (
-    <div className="h-full overflow-auto px-[var(--main-padding-x)] pt-[var(--main-padding-top)]">
+    <div className="w-full min-w-0">
       <header
-        className="flex min-w-[900px] items-center justify-between gap-8"
+        className="flex w-full min-w-0 flex-wrap items-center gap-8 px-8 pb-0 pl-10 pt-8"
         aria-label="Student header preview"
       >
-        <SearchBar className="max-w-[790px]" />
-        <UserHeaderActions
-          avatarSrc="https://i.pravatar.cc/112?img=47"
-          avatarAlt="Juliana"
-          hasNotification
-        />
+        <div className="min-w-[320px] max-w-[790px] flex-[1_1_790px]">
+          <SearchBar />
+        </div>
+        <div className="ml-auto shrink-0">
+          <UserHeaderActions
+            avatarSrc="https://i.pravatar.cc/112?img=47"
+            avatarAlt="Juliana"
+            hasNotification
+          />
+        </div>
       </header>
     </div>
   );

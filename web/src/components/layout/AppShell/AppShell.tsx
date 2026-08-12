@@ -16,16 +16,16 @@ export function AppShell({ children }: AppShellProps) {
     >
       <Sidebar />
       <main
-        className="h-full min-w-0 overflow-y-auto bg-[var(--color-bg)] flex flex-wrap items-start justify-center gap-6 p-8"
+        className="h-full min-w-0 overflow-y-auto bg-[var(--color-bg)]"
         aria-label="Student workspace"
         data-main-workspace
       >
         {children ?? (
-          <>
+          <div className="flex min-h-full min-w-0 flex-wrap items-start justify-center gap-6 p-8">
             <Continue_learning />
             <MyProgress />
             <Upcoming />
-          </>
+          </div>
         )}
       </main>
     </div>
