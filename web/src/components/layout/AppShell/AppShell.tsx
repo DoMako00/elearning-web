@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { Sidebar } from "../Sidebar";
 import { MyProgress } from "../../ui/MyProgress";
 import Continue_learning from "../../ui/Continue_Learning/continue_learning";
+import { Upcoming } from "../../ui/Upcoming";
+
 export interface AppShellProps {
   children?: ReactNode;
 }
@@ -22,6 +24,7 @@ export function AppShell({ children }: AppShellProps) {
           <>
             <Continue_learning />
             <MyProgress />
+            <Upcoming />
           </>
         )}
       </main>
