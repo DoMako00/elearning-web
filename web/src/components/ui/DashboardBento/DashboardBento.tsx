@@ -2,6 +2,7 @@ import ContinueLearning from "../Continue_Learning/continue_learning";
 import { MyProgress } from "../MyProgress";
 import { Upcoming } from "../Upcoming";
 import { WeeklyGoalCard } from "../WeeklyGoalCard";
+import { YourStreak } from "../YourStreak";
 import "./DashboardBento.css";
 
 interface BentoPlaceholderProps {
@@ -37,7 +38,9 @@ export function DashboardBento() {
         <div className="dashboard-bento__slot dashboard-bento__slot--upcoming">
           <Upcoming />
         </div>
-        <BentoPlaceholder className="dashboard-bento__slot--streak" />
+        <div className="dashboard-bento__slot dashboard-bento__slot--streak">
+          <YourStreak />
+        </div>
       </div>
 
       <div className="dashboard-bento__row dashboard-bento__row--bottom">

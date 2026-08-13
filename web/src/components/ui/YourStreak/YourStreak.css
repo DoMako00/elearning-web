@@ -1,0 +1,297 @@
+.your-streak-card {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1.55fr) minmax(190px, 1fr);
+  column-gap: clamp(24px, 4cqw, 48px);
+  overflow: hidden;
+  box-sizing: border-box;
+  padding:
+    clamp(18px, 9cqh, 24px)
+    clamp(18px, 4.8cqw, 30px)
+    clamp(18px, 10cqh, 26px)
+    clamp(20px, 5.4cqw, 34px);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 16px;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.your-streak-left {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.your-streak-header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.your-streak-fire {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.your-streak-header h2 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.your-streak-stats {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: clamp(18px, 11cqh, 30px);
+}
+
+.your-streak-stats strong {
+  color: #169c59;
+  font-size: clamp(36px, 17cqh, 44px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.your-streak-stats span {
+  margin-top: 6px;
+  color: #1f2937;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.25;
+}
+
+.your-streak-indicators {
+  display: flex;
+  min-width: 0;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: clamp(8px, 1.45cqw, 12px);
+  margin-top: clamp(12px, 7cqh, 18px);
+}
+
+.your-streak-indicator {
+  display: inline-flex;
+  width: clamp(20px, 9.3cqh, 24px);
+  height: clamp(20px, 9.3cqh, 24px);
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.your-streak-indicator--complete {
+  background: #27ae68;
+  color: #ffffff;
+}
+
+.your-streak-indicator--complete svg {
+  width: 14px;
+  height: 14px;
+}
+
+.your-streak-indicator--incomplete {
+  border: 2px solid #63d69c;
+  background: var(--color-surface);
+}
+
+.your-streak-message {
+  margin: auto 0 0;
+  color: #1f2937;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.your-streak-right {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr) auto;
+  justify-items: center;
+  row-gap: clamp(10px, 5cqh, 16px);
+}
+
+.your-streak-trophy {
+  display: block;
+  width: clamp(112px, 52cqh, 154px);
+  height: 100%;
+  min-height: 0;
+  max-height: 154px;
+  align-self: center;
+  object-fit: contain;
+  user-select: none;
+}
+
+.your-streak-badges-button {
+  width: 100%;
+  max-width: 220px;
+  height: 46px;
+  flex: 0 0 auto;
+  border: 1px solid #cfe8da;
+  border-radius: 11px;
+  background: var(--color-surface);
+  color: #159455;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    border-color 200ms ease,
+    background-color 200ms ease,
+    color 200ms ease;
+}
+
+.your-streak-badges-button:hover {
+  border-color: var(--color-brand-soft-strong);
+  background: var(--color-brand-soft);
+  color: var(--color-brand-hover);
+}
+
+.your-streak-badges-button:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.your-streak-badges-button:active {
+  background: var(--color-brand-soft-strong);
+}
+
+@container bento-slot (max-width: 520px) {
+  .your-streak-card {
+    grid-template-columns: minmax(0, 1fr) minmax(118px, 0.52fr);
+    column-gap: 16px;
+    padding: 16px;
+  }
+
+  .your-streak-header h2 {
+    font-size: 16px;
+  }
+
+  .your-streak-stats {
+    margin-top: 14px;
+  }
+
+  .your-streak-stats strong {
+    font-size: clamp(34px, 16cqh, 40px);
+  }
+
+  .your-streak-stats span {
+    font-size: 14px;
+  }
+
+  .your-streak-indicators {
+    gap: 7px;
+    margin-top: 12px;
+  }
+
+  .your-streak-indicator {
+    width: 20px;
+    height: 20px;
+  }
+
+  .your-streak-indicator--complete svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .your-streak-message {
+    font-size: 13px;
+  }
+
+  .your-streak-trophy {
+    width: clamp(92px, 48cqh, 120px);
+  }
+
+  .your-streak-badges-button {
+    height: 44px;
+    font-size: 14px;
+  }
+}
+
+@container bento-slot (max-height: 190px) {
+  .your-streak-card {
+    grid-template-columns: minmax(0, 1.45fr) minmax(200px, 0.8fr);
+    column-gap: 14px;
+    padding: 12px 16px;
+  }
+
+  .your-streak-fire {
+    font-size: 17px;
+  }
+
+  .your-streak-header h2 {
+    font-size: 15px;
+  }
+
+  .your-streak-stats {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .your-streak-stats strong {
+    font-size: 32px;
+  }
+
+  .your-streak-stats span {
+    margin-top: 0;
+    font-size: 13px;
+  }
+
+  .your-streak-indicators {
+    gap: 7px;
+    margin-top: 5px;
+  }
+
+  .your-streak-indicator {
+    width: 18px;
+    height: 18px;
+  }
+
+  .your-streak-indicator--complete svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  .your-streak-message {
+    font-size: 12px;
+    line-height: 1.25;
+  }
+
+  .your-streak-right {
+    grid-template-columns: minmax(64px, 90px) minmax(116px, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: center;
+    column-gap: 12px;
+  }
+
+  .your-streak-trophy {
+    width: clamp(64px, 55cqh, 90px);
+    max-height: 90px;
+  }
+
+  .your-streak-badges-button {
+    height: 40px;
+    max-width: 160px;
+    font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .your-streak-badges-button {
+    transition: none;
+  }
+}
