@@ -1,6 +1,14 @@
 @import '../Continue_Learning/index.css';
 
 .my-progress-card {
+  --primary-color: #29a865;
+  --secondary-color: #ffffff;
+  --paragraphs: #5b6772;
+  --text-color-black: #0c0e24;
+  --text-color-green: #1b8b45;
+  --label-color-light-green: #e7faef;
+  --color-border-color: #edf0f2;
+
   width: 100%;
   max-width: var(--progress-card-max-width, 296px);
   min-height: var(--progress-card-height, 257px);
@@ -175,4 +183,55 @@
 
 .my-progress-cta:active {
   transform: scale(0.99);
+}
+
+.my-progress-icon-btn:focus-visible,
+.my-progress-cta:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+@container bento-slot (max-width: 300px) {
+  .my-progress-card {
+    padding: 14px;
+  }
+}
+
+@container bento-slot (max-height: 220px) {
+  .my-progress-card {
+    padding: 10px 12px;
+  }
+
+  .my-progress-header {
+    min-height: 44px;
+    margin-bottom: 2px;
+  }
+
+  .my-progress-icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .my-progress-body {
+    min-height: 54px;
+    margin-bottom: 4px;
+  }
+
+  .my-progress-percentage {
+    font-size: 25px;
+  }
+
+  .my-progress-chart-wrap {
+    min-height: 54px;
+  }
+
+  .my-progress-badge {
+    bottom: 0;
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+
+  .my-progress-cta {
+    height: 44px;
+  }
 }

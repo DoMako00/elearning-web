@@ -1,19 +1,21 @@
 import type { RouteObject } from "react-router-dom";
 import { AppShell } from "../../components/layout/AppShell";
+import { DashboardBento } from "../../components/ui/DashboardBento";
 import { SearchBar } from "../../components/ui/SearchBar";
 import { UserHeaderActions } from "../../components/ui/UserHeaderActions";
+import "./student-dashboard.css";
 
 function StudentHeaderPreview() {
   return (
-    <div className="w-full min-w-0">
+    <div className="student-dashboard">
       <header
-        className="flex w-full min-w-0 flex-wrap items-center gap-8 px-8 pb-0 pl-10 pt-8"
-        aria-label="Student header preview"
+        className="student-dashboard__header"
+        aria-label="Student dashboard header"
       >
-        <div className="min-w-[320px] max-w-[790px] flex-[1_1_790px]">
+        <div className="student-dashboard__search">
           <SearchBar />
         </div>
-        <div className="ml-auto shrink-0">
+        <div className="student-dashboard__actions">
           <UserHeaderActions
             avatarSrc="https://i.pravatar.cc/112?img=47"
             avatarAlt="Juliana"
@@ -21,6 +23,9 @@ function StudentHeaderPreview() {
           />
         </div>
       </header>
+      <div className="student-dashboard__content">
+        <DashboardBento />
+      </div>
     </div>
   );
 }

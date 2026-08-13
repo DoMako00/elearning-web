@@ -28,3 +28,23 @@
     --sidebar-nav-item-height: 48px;
   }
 }
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  :root {
+    --sidebar-width: 80px;
+    --sidebar-gutter: 10px;
+  }
+}
+
+@media (max-width: 1023px), (width: 1024px) and (orientation: portrait) {
+  :root {
+    --sidebar-width: 76px;
+    --sidebar-gutter: 8px;
+  }
+}
+
+@media (max-height: 760px) {
+  :root {
+    --sidebar-nav-item-height: 44px;
+  }
+}

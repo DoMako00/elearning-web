@@ -1,0 +1,10 @@
+@media (max-width: 1279px) {
+  .user-header-actions__notifications {
+    width: 44px;
+    height: 44px;
+  }
+
+  .user-header-actions__xp {
+    margin-left: 16px;
+  }
+}

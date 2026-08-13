@@ -11,12 +11,12 @@ export interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   return (
     <div
-      className="grid h-dvh w-screen grid-cols-[var(--sidebar-width)_minmax(0,1fr)] overflow-hidden bg-[var(--color-bg)]"
+      className="grid h-dvh min-h-0 w-full grid-cols-[var(--sidebar-width)_minmax(0,1fr)] overflow-hidden bg-[var(--color-bg)]"
       data-app-shell
     >
       <Sidebar />
       <main
-        className="h-full min-w-0 overflow-y-auto bg-[var(--color-bg)]"
+        className="h-full min-h-0 min-w-0 overflow-hidden bg-[var(--color-bg)]"
         aria-label="Student workspace"
         data-main-workspace
       >

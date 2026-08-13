@@ -1,0 +1,88 @@
+@container bento-slot (max-width: 360px) {
+  .weekly-goal-card {
+    padding: 14px 14px 12px;
+  }
+
+  .weekly-goal-header {
+    height: 44px;
+  }
+
+  .weekly-goal-options {
+    width: 44px;
+    height: 44px;
+  }
+
+  .weekly-goal-body {
+    padding-top: 8px;
+  }
+
+  .weekly-goal-ring {
+    width: clamp(104px, 40cqw, 138px);
+    height: clamp(104px, 40cqw, 138px);
+  }
+
+  .weekly-goal-hours {
+    margin-top: 7px;
+  }
+
+  .weekly-goal-message {
+    margin-top: 2px;
+  }
+
+  .weekly-goal-days {
+    margin-top: 8px;
+  }
+}
+
+@container bento-slot (max-height: 300px) {
+  .weekly-goal-card {
+    padding: 12px 12px 10px;
+  }
+
+  .weekly-goal-header {
+    height: 44px;
+  }
+
+  .weekly-goal-options {
+    width: 44px;
+    height: 44px;
+  }
+
+  .weekly-goal-body {
+    padding-top: 4px;
+  }
+
+  .weekly-goal-ring {
+    width: clamp(94px, 43cqh, 118px);
+    height: clamp(94px, 43cqh, 118px);
+  }
+
+  .weekly-goal-ring > div span:first-child {
+    font-size: 24px;
+  }
+
+  .weekly-goal-ring > div span:last-child {
+    margin-top: 5px;
+    font-size: 12px;
+  }
+
+  .weekly-goal-hours {
+    margin-top: 5px;
+    font-size: 13px;
+    line-height: 17px;
+  }
+
+  .weekly-goal-message {
+    margin-top: 1px;
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .weekly-goal-days {
+    margin-top: 5px;
+  }
+
+  .weekly-goal-days > div > span:last-child {
+    margin-top: 2px;
+  }
+}

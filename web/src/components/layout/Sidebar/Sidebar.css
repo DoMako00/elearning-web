@@ -1,0 +1,79 @@
+@media (min-width: 1024px) and (max-width: 1279px),
+  (max-width: 1023px),
+  (width: 1024px) and (orientation: portrait) {
+  .student-sidebar {
+    padding-top: 28px;
+  }
+
+  .sidebar-brand {
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .sidebar-brand-name,
+  .sidebar-profile-copy,
+  .sidebar-profile-chevron,
+  .sidebar-nav-label {
+    display: none;
+  }
+
+  .student-sidebar .sidebar-primary-nav {
+    margin-top: 28px;
+  }
+
+  .student-sidebar .sidebar-secondary-nav {
+    margin-bottom: 12px;
+  }
+
+  .sidebar-nav-item {
+    position: relative;
+    min-height: 44px;
+    justify-content: center;
+    gap: 0;
+    padding-inline: 0;
+  }
+
+  .sidebar-nav-badge {
+    position: absolute;
+    top: 2px;
+    right: 3px;
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+  }
+
+  .sidebar-profile {
+    min-height: 58px;
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .sidebar-profile-avatar {
+    width: 42px;
+    height: 42px;
+  }
+}
+
+@media (max-height: 760px) {
+  .student-sidebar {
+    padding-top: 18px;
+    padding-bottom: 10px;
+  }
+
+  .student-sidebar .sidebar-primary-nav {
+    margin-top: 16px;
+  }
+
+  .student-sidebar .sidebar-secondary-nav {
+    margin-bottom: 8px;
+  }
+
+  .sidebar-profile {
+    min-height: 52px;
+  }
+
+  .sidebar-profile-avatar {
+    width: 40px;
+    height: 40px;
+  }
+}

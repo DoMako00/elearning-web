@@ -1,5 +1,6 @@
 import { Bell, ChevronDown, Sparkles } from "lucide-react";
 import type { UserHeaderActionsProps } from "./user-header-actions.types";
+import "./UserHeaderActions.css";
 
 const numberFormatter = new Intl.NumberFormat("en-US");
 
@@ -22,7 +23,7 @@ export function UserHeaderActions({
     >
       <button
         type="button"
-        className="relative grid size-[28px] shrink-0 place-items-center rounded-full text-[var(--color-text-primary)] transition-opacity duration-150 hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] focus-visible:ring-offset-2"
+        className="user-header-actions__notifications relative grid size-[28px] shrink-0 place-items-center rounded-full text-[var(--color-text-primary)] transition-opacity duration-150 hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] focus-visible:ring-offset-2"
         aria-label="Notifications"
         onClick={onNotificationClick}
       >
@@ -37,7 +38,7 @@ export function UserHeaderActions({
 
       <button
         type="button"
-        className="ml-8 flex h-[58px] w-[138px] shrink-0 items-center justify-center gap-[11px] rounded-full border border-[var(--color-border-subtle)] bg-[var(--color-surface-hover)] text-[var(--color-text-primary)] transition-opacity duration-150 hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] focus-visible:ring-offset-2"
+        className="user-header-actions__xp ml-8 flex h-[58px] w-[138px] shrink-0 items-center justify-center gap-[11px] rounded-full border border-[var(--color-border-subtle)] bg-[var(--color-surface-hover)] text-[var(--color-text-primary)] transition-opacity duration-150 hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] focus-visible:ring-offset-2"
         aria-label={`${formattedXp} experience points`}
         onClick={onXpClick}
       >

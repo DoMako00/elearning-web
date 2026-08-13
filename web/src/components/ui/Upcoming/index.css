@@ -1,6 +1,14 @@
 @import '../Continue_Learning/index.css';
 
 .upcoming-card {
+  --primary-color: #29a865;
+  --secondary-color: #ffffff;
+  --paragraphs: #5b6772;
+  --text-color-black: #0c0e24;
+  --text-color-green: #1b8b45;
+  --label-color-light-green: #e7faef;
+  --color-border-color: #edf0f2;
+
   width: 100%;
   max-width: var(--upcoming-card-max-width, 344px);
   min-height: var(--upcoming-card-height, 257px);
@@ -158,4 +166,69 @@
 
 .upcoming-cta:active {
   transform: scale(0.99);
+}
+
+.upcoming-cta:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+@container bento-slot (max-width: 320px) {
+  .upcoming-card {
+    padding: 14px;
+  }
+
+  .upcoming-count-badge {
+    padding: 6px 9px;
+  }
+}
+
+@container bento-slot (max-height: 220px) {
+  .upcoming-card {
+    padding: 8px 12px;
+  }
+
+  .upcoming-header {
+    min-height: 44px;
+    margin-bottom: 2px;
+  }
+
+  .upcoming-count-badge {
+    min-height: 44px;
+    padding: 6px 9px;
+  }
+
+  .upcoming-body {
+    gap: 4px;
+    margin-bottom: 3px;
+  }
+
+  .upcoming-item {
+    gap: 8px;
+  }
+
+  .upcoming-item-icon-box {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+  }
+
+  .upcoming-item-icon {
+    width: 17px;
+    height: 17px;
+  }
+
+  .upcoming-item-title {
+    font-size: 13px;
+    line-height: 17px;
+  }
+
+  .upcoming-item-time {
+    font-size: 12px;
+    line-height: 15px;
+  }
+
+  .upcoming-cta {
+    height: 44px;
+  }
 }
