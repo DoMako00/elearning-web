@@ -1,3 +1,49 @@
+/*
+ * The Weekly Goal slot is shorter than the 1536x1024 reference on browser
+ * viewports with visible chrome. Keep the reference ring at the larger slot
+ * size, but reserve enough room for the hours, message, and seven-day row.
+ */
+.weekly-goal-card {
+  --weekly-goal-ring-size: clamp(132px, calc(100cqh - 180px), 158px);
+  --weekly-goal-body-top: clamp(8px, calc(18cqh - 49px), 16px);
+  --weekly-goal-hours-top: clamp(8px, calc(11cqh - 27px), 13px);
+  --weekly-goal-message-top: clamp(2px, calc(6.5cqh - 19px), 5px);
+  --weekly-goal-days-top: clamp(8px, calc(17.5cqh - 47px), 16px);
+}
+
+.weekly-goal-body {
+  min-height: 0;
+  justify-content: flex-start;
+  overflow: visible;
+  padding-top: var(--weekly-goal-body-top);
+}
+
+.weekly-goal-ring {
+  width: var(--weekly-goal-ring-size);
+  height: var(--weekly-goal-ring-size);
+}
+
+.weekly-goal-ring > div span:first-child {
+  font-size: clamp(25px, calc(11cqh - 10px), 30px);
+}
+
+.weekly-goal-ring > div span:last-child {
+  margin-top: clamp(5px, calc(8.7cqh - 22px), 9px);
+  font-size: clamp(12px, calc(2.2cqh + 5px), 13px);
+}
+
+.weekly-goal-hours {
+  margin-top: var(--weekly-goal-hours-top);
+}
+
+.weekly-goal-message {
+  margin-top: var(--weekly-goal-message-top);
+}
+
+.weekly-goal-days {
+  margin-top: var(--weekly-goal-days-top);
+}
+
 @container bento-slot (max-width: 360px) {
   .weekly-goal-card {
     padding: 14px 14px 12px;
