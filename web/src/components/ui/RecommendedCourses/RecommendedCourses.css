@@ -374,3 +374,125 @@
     height: 32px;
   }
 }
+
+/* Large-display recommended balance */
+@container bento-slot (min-width: 1800px) and (min-height: 300px) {
+  .recommended-card {
+    padding: 24px 28px;
+  }
+
+  .recommended-header {
+    min-height: 34px;
+  }
+
+  .recommended-header h2 {
+    font-size: 19px;
+  }
+
+  .recommended-view-all {
+    font-size: 15px;
+  }
+
+  .recommended-row {
+    gap: 18px;
+    padding-top: 12px;
+    padding-right: 30px;
+  }
+
+  .recommended-course {
+    padding: 20px;
+  }
+
+  .recommended-course-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 13px;
+  }
+
+  .recommended-course-icon svg {
+    width: 29px;
+    height: 29px;
+  }
+
+  .recommended-course-js {
+    font-size: 20px;
+  }
+
+  .recommended-bookmark {
+    top: 18px;
+    right: 18px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .recommended-course-copy {
+    padding-top: 12px;
+  }
+
+  .recommended-course-copy h3 {
+    font-size: 17px;
+  }
+
+  .recommended-course-copy p {
+    margin-top: 6px;
+    font-size: 14px;
+  }
+
+  .recommended-rating {
+    gap: 6px;
+    font-size: 14px;
+  }
+
+  .recommended-rating svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .recommended-next {
+    width: 58px;
+    height: 58px;
+  }
+}
+
+/* Portrait tablet recommended readability */
+@media (max-width: 1023px) and (orientation: portrait) {
+  .recommended-row {
+    height: 160px;
+    flex: 0 0 160px;
+  }
+
+  .recommended-course {
+    height: 100%;
+  }
+
+  .recommended-course-copy h3 {
+    font-size: 11px;
+  }
+
+  .recommended-course-copy p {
+    font-size: 10px;
+  }
+
+  .recommended-rating {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 780px) and (orientation: portrait) {
+  .recommended-row {
+    height: 150px;
+    flex-basis: 150px;
+  }
+
+  .recommended-course-copy h3 {
+    font-size: 10px;
+  }
+
+  .recommended-course-copy p {
+    font-size: 9px;
+  }
+
+  .recommended-rating {
+    font-size: 10px;
+  }
+}

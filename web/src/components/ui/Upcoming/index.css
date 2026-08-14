@@ -259,3 +259,66 @@
     font-size: 9px;
   }
 }
+
+/* Tall-tablet and large-display upcoming balance */
+@container bento-slot (max-width: 240px) and (min-height: 280px) {
+  .upcoming-body {
+    justify-content: center;
+  }
+}
+
+@container bento-slot (min-width: 520px) and (min-height: 300px) {
+  .upcoming-card {
+    padding: 24px;
+  }
+
+  .upcoming-header {
+    min-height: 40px;
+    margin-bottom: 12px;
+  }
+
+  .upcoming-title {
+    font-size: 19px;
+  }
+
+  .upcoming-count-badge {
+    width: 62px;
+    height: 40px;
+    font-size: 15px;
+  }
+
+  .upcoming-body {
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .upcoming-item {
+    gap: 14px;
+  }
+
+  .upcoming-item-icon-box {
+    width: 52px;
+    height: 52px;
+    flex-basis: 52px;
+  }
+
+  .upcoming-item-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .upcoming-item-title {
+    font-size: 16px;
+    line-height: 22px;
+  }
+
+  .upcoming-item-time {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .upcoming-cta {
+    height: 48px;
+    font-size: 15px;
+  }
+}

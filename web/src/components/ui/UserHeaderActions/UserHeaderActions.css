@@ -64,3 +64,43 @@
     height: 40px;
   }
 }
+
+/* Large-display header actions */
+@media (min-width: 2560px) {
+  .user-header-actions {
+    height: 68px;
+  }
+
+  .user-header-actions__notifications {
+    width: 44px;
+    height: 44px;
+  }
+
+  .user-header-actions__xp {
+    width: 156px;
+    height: 64px;
+    margin-left: 24px;
+    gap: 12px;
+  }
+
+  .user-header-actions__xp-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .user-header-actions__xp-copy {
+    font-size: 17px;
+  }
+
+  .user-header-actions__avatar {
+    width: 60px;
+    height: 60px;
+    margin-left: 28px;
+  }
+
+  .user-header-actions__chevron {
+    width: 20px;
+    height: 20px;
+    margin-left: 8px;
+  }
+}

@@ -124,3 +124,47 @@
     gap: 8px;
   }
 }
+
+/* Purpose-built portrait tablet composition */
+@media (max-width: 1023px) and (orientation: portrait) {
+  .dashboard-bento {
+    height: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows:
+      360px
+      330px
+      280px
+      260px
+      212px;
+    grid-template-areas:
+      "continue goal"
+      "ai ai"
+      "progress upcoming"
+      "streak streak"
+      "recommended recommended";
+    gap: 12px;
+    overflow: visible;
+  }
+
+  .dashboard-bento__row {
+    display: contents;
+  }
+
+  .dashboard-bento__slot {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 780px) and (orientation: portrait) {
+  .dashboard-bento {
+    grid-template-rows:
+      350px
+      320px
+      270px
+      250px
+      202px;
+    gap: 10px;
+  }
+}

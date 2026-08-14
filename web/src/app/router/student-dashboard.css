@@ -51,6 +51,16 @@
     clamp(12px, 1.67vw, 32px);
 }
 
+[data-main-workspace],
+[data-main-workspace] section,
+[data-main-workspace] article {
+  cursor: default;
+}
+
+[data-main-workspace] button,
+[data-main-workspace] a[href] {
+  cursor: pointer;
+}
 @media (max-width: 1023px) {
   .student-dashboard__header {
     gap: 10px;
@@ -89,5 +99,81 @@
   .student-dashboard__content {
     padding-top: 10px;
     padding-bottom: 10px;
+  }
+}
+
+/* Dead-canvas removal and large-display canvas */
+@media (max-width: 1535px) {
+  .student-dashboard {
+    max-height: none;
+    margin-block: 0;
+  }
+}
+
+@media (min-width: 2560px) {
+  .student-dashboard {
+    width: min(100%, calc(100dvh * 1.62));
+    max-width: 3500px;
+    max-height: 2160px;
+  }
+
+  .student-dashboard__header {
+    gap: 40px;
+    padding: 40px 40px 0 48px;
+  }
+
+  .student-dashboard__search {
+    max-width: 1100px;
+    flex-basis: 1100px;
+  }
+
+  .student-dashboard__content {
+    padding: 24px 36px 36px 40px;
+  }
+
+  .student-dashboard .search-bar {
+    height: 68px;
+  }
+}
+
+/* Portrait tablet: use natural document scrolling. */
+@media (max-width: 1023px) and (orientation: portrait) {
+  [data-app-shell] {
+    height: auto;
+    min-height: 100dvh;
+    align-items: start;
+    overflow: visible;
+  }
+
+  main[data-main-workspace] {
+    display: block;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .student-sidebar {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    min-height: 100dvh;
+  }
+
+  .student-dashboard {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  .student-dashboard__header {
+    position: relative;
+    z-index: 1;
+    padding-bottom: 12px;
+    background: var(--color-bg);
+  }
+
+  .student-dashboard__content {
+    overflow: visible;
+    padding-bottom: 20px;
   }
 }

@@ -32,6 +32,23 @@ body {
   background: var(--color-bg);
 }
 
+@media (max-width: 1023px) and (orientation: portrait) {
+  html,
+  body,
+  #root {
+    height: auto;
+    min-height: 100%;
+  }
+
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: none;
+    scroll-behavior: auto;
+  }
+}
+
 button,
 input,
 textarea,

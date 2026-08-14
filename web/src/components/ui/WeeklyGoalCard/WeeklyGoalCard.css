@@ -248,3 +248,105 @@
     height: clamp(70px, 50cqw, 88px);
   }
 }
+
+/* Portrait tablet goal balance */
+@container bento-slot (max-width: 240px) and (min-height: 330px) {
+  .weekly-goal-body {
+    justify-content: flex-start;
+    padding-top: 10px;
+  }
+
+  .weekly-goal-ring {
+    width: clamp(96px, 58cqw, 112px);
+    height: clamp(96px, 58cqw, 112px);
+  }
+
+  .weekly-goal-ring > div span:first-child {
+    font-size: 24px;
+  }
+
+  .weekly-goal-ring > div span:last-child {
+    margin-top: 4px;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+
+  .weekly-goal-hours {
+    margin-top: 8px;
+    font-size: 13px;
+  }
+
+  .weekly-goal-message {
+    margin-top: 2px;
+    font-size: 11px;
+  }
+}
+
+/* Tall-tablet and large-display goal balance */
+@container bento-slot (max-width: 240px) and (min-height: 420px) {
+  .weekly-goal-body {
+    justify-content: center;
+    padding-top: 0;
+  }
+}
+
+@container bento-slot (min-width: 480px) and (min-height: 450px) {
+  .weekly-goal-card {
+    padding: 30px 30px 24px;
+  }
+
+  .weekly-goal-header {
+    height: 40px;
+  }
+
+  .weekly-goal-header h2 {
+    font-size: 19px;
+  }
+
+  .weekly-goal-options {
+    width: 40px;
+    height: 40px;
+  }
+
+  .weekly-goal-body {
+    justify-content: center;
+    padding-top: 0;
+  }
+
+  .weekly-goal-ring {
+    width: clamp(190px, 36cqw, 240px);
+    height: clamp(190px, 36cqw, 240px);
+  }
+
+  .weekly-goal-ring > div span:first-child {
+    font-size: 38px;
+  }
+
+  .weekly-goal-ring > div span:last-child {
+    margin-top: 9px;
+    font-size: 14px;
+  }
+
+  .weekly-goal-hours {
+    margin-top: 16px;
+    font-size: 16px;
+  }
+
+  .weekly-goal-message {
+    margin-top: 5px;
+    font-size: 14px;
+  }
+
+  .weekly-goal-days {
+    margin-top: 18px;
+  }
+
+  .weekly-goal-days > div > span:first-child {
+    width: 13px;
+    height: 13px;
+  }
+
+  .weekly-goal-days > div > span:last-child {
+    font-size: 13px;
+  }
+}

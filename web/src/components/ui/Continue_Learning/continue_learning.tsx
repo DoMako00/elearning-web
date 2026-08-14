@@ -44,7 +44,7 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
         </div>
 
         <div className="continue-learning-main flex items-center gap-(--media-details-gap) mb-(--main-footer-gap)">
-          <div className="continue-learning-media relative shrink-0 w-(--media-width) h-(--media-height) rounded-(--border-radius-media) overflow-hidden shadow-sm group/media cursor-pointer">
+          <div className="continue-learning-media relative shrink-0 w-(--media-width) h-(--media-height) rounded-(--border-radius-media) overflow-hidden shadow-sm group/media">
             <img 
               src={imageSrc} 
               alt={courseName} 

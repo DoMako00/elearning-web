@@ -284,3 +284,108 @@
     font-size: 9px;
   }
 }
+
+/* Portrait tablet AI balance */
+@container bento-slot (max-width: 340px) and (min-height: 330px) {
+  .ai-guide-content {
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  }
+
+  .ai-guide-suggestions {
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .ai-guide-suggestions button {
+    min-height: 36px;
+    padding-block: 6px;
+  }
+
+  .ai-guide-art {
+    overflow: visible;
+    justify-content: flex-start;
+  }
+
+  .ai-guide-robot {
+    width: clamp(112px, 49cqw, 138px);
+    max-width: none;
+    flex: 0 0 auto;
+    max-height: 235px;
+    transform: translate(-16px, -2px);
+  }
+}
+
+/* Tall-tablet and large-display AI balance */
+@container bento-slot (max-width: 340px) and (min-height: 420px) {
+  .ai-guide-copy {
+    justify-content: center;
+    padding-top: 0;
+  }
+}
+
+@container bento-slot (min-width: 650px) and (min-height: 450px) {
+  .ai-guide-card {
+    padding: 30px;
+  }
+
+  .ai-guide-header {
+    min-height: 32px;
+    gap: 10px;
+  }
+
+  .ai-guide-header > svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .ai-guide-header h2 {
+    font-size: 19px;
+  }
+
+  .ai-guide-beta {
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .ai-guide-content {
+    grid-template-columns: minmax(0, 1.28fr) minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  .ai-guide-copy {
+    justify-content: center;
+    padding-top: 0;
+  }
+
+  .ai-guide-intro h3 {
+    font-size: clamp(28px, 4.5cqh, 34px);
+  }
+
+  .ai-guide-intro p {
+    font-size: 16px;
+  }
+
+  .ai-guide-suggestions {
+    width: min(100%, 380px);
+    gap: 12px;
+    margin-top: 26px;
+  }
+
+  .ai-guide-suggestions button {
+    min-height: 50px;
+    padding: 10px 14px;
+    font-size: 15px;
+  }
+
+  .ai-guide-suggestions svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .ai-guide-robot {
+    width: clamp(280px, 36cqw, 400px);
+    max-width: none;
+    max-height: 440px;
+    flex: 0 0 auto;
+  }
+}

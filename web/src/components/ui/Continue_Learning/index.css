@@ -548,3 +548,105 @@
     height: 4px;
   }
 }
+
+/* Portrait tablet Continue Learning balance */
+@container bento-slot (max-width: 300px) and (min-height: 330px) {
+  .continue-learning-main {
+    align-items: center;
+  }
+
+  .continue-learning-media,
+  .continue-learning-details {
+    align-self: center;
+  }
+
+  .continue-learning-media {
+    aspect-ratio: 0.92 / 1;
+    height: auto;
+    max-height: 191px;
+  }
+}
+
+/* Tall-tablet and large-display Continue Learning */
+@container bento-slot (max-width: 300px) and (min-height: 420px) {
+  .continue-learning {
+    --media-column-width: clamp(96px, 42cqw, 108px);
+  }
+}
+
+@container bento-slot (min-width: 600px) and (min-height: 450px) {
+  .continue-learning {
+    --card-padding-left: 30px;
+    --card-padding-right: 28px;
+    --card-padding-top: 28px;
+    --card-padding-bottom: 28px;
+    --media-column-width: clamp(220px, 34cqw, 300px);
+    --media-details-gap: 28px;
+    --section-gap: 22px;
+  }
+
+  .continue-learning-title {
+    font-size: 21px;
+  }
+
+  .continue-learning-options {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  .continue-learning-main {
+    align-items: center;
+  }
+
+  .continue-learning-media {
+    height: auto;
+    max-height: 300px;
+    align-self: center;
+    aspect-ratio: 0.96 / 1;
+  }
+
+  .continue-learning-details {
+    align-self: center;
+    padding-top: 0;
+  }
+
+  .continue-learning-status {
+    height: 30px;
+    padding-inline: 16px;
+    font-size: 14px;
+  }
+
+  .continue-learning-course-title {
+    margin-top: 14px;
+    font-size: clamp(24px, 3.2cqw, 30px);
+  }
+
+  .continue-learning-metrics {
+    margin-top: 24px;
+  }
+
+  .continue-learning-lesson {
+    margin-top: 14px;
+    font-size: 14px;
+  }
+
+  .continue-learning-play-button {
+    width: 58px;
+    height: 58px;
+  }
+
+  .continue-learning-cta,
+  .continue-learning-footer > button:last-child {
+    height: 56px;
+  }
+
+  .continue-learning-cta {
+    font-size: 16px;
+  }
+
+  .continue-learning-footer > button:last-child {
+    width: 56px;
+    flex-basis: 56px;
+  }
+}
