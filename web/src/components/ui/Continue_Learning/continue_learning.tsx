@@ -101,7 +101,8 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
           <button
             type="button"
             onClick={() => setIsBookmarked(!isBookmarked)}
-            aria-label="Bookmark course"
+            aria-label={isBookmarked ? "Remove course bookmark" : "Bookmark course"}
+            aria-pressed={isBookmarked}
             data-bookmarked={isBookmarked}
             className={`w-(--bookmark-width) h-(--bookmark-height) rounded-(--border-radius-cta) border border-(--color-border-color) flex items-center justify-center transition-all duration-200 cursor-pointer ${
               isBookmarked 

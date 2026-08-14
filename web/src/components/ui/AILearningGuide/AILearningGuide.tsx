@@ -1,11 +1,11 @@
-import { Atom, Map, Network, Sparkles } from "lucide-react";
+import { Atom, Route, Sparkles, Workflow } from "lucide-react";
 import robotAsset from "../../../Assets/ai-learning-robot.png";
 import "./AILearningGuide.css";
 
 const suggestions = [
-  { label: "Recommend a study path for me", icon: Map },
+  { label: "Recommend a study path for me", icon: Route },
   { label: "Explain useEffect in simple terms", icon: Atom },
-  { label: "Best practices for React performance", icon: Network },
+  { label: "Best practices for React performance", icon: Workflow },
 ] as const;
 
 export function AILearningGuide() {

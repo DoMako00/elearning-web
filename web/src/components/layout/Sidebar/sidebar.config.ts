@@ -1,14 +1,14 @@
 import {
   BadgeCheck,
-  BookOpen,
+  LibraryBig,
   CalendarDays,
   CircleHelp,
-  ClipboardList,
+  ClipboardCheck,
   Compass,
   Home,
   MessageSquare,
   Settings,
-  Users,
+  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -28,12 +28,12 @@ export interface SidebarProfile {
 
 export const primarySidebarItems: SidebarItem[] = [
   { label: "Home", icon: Home, href: "/", enabled: true },
-  { label: "My Courses", icon: BookOpen, href: "/courses", enabled: false },
+  { label: "My Courses", icon: LibraryBig, href: "/courses", enabled: false },
   { label: "Explore", icon: Compass, href: "/explore", enabled: false },
   { label: "Calendar", icon: CalendarDays, href: "/calendar", enabled: false },
   {
     label: "Assignments",
-    icon: ClipboardList,
+    icon: ClipboardCheck,
     href: "/assignments",
     enabled: false,
   },
@@ -50,7 +50,7 @@ export const primarySidebarItems: SidebarItem[] = [
     badge: 3,
     enabled: false,
   },
-  { label: "Community", icon: Users, href: "/community", enabled: false },
+  { label: "Community", icon: UsersRound, href: "/community", enabled: false },
 ];
 
 export const secondarySidebarItems: SidebarItem[] = [

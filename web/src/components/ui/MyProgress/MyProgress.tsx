@@ -3,6 +3,7 @@ import {
   AreaChart,
   ResponsiveContainer,
   Tooltip,
+  YAxis,
 } from 'recharts';
 import { RefreshCw, TrendingUp } from 'lucide-react';
 import type { MyProgressProps } from './my-progress.types';
@@ -76,6 +77,8 @@ export function MyProgress({
                   <stop offset="100%" stopColor="var(--primary-color)" stopOpacity={0} />
                 </linearGradient>
               </defs>
+
+              <YAxis domain={[0, 100]} hide width={0} />
 
               <Tooltip
                 content={<CustomTooltip />}

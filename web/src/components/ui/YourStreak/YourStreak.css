@@ -223,7 +223,7 @@
   }
 }
 
-@container bento-slot (max-height: 190px) {
+@container bento-slot (max-height: 210px) {
   .your-streak-card {
     grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.8fr);
     column-gap: 14px;
@@ -241,9 +241,6 @@
   }
 
   .your-streak-stats {
-    flex-direction: row;
-    align-items: baseline;
-    gap: 8px;
     margin-top: 4px;
   }
 
@@ -252,12 +249,12 @@
   }
 
   .your-streak-stats span {
-    margin-top: 0;
+    margin-top: 2px;
     font-size: 13px;
   }
 
   .your-streak-indicators {
-    gap: 7px;
+    gap: 6px;
     margin-top: 5px;
   }
 
@@ -277,19 +274,16 @@
   }
 
   .your-streak-right {
-    grid-template-columns: minmax(48px, 90px) minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr);
-    align-items: center;
-    column-gap: 12px;
+    row-gap: 6px;
   }
 
   .your-streak-trophy {
-    width: clamp(64px, 55cqh, 90px);
-    max-height: 90px;
+    width: clamp(64px, 50cqh, 84px);
+    max-height: 84px;
   }
 
   .your-streak-badges-button {
-    height: 40px;
+    height: 44px;
     max-width: 160px;
     font-size: 13px;
   }
@@ -301,228 +295,23 @@
   }
 }
 
-/* Fixed-composition streak compaction */
-@container bento-slot (max-width: 380px) {
-  .your-streak-card {
-    grid-template-columns: minmax(0, 1.7fr) minmax(0, 0.7fr);
-    column-gap: 8px;
-    padding: 12px;
-  }
-
-  .your-streak-header {
-    gap: 5px;
-  }
-
-  .your-streak-fire {
-    width: 16px;
-    height: 16px;
-    flex-basis: 16px;
-  }
-
-  .your-streak-header h2 {
-    font-size: 14px;
-  }
-
-  .your-streak-stats {
-    margin-top: 9px;
-  }
-
-  .your-streak-stats strong {
-    font-size: 30px;
-  }
-
-  .your-streak-stats span {
-    margin-top: 3px;
-    font-size: 12px;
-  }
-
-  .your-streak-indicators {
-    gap: 3px;
-    margin-top: 8px;
-  }
-
-  .your-streak-indicator {
-    width: 16px;
-    height: 16px;
-  }
-
-  .your-streak-indicator--complete svg {
-    width: 10px;
-    height: 10px;
-  }
-
-  .your-streak-message {
-    font-size: 11px;
-    line-height: 1.25;
-  }
-
-  .your-streak-right {
-    row-gap: 6px;
-  }
-
-  .your-streak-trophy {
-    width: clamp(58px, 32cqw, 82px);
-    max-height: 90px;
-  }
-
-  .your-streak-badges-button {
-    height: 38px;
-    max-width: 104px;
-    font-size: 11px;
-  }
-}
-
-@container bento-slot (max-width: 320px) {
-  .your-streak-card {
-    grid-template-columns: minmax(0, 1.78fr) minmax(0, 0.62fr);
-    padding: 10px;
-  }
-
-  .your-streak-indicators {
-    gap: 2px;
-  }
-
-  .your-streak-indicator {
-    width: 15px;
-    height: 15px;
-  }
-
-  .your-streak-message {
-    font-size: 10px;
-  }
-
-  .your-streak-trophy {
-    width: clamp(50px, 29cqw, 70px);
-  }
-
-  .your-streak-badges-button {
-    height: 36px;
-    font-size: 10px;
-  }
-}
-
-/* Portrait tablet streak balance */
-@container bento-slot (min-width: 321px) and (max-width: 380px) and (min-height: 230px) {
-  .your-streak-card {
-    grid-template-columns: minmax(0, 1.62fr) minmax(0, 0.78fr);
-    column-gap: 10px;
-    padding: 14px;
-  }
-
-  .your-streak-header {
-    gap: 6px;
-  }
-
-  .your-streak-header h2 {
-    font-size: 15px;
-  }
-
-  .your-streak-fire {
-    width: 17px;
-    height: 17px;
-    flex-basis: 17px;
-  }
-
-  .your-streak-stats {
-    margin-top: 11px;
-  }
-
-  .your-streak-stats strong {
-    font-size: 36px;
-  }
-
-  .your-streak-stats span {
-    font-size: 13px;
-  }
-
-  .your-streak-indicators {
-    gap: 5px;
-    margin-top: 10px;
-  }
-
-  .your-streak-indicator {
-    width: 18px;
-    height: 18px;
-  }
-
-  .your-streak-message {
-    font-size: 12px;
-  }
-
-  .your-streak-right {
-    row-gap: 8px;
-  }
-
-  .your-streak-trophy {
-    width: clamp(96px, 32cqw, 112px);
-    max-height: 122px;
-  }
-
-  .your-streak-badges-button {
-    width: 100%;
-    max-width: 112px;
-    height: 40px;
-    font-size: 12px;
-  }
-}
-
-/* Large-display streak balance */
+/* Modest growth inside the capped 2K/4K canvas. */
 @container bento-slot (min-width: 700px) and (min-height: 300px) {
-  .your-streak-card {
-    grid-template-columns: minmax(0, 1.55fr) minmax(0, 0.9fr);
-    column-gap: 40px;
-    padding: 30px 38px 30px 40px;
-  }
-
-  .your-streak-fire {
-    width: 22px;
-    height: 22px;
-    flex-basis: 22px;
-  }
-
   .your-streak-header h2 {
-    font-size: 21px;
-  }
-
-  .your-streak-stats {
-    margin-top: 28px;
+    font-size: 19px;
   }
 
   .your-streak-stats strong {
-    font-size: 52px;
-  }
-
-  .your-streak-stats span {
-    font-size: 18px;
-  }
-
-  .your-streak-indicators {
-    gap: 11px;
-    margin-top: 20px;
-  }
-
-  .your-streak-indicator {
-    width: 26px;
-    height: 26px;
-  }
-
-  .your-streak-indicator--complete svg {
-    width: 15px;
-    height: 15px;
-  }
-
-  .your-streak-message {
-    font-size: 16px;
+    font-size: 48px;
   }
 
   .your-streak-trophy {
-    width: clamp(180px, 46cqh, 230px);
-    max-height: 240px;
+    width: 185px;
+    max-height: 185px;
   }
 
   .your-streak-badges-button {
-    max-width: 240px;
-    height: 50px;
-    font-size: 16px;
+    height: 48px;
+    font-size: 15px;
   }
 }

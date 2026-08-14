@@ -48,8 +48,8 @@ export function RecommendedCourses() {
               <Bookmark aria-hidden="true" />
             </button>
             <div className="recommended-course-copy">
-              <h3>{course.title}</h3>
-              <p>Level: {course.level}</p>
+              <h3 title={course.title}>{course.title}</h3>
+              <p title={'Level: ' + course.level}>Level: {course.level}</p>
               <span className="recommended-rating">
                 <Star aria-hidden="true" /> {course.rating}
               </span>

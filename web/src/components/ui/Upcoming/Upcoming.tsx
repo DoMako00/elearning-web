@@ -1,4 +1,4 @@
-import { Calendar, FileText, Video } from 'lucide-react';
+import { Calendar, MonitorPlay, NotebookPen } from 'lucide-react';
 import type { UpcomingItem, UpcomingProps } from './upcoming.types';
 import './index.css';
 
@@ -20,10 +20,10 @@ const DEFAULT_ITEMS: UpcomingItem[] = [
 function renderItemIcon(type?: string) {
   switch (type) {
     case 'session':
-      return <Video className="upcoming-item-icon" aria-hidden="true" />;
+      return <MonitorPlay className="upcoming-item-icon" aria-hidden="true" />;
     case 'quiz':
     default:
-      return <FileText className="upcoming-item-icon" aria-hidden="true" />;
+      return <NotebookPen className="upcoming-item-icon" aria-hidden="true" />;
   }
 }
 

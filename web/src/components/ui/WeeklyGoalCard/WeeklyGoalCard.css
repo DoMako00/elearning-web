@@ -4,7 +4,11 @@
  * size, but reserve enough room for the hours, message, and seven-day row.
  */
 .weekly-goal-card {
-  --weekly-goal-ring-size: clamp(132px, calc(100cqh - 180px), 158px);
+  --weekly-goal-ring-size: clamp(
+    104px,
+    min(44cqw, 48cqh),
+    158px
+  );
   --weekly-goal-body-top: clamp(8px, calc(18cqh - 49px), 16px);
   --weekly-goal-hours-top: clamp(8px, calc(11cqh - 27px), 13px);
   --weekly-goal-message-top: clamp(2px, calc(6.5cqh - 19px), 5px);
@@ -13,7 +17,7 @@
 
 .weekly-goal-body {
   min-height: 0;
-  justify-content: flex-start;
+  justify-content: center;
   overflow: visible;
   padding-top: var(--weekly-goal-body-top);
 }
@@ -73,11 +77,6 @@
     padding-top: 8px;
   }
 
-  .weekly-goal-ring {
-    width: clamp(104px, 40cqw, 138px);
-    height: clamp(104px, 40cqw, 138px);
-  }
-
   .weekly-goal-hours {
     margin-top: 7px;
   }
@@ -107,11 +106,6 @@
 
   .weekly-goal-body {
     padding-top: 4px;
-  }
-
-  .weekly-goal-ring {
-    width: clamp(94px, 43cqh, 118px);
-    height: clamp(94px, 43cqh, 118px);
   }
 
   .weekly-goal-ring > div span:first-child {
@@ -154,15 +148,6 @@
   content: "";
 }
 
-/* Fixed-composition goal compaction */
-.weekly-goal-card {
-  --weekly-goal-ring-size: clamp(
-    94px,
-    min(calc(100cqh - 180px), calc(100cqw - 72px)),
-    158px
-  );
-}
-
 @container bento-slot (max-width: 240px) {
   .weekly-goal-card {
     padding: 11px 10px 9px;
@@ -185,13 +170,8 @@
     padding-top: 4px;
   }
 
-  .weekly-goal-ring {
-    width: clamp(76px, 52cqw, 104px);
-    height: clamp(76px, 52cqw, 104px);
-  }
-
   .weekly-goal-ring > div span:first-child {
-    font-size: 21px;
+    font-size: 23px;
   }
 
   .weekly-goal-ring > div span:last-child {
@@ -243,69 +223,30 @@
     font-size: 13px;
   }
 
-  .weekly-goal-ring {
-    width: clamp(70px, 50cqw, 88px);
-    height: clamp(70px, 50cqw, 88px);
-  }
 }
 
-/* Portrait tablet goal balance */
-@container bento-slot (max-width: 240px) and (min-height: 330px) {
-  .weekly-goal-body {
-    justify-content: flex-start;
-    padding-top: 10px;
-  }
-
-  .weekly-goal-ring {
-    width: clamp(96px, 58cqw, 112px);
-    height: clamp(96px, 58cqw, 112px);
-  }
-
-  .weekly-goal-ring > div span:first-child {
-    font-size: 24px;
-  }
-
-  .weekly-goal-ring > div span:last-child {
-    margin-top: 4px;
-    font-size: 9px;
-    white-space: nowrap;
-  }
-
-  .weekly-goal-hours {
-    margin-top: 8px;
-    font-size: 13px;
-  }
-
-  .weekly-goal-message {
-    margin-top: 2px;
-    font-size: 11px;
-  }
-}
-
-/* Tall-tablet and large-display goal balance */
-@container bento-slot (max-width: 240px) and (min-height: 420px) {
-  .weekly-goal-body {
-    justify-content: center;
-    padding-top: 0;
-  }
-}
-
+/* Restrained expansion for the largest supported dashboard canvas. */
 @container bento-slot (min-width: 480px) and (min-height: 450px) {
   .weekly-goal-card {
-    padding: 30px 30px 24px;
+    --weekly-goal-ring-size: clamp(
+      158px,
+      min(34cqw, 38cqh),
+      176px
+    );
+    padding: 26px 28px 22px;
   }
 
   .weekly-goal-header {
-    height: 40px;
+    height: 36px;
   }
 
   .weekly-goal-header h2 {
-    font-size: 19px;
+    font-size: 18px;
   }
 
   .weekly-goal-options {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
   }
 
   .weekly-goal-body {
@@ -313,40 +254,35 @@
     padding-top: 0;
   }
 
-  .weekly-goal-ring {
-    width: clamp(190px, 36cqw, 240px);
-    height: clamp(190px, 36cqw, 240px);
-  }
-
   .weekly-goal-ring > div span:first-child {
-    font-size: 38px;
+    font-size: 34px;
   }
 
   .weekly-goal-ring > div span:last-child {
-    margin-top: 9px;
+    margin-top: 8px;
     font-size: 14px;
   }
 
   .weekly-goal-hours {
-    margin-top: 16px;
-    font-size: 16px;
+    margin-top: 14px;
+    font-size: 15px;
   }
 
   .weekly-goal-message {
     margin-top: 5px;
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .weekly-goal-days {
-    margin-top: 18px;
+    margin-top: 16px;
   }
 
   .weekly-goal-days > div > span:first-child {
-    width: 13px;
-    height: 13px;
+    width: 12px;
+    height: 12px;
   }
 
   .weekly-goal-days > div > span:last-child {
-    font-size: 13px;
+    font-size: 12px;
   }
 }

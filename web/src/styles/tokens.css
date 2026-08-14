@@ -41,12 +41,3 @@
     --sidebar-nav-item-height: 44px;
   }
 }
-
-/* Large-display shell density */
-@media (min-width: 2560px) {
-  :root {
-    --sidebar-width: 260px;
-    --sidebar-gutter: 18px;
-    --sidebar-nav-item-height: 60px;
-  }
-}

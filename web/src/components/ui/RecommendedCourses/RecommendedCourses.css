@@ -51,11 +51,13 @@
   display: grid;
   min-width: 0;
   min-height: 0;
-  flex: 1 1 auto;
+  max-height: 180px;
+  flex: 1 1 180px;
   grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: stretch;
   gap: clamp(8px, 1.05cqw, 16px);
   padding-top: clamp(6px, 3.8cqh, 10px);
-  padding-right: 24px;
+  padding-right: 48px;
 }
 
 .recommended-course {
@@ -63,6 +65,7 @@
   display: flex;
   min-width: 0;
   min-height: 0;
+  height: 100%;
   flex-direction: column;
   overflow: hidden;
   padding: clamp(11px, 6cqh, 15px);
@@ -175,10 +178,10 @@
   position: absolute;
   z-index: 2;
   top: 50%;
-  right: 0;
+  right: 2px;
   display: grid;
-  width: clamp(44px, 4cqw, 52px);
-  height: clamp(44px, 4cqw, 52px);
+  width: clamp(44px, 3.2cqw, 48px);
+  height: clamp(44px, 3.2cqw, 48px);
   place-items: center;
   border: 1px solid #d9e7df;
   border-radius: 50%;
@@ -186,7 +189,7 @@
   color: #159455;
   box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
   cursor: pointer;
-  transform: translateY(-35%);
+  transform: translateY(-50%);
 }
 
 .recommended-next svg { width: 21px; height: 21px; }
@@ -249,11 +252,11 @@
   .recommended-row {
     gap: 6px;
     padding-top: 5px;
-    padding-right: 18px;
+    padding-right: 44px;
   }
 
   .recommended-course {
-    padding: 7px;
+    padding: 8px;
     border-radius: 11px;
   }
 
@@ -280,10 +283,10 @@
   }
 
   .recommended-bookmark {
-    top: 7px;
-    right: 7px;
-    width: 28px;
-    height: 28px;
+    top: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
     border-radius: 8px;
   }
 
@@ -297,18 +300,18 @@
   }
 
   .recommended-course-copy h3 {
-    font-size: 10px;
+    font-size: 11px;
   }
 
   .recommended-course-copy p {
     margin-top: 2px;
-    font-size: 9px;
+    font-size: 10px;
   }
 
   .recommended-rating {
     gap: 3px;
     padding-top: 3px;
-    font-size: 10px;
+    font-size: 11px;
   }
 
   .recommended-rating svg {
@@ -317,8 +320,8 @@
   }
 
   .recommended-next {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
   }
 
   .recommended-next svg {
@@ -327,134 +330,6 @@
   }
 }
 
-@container bento-slot (max-width: 700px) {
-  .recommended-card {
-    padding: 8px;
-  }
-
-  .recommended-header h2 {
-    font-size: 13px;
-  }
-
-  .recommended-row {
-    gap: 5px;
-    padding-right: 16px;
-  }
-
-  .recommended-course {
-    padding: 6px;
-  }
-
-  .recommended-course-icon {
-    width: 27px;
-    height: 27px;
-  }
-
-  .recommended-bookmark {
-    top: 6px;
-    right: 6px;
-    width: 26px;
-    height: 26px;
-  }
-
-  .recommended-course-copy h3 {
-    font-size: 9px;
-  }
-
-  .recommended-course-copy p {
-    font-size: 8px;
-  }
-
-  .recommended-rating {
-    font-size: 9px;
-  }
-
-  .recommended-next {
-    width: 32px;
-    height: 32px;
-  }
-}
-
-/* Large-display recommended balance */
-@container bento-slot (min-width: 1800px) and (min-height: 300px) {
-  .recommended-card {
-    padding: 24px 28px;
-  }
-
-  .recommended-header {
-    min-height: 34px;
-  }
-
-  .recommended-header h2 {
-    font-size: 19px;
-  }
-
-  .recommended-view-all {
-    font-size: 15px;
-  }
-
-  .recommended-row {
-    gap: 18px;
-    padding-top: 12px;
-    padding-right: 30px;
-  }
-
-  .recommended-course {
-    padding: 20px;
-  }
-
-  .recommended-course-icon {
-    width: 54px;
-    height: 54px;
-    border-radius: 13px;
-  }
-
-  .recommended-course-icon svg {
-    width: 29px;
-    height: 29px;
-  }
-
-  .recommended-course-js {
-    font-size: 20px;
-  }
-
-  .recommended-bookmark {
-    top: 18px;
-    right: 18px;
-    width: 40px;
-    height: 40px;
-  }
-
-  .recommended-course-copy {
-    padding-top: 12px;
-  }
-
-  .recommended-course-copy h3 {
-    font-size: 17px;
-  }
-
-  .recommended-course-copy p {
-    margin-top: 6px;
-    font-size: 14px;
-  }
-
-  .recommended-rating {
-    gap: 6px;
-    font-size: 14px;
-  }
-
-  .recommended-rating svg {
-    width: 17px;
-    height: 17px;
-  }
-
-  .recommended-next {
-    width: 58px;
-    height: 58px;
-  }
-}
-
-/* Portrait tablet recommended readability */
 @media (max-width: 1023px) and (orientation: portrait) {
   .recommended-row {
     height: 160px;
