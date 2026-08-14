@@ -223,7 +223,7 @@
   }
 }
 
-@container bento-slot (max-height: 210px) {
+@container bento-slot (max-height: 215px) {
   .your-streak-card {
     grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.8fr);
     column-gap: 14px;

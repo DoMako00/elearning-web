@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   ArrowRight,
   Atom,
@@ -27,6 +28,15 @@ function CourseIcon({ type }: { type: (typeof courses)[number]["icon"] }) {
 }
 
 export function RecommendedCourses() {
+  const [bookmarkedCourses, setBookmarkedCourses] = useState<Record<string, boolean>>({});
+
+  const toggleBookmark = (title: string) => {
+    setBookmarkedCourses((prev) => ({
+      ...prev,
+      [title]: !prev[title],
+    }));
+  };
+
   return (
     <section className="recommended-card" aria-labelledby="recommended-title">
       <header className="recommended-header">
@@ -38,24 +48,34 @@ export function RecommendedCourses() {
       </header>
 
       <div className="recommended-row">
-        {courses.map((course) => (
-          <article className="recommended-course" key={course.title}>
-            <div className="recommended-course-wash" aria-hidden="true" />
-            <div className={`recommended-course-icon recommended-course-icon--${course.icon}`}>
-              <CourseIcon type={course.icon} />
-            </div>
-            <button type="button" className="recommended-bookmark" aria-label={`Bookmark ${course.title}`}>
-              <Bookmark aria-hidden="true" />
-            </button>
-            <div className="recommended-course-copy">
-              <h3 title={course.title}>{course.title}</h3>
-              <p title={'Level: ' + course.level}>Level: {course.level}</p>
-              <span className="recommended-rating">
-                <Star aria-hidden="true" /> {course.rating}
-              </span>
-            </div>
-          </article>
-        ))}
+        {courses.map((course) => {
+          const isBookmarked = !!bookmarkedCourses[course.title];
+          return (
+            <article className="recommended-course" key={course.title}>
+              <div className="recommended-course-wash" aria-hidden="true" />
+              <div className={`recommended-course-icon recommended-course-icon--${course.icon}`}>
+                <CourseIcon type={course.icon} />
+              </div>
+              <button
+                type="button"
+                onClick={() => toggleBookmark(course.title)}
+                className={`recommended-bookmark ${isBookmarked ? "recommended-bookmark--active" : ""}`}
+                aria-label={isBookmarked ? `Remove bookmark for ${course.title}` : `Bookmark ${course.title}`}
+                aria-pressed={isBookmarked}
+                data-bookmarked={isBookmarked}
+              >
+                <Bookmark className={isBookmarked ? "fill-current" : ""} aria-hidden="true" />
+              </button>
+              <div className="recommended-course-copy">
+                <h3 title={course.title}>{course.title}</h3>
+                <p title={'Level: ' + course.level}>Level: {course.level}</p>
+                <span className="recommended-rating">
+                  <Star aria-hidden="true" /> {course.rating}
+                </span>
+              </div>
+            </article>
+          );
+        })}
 
         <button type="button" className="recommended-next" aria-label="Show more recommended courses">
           <ChevronRight aria-hidden="true" />
@@ -64,3 +84,4 @@ export function RecommendedCourses() {
     </section>
   );
 }
+

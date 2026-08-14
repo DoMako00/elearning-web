@@ -119,9 +119,36 @@
   background: rgba(255, 255, 255, 0.88);
   color: #159455;
   cursor: pointer;
+  transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease, transform 150ms ease;
 }
 
-.recommended-bookmark svg { width: 17px; height: 17px; }
+.recommended-bookmark:hover {
+  border-color: #159455;
+  background: #e8f8ef;
+  color: #159455;
+}
+
+.recommended-bookmark:active {
+  transform: scale(0.93);
+}
+
+.recommended-bookmark--active,
+.recommended-bookmark[data-bookmarked="true"] {
+  border-color: #159455;
+  background: #e8f8ef;
+  color: #159455;
+}
+
+.recommended-bookmark svg {
+  width: 17px;
+  height: 17px;
+  transition: fill 200ms ease, transform 200ms ease;
+}
+
+.recommended-bookmark svg.fill-current,
+.recommended-bookmark--active svg {
+  fill: currentColor;
+}
 
 .recommended-course-copy {
   position: relative;
