@@ -37,7 +37,18 @@
 }
 
 .weekly-goal-message {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   margin-top: var(--weekly-goal-message-top);
+}
+
+.weekly-goal-fire {
+  display: block;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  object-fit: contain;
 }
 
 .weekly-goal-days {
@@ -130,5 +141,110 @@
 
   .weekly-goal-days > div > span:last-child {
     margin-top: 2px;
+  }
+}
+
+.weekly-goal-options {
+  position: relative;
+}
+
+.weekly-goal-options::before {
+  position: absolute;
+  inset: -5px;
+  content: "";
+}
+
+/* Fixed-composition goal compaction */
+.weekly-goal-card {
+  --weekly-goal-ring-size: clamp(
+    94px,
+    min(calc(100cqh - 180px), calc(100cqw - 72px)),
+    158px
+  );
+}
+
+@container bento-slot (max-width: 240px) {
+  .weekly-goal-card {
+    padding: 11px 10px 9px;
+  }
+
+  .weekly-goal-header {
+    height: 36px;
+  }
+
+  .weekly-goal-header h2 {
+    font-size: 14px;
+  }
+
+  .weekly-goal-options {
+    width: 34px;
+    height: 34px;
+  }
+
+  .weekly-goal-body {
+    padding-top: 4px;
+  }
+
+  .weekly-goal-ring {
+    width: clamp(76px, 52cqw, 104px);
+    height: clamp(76px, 52cqw, 104px);
+  }
+
+  .weekly-goal-ring > div span:first-child {
+    font-size: 21px;
+  }
+
+  .weekly-goal-ring > div span:last-child {
+    margin-top: 3px;
+    font-size: 10px;
+  }
+
+  .weekly-goal-hours {
+    margin-top: 5px;
+    font-size: 12px;
+    line-height: 15px;
+  }
+
+  .weekly-goal-message {
+    gap: 3px;
+    margin-top: 1px;
+    font-size: 10px;
+    line-height: 14px;
+  }
+
+  .weekly-goal-fire {
+    width: 11px;
+    height: 11px;
+    flex-basis: 11px;
+  }
+
+  .weekly-goal-days {
+    margin-top: 5px;
+  }
+
+  .weekly-goal-days > div > span:first-child {
+    width: 9px;
+    height: 9px;
+  }
+
+  .weekly-goal-days > div > span:last-child {
+    margin-top: 2px;
+    font-size: 10px;
+    line-height: 13px;
+  }
+}
+
+@container bento-slot (max-width: 190px) {
+  .weekly-goal-card {
+    padding-inline: 8px;
+  }
+
+  .weekly-goal-header h2 {
+    font-size: 13px;
+  }
+
+  .weekly-goal-ring {
+    width: clamp(70px, 50cqw, 88px);
+    height: clamp(70px, 50cqw, 88px);
   }
 }

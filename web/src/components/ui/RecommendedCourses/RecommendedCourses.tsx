@@ -1,0 +1,66 @@
+import {
+  ArrowRight,
+  Atom,
+  Bookmark,
+  ChevronRight,
+  Hexagon,
+  Leaf,
+  Star,
+  Waves,
+} from "lucide-react";
+import "./RecommendedCourses.css";
+
+const courses = [
+  { title: "JavaScript Mastery", level: "Intermediate", rating: "4.8", icon: "js" },
+  { title: "React Complete Guide", level: "Intermediate", rating: "4.7", icon: "react" },
+  { title: "UI/UX Design Principles", level: "Beginner", rating: "4.6", icon: "design" },
+  { title: "Node.js Backend Dev", level: "Intermediate", rating: "4.8", icon: "node" },
+  { title: "Tailwind CSS From Zero", level: "Beginner", rating: "4.7", icon: "tailwind" },
+] as const;
+
+function CourseIcon({ type }: { type: (typeof courses)[number]["icon"] }) {
+  if (type === "js") return <span className="recommended-course-js">JS</span>;
+  if (type === "react") return <Atom aria-hidden="true" />;
+  if (type === "design") return <Leaf aria-hidden="true" />;
+  if (type === "node") return <Hexagon aria-hidden="true" />;
+  return <Waves aria-hidden="true" />;
+}
+
+export function RecommendedCourses() {
+  return (
+    <section className="recommended-card" aria-labelledby="recommended-title">
+      <header className="recommended-header">
+        <h2 id="recommended-title">Recommended for you</h2>
+        <button type="button" className="recommended-view-all">
+          <span>View all</span>
+          <ArrowRight aria-hidden="true" />
+        </button>
+      </header>
+
+      <div className="recommended-row">
+        {courses.map((course) => (
+          <article className="recommended-course" key={course.title}>
+            <div className="recommended-course-wash" aria-hidden="true" />
+            <div className={`recommended-course-icon recommended-course-icon--${course.icon}`}>
+              <CourseIcon type={course.icon} />
+            </div>
+            <button type="button" className="recommended-bookmark" aria-label={`Bookmark ${course.title}`}>
+              <Bookmark aria-hidden="true" />
+            </button>
+            <div className="recommended-course-copy">
+              <h3>{course.title}</h3>
+              <p>Level: {course.level}</p>
+              <span className="recommended-rating">
+                <Star aria-hidden="true" /> {course.rating}
+              </span>
+            </div>
+          </article>
+        ))}
+
+        <button type="button" className="recommended-next" aria-label="Show more recommended courses">
+          <ChevronRight aria-hidden="true" />
+        </button>
+      </div>
+    </section>
+  );
+}

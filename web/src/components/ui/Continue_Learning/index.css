@@ -435,3 +435,116 @@
   --text-lesson-meta: var(--font-size-lesson-meta);
   --text-cta: var(--font-size-cta);
 }
+
+/* Fixed-composition narrow slot */
+.continue-learning-course-title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+@container bento-slot (max-width: 300px) {
+  .continue-learning {
+    --card-padding-left: 12px;
+    --card-padding-right: 12px;
+    --card-padding-top: 12px;
+    --card-padding-bottom: 12px;
+    --media-column-width: clamp(82px, 38cqw, 108px);
+    --media-details-gap: 8px;
+    --section-gap: 9px;
+  }
+
+  .continue-learning-title {
+    font-size: 15px;
+  }
+
+  .continue-learning-options {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+  }
+
+  .continue-learning-course-title {
+    margin-top: 6px;
+    font-size: clamp(15px, 7cqw, 18px);
+  }
+
+  .continue-learning-status {
+    height: 22px;
+    max-width: 100%;
+    padding-inline: 8px;
+    overflow: hidden;
+    font-size: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .continue-learning-metrics {
+    margin-top: 8px;
+  }
+
+  .continue-learning-progress-row {
+    gap: 5px;
+  }
+
+  .continue-learning-progress-row > span,
+  .continue-learning-lesson {
+    font-size: 10px;
+  }
+
+  .continue-learning-lesson {
+    margin-top: 5px;
+    line-height: 14px;
+  }
+
+  .continue-learning-play-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .continue-learning-play-icon {
+    width: 15px;
+    height: 15px;
+  }
+
+  .continue-learning-footer {
+    gap: 7px;
+  }
+
+  .continue-learning-cta {
+    height: 40px;
+    padding-inline: 8px;
+    font-size: 12px;
+  }
+
+  .continue-learning-footer > button:last-child {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+}
+
+@container bento-slot (max-width: 240px) {
+  .continue-learning {
+    --card-padding-left: 10px;
+    --card-padding-right: 10px;
+    --card-padding-top: 10px;
+    --card-padding-bottom: 10px;
+    --media-column-width: clamp(70px, 36cqw, 86px);
+    --media-details-gap: 7px;
+  }
+
+  .continue-learning-title {
+    font-size: 14px;
+  }
+
+  .continue-learning-course-title {
+    font-size: 14px;
+    line-height: 1.12;
+  }
+
+  .continue-learning-progress-track {
+    height: 4px;
+  }
+}

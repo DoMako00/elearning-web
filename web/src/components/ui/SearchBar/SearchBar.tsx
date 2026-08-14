@@ -35,7 +35,7 @@ export function SearchBar({
 
   return (
     <form
-      className={`flex h-[60px] w-full min-w-0 items-center rounded-[16px] border border-[var(--color-border-subtle)] bg-[var(--color-surface)] pl-[21px] pr-[13px] ${className}`}
+      className={`search-bar flex h-[60px] w-full min-w-0 items-center rounded-[16px] border border-[var(--color-border-subtle)] bg-[var(--color-surface)] pl-[21px] pr-[13px] ${className}`}
       role="search"
       onSubmit={handleSubmit}
     >
@@ -62,7 +62,7 @@ export function SearchBar({
         }}
       />
       <kbd
-        className="grid h-[35px] w-[50px] shrink-0 place-items-center rounded-[9px] border border-[var(--color-border-subtle)] bg-[var(--color-surface-hover)] text-[14px] font-medium leading-none text-[var(--color-text-secondary)]"
+        className="search-bar__shortcut grid h-[35px] w-[50px] shrink-0 place-items-center rounded-[9px] border border-[var(--color-border-subtle)] bg-[var(--color-surface-hover)] text-[14px] font-medium leading-none text-[var(--color-text-secondary)]"
         aria-hidden="true"
       >
         ⌘ K

@@ -1,5 +1,6 @@
 import { useId } from "react";
 import { Check } from "lucide-react";
+import fireAsset from "../../../Assets/fire.png";
 import trophyAsset from "../../../Assets/trophy.png";
 import type { YourStreakProps } from "./your-streak.types";
 import "./YourStreak.css";
@@ -29,9 +30,7 @@ export function YourStreak({
     <article className="your-streak-card" aria-labelledby={titleId}>
       <div className="your-streak-left">
         <header className="your-streak-header">
-          <span className="your-streak-fire" aria-hidden="true">
-            {"\u{1F525}"}
-          </span>
+          <img className="your-streak-fire" src={fireAsset} alt="" aria-hidden="true" />
           <h2 id={titleId}>Your Streak</h2>
         </header>
 

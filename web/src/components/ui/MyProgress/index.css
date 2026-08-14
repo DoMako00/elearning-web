@@ -1,87 +1,86 @@
 @import '../Continue_Learning/index.css';
 
 .my-progress-card {
-  --primary-color: #29a865;
-  --secondary-color: #ffffff;
-  --paragraphs: #5b6772;
-  --text-color-black: #0c0e24;
-  --text-color-green: #1b8b45;
-  --label-color-light-green: #e7faef;
-  --color-border-color: #edf0f2;
+  --primary-color: #24ad68;
+  --paragraphs: #667085;
+  --text-color-black: #111827;
+  --text-color-green: #159455;
+  --label-color-light-green: #e8f8ef;
+  --color-border-color: #e5eaee;
 
-  width: 100%;
-  max-width: var(--progress-card-max-width, 296px);
-  min-height: var(--progress-card-height, 257px);
-  height: auto;
-  background: var(--secondary-color, #ffffff);
-  border-radius: 16px;
-  border: 1px solid var(--color-border-color, #f2f3f5);
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-  transition: box-shadow 0.3s ease;
-  font-family: 'Inter', sans-serif;
   display: flex;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
   flex-direction: column;
-  justify-content: space-between;
-  box-sizing: border-box;
-}
-
-.my-progress-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  padding: clamp(14px, 7.7cqh, 20px);
+  border: 1px solid var(--color-border-color);
+  border-radius: 16px;
+  background: #ffffff;
+  font-family: 'Inter', sans-serif;
 }
 
 .my-progress-header {
   display: flex;
+  min-height: 34px;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: clamp(4px, 3cqh, 8px);
 }
 
 .my-progress-title {
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 22px;
-  color: var(--text-color-black, #0C0E24);
-  letter-spacing: -0.02em;
   margin: 0;
+  color: var(--text-color-black);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
 }
 
 .my-progress-icon-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  border: 1px solid var(--color-border-color, #f2f3f5);
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--paragraphs, #5b6772);
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--color-border-color);
+  border-radius: 9px;
+  background: #ffffff;
+  color: var(--paragraphs);
   cursor: pointer;
-  transition: background 0.18s ease, color 0.18s ease;
-  flex-shrink: 0;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+.my-progress-icon-btn::before {
+  position: absolute;
+  inset: -5px;
+  content: "";
 }
 
 .my-progress-icon-btn:hover {
-  background: var(--label-color-light-green, #E7FAEF);
-  color: var(--text-color-black, #0C0E24);
+  background: var(--label-color-light-green);
+  color: var(--text-color-black);
 }
 
-.my-progress-icon-btn-icon {
-  width: 16px;
-  height: 16px;
-}
+.my-progress-icon-btn-icon { width: 16px; height: 16px; }
 
 .my-progress-body {
   position: relative;
-  flex: 1;
   display: flex;
+  min-height: 88px;
+  flex: 1 1 auto;
   flex-direction: column;
-  justify-content: flex-start;
-  margin-bottom: 12px;
   overflow: hidden;
+  margin-bottom: clamp(5px, 4cqh, 11px);
 }
 
 .my-progress-text-col {
+  position: relative;
   z-index: 2;
   display: flex;
   flex-direction: column;
@@ -90,99 +89,80 @@
 }
 
 .my-progress-label {
+  margin: 0;
+  color: var(--paragraphs);
   font-size: 13px;
   font-weight: 400;
   line-height: 18px;
-  color: var(--paragraphs, #5b6772);
-  margin: 0;
-  letter-spacing: -0.01em;
 }
 
 .my-progress-percentage {
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1.1;
-  color: var(--primary-color, #29A865);
-  letter-spacing: -0.03em;
   margin: 0;
+  color: var(--primary-color);
+  font-size: clamp(27px, 12cqh, 32px);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
 }
 
 .my-progress-chart-wrap {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
   z-index: 1;
+  inset: 12px 0 0;
+  min-height: 76px;
 }
 
 .my-progress-badge {
   position: absolute;
-  bottom: 4px;
-  right: 0px;
   z-index: 3;
+  right: 0;
+  bottom: 3px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
   padding: 4px 8px;
-  border-radius: 12px;
-  background: var(--label-color-light-green, #E7FAEF);
-  color: var(--text-color-green, #1B8B45);
-  font-size: 12px;
-  line-height: 16px;
+  border-radius: 999px;
+  background: var(--label-color-light-green);
+  color: var(--text-color-green);
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  line-height: 16px;
   white-space: nowrap;
 }
 
-.my-progress-badge-icon {
-  width: 12px;
-  height: 12px;
-  flex-shrink: 0;
-}
+.my-progress-badge-icon { width: 12px; height: 12px; flex: 0 0 auto; }
 
 .my-progress-tooltip {
-  background: var(--text-color-black, #0C0E24);
-  color: #fff;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: var(--text-color-black);
+  color: #ffffff;
   font-size: 11px;
   font-weight: 600;
-  border-radius: 4px;
-  padding: 3px 6px;
-  pointer-events: none;
 }
 
-.my-progress-footer {
-  margin-top: auto;
-}
+.my-progress-footer { flex: 0 0 auto; margin-top: auto; }
 
 .my-progress-cta {
-  position: relative;
-  overflow: hidden;
+  display: flex;
   width: 100%;
   height: 42px;
-  background: #fafcf9;
-  border: 1px solid var(--color-border-color, #eef2ed);
-  border-radius: 12px;
-  color: var(--text-color-green, #1B8B45);
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 600;
-  font-family: inherit;
-  letter-spacing: -0.01em;
-  cursor: pointer;
-  display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid var(--color-border-color);
+  border-radius: 11px;
+  background: #fbfdfb;
+  color: var(--text-color-green);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 180ms ease, border-color 180ms ease;
 }
 
 .my-progress-cta:hover {
-  background: var(--label-color-light-green, #E7FAEF);
-  border-color: var(--label-color-light-green, #E7FAEF);
-  box-shadow: 0 2px 6px rgba(41, 168, 101, 0.1);
-}
-
-.my-progress-cta:active {
-  transform: scale(0.99);
+  border-color: #cfe8da;
+  background: var(--label-color-light-green);
 }
 
 .my-progress-icon-btn:focus-visible,
@@ -192,46 +172,99 @@
 }
 
 @container bento-slot (max-width: 300px) {
-  .my-progress-card {
-    padding: 14px;
-  }
+  .my-progress-card { padding: 14px; }
 }
 
 @container bento-slot (max-height: 220px) {
+  .my-progress-card { padding: 9px 12px; }
+  .my-progress-header { min-height: 36px; margin-bottom: 1px; }
+  .my-progress-icon-btn { width: 36px; height: 36px; flex-basis: 36px; }
+  .my-progress-body { min-height: 58px; margin-bottom: 3px; }
+  .my-progress-percentage { font-size: 25px; }
+  .my-progress-chart-wrap { top: 4px; min-height: 54px; }
+  .my-progress-badge { bottom: 0; padding: 2px 6px; font-size: 10px; }
+  .my-progress-cta { height: 40px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .my-progress-icon-btn,
+  .my-progress-cta { transition: none; }
+}
+
+/* Fixed-composition progress compaction */
+@container bento-slot (max-width: 220px) {
   .my-progress-card {
-    padding: 10px 12px;
+    padding: 10px;
   }
 
   .my-progress-header {
-    min-height: 44px;
+    min-height: 32px;
     margin-bottom: 2px;
   }
 
-  .my-progress-icon-btn {
-    width: 44px;
-    height: 44px;
+  .my-progress-title {
+    font-size: 14px;
   }
 
-  .my-progress-body {
-    min-height: 54px;
-    margin-bottom: 4px;
+  .my-progress-icon-btn {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+  }
+
+  .my-progress-label {
+    overflow: hidden;
+    font-size: 11px;
+    line-height: 15px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .my-progress-percentage {
-    font-size: 25px;
+    font-size: 24px;
+  }
+
+  .my-progress-body {
+    min-height: 62px;
+    margin-bottom: 4px;
   }
 
   .my-progress-chart-wrap {
-    min-height: 54px;
+    inset: 4px 0 0;
+    min-height: 56px;
   }
 
   .my-progress-badge {
-    bottom: 0;
-    padding: 2px 6px;
-    font-size: 11px;
+    max-width: 100%;
+    padding: 2px 5px;
+    overflow: hidden;
+    font-size: 9px;
+    text-overflow: ellipsis;
   }
 
   .my-progress-cta {
-    height: 44px;
+    height: 38px;
+    font-size: 12px;
+  }
+}
+
+@container bento-slot (max-width: 170px) {
+  .my-progress-card {
+    padding: 8px;
+  }
+
+  .my-progress-title {
+    font-size: 13px;
+  }
+
+  .my-progress-icon-btn {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+  }
+
+  .my-progress-badge {
+    gap: 2px;
+    font-size: 8px;
   }
 }

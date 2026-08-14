@@ -1,4 +1,5 @@
 import { SlidersHorizontal } from "lucide-react";
+import fireAsset from "../../../Assets/fire.png";
 import type { WeeklyGoalCardProps } from "./weekly-goal-card.types";
 import "./WeeklyGoalCard.css";
 
@@ -93,7 +94,8 @@ export function WeeklyGoalCard({
           {safeCompletedHours} / {safeTargetHours} hours
         </p>
         <p className="weekly-goal-message mt-[5px] text-[13px] font-normal leading-[18px] text-[var(--color-text-secondary)]">
-          Keep it up! <span aria-hidden="true">{"\u{1F525}"}</span>
+          Keep it up!
+          <img className="weekly-goal-fire" src={fireAsset} alt="" aria-hidden="true" />
         </p>
       </div>
 

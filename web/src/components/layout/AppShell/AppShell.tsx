@@ -16,7 +16,7 @@ export function AppShell({ children }: AppShellProps) {
     >
       <Sidebar />
       <main
-        className="h-full min-h-0 min-w-0 overflow-hidden bg-[var(--color-bg)]"
+        className="grid h-full min-h-0 min-w-0 place-items-center overflow-hidden bg-[var(--color-bg)]"
         aria-label="Student workspace"
         data-main-workspace
       >

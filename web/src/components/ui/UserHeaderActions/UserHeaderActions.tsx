@@ -18,7 +18,7 @@ export function UserHeaderActions({
 
   return (
     <div
-      className={`flex h-[60px] w-max shrink-0 items-center gap-0 ${className}`}
+      className={`user-header-actions flex h-[60px] w-max shrink-0 items-center gap-0 ${className}`}
       aria-label="User header actions"
     >
       <button
@@ -43,18 +43,18 @@ export function UserHeaderActions({
         onClick={onXpClick}
       >
         <Sparkles
-          className="size-[22px] shrink-0 text-[var(--color-brand)]"
+          className="user-header-actions__xp-icon size-[22px] shrink-0 text-[var(--color-brand)]"
           strokeWidth={2}
           aria-hidden="true"
         />
-        <span className="whitespace-nowrap text-base font-semibold leading-none">
+        <span className="user-header-actions__xp-copy whitespace-nowrap text-base font-semibold leading-none">
           {formattedXp}
         </span>
       </button>
 
       <button
         type="button"
-        className="ml-[30px] size-14 shrink-0 overflow-hidden rounded-full transition-opacity duration-150 hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] focus-visible:ring-offset-2"
+        className="user-header-actions__avatar ml-[30px] size-14 shrink-0 overflow-hidden rounded-full transition-opacity duration-150 hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] focus-visible:ring-offset-2"
         aria-label={`Open profile options for ${avatarAlt}`}
         onClick={onAvatarClick}
       >
@@ -66,7 +66,7 @@ export function UserHeaderActions({
       </button>
 
       <ChevronDown
-        className="ml-2 size-[18px] shrink-0 text-[var(--color-text-primary)]"
+        className="user-header-actions__chevron ml-2 size-[18px] shrink-0 text-[var(--color-text-primary)]"
         strokeWidth={2}
         aria-hidden="true"
       />

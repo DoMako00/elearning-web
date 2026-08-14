@@ -8,7 +8,7 @@
     minmax(0, 1.42fr)
     minmax(0, 1fr)
     minmax(0, 0.92fr);
-  gap: 12px;
+  gap: clamp(8px, 0.625vw, 12px);
   overflow: hidden;
 }
 
@@ -16,7 +16,8 @@
   display: grid;
   min-width: 0;
   min-height: 0;
-  gap: 12px;
+  gap: clamp(8px, 0.625vw, 12px);
+  overflow: hidden;
 }
 
 .dashboard-bento__row--top {
@@ -24,6 +25,7 @@
     minmax(0, 1.31fr)
     minmax(0, 1.42fr)
     minmax(0, 1fr);
+  grid-template-areas: "continue ai goal";
 }
 
 .dashboard-bento__row--middle {
@@ -31,10 +33,12 @@
     minmax(0, 0.86fr)
     minmax(0, 1fr)
     minmax(0, 1.73fr);
+  grid-template-areas: "progress upcoming streak";
 }
 
 .dashboard-bento__row--bottom {
   grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "recommended";
 }
 
 .dashboard-bento__slot,
@@ -43,14 +47,42 @@
   height: 100%;
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
 }
 
 .dashboard-bento__slot {
   container: bento-slot / size;
 }
 
+.dashboard-bento__slot--continue {
+  grid-area: continue;
+}
+
+.dashboard-bento__slot--ai {
+  grid-area: ai;
+}
+
+.dashboard-bento__slot--weekly {
+  grid-area: goal;
+}
+
+.dashboard-bento__slot--progress {
+  grid-area: progress;
+}
+
+.dashboard-bento__slot--upcoming {
+  grid-area: upcoming;
+}
+
+.dashboard-bento__slot--streak {
+  grid-area: streak;
+}
+
+.dashboard-bento__slot--recommended {
+  grid-area: recommended;
+}
+
 .dashboard-bento__placeholder {
-  overflow: hidden;
   border: 1px solid var(--color-border-subtle);
   border-radius: 16px;
   background: var(--color-surface);
@@ -62,6 +94,7 @@
   min-width: 0;
   min-height: 0;
   max-width: none;
+  overflow: hidden;
 }
 
 .dashboard-bento__slot--continue > section > div {
@@ -78,13 +111,6 @@
   min-height: 0;
 }
 
-@media (min-width: 1024px) and (max-width: 1279px) and (orientation: landscape) {
-  .dashboard-bento,
-  .dashboard-bento__row {
-    gap: 10px;
-  }
-}
-
 @media (max-height: 850px) {
   .dashboard-bento,
   .dashboard-bento__row {
@@ -96,59 +122,5 @@
   .dashboard-bento,
   .dashboard-bento__row {
     gap: 8px;
-  }
-}
-
-@media (max-width: 1023px), (width: 1024px) and (orientation: portrait) {
-  .dashboard-bento {
-    grid-template-rows:
-      minmax(0, 1.45fr)
-      minmax(0, 1.15fr)
-      minmax(0, 0.5fr);
-    gap: 8px;
-  }
-
-  .dashboard-bento__row {
-    gap: 8px;
-  }
-
-  .dashboard-bento__row--top {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: minmax(0, 1.45fr) minmax(0, 0.75fr);
-    grid-template-areas:
-      "continue weekly"
-      "ai ai";
-  }
-
-  .dashboard-bento__row--middle {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: minmax(0, 0.95fr) minmax(0, 0.75fr);
-    grid-template-areas:
-      "progress upcoming"
-      "streak streak";
-  }
-
-  .dashboard-bento__slot--continue {
-    grid-area: continue;
-  }
-
-  .dashboard-bento__slot--ai {
-    grid-area: ai;
-  }
-
-  .dashboard-bento__slot--weekly {
-    grid-area: weekly;
-  }
-
-  .dashboard-bento__slot--progress {
-    grid-area: progress;
-  }
-
-  .dashboard-bento__slot--upcoming {
-    grid-area: upcoming;
-  }
-
-  .dashboard-bento__slot--streak {
-    grid-area: streak;
   }
 }

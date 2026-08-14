@@ -23,23 +23,16 @@
   --radius-profile: 11px;
 }
 
-@media (max-height: 860px) {
-  :root {
-    --sidebar-nav-item-height: 48px;
-  }
-}
-
-@media (min-width: 1024px) and (max-width: 1279px) {
+@media (max-width: 1535px) {
   :root {
     --sidebar-width: 80px;
     --sidebar-gutter: 10px;
   }
 }
 
-@media (max-width: 1023px), (width: 1024px) and (orientation: portrait) {
+@media (max-height: 860px) {
   :root {
-    --sidebar-width: 76px;
-    --sidebar-gutter: 8px;
+    --sidebar-nav-item-height: 48px;
   }
 }
 
