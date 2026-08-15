@@ -209,7 +209,7 @@
 .empty-study-plan-card__option[aria-pressed="true"] { border-color: #168b50; background: #168b50; color: #ffffff; box-shadow: 0 3px 7px rgb(34 169 100 / 16%); }
 .empty-study-plan-card__option:focus-visible,
 .empty-study-plan-card__save:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
-.empty-study-plan-card__footer { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
+.empty-study-plan-card__footer { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 12px; }
 .empty-study-plan-card__availability { display: inline-flex; min-width: 0; align-items: center; gap: 5px; color: #5f7468; font-size: 10px; font-weight: 600; white-space: nowrap; }
 .empty-study-plan-card__availability svg { width: 14px; height: 14px; flex: 0 0 auto; color: #4b7660; stroke-width: 1.9; }
 .empty-study-plan-card__save { display: inline-flex; min-height: 30px; flex: 0 0 auto; align-items: center; justify-content: center; gap: 5px; padding: 0 10px; border: 1px solid #168b50; border-radius: 8px; background: #168b50; color: #ffffff; font-size: 11px; font-weight: 750; transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease; white-space: nowrap; }
@@ -256,7 +256,7 @@
   .empty-study-plan-card__value { margin-top: 5px; }
   .empty-study-plan-card__meter { margin-top: 6px; }
   .empty-study-plan-card__options { margin-top: 7px; }
-  .empty-study-plan-card__footer { margin-top: 6px; }
+  .empty-study-plan-card__footer { margin-top: auto; padding-top: 8px; }
   .empty-study-plan-card__save { min-height: 28px; padding-inline: 8px; }
 }
 

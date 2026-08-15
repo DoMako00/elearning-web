@@ -28,8 +28,8 @@ export interface SidebarProfile {
 
 export const primarySidebarItems: SidebarItem[] = [
   { label: "Home", icon: Home, href: "/", enabled: true },
-  { label: "My Courses", icon: LibraryBig, href: "/courses", enabled: false },
-  { label: "Explore", icon: Compass, href: "/explore", enabled: false },
+  { label: "My Courses", icon: LibraryBig, href: "/my-courses", enabled: true },
+  { label: "Explore", icon: Compass, href: "/explore", enabled: true },
   { label: "Calendar", icon: CalendarDays, href: "/calendar", enabled: false },
   {
     label: "Assignments",
