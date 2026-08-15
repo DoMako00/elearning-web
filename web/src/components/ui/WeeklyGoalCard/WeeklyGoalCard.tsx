@@ -72,7 +72,7 @@ export function WeeklyGoalCard({
 
   return (
     <article
-      className="weekly-goal-card flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-[16px] border border-[var(--color-border-subtle)] bg-[var(--color-surface)] pb-[18px] pl-[30px] pr-6 pt-6"
+      className="weekly-goal-card flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-[16px] border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-4 sm:p-5"
       aria-label={progressDescription}
     >
       <header className="weekly-goal-header flex h-[34px] shrink-0 items-center justify-between">
@@ -88,18 +88,18 @@ export function WeeklyGoalCard({
         </button>
       </header>
 
-      <div className="weekly-goal-body flex min-h-0 flex-1 flex-col items-center pt-4">
+      <div className="weekly-goal-body flex min-h-0 flex-1 flex-col items-center pt-3">
         <ProgressRing percentage={percentage} />
-        <p className="weekly-goal-hours mt-[13px] text-[14px] font-semibold leading-5 text-[var(--color-text-primary)]">
+        <p className="weekly-goal-hours mt-[10px] text-[14px] font-semibold leading-5 text-[var(--color-text-primary)]">
           {safeCompletedHours} / {safeTargetHours} hours
         </p>
-        <p className="weekly-goal-message mt-[5px] text-[13px] font-normal leading-[18px] text-[var(--color-text-secondary)]">
+        <p className="weekly-goal-message mt-[4px] text-[13px] font-normal leading-[18px] text-[var(--color-text-secondary)]">
           Keep it up!
           <img className="weekly-goal-fire" src={fireAsset} alt="" aria-hidden="true" />
         </p>
       </div>
 
-      <div className="weekly-goal-days mt-4 grid w-full shrink-0 grid-cols-7">
+      <div className="weekly-goal-days mt-3 grid w-full shrink-0 grid-cols-7">
         {WEEK_DAYS.map((day, index) => {
           const isCompleted = completedDays[index] ?? false;
 
@@ -108,12 +108,12 @@ export function WeeklyGoalCard({
               <span
                 className={
                   isCompleted
-                    ? "size-[11px] rounded-full bg-[var(--color-brand)]"
-                    : "size-[11px] rounded-full border-[1.5px] border-[#b8c1ca] bg-[var(--color-surface)]"
+                    ? "size-[11px] rounded-full bg-[var(--color-brand)] shadow-[0_0_0_1.5px_#d1fae5]"
+                    : "size-[11px] rounded-full border-[1.5px] border-[#94a3b8] bg-[var(--color-surface)]"
                 }
                 aria-hidden="true"
               />
-              <span className="mt-1.5 text-[12px] font-normal leading-4 text-[var(--color-text-secondary)]">
+              <span className="mt-1 text-[12px] font-semibold leading-4 text-[#374151]">
                 {day}
               </span>
             </div>

@@ -67,11 +67,17 @@ export function RecommendedCourses() {
                 <Bookmark className={isBookmarked ? "fill-current" : ""} aria-hidden="true" />
               </button>
               <div className="recommended-course-copy">
-                <h3 title={course.title}>{course.title}</h3>
-                <p title={'Level: ' + course.level}>Level: {course.level}</p>
-                <span className="recommended-rating">
-                  <Star aria-hidden="true" /> {course.rating}
-                </span>
+                <div className="recommended-title-wrap">
+                  <h3 title={course.title}>{course.title}</h3>
+                </div>
+                <div className="recommended-course-footer">
+                  <span className="recommended-course-level" title={course.level}>
+                    {course.level}
+                  </span>
+                  <span className="recommended-rating">
+                    <Star aria-hidden="true" /> {course.rating}
+                  </span>
+                </div>
               </div>
             </article>
           );

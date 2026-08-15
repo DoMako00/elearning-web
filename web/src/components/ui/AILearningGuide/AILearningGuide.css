@@ -87,15 +87,15 @@
 
 .ai-guide-suggestions {
   display: flex;
-  width: min(100%, 260px);
+  width: min(100%, 360px);
   flex-direction: column;
   gap: clamp(7px, 2.5cqh, 10px);
-  margin-top: clamp(16px, 5cqh, 22px);
+  margin-top: clamp(14px, 4.5cqh, 20px);
 }
 
 .ai-guide-suggestions button {
   display: flex;
-  width: 100%;
+  width: 110%;
   max-width: none;
   min-height: 44px;
   align-items: center;

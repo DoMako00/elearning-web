@@ -34,8 +34,8 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
           <h2 className="continue-learning-title text-section-title font-bold text-(--text-color-black) tracking-tight">
             {title}
           </h2>
-          <button 
-            type="button" 
+          <button
+            type="button"
             aria-label="More options"
             className="continue-learning-options w-11 h-11 rounded-(--border-radius) border border-(--color-border-color) flex items-center justify-center text-(--paragraphs) hover:bg-(--label-color-light-green) hover:text-(--text-color-black) transition-colors cursor-pointer"
           >
@@ -45,9 +45,9 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
 
         <div className="continue-learning-main flex items-center gap-(--media-details-gap) mb-(--main-footer-gap)">
           <div className="continue-learning-media relative shrink-0 w-(--media-width) h-(--media-height) rounded-(--border-radius-media) overflow-hidden shadow-sm group/media">
-            <img 
-              src={imageSrc} 
-              alt={courseName} 
+            <img
+              src={imageSrc}
+              alt={courseName}
               className="continue-learning-image w-full h-full object-cover transition-transform duration-500 ease-out group-hover/media:scale-108"
             />
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -60,30 +60,32 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
 
           <div className="continue-learning-details flex-1 min-w-0 flex flex-col justify-between self-stretch py-1">
             <div>
-              <span className="continue-learning-status inline-block px-4 py-1.5 text-status-badge font-semibold text-(--text-color-green) bg-(--label-color-light-green) rounded-full mb-3">
+              <span className="continue-learning-status inline-block px-4 py-1.5 text-status-badge font-bold text-(--text-color-green) bg-(--label-color-light-green) rounded-full mb-3">
                 {status}
               </span>
-              <h3 className="continue-learning-course-title text-course-title font-bold text-(--text-color-black) leading-[1.18] tracking-tight">
-                {courseName}
-              </h3>
-            </div>
+              <div className="continue-learning-title-metrics-wrap">
+                <h3 className="continue-learning-course-title">
+                  {courseName}
+                </h3>
 
-            <div className="continue-learning-metrics mt-auto">
-              <div className="continue-learning-progress-row flex items-center gap-3 mb-3">
-                <div className="continue-learning-progress-track flex-1 h-2.5 bg-(--color-border-color) rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-(--primary-color) rounded-full transition-all duration-500 ease-out"
-                    style={{ width: `${progressPercentage}%` }}
-                  />
+                <div className="continue-learning-metrics mt-auto">
+                  <div className="continue-learning-progress-row flex items-center gap-3 mb-3">
+                    <div className="continue-learning-progress-track flex-1 h-2.5 bg-(--color-border-color) rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-(--primary-color) rounded-full transition-all duration-500 ease-out"
+                        style={{ width: `${progressPercentage}%` }}
+                      />
+                    </div>
+                    <span className="text-progress font-medium text-(--text-color-black) min-w-10 text-right">
+                      {progressPercentage}%
+                    </span>
+                  </div>
+
+                  <p className="continue-learning-lesson text-lesson-meta font-normal text-(--paragraphs)">
+                    Lesson {currentLesson} of {totalLessons}
+                  </p>
                 </div>
-                <span className="text-progress font-medium text-(--text-color-black) min-w-10 text-right">
-                  {progressPercentage}%
-                </span>
               </div>
-
-              <p className="continue-learning-lesson text-lesson-meta font-normal text-(--paragraphs)">
-                Lesson {currentLesson} of {totalLessons}
-              </p>
             </div>
           </div>
         </div>
@@ -104,11 +106,10 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
             aria-label={isBookmarked ? "Remove course bookmark" : "Bookmark course"}
             aria-pressed={isBookmarked}
             data-bookmarked={isBookmarked}
-            className={`w-(--bookmark-width) h-(--bookmark-height) rounded-(--border-radius-cta) border border-(--color-border-color) flex items-center justify-center transition-all duration-200 cursor-pointer ${
-              isBookmarked 
-                ? 'bg-(--label-color-light-green) border-(--text-color-green) text-(--text-color-green)' 
+            className={`w-(--bookmark-width) h-(--bookmark-height) rounded-(--border-radius-cta) border border-(--color-border-color) flex items-center justify-center transition-all duration-200 cursor-pointer ${isBookmarked
+                ? 'bg-(--label-color-light-green) border-(--text-color-green) text-(--text-color-green)'
                 : 'bg-(--secondary-color) hover:bg-(--label-color-light-green) text-(--text-color-green)'
-            }`}
+              }`}
           >
             <Bookmark className={`w-6 h-6 ${isBookmarked ? 'fill-current' : ''}`} />
           </button>

@@ -35,7 +35,7 @@ main[data-main-workspace] {
   align-items: center;
   gap: clamp(12px, 1.7vw, 32px);
   padding:
-    clamp(16px, 1.7vw, 32px)
+    clamp(8px, 1vw, 16px)
     clamp(16px, 1.7vw, 32px)
     0
     clamp(16px, 2.1vw, 40px);
@@ -60,9 +60,9 @@ main[data-main-workspace] {
   flex: 1 1 auto;
   overflow: hidden;
   padding:
-    clamp(10px, 1.05vw, 20px)
+    clamp(6px, 0.6vw, 12px)
     clamp(12px, 1.46vw, 28px)
-    clamp(12px, 1.46vw, 28px)
+    clamp(8px, 0.8vw, 14px)
     clamp(12px, 1.67vw, 32px);
 }
 
@@ -153,22 +153,22 @@ main[data-main-workspace] {
 
 @media (max-height: 850px) {
   .student-dashboard__header {
-    padding-top: 20px;
+    padding-top: 10px;
   }
 
   .student-dashboard__content {
-    padding-top: 12px;
-    padding-bottom: 16px;
+    padding-top: 6px;
+    padding-bottom: 8px;
   }
 }
 
 @media (max-height: 760px) {
   .student-dashboard__header {
-    padding-top: 16px;
+    padding-top: 8px;
   }
 
   .student-dashboard__content {
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding-top: 4px;
+    padding-bottom: 6px;
   }
 }
