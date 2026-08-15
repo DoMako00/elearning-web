@@ -2,6 +2,11 @@
 
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string;
+  readonly VITE_DASHBOARD_ENROLLMENT_STATE?:
+    | "loading"
+    | "empty"
+    | "enrolled"
+    | "error";
 }
 
 interface ImportMeta {
