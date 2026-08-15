@@ -4,7 +4,6 @@ import {
   Award,
   BookOpenCheck,
   Bot,
-  BrainCircuit,
   CalendarCheck2,
   ChartNoAxesCombined,
   Check,
@@ -12,7 +11,6 @@ import {
   Code2,
   Compass,
   Sparkles,
-  Infinity,
   MonitorSmartphone,
   Palette,
   UserRoundCheck,
@@ -33,17 +31,22 @@ const topics = [
   { label: "UI/UX Design", icon: Palette },
   { label: "Data Science", icon: ChartNoAxesCombined },
   { label: "Mobile Development", icon: MonitorSmartphone },
-  { label: "AI & Machine Learning", icon: BrainCircuit },
-  { label: "DevOps", icon: Infinity },
 ] as const;
 
 const weeklyStudyHourOptions = [4, 6, 8] as const;
 const weeklyStudyGoalStorageKey = "greenlearn-weekly-study-hours";
 
 /** Temporary control until the corresponding product destinations are connected. */
-function UnavailableAction({ children, className, ariaLabel }: { children: ReactNode; className: string; ariaLabel?: string }) {
+function UnavailableAction({ children, className, ariaLabel, tooltip }: { children: ReactNode; className: string; ariaLabel?: string; tooltip?: string }) {
   return (
-    <button type="button" className={className} disabled aria-label={ariaLabel} title="This destination will be available when course exploration is connected.">
+    <button
+      type="button"
+      className={className}
+      disabled
+      aria-label={ariaLabel}
+      aria-description="This destination will be available when course exploration is connected."
+      title={tooltip ?? "This destination will be available when course exploration is connected."}
+    >
       {children}
     </button>
   );
@@ -66,15 +69,27 @@ export function LearningBenefits() {
 export function PopularTopicsCard() {
   return (
     <article className="empty-side-card empty-topics-card" aria-labelledby="popular-topics-title">
-      <h2 id="popular-topics-title">Popular Topics</h2>
-      <div className="empty-topics-card__list">
+      <header className="empty-topics-card__header">
+        <div>
+          <h2 id="popular-topics-title">Popular Topics</h2>
+          <p>Find your next learning path</p>
+        </div>
+        <span className="empty-topics-card__count" aria-label={`${topics.length} topics available`}>
+          {topics.length} topics
+        </span>
+      </header>
+      <div className="empty-topics-card__grid" aria-label="Popular learning topics">
         {topics.map(({ label, icon: Icon }) => (
-          <UnavailableAction className="empty-topic" ariaLabel={`${label} topic`} key={label}>
-            <Icon aria-hidden="true" /><span>{label}</span>
+          <UnavailableAction className="empty-topic" ariaLabel={`${label} topic`} tooltip={label} key={label}>
+            <span className="empty-topic__icon" aria-hidden="true"><Icon /></span>
+            <span className="empty-topic__label">{label}</span>
+            {label === "Web Development" ? <ArrowRight className="empty-topic__arrow" aria-hidden="true" /> : null}
           </UnavailableAction>
         ))}
       </div>
-      <UnavailableAction className="empty-side-link"><span>Explore all topics</span><ArrowRight aria-hidden="true" /></UnavailableAction>
+      <footer className="empty-topics-card__footer">
+        <UnavailableAction className="empty-side-link"><span>Explore all topics</span><ArrowRight aria-hidden="true" /></UnavailableAction>
+      </footer>
     </article>
   );
 }
