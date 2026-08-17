@@ -125,7 +125,7 @@
   }
 }
 
-/* Purpose-built 2-column tablet composition */
+/* 2 row bento */
 @media (max-width: 1199px) {
   .dashboard-bento {
     height: auto;
