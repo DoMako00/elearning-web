@@ -32,8 +32,8 @@ body {
   background: var(--color-bg);
 }
 
-/* Portrait tablets use the document as the single, reliable scroll owner. */
-@media (max-width: 1023px) and (orientation: portrait) {
+/* Tablets and mobile use the document as the single, reliable scroll owner. */
+@media (max-width: 1199px) {
   html,
   body,
   #root {

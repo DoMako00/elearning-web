@@ -189,8 +189,8 @@
 }
 
 .continue-learning-title-metrics-wrap {
-  width: fit-content;
-  max-width: min(100%, 20.5ch);
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
 }
 
@@ -198,14 +198,15 @@
   max-width: 100%;
   margin: clamp(6px, 2.5cqh, 10px) 0 0;
   color: #0f172a;
-  font-size: clamp(28px, 11cqw, 52px);
+  font-size: clamp(20px, 5.5cqw, 26px);
   font-weight: 700;
-  line-height: 1.18;
+  line-height: 1.2;
   letter-spacing: -0.02em;
   white-space: normal;
-  word-break: break-word;
+  word-break: normal;
+  overflow-wrap: break-word;
   overflow: hidden;
-  max-height: 2.5em;
+  max-height: 2.6em;
 }
 
 .continue-learning-metrics {

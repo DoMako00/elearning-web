@@ -27,6 +27,26 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
 }) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
 
+  const renderCourseName = (name: string) => {
+    if (name.includes('\n')) {
+      return name.split('\n').map((line, idx) => (
+        <span key={idx} className="block">{line}</span>
+      ));
+    }
+    const words = name.trim().split(/\s+/);
+    if (words.length > 1) {
+      const firstWord = words[0];
+      const rest = words.slice(1).join(' ');
+      return (
+        <>
+          <span className="block">{firstWord}</span>
+          <span className="block">{rest}</span>
+        </>
+      );
+    }
+    return name;
+  };
+
   return (
     <section className="continue-learning w-full max-w-(--card-max-width) font-sans">
       <div className="continue-learning-card w-full bg-(--secondary-color) rounded-(--border-radius-card) border border-(--color-border-color) pt-(--card-padding-top) pb-(--card-padding-bottom) pl-(--card-padding-left) pr-(--card-padding-right) shadow-sm transition-all duration-300 hover:shadow-md">
@@ -65,7 +85,7 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
               </span>
               <div className="continue-learning-title-metrics-wrap">
                 <h3 className="continue-learning-course-title">
-                  {courseName}
+                  {renderCourseName(courseName)}
                 </h3>
 
                 <div className="continue-learning-metrics mt-auto">

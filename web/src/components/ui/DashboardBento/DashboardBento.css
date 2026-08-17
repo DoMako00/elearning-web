@@ -125,22 +125,22 @@
   }
 }
 
-/* Purpose-built portrait tablet composition */
-@media (max-width: 1023px) and (orientation: portrait) {
+/* Purpose-built 2-column tablet composition */
+@media (max-width: 1199px) {
   .dashboard-bento {
     height: auto;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows:
-      360px
-      330px
       280px
-      260px
-      212px;
+      300px
+      290px
+      280px
+      230px;
     grid-template-areas:
-      "continue goal"
+      "continue continue"
       "ai ai"
-      "progress upcoming"
-      "streak streak"
+      "goal progress"
+      "upcoming streak"
       "recommended recommended";
     gap: 12px;
     overflow: visible;
@@ -157,14 +157,14 @@
   }
 }
 
-@media (max-width: 780px) and (orientation: portrait) {
+@media (max-width: 780px) {
   .dashboard-bento {
     grid-template-rows:
-      350px
-      320px
       270px
-      250px
-      202px;
+      290px
+      280px
+      270px
+      220px;
     gap: 10px;
   }
 }
