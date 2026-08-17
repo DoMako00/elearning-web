@@ -1,3 +1,9 @@
+.student-sidebar .sidebar-brand { margin-inline: -2px; }
+.student-sidebar .sidebar-primary-nav { padding-top: 2px; }
+.student-sidebar .sidebar-secondary-nav { padding-top: 14px; border-top: 1px solid #edf2ef; }
+.student-sidebar .sidebar-profile { border: 1px solid rgb(222 242 230 / 75%); box-shadow: 0 6px 18px rgb(23 82 51 / 3%); }
+.student-sidebar .sidebar-nav-item { letter-spacing: -.01em; }
+
 @media (max-width: 1535px) {
   .student-sidebar {
     padding-top: 28px;
@@ -21,6 +27,8 @@
 
   .student-sidebar .sidebar-secondary-nav {
     margin-bottom: 12px;
+    padding-top: 0;
+    border-top: 0;
   }
 
   .sidebar-nav-item {
