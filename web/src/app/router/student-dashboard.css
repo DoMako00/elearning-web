@@ -1136,9 +1136,9 @@ main[data-main-workspace] {
   font-size: 12px;
 }
 
-.pace-chart {
+.pace-chart-container {
   width: 100%;
-  height: 74px;
+  height: 80px;
   min-width: 0;
   grid-column: 2;
   grid-row: 1 / span 2;
@@ -1146,19 +1146,17 @@ main[data-main-workspace] {
   overflow: visible;
 }
 
-.pace-chart__fill {
-  fill: url(#pace-fill);
-}
-
-.pace-chart__line {
-  fill: none;
-  stroke: #159950;
-  stroke-linecap: round;
-  stroke-width: 2.5;
-}
-
-.pace-chart circle {
-  fill: #1da95d;
+.pace-tooltip {
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: #111827;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 .course-summary--pace p {

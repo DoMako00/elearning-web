@@ -7,9 +7,38 @@ import {
   Sparkles,
   TrendingUp,
 } from "lucide-react";
+import {
+  Area,
+  AreaChart,
+  ResponsiveContainer,
+  Tooltip,
+  YAxis,
+} from "recharts";
 import { CourseLibrary } from "../../../components/ui/CourseLibrary";
 
+const PACE_CHART_DATA = [10, 18, 14, 22, 19, 28, 24, 30, 27, 30, 32, 40, 70, 78, 60, 32, 55, 56, 60, 50, 63, 65, 67, 72, 70, 80];
+
+function buildPacePoints(values: number[]) {
+  return values.map((value, index) => ({ index, value }));
+}
+
+interface PaceCustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ value: number }>;
+}
+
+function PaceCustomTooltip({ active, payload }: PaceCustomTooltipProps) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="pace-tooltip">
+      {payload[0].value}%
+    </div>
+  );
+}
+
 export function MyCoursesPage() {
+  const pacePoints = buildPacePoints(PACE_CHART_DATA);
+
   return (
     <section className="student-page student-page--courses" aria-labelledby="my-courses-title">
       <div className="my-courses-workspace">
@@ -53,8 +82,66 @@ export function MyCoursesPage() {
             <footer className="course-focus-card__footer"><div><small>Next lesson</small><b>Design Systems &amp; Components</b></div><button type="button">Resume lesson <ArrowRight aria-hidden="true" /></button></footer>
           </article>
           <div className="my-courses-overview__summaries">
-            <article className="course-summary course-summary--week"><header><h2>This week</h2><CalendarDays aria-hidden="true" /></header><div className="week-days"><span>Mon<b>12</b><small>2h planned</small></span><span className="is-current">Wed<b>14</b><small>2h planned</small></span><span>Fri<b>16</b><small>2h planned</small></span></div><footer><Clock3 aria-hidden="true" /><b>6h planned</b><span>Focus. Learn. Grow.</span></footer></article>
-            <article className="course-summary course-summary--pace"><header><div><h2>Your pace</h2><strong>68%</strong><small>Course completion</small></div><TrendingUp aria-hidden="true" /></header><svg className="pace-chart" viewBox="0 0 280 82" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="pace-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#38b96f" stopOpacity=".22" /><stop offset="1" stopColor="#38b96f" stopOpacity="0" /></linearGradient></defs><path className="pace-chart__fill" d="M0 64 C20 75 29 44 54 48 S82 29 102 42 S132 67 151 44 S179 19 202 34 S230 52 248 22 S266 23 280 12 V82 H0Z" /><path className="pace-chart__line" d="M0 64 C20 75 29 44 54 48 S82 29 102 42 S132 67 151 44 S179 19 202 34 S230 52 248 22 S266 23 280 12" /><circle cx="280" cy="12" r="5.5" /></svg><p><Sparkles aria-hidden="true" /> +12% this month</p></article>
+            <article className="course-summary course-summary--week">
+              <header>
+                <h2>This week</h2>
+                <CalendarDays aria-hidden="true" />
+              </header>
+              <div className="week-days">
+                <span>Mon<b>12</b><small>2h planned</small></span>
+                <span className="is-current">Wed<b>14</b><small>2h planned</small></span>
+                <span>Fri<b>16</b><small>2h planned</small></span>
+              </div>
+              <footer>
+                <Clock3 aria-hidden="true" />
+                <b>6h planned</b><span>Focus. Learn. Grow.</span>
+              </footer>
+            </article>
+            <article className="course-summary course-summary--pace">
+              <header>
+                <div>
+                  <h2>Your pace</h2>
+                  <strong>68%</strong>
+                  <small>Course completion</small>
+                </div>
+                <TrendingUp aria-hidden="true" />
+              </header>
+              <div className="pace-chart-container">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={pacePoints}
+                    margin={{ top: 8, right: 4, bottom: 0, left: 4 }}
+                  >
+                    <defs>
+                      <linearGradient id="paceFillGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#24ad68" stopOpacity={0.25} />
+                        <stop offset="100%" stopColor="#24ad68" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <YAxis domain={[0, 100]} hide width={0} />
+                    <Tooltip content={<PaceCustomTooltip />} cursor={false} />
+                    <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#24ad68"
+                      strokeWidth={2.5}
+                      fill="url(#paceFillGradient)"
+                      dot={false}
+                      activeDot={{
+                        r: 5,
+                        fill: "#24ad68",
+                        stroke: "#fff",
+                        strokeWidth: 2,
+                      }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              <p>
+                <Sparkles aria-hidden="true" />
+                +12% this month
+              </p>
+            </article>
           </div>
         </div>
         <CourseLibrary />
