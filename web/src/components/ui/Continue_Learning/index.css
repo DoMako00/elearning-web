@@ -29,12 +29,12 @@
   --bookmark-width: 48px;
   --bookmark-height: 48px;
   --button-gap: 12px;
-  --font-size-section-title: 25px;
+  --font-size-section-title: 25x;
   --font-size-course-title: 30px;
-  --font-size-status-badge: 18px;
-  --font-size-progress: 18px;
-  --font-size-lesson-meta: 18px;
-  --font-size-cta: 18px;
+  --font-size-status-badge: 12px;
+  --font-size-progress: 13px;
+  --font-size-lesson-meta: 13px;
+  --font-size-cta: 14px;
 
   width: 100%;
   height: 100%;
@@ -78,7 +78,7 @@
 .continue-learning-title {
   margin: 0;
   color: #111827;
-  font-size: 26px;
+  font-size: 16px;
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.02em;
@@ -175,16 +175,16 @@
 .continue-learning-status {
   display: inline-flex;
   width: max-content;
-  height: 28px;
+  height: 24px;
   align-items: center;
   align-self: flex-start;
   margin: 0;
-  padding: 0 14px;
+  padding: 0 10px;
   border-radius: 999px;
   background: #e8f8ef;
   color: #149653;
-  font-size: 25px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 600;
   line-height: 1;
 }
 
@@ -196,11 +196,11 @@
 
 .continue-learning-course-title {
   max-width: 100%;
-  margin: clamp(6px, 2.5cqh, 10px) 0 0;
+  margin: clamp(4px, 2cqh, 8px) 0 0;
   color: #0f172a;
-  font-size: clamp(20px, 5.5cqw, 26px);
+  font-size: clamp(16px, 4.2cqw, 20px);
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.25;
   letter-spacing: -0.02em;
   white-space: normal;
   word-break: normal;
@@ -382,8 +382,8 @@
 
   .continue-learning-course-title {
     margin-top: 6px;
-    font-size: clamp(24px, 6cqw, 32px);
-    line-height: 1.15;
+    font-size: clamp(16px, 4.2cqw, 20px);
+    line-height: 1.2;
     max-height: 2.5em;
   }
 
@@ -610,5 +610,96 @@
   .continue-learning-play-button {
     width: 52px;
     height: 52px;
+  }
+}
+
+/* Tablet: Continue Learning card is much taller now (spans 2 rows) */
+@media (max-width: 1199px) {
+  .continue-learning {
+    --card-padding-left: 28px;
+    --card-padding-right: 28px;
+    --card-padding-top: 28px;
+    --card-padding-bottom: 28px;
+    --media-column-width: clamp(300px, 42cqw, 380px);
+    --media-details-gap: 28px;
+    --section-gap: 20px;
+  }
+
+  .continue-learning-title {
+    font-size: 28px;
+  }
+
+  .continue-learning-main {
+    align-items: center;
+  }
+
+  .continue-learning-media {
+    height: 380px;
+    max-height: 380px;
+    align-self: center;
+    border-radius: 30px;
+  }
+
+  .continue-learning-details {
+    align-self: center;
+    padding-top: 0;
+  }
+
+  .continue-learning-status {
+    height: 32px;
+    padding-inline: 16px;
+    font-size: 18px;
+  }
+
+  .continue-learning-course-title {
+    margin-top: 14px;
+    font-size: 45px;
+    max-height: none;
+  }
+
+  .continue-learning-metrics {
+    margin-top: 22px;
+  }
+
+  .continue-learning-progress-track {
+    height: 8px;
+  }
+
+  .continue-learning-progress-row > span {
+    font-size: 20px;
+  }
+
+  .continue-learning-lesson {
+    margin-top: 14px;
+    font-size: 20px;
+    line-height: 20px;
+  }
+
+  .continue-learning-cta {
+    height: 65px;
+    font-size: 20px;
+    border-radius: 18px;
+  }
+
+  .continue-learning-footer > button:last-child {
+    width: 65px;
+    height: 65px;
+    flex-basis: 65px;
+    border-radius: 18px;
+  }
+
+  .continue-learning-footer > button:last-child svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .continue-learning-play-button {
+    width: 56px;
+    height: 56px;
+  }
+
+  .continue-learning-play-icon {
+    width: 22px;
+    height: 22px;
   }
 }

@@ -124,8 +124,8 @@
 }
 
 .recommended-course-icon svg {
-  width: clamp(34px, 3.8cqw, 42px);
-  height: clamp(34px, 3.8cqw, 42px);
+  width: 50px;
+  height: 50px;
   stroke-width: 1.8;
 }
 .recommended-course-icon--node svg { fill: #d9f4e5; }
@@ -133,9 +133,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: clamp(34px, 3.8cqw, 42px);
-  height: clamp(34px, 3.8cqw, 42px);
-  font-size: 20px;
+  width: 50px;
+  height: 50px;
+  font-size: 26px;
   font-weight: 800;
   letter-spacing: -0.05em;
   color: #159455;
@@ -305,7 +305,7 @@
   outline-offset: 2px;
 }
 
-@container bento-slot (max-height: 205px) {
+@container bento-slot (max-height: 205px) and (max-width: 900px) {
   .recommended-card { padding-top: 10px; padding-bottom: 10px; }
   .recommended-row { padding-top: 3px; }
   .recommended-course { padding: 9px; }
@@ -556,5 +556,78 @@
 
   .recommended-rating {
     font-size: 11px;
+  }
+}
+
+/* Desktop full-width bento row — bigger Recommended course icons */
+@media (min-width: 1200px) {
+  .recommended-course-icon svg {
+    width: 52px !important;
+    height: 52px !important;
+  }
+
+  .recommended-course-js {
+    width: 52px !important;
+    height: 52px !important;
+    font-size: 26px !important;
+  }
+}
+
+/* Large desktop / fullscreen 1920×1080 — bigger Recommended course icons */
+@media (min-width: 1400px) {
+  .recommended-course-icon svg {
+    width: 58px !important;
+    height: 58px !important;
+  }
+
+  .recommended-course-js {
+    width: 58px !important;
+    height: 58px !important;
+    font-size: 28px !important;
+  }
+
+  .recommended-course-wash {
+    width: 170px;
+    height: 130px;
+  }
+
+  .recommended-course-copy h3 {
+    font-size: 19px;
+  }
+
+  .recommended-course-level,
+  .recommended-rating {
+    font-size: 14px;
+  }
+
+  .recommended-rating svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .recommended-bookmark {
+    width: 40px;
+    height: 40px;
+    top: 16px;
+    right: 16px;
+    border-radius: 11px;
+  }
+
+  .recommended-bookmark svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .recommended-header h2 {
+    font-size: 18px;
+  }
+
+  .recommended-view-all {
+    font-size: 14px;
+  }
+
+  .recommended-view-all svg {
+    width: 18px;
+    height: 18px;
   }
 }
