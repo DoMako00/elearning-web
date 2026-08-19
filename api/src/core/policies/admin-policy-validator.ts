@@ -1,0 +1,15 @@
+import type { AdminRequestContext } from "../context";
+import { fail, ok, type Result } from "../../shared";
+import { policyValidationError, targetPlatformMismatchError, type AdminCoreError } from "../errors";
+
+export interface AdminPolicyValidationInput { readonly context: AdminRequestContext; readonly commandName: string; readonly targetType: string; readonly targetId: string; readonly targetPlatformId: string; readonly policySetId?: string; readonly expectedVersion?: string | number; readonly metadata?: Readonly<Record<string, unknown>>; }
+export interface AdminLifecycleTransitionInput { readonly context: AdminRequestContext; readonly entityType: string; readonly entityId: string; readonly fromStatus?: string; readonly toStatus: string; readonly policySetId?: string; }
+export interface AdminPolicyValidator { validateCommandPolicy(input: AdminPolicyValidationInput): Promise<Result<void, AdminCoreError>>; validateLifecycleTransition(input: AdminLifecycleTransitionInput): Promise<Result<void, AdminCoreError>>; validateTargetPlatform(input: { readonly context: AdminRequestContext; readonly targetPlatformId: string }): Result<void, AdminCoreError>; }
+export interface InMemoryAdminPolicyValidatorOptions { readonly rejectedCommands?: readonly string[]; readonly rejectedTransitions?: readonly string[]; readonly unsupportedScopes?: readonly string[]; }
+export class InMemoryAdminPolicyValidator implements AdminPolicyValidator {
+  private readonly options: InMemoryAdminPolicyValidatorOptions;
+  constructor(options: InMemoryAdminPolicyValidatorOptions = {}) { this.options = options; }
+  validateTargetPlatform(input: { readonly context: AdminRequestContext; readonly targetPlatformId: string }): Result<void, AdminCoreError> { return input.context.platform.platformId === input.targetPlatformId ? ok(undefined) : fail(targetPlatformMismatchError(input.context.correlationId, { platformCode: input.context.platform.platformCode })); }
+  async validateCommandPolicy(input: AdminPolicyValidationInput): Promise<Result<void, AdminCoreError>> { const platform = this.validateTargetPlatform(input); if (!platform.ok) return platform; if (this.options.unsupportedScopes?.includes(input.targetType)) return fail({ ...policyValidationError(input.context.correlationId), code: "unsupported_scope", message: "The requested scope is not supported by this evaluator." }); if (this.options.rejectedCommands?.includes(input.commandName)) return fail(policyValidationError(input.context.correlationId, { commandName: input.commandName, targetType: input.targetType })); return ok(undefined); }
+  async validateLifecycleTransition(input: AdminLifecycleTransitionInput): Promise<Result<void, AdminCoreError>> { if (this.options.rejectedTransitions?.includes(`${input.entityType}:${input.toStatus}`)) return fail({ code: "lifecycle_transition_denied", message: "The lifecycle transition is not allowed by the configured test policy.", correlationId: input.context.correlationId }); return ok(undefined); }
+}
