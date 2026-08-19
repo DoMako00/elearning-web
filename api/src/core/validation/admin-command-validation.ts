@@ -1,6 +1,6 @@
-import type { AdminPlatformContext, AdminSensitiveCommandMetadata, CorrelationId } from "../../contracts/admin";
+import type { AdminBrandContext, AdminSensitiveCommandMetadata, CorrelationId } from "../../contracts/admin";
 import { fail, ok, type Result } from "../../shared";
-import { missingIdempotencyKeyError, missingReasonError, platformMismatchError, targetPlatformMismatchError, type AdminCoreError } from "../errors";
+import { missingIdempotencyKeyError, missingReasonError, platformMismatchError, targetBrandMismatchError, type AdminCoreError } from "../errors";
 import type { AdminRequestContext } from "../context";
 
 export function validateCorrelationId(correlationId: CorrelationId): Result<void, AdminCoreError> { return correlationId?.trim() ? ok(undefined) : fail(platformMismatchError(correlationId ?? "missing-correlation")); }
@@ -12,5 +12,10 @@ export function validateSensitiveCommandMetadata(metadata: AdminSensitiveCommand
   if (!metadata.idempotencyKey?.trim()) return fail(missingIdempotencyKeyError(metadata.correlationId));
   return ok(undefined);
 }
-export function validateAdminTargetPlatform(context: AdminRequestContext, targetPlatformId: string): Result<void, AdminCoreError> { return context.platform.platformId === targetPlatformId ? ok(undefined) : fail(targetPlatformMismatchError(context.correlationId, { platformCode: context.platform.platformCode })); }
-export function validateCommandPlatform(metadata: AdminSensitiveCommandMetadata, context: AdminRequestContext): Result<void, AdminCoreError> { const platform: AdminPlatformContext | undefined = metadata?.platform; return platform?.platformId === context.platform.platformId && platform.platformCode === context.platform.platformCode ? ok(undefined) : fail(targetPlatformMismatchError(context.correlationId)); }
+/** Brand equality is the canonical Medway/Elite boundary; targetPlatformId is a compatibility parameter. */
+export function validateAdminTargetBrand(context: AdminRequestContext, targetBrandId: string): Result<void, AdminCoreError> { return context.brand.brandId === targetBrandId ? ok(undefined) : fail(targetBrandMismatchError(context.correlationId, { brandCode: context.brand.brandCode })); }
+/** @deprecated Compatibility alias for validateAdminTargetBrand. */
+export const validateAdminTargetPlatform = validateAdminTargetBrand;
+export function validateCommandBrand(metadata: AdminSensitiveCommandMetadata, context: AdminRequestContext): Result<void, AdminCoreError> { const brand = (metadata as AdminSensitiveCommandMetadata & { brand?: AdminBrandContext }).brand; const legacy = metadata.platform; return brand ? (brand.brandId === context.brand.brandId && brand.brandCode === context.brand.brandCode ? ok(undefined) : fail(targetBrandMismatchError(context.correlationId))) : (legacy.platformId === context.brand.brandId && legacy.platformCode === context.brand.brandCode ? ok(undefined) : fail(targetBrandMismatchError(context.correlationId))); }
+/** @deprecated Compatibility alias for validateCommandBrand. */
+export const validateCommandPlatform = validateCommandBrand;

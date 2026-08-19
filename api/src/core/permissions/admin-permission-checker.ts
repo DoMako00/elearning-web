@@ -6,5 +6,5 @@ import type { AdminRequestContext } from "../context";
 export function requireAdminPermission(context: AdminRequestContext, permission: AdminPermissionCode): Result<void, AdminCoreError> {
   if (!context.platform.isActive || context.adminUser.status !== "active") return fail(adminCoreError("admin_user_missing_or_inactive", "The resolved admin user is not active.", context.correlationId));
   if (context.permissions.includes(permission)) return ok(undefined);
-  return fail(permissionDeniedError(context.correlationId, { requiredPermission: permission, platformCode: context.platform.platformCode, adminUserId: context.adminUser.adminUserId }));
+  return fail(permissionDeniedError(context.correlationId, { requiredPermission: permission, brandCode: context.brand.brandCode, adminUserId: context.adminUser.adminUserId }));
 }

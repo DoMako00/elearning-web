@@ -1,0 +1,2 @@
+import type { ReactNode } from "react";
+export function AdminSectionCard({ title, eyebrow, children }: { title: string; eyebrow?: string; children: ReactNode }) { const id = `section-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`; return <section className="admin-section-card" aria-labelledby={id}><header><div>{eyebrow && <span className="admin-eyebrow">{eyebrow}</span>}<h2 id={id}>{title}</h2></div></header>{children}</section>; }

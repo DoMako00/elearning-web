@@ -613,20 +613,20 @@
   }
 }
 
-/* Tablet: Continue Learning card is much taller now (spans 2 rows) */
+/* Tablet: keep the card readable without letting it dominate the dashboard. */
 @media (max-width: 1199px) {
   .continue-learning {
-    --card-padding-left: 28px;
-    --card-padding-right: 28px;
-    --card-padding-top: 28px;
-    --card-padding-bottom: 28px;
-    --media-column-width: clamp(300px, 42cqw, 380px);
-    --media-details-gap: 28px;
-    --section-gap: 20px;
+    --card-padding-left: 20px;
+    --card-padding-right: 20px;
+    --card-padding-top: 18px;
+    --card-padding-bottom: 18px;
+    --media-column-width: clamp(180px, 26cqw, 250px);
+    --media-details-gap: 20px;
+    --section-gap: 14px;
   }
 
   .continue-learning-title {
-    font-size: 28px;
+    font-size: 14px;
   }
 
   .continue-learning-main {
@@ -634,10 +634,10 @@
   }
 
   .continue-learning-media {
-    height: 380px;
-    max-height: 380px;
+    height: 190px;
+    max-height: 190px;
     align-self: center;
-    border-radius: 30px;
+    border-radius: 18px;
   }
 
   .continue-learning-details {
@@ -646,19 +646,19 @@
   }
 
   .continue-learning-status {
-    height: 32px;
-    padding-inline: 16px;
-    font-size: 18px;
+    height: 26px;
+    padding-inline: 12px;
+    font-size: 13px;
   }
 
   .continue-learning-course-title {
-    margin-top: 14px;
-    font-size: 45px;
-    max-height: none;
+    margin-top: 10px;
+    font-size: clamp(24px, 3.5cqw, 34px);
+    max-height: 2.6em;
   }
 
   .continue-learning-metrics {
-    margin-top: 22px;
+    margin-top: 16px;
   }
 
   .continue-learning-progress-track {
@@ -666,40 +666,40 @@
   }
 
   .continue-learning-progress-row > span {
-    font-size: 20px;
+    font-size: 14px;
   }
 
   .continue-learning-lesson {
-    margin-top: 14px;
-    font-size: 20px;
-    line-height: 20px;
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 18px;
   }
 
   .continue-learning-cta {
-    height: 65px;
-    font-size: 20px;
-    border-radius: 18px;
+    height: 48px;
+    font-size: 14px;
+    border-radius: 11px;
   }
 
   .continue-learning-footer > button:last-child {
-    width: 65px;
-    height: 65px;
-    flex-basis: 65px;
-    border-radius: 18px;
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+    border-radius: 11px;
   }
 
   .continue-learning-footer > button:last-child svg {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
   }
 
   .continue-learning-play-button {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
   }
 
   .continue-learning-play-icon {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
   }
 }

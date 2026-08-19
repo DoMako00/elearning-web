@@ -19,7 +19,15 @@ export type MaskedPhone = string;
 export type RedactedReference = string;
 export type RedactedJsonObject = Record<string, unknown>;
 
-export type AdminPlatformCode = "medway" | "elite";
+// Compatibility note: Medway and Elite are brands inside one application platform. New admin code should use AdminBrand* terminology.
+export type AdminBrandCode = "medway" | "elite";
+export interface AdminBrandContext { brandId: EntityId; brandCode: AdminBrandCode; brandDisplayName: string; platformId?: EntityId; platformCode?: AdminBrandCode; }
+export interface AdminBrandScoped { brandId: EntityId; brandCode: AdminBrandCode; }
+export interface AdminBrandScopedEntity extends AdminBrandScoped { id: EntityId; }
+export interface AdminBrandIdentity extends AdminBrandContext { logoReference?: RedactedReference; themeReference?: RedactedReference; primaryColor?: string; accentColor?: string; }
+/** @deprecated Compatibility alias. Medway/Elite are brands, not separate technical platforms. */
+export type AdminPlatformCode = AdminBrandCode;
+/** @deprecated Compatibility shape retained while existing adapter DTOs migrate to brand fields. */
 export interface AdminPlatformContext { platformId: EntityId; platformCode: AdminPlatformCode; platformDisplayName: string; }
 export interface AdminPlatformScoped { platform: AdminPlatformContext; }
 export interface AdminPlatformScopedEntity extends AdminPlatformScoped { id: EntityId; }

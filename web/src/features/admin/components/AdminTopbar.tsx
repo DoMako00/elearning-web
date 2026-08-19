@@ -1,0 +1,6 @@
+import { ChevronDown, CircleHelp } from "lucide-react";
+import type { AdminBrandCode, AdminBrandContext } from "../api";
+
+export function AdminTopbar({ brand, brandCode, availableBrands, setBrandCode }: { brand: AdminBrandContext; brandCode: AdminBrandCode; availableBrands: readonly AdminBrandContext[]; setBrandCode: (code: AdminBrandCode) => void }) {
+  return <header className="admin-topbar"><div className="admin-topbar__context"><span className="admin-eyebrow">Brand context</span><strong>{brand.brandDisplayName}</strong><span className="admin-topbar__code">{brand.brandCode}</span></div><div className="admin-topbar__actions"><label className="admin-platform-switcher"><span>Switch brand</span><select value={brandCode} onChange={(event) => setBrandCode(event.target.value as AdminBrandCode)} aria-label="Switch admin brand">{availableBrands.map((item) => <option key={item.brandId} value={item.brandCode}>{item.brandDisplayName}</option>)}</select><ChevronDown aria-hidden="true" /></label><div className="admin-topbar__identity"><CircleHelp aria-hidden="true" /><span><strong>Admin Console</strong><small>Read-only mock</small></span></div></div></header>;
+}

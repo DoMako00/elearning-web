@@ -1,0 +1,5 @@
+import type { AdminBrandCode } from "../../contracts/admin";
+import { createTestAdminRequestContext, type AdminRequestContext } from "../../core/context";
+export interface MockAdminHttpContextInput { readonly brandCode: AdminBrandCode; readonly correlationId: string; }
+/** Skeleton-only context. It does not authenticate requests or trust browser claims. */
+export function createMockAdminHttpContext(input: MockAdminHttpContextInput): AdminRequestContext { const displayName = input.brandCode === "medway" ? "Medway" : "Elite"; const brandId = `brand-${input.brandCode}`; return createTestAdminRequestContext({ brandId, brandCode: input.brandCode, brandDisplayName: displayName, platformId: brandId, platformCode: input.brandCode, adminUserId: `admin-${input.brandCode}-http-skeleton`, appUserId: `app-user-${input.brandCode}-http-skeleton`, providerSubjectId: `provider-${input.brandCode}-http-skeleton`, correlationId: input.correlationId, permissions: ["admin.students.read", "admin.audit.read", "admin.security.read"] }); }

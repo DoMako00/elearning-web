@@ -1,0 +1,2 @@
+import type { ReactNode } from "react";
+export function AdminDataList<T extends { id: string }>({ items, renderItem, emptyMessage }: { items: readonly T[]; renderItem: (item: T) => ReactNode; emptyMessage: string }) { if (!items.length) return <p className="admin-data-list__empty">{emptyMessage}</p>; return <ul className="admin-data-list">{items.map((item) => <li key={item.id}>{renderItem(item)}</li>)}</ul>; }

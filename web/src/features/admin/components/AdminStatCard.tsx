@@ -1,0 +1,2 @@
+import type { ReactNode } from "react";
+export function AdminStatCard({ label, value, tone = "default" }: { label: string; value: ReactNode; tone?: "default" | "warning" | "danger" | "neutral" }) { return <article className={`admin-stat-card admin-stat-card--${tone}`}><span>{label}</span><strong>{value}</strong></article>; }

@@ -1,0 +1,1 @@
+export function AdminStatusPill({ label, tone = "neutral" }: { label: string; tone?: "success" | "warning" | "danger" | "neutral" }) { return <span className={`admin-status-pill admin-status-pill--${tone}`}>{label}</span>; }

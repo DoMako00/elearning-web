@@ -3,11 +3,16 @@ import type {
   AdminContentTreeNode, AdminDeviceSummary, AdminLessonDetail, AdminMediaAssetDetail, AdminPaymentDetail,
   AdminPlaybackSessionSummary, AdminPolicySetSummary, AdminRefundDetail, AdminRoleSummary, AdminSecurityEventItem, AdminSessionSummary,
   AdminStudentDetail, AdminSubscriptionDetail, AdminSeatSummary, AdminAttemptDetail,
-  AdminUserSummary, AdminPlatformContext,
+  AdminUserSummary, AdminPlatformContext, AdminBrandContext,
 } from "./adminApi.types";
 
-export const medwayPlatform: AdminPlatformContext = { platformId: "platform-medway", platformCode: "medway", platformDisplayName: "Medway" };
-export const elitePlatform: AdminPlatformContext = { platformId: "platform-elite", platformCode: "elite", platformDisplayName: "Elite" };
+// Canonical brand identities. Platform exports below are compatibility aliases only.
+export const medwayBrand: AdminBrandContext = { brandId: "platform-medway", brandCode: "medway", brandDisplayName: "Medway", platformId: "platform-medway", platformCode: "medway" };
+export const eliteBrand: AdminBrandContext = { brandId: "platform-elite", brandCode: "elite", brandDisplayName: "Elite", platformId: "platform-elite", platformCode: "elite" };
+/** @deprecated Compatibility alias only. Medway is a brand, not a separate platform. */
+export const medwayPlatform: AdminPlatformContext = { platformId: medwayBrand.brandId, platformCode: medwayBrand.brandCode, platformDisplayName: medwayBrand.brandDisplayName };
+/** @deprecated Compatibility alias only. Elite is a brand, not a separate platform. */
+export const elitePlatform: AdminPlatformContext = { platformId: eliteBrand.brandId, platformCode: eliteBrand.brandCode, platformDisplayName: eliteBrand.brandDisplayName };
 
 const medDate = "2026-08-19T09:00:00.000Z";
 const eliteDate = "2026-08-19T10:00:00.000Z";
