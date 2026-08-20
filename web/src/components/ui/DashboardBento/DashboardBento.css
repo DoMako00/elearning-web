@@ -134,8 +134,8 @@
     display: grid;
     grid-template-columns: repeat(24, minmax(0, 1fr));
     grid-template-rows:
-      280px 290px 280px 230px;
-    gap: 12px;
+      340px 290px 280px 240px;
+    gap: 14px;
     overflow: visible;
   }
 
@@ -147,12 +147,14 @@
     height: 100%;
     min-height: 0;
     overflow: hidden;
+    border-radius: 16px;
   }
 
-  /* Keep Continue Learning compact on tablet instead of spanning two rows. */
+  /* Continue Learning takes full width row 1 */
   .dashboard-bento__slot--continue {
     grid-column: 1 / -1;
     grid-row: 1;
+    height: 100%;
   }
 
   /* AI Guide inline slot is hidden on tablet */
