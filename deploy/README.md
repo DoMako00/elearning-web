@@ -139,3 +139,17 @@ The deployment progression is now:
 4. Follow [deploy/dokploy/STAGING_DEPLOYMENT.md](dokploy/STAGING_DEPLOYMENT.md) for the VPS/Dokploy staging deployment guide.
 
 Prompt 18 supplements Prompt 16; it does not replace container smoke verification. The staging deployment remains mock-only and defers production authentication, persistence, providers, domains, TLS, and secrets management.
+
+## Prompt 19A — VPS mock deployment checklist
+
+The deployment progression now continues:
+
+1. Build the API and web Dockerfiles.
+2. Run `node deploy/scripts/container-smoke.mjs`.
+3. Use `deploy/dokploy/docker-compose.yml` as the mock/staging Compose draft.
+4. Follow `deploy/dokploy/STAGING_DEPLOYMENT.md` for the detailed VPS/Dokploy guide.
+5. Use `deploy/dokploy/VPS_MOCK_DEPLOYMENT_CHECKLIST.md` as the first-VPS execution checklist.
+
+Prompt 19A is documentation and operational checklist work only. It does not change Compose services, runtime behavior, frontend behavior, backend business rules, or provider/database/authentication boundaries. The deployment remains mock-only and staging-oriented.
+
+The current Docker/Dokploy deployment remains mock-only until the persistence and authentication integration boundary is implemented. Runtime and container smoke results do not prove real identity, persistence, authorization-provider, payment, or protected-media readiness.

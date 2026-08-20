@@ -59,6 +59,8 @@ No database migration or physical schema change is created by this correction. E
 
 Existing `AdminPlatformCode`, `AdminPlatformContext`, `platformId`, `platformCode`, `targetPlatformId`, and related error names may remain where changing them would create unnecessary compatibility risk. New admin code should prefer `AdminBrandCode`, `AdminBrandContext`, `AdminBrandScoped`, `brandId`, `brandCode`, and brand-target terminology.
 
+Future persistence and authentication integration must use brand terminology as the canonical business scope. Transitional platform-named aliases may remain only for compatibility while callers and physical schema decisions are migrated deliberately. See [Persistence and Auth Integration Boundary](persistence-auth-integration-boundary.md).
+
 ## 8. Future schema direction
 
 A future schema pass may rename a physical `platforms` concept to `brands`, or introduce `brands` under one application/platform record. That physical decision is deferred and must not be silently applied here.

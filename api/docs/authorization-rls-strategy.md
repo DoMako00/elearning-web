@@ -1,5 +1,9 @@
 # Backend Authorization and RLS Strategy
 
+## Persistence and request-context boundary
+
+RLS is defense-in-depth. It must not replace trusted backend request context, active brand-scope resolution, admin command validation, lifecycle/policy checks, or append-only evidence requirements. The application boundary remains authoritative even when a future database adds RLS policies. See [Persistence and Auth Integration Boundary](persistence-auth-integration-boundary.md).
+
 ## Authority model
 
 This strategy implements the schema in `postgres-schema-v1.md`. Backend authorization is the primary gate; PostgreSQL RLS is defense in depth for any `app` data exposed through Supabase. Frontend state, route visibility, enrollment, payment, subscription, seat, device, or a signed media URL is never authorization by itself.

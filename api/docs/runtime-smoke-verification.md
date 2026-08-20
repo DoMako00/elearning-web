@@ -160,3 +160,5 @@ API and web Dockerfiles now exist under `deploy/docker/`. Local API runtime smok
 The existing runtime smoke checks the compiled Node API directly through a locally started process. The container smoke runner at `deploy/scripts/container-smoke.mjs` checks the Docker image and container boundaries instead: it starts the API and Nginx web images, exercises their mapped HTTP ports, verifies the API brand overview routes and the web SPA fallback, and cleans up its dedicated containers.
 
 Both smoke layers are mock-only verification. Neither validates Supabase, a database, real authentication, payment providers, protected media, storage, CDN, or notification providers.
+
+Runtime, container, and Compose smoke checks validate startup, health, read-only mock overview behavior, and SPA serving only. They do not validate real persistence, authentication, authorization adapters, provider integrations, or production access decisions. Those concerns are planned in the [Persistence and Auth Integration Boundary](persistence-auth-integration-boundary.md).
