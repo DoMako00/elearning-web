@@ -1,0 +1,55 @@
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/api.Dockerfile
+    container_name: elearning-api-staging
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      API_HOST: 0.0.0.0
+      API_PORT: 3000
+      ADMIN_RUNTIME_MODE: ${ADMIN_RUNTIME_MODE:-mock}
+    expose:
+      - "3000"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          node -e "fetch('http://127.0.0.1:3000/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - elearning-staging-network
+
+  web:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/web.Dockerfile
+      args:
+        VITE_ADMIN_DATA_SOURCE: ${VITE_ADMIN_DATA_SOURCE:-mock}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3000}
+    container_name: elearning-web-staging
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          wget -qO- http://127.0.0.1/ >/dev/null 2>&1 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - elearning-staging-network
+
+networks:
+  elearning-staging-network:
+    name: elearning-staging-network

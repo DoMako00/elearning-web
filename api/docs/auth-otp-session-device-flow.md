@@ -87,6 +87,10 @@ Device replacement is a separate `device_replacements` command: authenticate use
 
 Validate platform activity, normalized email/phone, required profile fields, verified OTP purpose/destination/expiry/one-time state, active user/session/device state, platform-safe ownership, idempotency key, and correlation ID. Defend against account enumeration, OTP brute force/replay/flooding, credential stuffing, cross-platform confusion, session fixation, lost-device takeover, support impersonation, stale sessions, and sensitive-data logging. Rate limiting, attempt thresholds, lockout/recovery, and delivery-provider behavior are policy-controlled.
 
+## Application request-context boundary
+
+An authentication identity must be validated and converted by the backend into an internal application request context. Auth identity, OTP/session state, or device state does not independently grant brand membership, learning access, protected resources, or admin authority. See [Persistence and Auth Integration Boundary](persistence-auth-integration-boundary.md).
+
 ## Access after authentication
 
 Protected requests still execute the authorization strategy: platform, active app user, valid session/device, eligible subscription/seat/promotion/exception source, explicit active grant, content release window, and resource policy. Authentication, profile creation, device validation, or session creation never bypasses that decision.

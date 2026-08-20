@@ -1,7 +1,10 @@
 export interface EnvConfig {
   apiBaseUrl: string;
+  adminDataSource: AdminDataSource;
   dashboardEnrollmentState?: DashboardEnrollmentState;
 }
+
+export type AdminDataSource = "mock" | "api";
 
 export type DashboardEnrollmentState =
   | "loading"
@@ -20,6 +23,10 @@ function normalizeUrl(value: string | undefined) {
   return value?.trim().replace(/\/$/, "") ?? "";
 }
 
+function normalizeAdminDataSource(value: string | undefined): AdminDataSource {
+  return value?.trim().toLowerCase() === "api" ? "api" : "mock";
+}
+
 function normalizeDashboardEnrollmentState(value: string | undefined) {
   const normalized = value?.trim().toLowerCase();
 
@@ -30,6 +37,7 @@ function normalizeDashboardEnrollmentState(value: string | undefined) {
 
 export const env: Readonly<EnvConfig> = Object.freeze({
   apiBaseUrl: normalizeUrl(import.meta.env.VITE_API_BASE_URL),
+  adminDataSource: normalizeAdminDataSource(import.meta.env.VITE_ADMIN_DATA_SOURCE),
   dashboardEnrollmentState: normalizeDashboardEnrollmentState(
     import.meta.env.VITE_DASHBOARD_ENROLLMENT_STATE,
   ),

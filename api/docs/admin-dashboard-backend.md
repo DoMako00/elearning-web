@@ -17,6 +17,8 @@ The frontend may use route visibility, local permission presentation, loading st
 
 The document aligns with the current logical schema, ERD, authorization/RLS, authentication/session/device, subscription/access, payment/refund, learning-content, protected-media, and quiz/assessment documents. Where those documents or current domain types disagree, the disagreement is recorded in [Open Decisions](#12-open-decisions) and must not be silently resolved by an implementation.
 
+Future persistence and authentication work must follow the [Persistence and Auth Integration Boundary](persistence-auth-integration-boundary.md). The current admin dashboard remains backend-mediated and mock-only until real authentication, persistence, and provider adapters are introduced behind the existing contracts.
+
 ## 2. Authority Model
 
 ### 2.1 Authority layers
