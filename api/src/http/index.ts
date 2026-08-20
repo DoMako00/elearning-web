@@ -8,3 +8,4 @@ export * from "./runtime/brand-resolver";
 export * from "./runtime/mock-admin-context";
 export * from "./routes/health.routes";
 export * from "./routes/admin.routes";
+export * from "./http-smoke.selftest";
