@@ -1,5 +1,9 @@
 # PostgreSQL / Supabase Schema Draft v1
 
+> **Legacy logical draft:** Review [Postgres/Supabase Schema Alignment Review](postgres-supabase-schema-alignment-review.md) before deriving migrations. Future schema work uses canonical brand terminology; legacy platform terminology and compatibility aliases remain transitional only.
+
+> Do not derive migrations from this document until the blockers in the [Schema Decision Register](schema-decision-register.md) are resolved.
+
 ## Scope
 
 Logical schema only: no SQL is applied and no migration is created. Application data lives in a private `app` schema; Supabase-managed `auth` and `storage` schemas remain provider-owned. `platforms` contains `medway` and `elite`. Every `app` table below, except `platforms`, has `id uuid PK`, `platform_id uuid NOT NULL`, `created_at timestamptz NOT NULL`, and `updated_at timestamptz` where mutable.

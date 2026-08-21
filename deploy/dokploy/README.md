@@ -69,3 +69,7 @@ For the actionable first-VPS execution sequence, use [VPS_MOCK_DEPLOYMENT_CHECKL
 - this README is the short Compose quickstart;
 - `STAGING_DEPLOYMENT.md` is the detailed staging deployment guide;
 - `VPS_MOCK_DEPLOYMENT_CHECKLIST.md` is the execution checklist for the first Dokploy mock deployment.
+
+### Push warning
+
+Dokploy is connected to the `dev` branch with an **On Push** trigger. A push to `dev` may start a VPS deployment. Follow the repository [Deployment Control Policy](../../deploy/DEPLOYMENT_CONTROL_POLICY.md) and validate/approve changes before pushing.

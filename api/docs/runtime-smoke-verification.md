@@ -162,3 +162,5 @@ The existing runtime smoke checks the compiled Node API directly through a local
 Both smoke layers are mock-only verification. Neither validates Supabase, a database, real authentication, payment providers, protected media, storage, CDN, or notification providers.
 
 Runtime, container, and Compose smoke checks validate startup, health, read-only mock overview behavior, and SPA serving only. They do not validate real persistence, authentication, authorization adapters, provider integrations, or production access decisions. Those concerns are planned in the [Persistence and Auth Integration Boundary](persistence-auth-integration-boundary.md).
+
+Runtime smoke, container smoke, and Compose configuration are required gates before server-impacting runtime changes are pushed to `dev`. They verify the current mock staging boundary only; pushing may trigger Dokploy because the staging deployment uses an On Push trigger.

@@ -1,5 +1,9 @@
 # Medical E-Learning Backend ERD v1
 
+> **Legacy logical ERD:** Review [Postgres/Supabase Schema Alignment Review](postgres-supabase-schema-alignment-review.md) before writing migrations. Future physical schema work must follow canonical brand-scope alignment while legacy platform terminology remains compatibility-only.
+
+> This ERD remains logical/legacy until the blockers in the [Schema Decision Register](schema-decision-register.md) are resolved.
+
 ## Scope and invariants
 
 This is a logical ERD, not SQL or a migration. `platforms` contains the two isolation boundaries: **Medway** and **Elite**. Every persisted table other than `platforms` carries `platform_id`; every relationship must join within that same platform. A Medway row must never authorize, price, enroll, administer, or expose Elite content.

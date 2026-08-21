@@ -19,6 +19,8 @@ The document aligns with the current logical schema, ERD, authorization/RLS, aut
 
 Future persistence and authentication work must follow the [Persistence and Auth Integration Boundary](persistence-auth-integration-boundary.md). The current admin dashboard remains backend-mediated and mock-only until real authentication, persistence, and provider adapters are introduced behind the existing contracts.
 
+When persistence begins, admin integration must start with read-only read-model interfaces and mock-versus-real parity checks before any admin command persistence is enabled. Command writes remain a later, sensitive phase requiring explicit approval, rollback planning, brand validation, idempotency, and evidence.
+
 ## 2. Authority Model
 
 ### 2.1 Authority layers
@@ -500,4 +502,10 @@ These issues were identified during the repository audit and are intentionally u
 - **Admin permission granularity:** decide whether finance, support, content ownership, media incident response, assessment review, and governance permissions require additional sub-permissions beyond the initial matrix.
 - **Overview aggregation consistency:** decide freshness, pagination, failure isolation, and timestamp semantics when overview cards aggregate multiple domain read models.
 - **Sensitive support flow:** decide the provider-neutral verification contract for sensitive profile changes and device replacement before implementing support commands.
+
+## 13. Admin overview read-model boundary
+
+Admin overview reads now have a formal provider-neutral `AdminOverviewReadModel` boundary. The current in-memory implementation preserves the existing mock overview contract and is covered by parity checks against the existing in-memory provider. Any future persistence adapter must implement this read-model contract before replacing mock data.
+
+Command persistence remains a separate concern: it must continue to validate permission, active and target brand scope, lifecycle and policy state, required reasons and idempotency keys, and append-only evidence before a command changes state.
 

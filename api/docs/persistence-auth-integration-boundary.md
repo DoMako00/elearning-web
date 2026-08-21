@@ -4,6 +4,8 @@
 
 This document defines the boundary for introducing real persistence and authentication into the e-learning application later. It is a design and sequencing document only. Its purpose is to preserve the existing admin contracts, brand-scope isolation, backend-mediated authorization, mock runtime, and future provider adapters while real infrastructure is added incrementally.
 
+The concrete staged roadmap is documented in [Persistence/Auth Implementation Plan](persistence-auth-implementation-plan.md). This boundary document remains the provider-neutral architectural contract; the implementation plan defines sequencing, feature controls, validation gates, and deployment impact.
+
 The application remains one platform. Medway and Elite are educational brands inside that platform. Brand scope is the isolation boundary for catalog, content, pricing, subscriptions, seats, access grants, admin visibility, protected media policy, and evidence.
 
 ## 2. Non-goals
@@ -294,3 +296,7 @@ Real persistence/auth integration is ready for staged rollout only when:
 - the current mock runtime remains available as a safe development fallback until real integration is proven.
 
 Until those checks are met, deployment remains mock-only and the current HTTP/container/Dokploy smoke tests must not be interpreted as proof of real persistence or authentication readiness.
+
+## Canonical request-context implementation
+
+The provider-neutral context contracts are now backed by an exported skeleton in `api/src/core/request-context/`, including `RequestContextBuilder`, `InMemoryRequestContextFactory`, and the independently callable request-context self-test. `api/src/core/brand-scope/` contains the canonical in-memory brand resolver. These files are contracts and deterministic test fixtures only; they are not a Supabase, database, or production authentication adapter. The current admin-core `AdminRequestContext` remains the compatibility context until a controlled migration is approved.
