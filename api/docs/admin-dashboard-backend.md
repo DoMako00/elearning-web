@@ -503,3 +503,9 @@ These issues were identified during the repository audit and are intentionally u
 - **Overview aggregation consistency:** decide freshness, pagination, failure isolation, and timestamp semantics when overview cards aggregate multiple domain read models.
 - **Sensitive support flow:** decide the provider-neutral verification contract for sensitive profile changes and device replacement before implementing support commands.
 
+## 13. Admin overview read-model boundary
+
+Admin overview reads now have a formal provider-neutral `AdminOverviewReadModel` boundary. The current in-memory implementation preserves the existing mock overview contract and is covered by parity checks against the existing in-memory provider. Any future persistence adapter must implement this read-model contract before replacing mock data.
+
+Command persistence remains a separate concern: it must continue to validate permission, active and target brand scope, lifecycle and policy state, required reasons and idempotency keys, and append-only evidence before a command changes state.
+

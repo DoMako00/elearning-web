@@ -19,7 +19,7 @@ import { InMemoryAdminEvidenceWriter } from "../../core/logging";
 import { fail, ok, type Result } from "../../shared";
 import { executeAdminCommandBoundary, type AdminCommandBoundaryDependencies } from "./admin-command-boundary";
 import { createAdminModule } from "./admin.module";
-import { InMemoryAdminReadModels, type AdminOverviewReadModel } from "./in-memory-admin-read-models";
+import { InMemoryAdminReadModels, type AdminOverviewSnapshot } from "./in-memory-admin-read-models";
 
 export type SelfTestCaseResult = { name: string; passed: boolean; details?: Record<string, unknown> };
 export type SelfTestRunResult = { passed: boolean; cases: SelfTestCaseResult[] };
@@ -52,7 +52,7 @@ const eliteContext = createContext({ brandCode: "elite", brandId: "brand-elite",
 const noPermissionMedwayContext = createContext({ brandCode: "medway", brandId: "brand-medway", brandDisplayName: "Medway", adminUserId: "admin-medway-no-permission", appUserId: "app-user-medway-no-permission", providerSubjectId: "provider-medway-no-permission", correlationId: "test-correlation-medway-brand-001", permissions: [] });
 
 function platform(brand: AdminBrandContext): AdminPlatformContext { return { platformId: brand.brandId, platformCode: brand.brandCode, platformDisplayName: brand.brandDisplayName }; }
-function overviewModel(brand: AdminBrandContext, prefix: string, multiplier: number): AdminOverviewReadModel {
+function overviewModel(brand: AdminBrandContext, prefix: string, multiplier: number): AdminOverviewSnapshot {
   const compatibilityPlatform = platform(brand);
   const auditLogs: AdminAuditLogItem[] = [{ id: `${prefix}-audit-001`, platform: compatibilityPlatform, occurredAt: "2026-01-01T10:00:00.000Z", actorType: "admin", actorId: `${prefix}-admin-001`, action: "overview_read", entityType: "brand", entityId: brand.brandId, correlationId: `${prefix}-correlation-001` }];
   const adminActions: AdminAdminActionItem[] = [{ id: `${prefix}-action-001`, platform: compatibilityPlatform, adminUserId: `${prefix}-admin-001`, actionType: "read_overview", targetEntityType: "brand", targetEntityId: brand.brandId, authorizationReference: `${prefix}-authorization-redacted-001`, occurredAt: "2026-01-01T10:00:00.000Z", outcome: "succeeded" }];

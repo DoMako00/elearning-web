@@ -343,3 +343,9 @@ Prompt 23 adds provider-neutral repository, authentication, request-context, bra
 Prompt 24 adds the canonical provider-neutral request-context builder under `api/src/core/request-context/`, together with an in-memory brand resolver, mock authentication adapter, and deterministic user, admin-profile, student-profile, session, and device repositories. The builder verifies mock identity, resolves one brand scope, checks optional session/device ownership, and loads admin or student authority without evaluating resource access.
 
 No real authentication, provider, database, SQL, migration, or persistence behavior was added. The current HTTP runtime still uses its existing compatibility `AdminRequestContext` and mock admin context; the new canonical context is exported for future adapters only. The next phase is Prompt 25 — Admin Overview Read Model Interface + Mock Parity.
+
+## Prompt 25 status
+
+Prompt 25 adds the formal `AdminOverviewReadModel` boundary under `api/src/modules/admin/read-models/`, plus an in-memory adapter and independently callable parity self-test. It preserves the current overview snapshot shape, validates one canonical Medway or Elite brand scope, and delegates to the existing mock overview provider.
+
+No Postgres/Supabase adapter, feature-flag runtime selection, command persistence, or HTTP runtime wiring was added. The current HTTP overview route remains mock-backed and unchanged. A later phase may choose one of: mock-only runtime wiring behind a read-model source boundary, a Postgres/Supabase schema alignment review, or grouped admin command interfaces.
