@@ -207,3 +207,7 @@ The [M1 Staging Migration Apply Plan](../api/docs/m1-staging-migration-apply-pla
 ## Prompt 36 staging-database note
 
 Prompt 36 applied the reviewed M1 schema once to the approved Supabase staging project; this database mutation was separate from Dokploy deployment. No push or deployment occurred. A future push to `dev` may redeploy the mock application because Dokploy remains **On Push**, but it does not automatically reapply the recorded Supabase migration.
+
+## Prompt 36B verification note
+
+Prompt 36B recorded read-only Dashboard verification of the staging exposure boundary and did not deploy or mutate Supabase settings. A future push may redeploy Dokploy because the trigger remains **On Push**, but it does not reapply database SQL.

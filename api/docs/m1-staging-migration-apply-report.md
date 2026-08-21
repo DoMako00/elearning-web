@@ -94,7 +94,7 @@ Verified required constraints include brand code/slug uniqueness, global auth-us
 
 The Supabase table metadata tool emitted its generic critical advisory because RLS is disabled on the nine `app` tables. Read-only privilege checks independently found that `anon` and `authenticated` have no schema usage, table privileges, or trigger-function execution. The advisory remains important: these tables must not be exposed or granted to Data API roles without RLS being designed, enabled, reviewed, and tested first.
 
-The database session did not expose the PostgREST schema-list setting, so Data API exposure could not be authoritatively confirmed through MCP/SQL. Prompt 36 performed no exposure or project-setting operation. Manual confirmation in Supabase Dashboard remains required before moving beyond verification hardening.
+The database session did not expose the PostgREST schema-list setting. Prompt 36 performed no exposure or project-setting operation. Prompt 36B manual Dashboard verification confirmed that `app` is visible in the schema list but unchecked; only `public` and `graphql_public` are exposed. No Dashboard setting or grant changed, and production was not opened or modified.
 
 ## Remaining gates
 
@@ -104,7 +104,7 @@ The database session did not expose the PostgREST schema-list setting, so Data A
 - Backend Supabase adapters and runtime switching remain later work; mock providers are still active.
 - Production application requires a separate explicit approval and target.
 - A reviewed rollback/down migration is required before production application.
-- Manual Dashboard confirmation that `app` is absent from exposed schemas remains outstanding.
+- Prompt 36B Dashboard confirmation is complete: `app` remains absent from exposed schemas.
 
 ## Failure section
 
@@ -112,4 +112,8 @@ No failure occurred. No retry, manual patch, cleanup, drop, or rollback was perf
 
 ## Next safe phase recommendation
 
-Recommend **Prompt 36B — Staging Apply Verification Hardening** to record manual Data API exposed-schema confirmation and reconcile the generic RLS advisory with the intentionally private schema boundary. After that confirmation, **Prompt 37 — Backend Supabase Adapter Boundary** may plan provider integration without switching the runtime from mock.
+Recommend **Prompt 37 — Backend Supabase Adapter Boundary** to plan provider integration without switching the runtime from mock. Prompt 36B confirmed the intentionally private schema boundary.
+
+## Prompt 36B verification-hardening outcome
+
+The owner completed the read-only Supabase Dashboard check for ref `mgrsgibxuwgbxtdqprkw` (display name `medway`). The `app` schema is visible but unchecked; only `public` and `graphql_public` are exposed. No settings or grants changed, production was untouched, and no SQL or database mutation occurred in Prompt 36B.

@@ -393,3 +393,7 @@ The [M1 Staging Migration Apply Plan](m1-staging-migration-apply-plan.md) define
 ## Prompt 36 status
 
 The M1 database foundation now exists in owner-confirmed Supabase staging ref `mgrsgibxuwgbxtdqprkw`; see the [M1 Staging Migration Apply Report](m1-staging-migration-apply-report.md). Provider and runtime adapters remain pending, and the current application continues to use mock sources. Production, seed, RLS/Data API exposure, push, and deployment remain separate work.
+
+## Prompt 36B status
+
+Staging DB foundation verification is hardened: the owner confirmed through the Supabase Dashboard that `app` is visible but unchecked and only `public` and `graphql_public` are exposed. Runtime remains mock-backed, no settings or grants changed, and the backend adapter boundary remains the next safe phase.

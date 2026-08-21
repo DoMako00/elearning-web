@@ -119,3 +119,7 @@ Prompt 35 records a future [M1 Staging Migration Apply Plan](m1-staging-migratio
 ## Prompt 36 staging-apply note
 
 Supabase staging ref `mgrsgibxuwgbxtdqprkw` now contains the M1 private `app` schema described in the [M1 Staging Migration Apply Report](m1-staging-migration-apply-report.md). The environment boundary is unchanged: no secret was committed, no Data API grant or exposure change was made, and runtime remains mock-backed. Manual Dashboard confirmation of the exposed-schema list remains required because that setting was not readable through the database session.
+
+## Prompt 36B verification note
+
+The owner completed the Dashboard exposure check for staging ref `mgrsgibxuwgbxtdqprkw` (display name `medway`). The `app` schema remains prohibited from exposure: it is visible in the schema list but unchecked, while only `public` and `graphql_public` are exposed. No Dashboard setting or grant changed, no production project was opened, and no secret was committed.

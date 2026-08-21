@@ -186,3 +186,7 @@ Any future Prompt 36 application request must include:
 ## Prompt 36 outcome
 
 Prompt 36 applied the unchanged reviewed draft once to owner-confirmed Supabase staging ref `mgrsgibxuwgbxtdqprkw`. See the [M1 Staging Migration Apply Report](m1-staging-migration-apply-report.md) for preflight and post-apply evidence. Production was not targeted, and no runtime, seed, RLS, grant, schema-exposure, push, or deployment action occurred.
+
+## Prompt 36B outcome
+
+Post-apply verification hardening is complete. Database-level checks were supplemented by a read-only Dashboard check confirming that `app` is visible but unchecked and that only `public` and `graphql_public` are exposed. No setting or grant changed, and production was not opened or modified.
