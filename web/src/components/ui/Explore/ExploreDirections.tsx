@@ -6,6 +6,7 @@ interface ExploreDirectionsProps {
   onSelectDirection?: (categoryId: string) => void;
 }
 
+
 export function ExploreDirections({ onSelectDirection }: ExploreDirectionsProps) {
   return (
     <article className="explore-directions" aria-labelledby="explore-directions-title">

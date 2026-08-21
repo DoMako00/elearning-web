@@ -19,6 +19,7 @@ export function ExploreHero() {
               <stop offset="0%" stopColor="#6ef6b0" stopOpacity="1" />
               <stop offset="40%" stopColor="#25d37d" stopOpacity="0.8" />
               <stop offset="100%" stopColor="#085430" stopOpacity="0" />
+
             </radialGradient>
             <filter id="glowBlur" x="-20%" y="-20%" width="140%" height="140%">
               <feGaussianBlur stdDeviation="6" result="blur" />
