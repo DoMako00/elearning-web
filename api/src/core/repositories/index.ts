@@ -10,4 +10,4 @@ export * from "./content-repository";
 export * from "./payment-repository";
 export * from "./audit-evidence-writer";
 export * from "./protected-media-authorization-repository";
-
+export * from "./in-memory-request-context-repositories";

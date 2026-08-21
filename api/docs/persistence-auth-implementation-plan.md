@@ -337,3 +337,9 @@ Runtime adapter implementation may begin only when:
 ## Prompt 23 status
 
 Prompt 23 adds provider-neutral repository, authentication, request-context, brand-scope, evidence, and protected-media authorization interfaces under `api/src/core/`. It adds typed repository results/errors and lightweight branded ID aliases only; no provider integration, SQL, migrations, or persistence implementation was added. The mock runtime remains the default and existing in-memory admin fixtures remain unchanged. The next step is the request-context middleware skeleton or mock parity tests.
+
+## Prompt 24 status
+
+Prompt 24 adds the canonical provider-neutral request-context builder under `api/src/core/request-context/`, together with an in-memory brand resolver, mock authentication adapter, and deterministic user, admin-profile, student-profile, session, and device repositories. The builder verifies mock identity, resolves one brand scope, checks optional session/device ownership, and loads admin or student authority without evaluating resource access.
+
+No real authentication, provider, database, SQL, migration, or persistence behavior was added. The current HTTP runtime still uses its existing compatibility `AdminRequestContext` and mock admin context; the new canonical context is exported for future adapters only. The next phase is Prompt 25 — Admin Overview Read Model Interface + Mock Parity.

@@ -9,6 +9,19 @@ export type RepositoryErrorCode =
   | "conflict"
   | "lifecycle_invalid"
   | "provider_unavailable"
+  | "authentication_required"
+  | "authentication_invalid"
+  | "user_not_found"
+  | "target_brand_mismatch"
+  | "session_not_found"
+  | "session_inactive"
+  | "session_user_mismatch"
+  | "session_brand_mismatch"
+  | "device_not_found"
+  | "device_revoked"
+  | "device_user_mismatch"
+  | "admin_profile_not_found"
+  | "student_profile_not_found"
   | "unknown";
 
 export interface RepositoryError {
@@ -26,4 +39,3 @@ export type RepositoryResult<T> = RepositoryOk<T> | RepositoryErr;
 
 export const repositoryOk = <T>(value: T): RepositoryOk<T> => ({ ok: true, value });
 export const repositoryErr = (error: RepositoryError): RepositoryErr => ({ ok: false, error });
-

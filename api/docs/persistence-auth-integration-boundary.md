@@ -296,3 +296,7 @@ Real persistence/auth integration is ready for staged rollout only when:
 - the current mock runtime remains available as a safe development fallback until real integration is proven.
 
 Until those checks are met, deployment remains mock-only and the current HTTP/container/Dokploy smoke tests must not be interpreted as proof of real persistence or authentication readiness.
+
+## Canonical request-context implementation
+
+The provider-neutral context contracts are now backed by an exported skeleton in `api/src/core/request-context/`, including `RequestContextBuilder`, `InMemoryRequestContextFactory`, and the independently callable request-context self-test. `api/src/core/brand-scope/` contains the canonical in-memory brand resolver. These files are contracts and deterministic test fixtures only; they are not a Supabase, database, or production authentication adapter. The current admin-core `AdminRequestContext` remains the compatibility context until a controlled migration is approved.

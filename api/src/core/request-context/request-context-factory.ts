@@ -1,34 +1,10 @@
-import type { AuthVerificationInput, VerifiedAuthIdentity } from "../auth";
-import type { BrandResolutionInput, BrandScope } from "../brand-scope";
-import type {
-  AdminProfileId,
-  AppUserId,
-  DeviceId,
-  SessionId,
-  StudentProfileId,
-} from "../persistence";
+import type { VerifiedAuthIdentity } from "../auth";
+import type { BrandScope } from "../brand-scope";
 import type { RepositoryResult } from "../persistence";
-import type { ActorType, RequestContext } from "./request-context";
+import type { RequestContext } from "./request-context";
+import type { RequestContextInput } from "./request-context-input";
 
-export interface RequestContextInput {
-  readonly requestId: string;
-  readonly correlationId: string;
-  readonly auth: AuthVerificationInput;
-  readonly verifiedIdentity?: VerifiedAuthIdentity;
-  readonly brand: BrandResolutionInput;
-  readonly actorType?: ActorType;
-  readonly actorUserId?: AppUserId;
-  readonly adminProfileId?: AdminProfileId;
-  readonly studentProfileId?: StudentProfileId;
-  readonly sessionId?: SessionId;
-  readonly deviceId?: DeviceId;
-  readonly roles?: readonly string[];
-  readonly permissions?: readonly string[];
-  readonly ip?: string;
-  readonly userAgent?: string;
-  readonly reason?: string;
-  readonly idempotencyKey?: string;
-}
+export type { RequestContextInput } from "./request-context-input";
 
 /**
  * Trusted context is created by backend middleware. Frontend state and client brand
@@ -43,4 +19,3 @@ export interface RequestContextFactory {
     },
   ): Promise<RepositoryResult<RequestContext>>;
 }
-

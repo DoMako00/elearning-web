@@ -8,7 +8,8 @@ import type {
   StudentProfileId,
 } from "../persistence";
 
-export type ActorType = "anonymous" | "student" | "admin" | "system" | "integration";
+/** Canonical future request actors. The current AdminRequestContext remains a compatibility boundary. */
+export type ActorType = "anonymous" | "student" | "admin" | "system";
 
 export interface RequestContext {
   readonly requestId: string;
@@ -30,4 +31,3 @@ export interface RequestContext {
   readonly reason?: string;
   readonly idempotencyKey?: string;
 }
-
