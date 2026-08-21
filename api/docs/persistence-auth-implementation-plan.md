@@ -389,3 +389,7 @@ The [Supabase Environment Boundary](supabase-environment-boundary.md) and Dokplo
 ## Prompt 35 status
 
 The [M1 Staging Migration Apply Plan](m1-staging-migration-apply-plan.md) defines the required future staging-only application gates for the reviewed M1 SQL draft. Runtime remains mock-backed and provider adapters remain pending; no SQL, database connection, migration application, or runtime integration was added. Prompt 36 requires explicit approval before staging mutation.
+
+## Prompt 36 status
+
+The M1 database foundation now exists in owner-confirmed Supabase staging ref `mgrsgibxuwgbxtdqprkw`; see the [M1 Staging Migration Apply Report](m1-staging-migration-apply-report.md). Provider and runtime adapters remain pending, and the current application continues to use mock sources. Production, seed, RLS/Data API exposure, push, and deployment remain separate work.

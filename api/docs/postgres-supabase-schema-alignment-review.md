@@ -242,3 +242,5 @@ Prompt 33 completed the static [M1 SQL Draft Review Fixes](m1-sql-draft-review-f
 Prompt 34 separates Supabase project/environment setup from SQL application. The `app` schema remains private; schema exposure, grants, and RLS implementation are not part of Prompt 34. See the [Supabase Environment Boundary](supabase-environment-boundary.md) for names-only placeholders and future staging handling.
 
 Prompt 35 maps the reviewed M1 draft to a future staging-only application process in the [M1 Staging Migration Apply Plan](m1-staging-migration-apply-plan.md). Production remains out of scope; SQL authoring, staging application, and migration application remain separate explicit approvals.
+
+Prompt 36 completed the first M1 schema-alignment application on owner-confirmed Supabase staging ref `mgrsgibxuwgbxtdqprkw`. The [M1 Staging Migration Apply Report](m1-staging-migration-apply-report.md) verifies the private schema, nine empty tables, same-brand constraints, indexes, triggers, and absence of Data API role privileges. Production remains out of scope.

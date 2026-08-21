@@ -203,3 +203,7 @@ Adding names-only Supabase environment placeholders locally has no server impact
 ## Prompt 35 staging-migration planning note
 
 The [M1 Staging Migration Apply Plan](../api/docs/m1-staging-migration-apply-plan.md) is documentation-only. A database migration application is not a Dokploy deployment, but it is a sensitive staging database mutation and requires explicit approval, target verification, and a rollback plan. Prompt 35 does not push; any future push to `dev` may still trigger Dokploy because the trigger remains **On Push**.
+
+## Prompt 36 staging-database note
+
+Prompt 36 applied the reviewed M1 schema once to the approved Supabase staging project; this database mutation was separate from Dokploy deployment. No push or deployment occurred. A future push to `dev` may redeploy the mock application because Dokploy remains **On Push**, but it does not automatically reapply the recorded Supabase migration.

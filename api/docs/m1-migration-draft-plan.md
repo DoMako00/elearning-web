@@ -256,3 +256,7 @@ Prompt 33 completed the static [M1 SQL Draft Review Fixes](m1-sql-draft-review-f
 ## 18. Prompt 35 staging-apply planning status
 
 The [M1 Staging Migration Apply Plan](m1-staging-migration-apply-plan.md) now defines a future staging-only application runbook for the reviewed draft. SQL remains unapplied, and Prompt 36 requires explicit owner approval before any active migration artifact or staging mutation is created.
+
+## 19. Prompt 36 staging-apply status
+
+Prompt 36 applied the unchanged M1 draft once to Supabase staging ref `mgrsgibxuwgbxtdqprkw`; see the [M1 Staging Migration Apply Report](m1-staging-migration-apply-report.md). The schema has not been applied to production, and API, frontend, and Dokploy runtime remain mock-backed.

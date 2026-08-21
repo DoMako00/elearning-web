@@ -107,3 +107,7 @@ Prompt 34 creates environment placeholders and setup documentation only. The SQL
 ## Prompt 35 staging-apply planning
 
 The reviewed draft is the intended M1 staging-application candidate described in the [M1 Staging Migration Apply Plan](m1-staging-migration-apply-plan.md). It remains blocked from active migration authoring and application until a later Prompt 36 staging-only approval.
+
+## Prompt 36 staging application
+
+Prompt 36 used this unchanged reviewed draft as the single staging-application source for project ref `mgrsgibxuwgbxtdqprkw`. No SQL changes were made during application; the [M1 Staging Migration Apply Report](m1-staging-migration-apply-report.md) records the resulting schema, constraints, indexes, triggers, zero-row, and access-boundary verification.

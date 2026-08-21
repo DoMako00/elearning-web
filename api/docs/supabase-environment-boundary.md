@@ -115,3 +115,7 @@ Prompt 32 and Prompt 33 SQL remain draft-only and unapplied. Prompt 34 does not 
 ## Prompt 35 staging-apply planning note
 
 Prompt 35 records a future [M1 Staging Migration Apply Plan](m1-staging-migration-apply-plan.md). Codex MCP is connected for staging planning only; the environment boundary is unchanged, real keys remain outside Git, and the `app` schema remains private and unexposed. Prompt 35 neither applies the draft nor creates runtime integration.
+
+## Prompt 36 staging-apply note
+
+Supabase staging ref `mgrsgibxuwgbxtdqprkw` now contains the M1 private `app` schema described in the [M1 Staging Migration Apply Report](m1-staging-migration-apply-report.md). The environment boundary is unchanged: no secret was committed, no Data API grant or exposure change was made, and runtime remains mock-backed. Manual Dashboard confirmation of the exposed-schema list remains required because that setting was not readable through the database session.

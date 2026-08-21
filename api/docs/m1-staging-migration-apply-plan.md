@@ -182,3 +182,7 @@ Any future Prompt 36 application request must include:
 - no Data API grants or schema exposure;
 - no runtime integration; and
 - no push/deploy unless separately and explicitly approved.
+
+## Prompt 36 outcome
+
+Prompt 36 applied the unchanged reviewed draft once to owner-confirmed Supabase staging ref `mgrsgibxuwgbxtdqprkw`. See the [M1 Staging Migration Apply Report](m1-staging-migration-apply-report.md) for preflight and post-apply evidence. Production was not targeted, and no runtime, seed, RLS, grant, schema-exposure, push, or deployment action occurred.
