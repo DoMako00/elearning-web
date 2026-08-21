@@ -401,3 +401,7 @@ Staging DB foundation verification is hardened: the owner confirmed through the 
 ## Prompt 37 status
 
 The [Supabase Adapter Boundary](supabase-adapter-boundary.md) adds configuration validation and a disabled-by-default provider skeleton only. `PERSISTENCE_PROVIDER=mock`, `AUTH_PROVIDER=mock`, and the existing mock runtime sources remain unchanged. No client, database connection, query, repository adapter, provider switch, or runtime integration was added.
+
+## Prompt 38 status
+
+The [Supabase M1 Read Repository Adapters](supabase-m1-read-repository-adapters.md) add unused, read-only M1 mapping adapters behind a fakeable parameterized `SELECT` transport contract. No driver, database connection, query execution, runtime wiring, provider switch, or entitlement behavior was added. Mock remains the active runtime source.

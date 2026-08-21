@@ -11,3 +11,4 @@ export * from "./payment-repository";
 export * from "./audit-evidence-writer";
 export * from "./protected-media-authorization-repository";
 export * from "./in-memory-request-context-repositories";
+export * from "./m1-read-repositories";

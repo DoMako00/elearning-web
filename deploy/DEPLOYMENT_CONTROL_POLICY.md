@@ -215,3 +215,7 @@ Prompt 36B recorded read-only Dashboard verification of the staging exposure bou
 ## Prompt 37 adapter-boundary note
 
 Prompt 37 adds only a local backend configuration boundary with `PERSISTENCE_PROVIDER=mock` as its default. It does not wire Dokploy to Supabase or change mock runtime values. A future push may still redeploy Dokploy because the trigger remains **On Push**, but this boundary neither connects to Supabase nor changes the active provider.
+
+## Prompt 38 read-adapter note
+
+Prompt 38 adds unused local read-adapter code only. Dokploy remains mock-backed and receives no Supabase transport, credential, provider, or runtime configuration change. A future push may still redeploy the mock application because the trigger is **On Push**, but it does not create a database connection or change the active provider.
