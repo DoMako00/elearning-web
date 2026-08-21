@@ -195,3 +195,7 @@ If a push breaks staging:
 - Runtime and deployment mode are mock-only.
 
 This baseline is informational and intentionally does not record a VPS IP, domain, credential, or hard-coded commit hash.
+
+## Prompt 34 environment-placeholder note
+
+Adding names-only Supabase environment placeholders locally has no server impact. Adding real environment values through the Dokploy Environment UI may affect future deployments only after runtime code begins reading them and a deployment is explicitly approved. The committed templates contain no real values. A push to `dev` may still redeploy staging because the Dokploy trigger is **On Push**.

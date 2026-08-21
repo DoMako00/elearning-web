@@ -381,3 +381,7 @@ Prompt 32 created the non-applied [M1 SQL draft](../db/migration-drafts/m1/READM
 ## Prompt 33 status
 
 Prompt 33 completed the static [M1 SQL Draft Review Fixes](m1-sql-draft-review-fixes.md) without changing or applying the SQL draft. No provider/runtime adapter, database/Supabase connection, or migration application was added. Migration authoring/application still requires a later explicit phase.
+
+## Prompt 34 status
+
+The [Supabase Environment Boundary](supabase-environment-boundary.md) and Dokploy staging guide document names-only environment placeholders and secret handling. The runtime remains mock-backed; no Supabase adapter/provider, SQL application, database connection, or migration application was added. A later phase may plan staging migration application.

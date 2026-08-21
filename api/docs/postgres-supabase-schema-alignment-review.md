@@ -238,3 +238,5 @@ See [M1 Migration Draft Plan](m1-migration-draft-plan.md) for the documentation-
 Prompt 32 maps those finalized M1 decisions into a non-applied [PostgreSQL-compatible draft](../db/migration-drafts/m1/README.md): `educational_brands`, global `app_users`, explicit `brand_memberships`, brand-scoped student/admin profiles, and brand-scoped admin role assignments. See the [M1 SQL Draft Review](m1-sql-draft-review.md). The SQL remains unapplied, and review and application remain separate explicit phases.
 
 Prompt 33 completed the static [M1 SQL Draft Review Fixes](m1-sql-draft-review-fixes.md). The draft remains non-applied and preserves canonical `educational_brands`, concise brand scope, same-brand integrity, and the RLS/Data API exposure gate.
+
+Prompt 34 separates Supabase project/environment setup from SQL application. The `app` schema remains private; schema exposure, grants, and RLS implementation are not part of Prompt 34. See the [Supabase Environment Boundary](supabase-environment-boundary.md) for names-only placeholders and future staging handling.
