@@ -218,3 +218,7 @@ Prompt 29 is review documentation only. It does not authorize SQL authoring, mig
 The owner answers the complete numbered checklist plus the separate D03 confirmation. The decision register is then updated only for explicitly approved answers. Prompt 30 remains documentation-only with no SQL or migrations.
 
 If the owner explicitly approves all recommended defaults in this review, Prompt 30 may convert those approved decisions into finalized register updates. M1 migration planning remains a separate later phase.
+
+## 10. Prompt 30 outcome
+
+The owner approved the Prompt 29 recommended defaults. D03, D06, D07, D10, D11–D18, D20, D22–D24, D26–D30, and D32–D35 are Finalized; D08, D31, and D36 are Deferred. Numeric policy values remain configurable. The next phase is Prompt 31 — M1 Migration Draft Plan; this confirmation does not authorize SQL or migration application.

@@ -365,3 +365,7 @@ Prompt 28 records owner decisions: D01 is finalized as `educational_brands`; glo
 ## Prompt 29 status
 
 Prompt 29 adds the [Remaining Schema Decisions Review](remaining-schema-decisions-review.md), preserving unresolved statuses while grouping recommended owner defaults and migration blockers. No SQL, migrations, provider code, or runtime behavior was added. An M1 migration draft remains blocked pending owner confirmation of D03, D06, D07, D10, and D32.
+
+## Prompt 30 status
+
+Prompt 30 records owner confirmation of the remaining schema defaults and resolves the M1 decision blockers. No SQL, migrations, provider code, or runtime behavior was added. The recommended next phase is Prompt 31 — M1 Migration Draft Plan; applying migrations remains forbidden until a later explicit phase.
