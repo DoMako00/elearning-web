@@ -333,3 +333,7 @@ Runtime adapter implementation may begin only when:
 - contract, isolation, permission, evidence, and rollback tests are identified;
 - no migration is attempted before an explicit migration phase;
 - the current mock runtime and VPS/Dokploy staging baseline remain stable.
+
+## Prompt 23 status
+
+Prompt 23 adds provider-neutral repository, authentication, request-context, brand-scope, evidence, and protected-media authorization interfaces under `api/src/core/`. It adds typed repository results/errors and lightweight branded ID aliases only; no provider integration, SQL, migrations, or persistence implementation was added. The mock runtime remains the default and existing in-memory admin fixtures remain unchanged. The next step is the request-context middleware skeleton or mock parity tests.
