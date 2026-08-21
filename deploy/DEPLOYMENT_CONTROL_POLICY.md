@@ -211,3 +211,7 @@ Prompt 36 applied the reviewed M1 schema once to the approved Supabase staging p
 ## Prompt 36B verification note
 
 Prompt 36B recorded read-only Dashboard verification of the staging exposure boundary and did not deploy or mutate Supabase settings. A future push may redeploy Dokploy because the trigger remains **On Push**, but it does not reapply database SQL.
+
+## Prompt 37 adapter-boundary note
+
+Prompt 37 adds only a local backend configuration boundary with `PERSISTENCE_PROVIDER=mock` as its default. It does not wire Dokploy to Supabase or change mock runtime values. A future push may still redeploy Dokploy because the trigger remains **On Push**, but this boundary neither connects to Supabase nor changes the active provider.

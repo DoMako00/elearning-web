@@ -397,3 +397,7 @@ The M1 database foundation now exists in owner-confirmed Supabase staging ref `m
 ## Prompt 36B status
 
 Staging DB foundation verification is hardened: the owner confirmed through the Supabase Dashboard that `app` is visible but unchecked and only `public` and `graphql_public` are exposed. Runtime remains mock-backed, no settings or grants changed, and the backend adapter boundary remains the next safe phase.
+
+## Prompt 37 status
+
+The [Supabase Adapter Boundary](supabase-adapter-boundary.md) adds configuration validation and a disabled-by-default provider skeleton only. `PERSISTENCE_PROVIDER=mock`, `AUTH_PROVIDER=mock`, and the existing mock runtime sources remain unchanged. No client, database connection, query, repository adapter, provider switch, or runtime integration was added.

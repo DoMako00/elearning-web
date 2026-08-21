@@ -123,3 +123,7 @@ Supabase staging ref `mgrsgibxuwgbxtdqprkw` now contains the M1 private `app` sc
 ## Prompt 36B verification note
 
 The owner completed the Dashboard exposure check for staging ref `mgrsgibxuwgbxtdqprkw` (display name `medway`). The `app` schema remains prohibited from exposure: it is visible in the schema list but unchecked, while only `public` and `graphql_public` are exposed. No Dashboard setting or grant changed, no production project was opened, and no secret was committed.
+
+## Prompt 37 adapter-boundary note
+
+Prompt 37 adds a local-only [Supabase Adapter Boundary](supabase-adapter-boundary.md). `PERSISTENCE_PROVIDER=mock` remains the default; no client, connection, query, repository adapter, runtime switch, or environment value consumption was added. The private `app` schema and existing secret boundary remain unchanged.
