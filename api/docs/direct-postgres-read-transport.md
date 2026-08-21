@@ -27,3 +27,5 @@ The deterministic selftest uses a fake pool and performs no network I/O. Prompt 
 The manually invoked staging read verifier uses this transport against only project ref `mgrsgibxuwgbxtdqprkw` when explicitly enabled. It permits only the approved SELECT checks, keeps credentials process-only, and closes the pool after verification.
 
 The Prompt 40 controlled verification passed against staging: `SELECT 1`, database identity, private `app` schema, all nine M1 tables, and zero-row counts completed successfully. The pool closed cleanly; no runtime composition or provider switch occurred.
+
+Prompt 41 makes this transport available through an opt-in application persistence composition only. Mock remains the default; composition construction performs no query, and the Admin Overview runtime is unchanged.

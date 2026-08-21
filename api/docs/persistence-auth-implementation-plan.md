@@ -414,3 +414,7 @@ Added an explicit, dependency-approved `pg` read transport boundary with bounded
 Prompt 40 adds a manually invoked, staging-only read verification script. It does not change provider composition; runtime remains mock-backed and any live database activity is limited to the approved SELECT checks after explicit process-level enablement.
 
 Prompt 40 completed successfully against staging ref `mgrsgibxuwgbxtdqprkw`: the private `app` schema and all nine M1 tables were confirmed, all row counts were zero, and the pool closed cleanly. No runtime switch or provider integration occurred.
+
+## Prompt 41 status
+
+The [PostgreSQL Runtime Composition](postgres-runtime-composition.md) adds an opt-in `PERSISTENCE_PROVIDER=supabase` composition owned by `createApplication()`. Mock remains the default, construction performs no query, the Admin Overview remains in-memory, and Dokploy remains mock-backed. Prompt 42 owns any controlled read-model integration.

@@ -228,3 +228,7 @@ The API image now carries the approved `pg` dependency for a future backend read
 The staging read verifier runs outside Dokploy with process-only credentials. It does not add database secrets to Dokploy, change Compose, switch runtime providers, push, or deploy.
 
 Prompt 40 completed its single authorized read-only staging verification outside Dokploy. It performed no deployment or runtime switch; future `dev` pushes may redeploy the mock container but do not reapply database SQL.
+
+## Prompt 41 status
+
+Prompt 41 adds only backend composition code. `PERSISTENCE_PROVIDER=mock` remains the Dokploy default; no `SUPABASE_DB_URL` was added to Dokploy or Compose. A future push may redeploy staging, but no database query occurs unless an explicit provider opt-in is configured.
