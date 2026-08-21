@@ -135,3 +135,7 @@ Audit payment initiated/submitted/reviewed/confirmed/rejected/failed/reversed; t
 - Promotion stacking, discount allocation across refunds, upgrades/downgrades, prorations, credit notes, and unpaid-grace behavior.
 - Organization billing delegation, billing-contact verification, ownership migration, and support emergency-access policy.
 - Certificate standing after cancellation/refund, privacy/erasure rules, financial-record retention, and regulatory/data-residency obligations.
+
+## Prompt 28 manual-payment clarification
+
+A manual transfer/reference number is evidence for admin review, not automatic payment approval. Approval must be backend-mediated and audited; access activation remains separate through subscription, seat, and explicit access-grant commands. The frontend must never directly approve payment or activate access.

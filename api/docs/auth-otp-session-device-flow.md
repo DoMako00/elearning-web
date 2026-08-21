@@ -102,3 +102,7 @@ Record registration started/verified/failed, login succeeded/failed, OTP issued/
 ## Open decisions
 
 Platform switching/token context; password/credential policy; OTP channel/provider and delivery guarantees; rate limits and recovery; session duration/revalidation; device trust/concurrency/replacement rules; support impersonation; identity verification; retention/erasure; and incident response remain unresolved before implementation.
+
+## Prompt 28 owner clarification
+
+Registration creates or links a global application user; it does not automatically create an active Medway or Elite brand user. Paid brand activation requires manual payment transfer/reference verification followed by backend-mediated membership and explicit access-grant creation. Devices are brand-scoped and sessions carry brand context for v1.

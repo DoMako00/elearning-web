@@ -357,3 +357,7 @@ Prompt 26 adds the [Postgres/Supabase Schema Alignment Review](postgres-supabase
 ## Prompt 27 status
 
 The [Schema Decision Register](schema-decision-register.md) was created to track schema decisions, owner-confirmation items, and migration blockers. No SQL, migrations, provider code, or runtime behavior was added. The next phase is owner review of the pending decisions.
+
+## Prompt 28 status
+
+Prompt 28 records owner decisions: D01 is finalized as `educational_brands`; global `app_users` plus explicit `brand_memberships` are finalized; manual payment reference verification before brand activation is required; RLS before Supabase/Data API exposure is finalized; and brand-scoped devices/sessions for v1 are finalized. No SQL, migrations, provider code, or runtime behavior was added. Remaining pending decisions must be reviewed before an M1 migration draft.

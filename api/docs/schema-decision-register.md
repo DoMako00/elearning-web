@@ -82,15 +82,15 @@ The following are **Finalized** because they are already required by approved ar
 
 | ID | Decision | Recommended default | Status | Migration impact | Owner confirmation required? | Rationale | Follow-up phase |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| D01 | Brand table naming | `brands`; alternative: `educational_brands` | Pending owner confirmation | Blocks M1 | Yes | `brands` is shorter and covers catalog, commerce, admin, media, security, and assessment better than `educational_brands`. | M1 owner review |
+| D01 | Educational brand table naming | `educational_brands`; do not use `brands` as the canonical table name. Domain terminology remains brand scope, with concise `brand_id`, `brand_code`, and `brand_memberships` fields. | Finalized | Blocks M1 | No | Owner-confirmed in Prompt 28: Medway and Elite are educational brands/identities inside one application platform. Do not introduce `educational_brand_id` or `educational_brand_code` unless explicitly decided later. | M1 |
 | D02 | Brand code values | `medway`, `elite` | Finalized | Blocks M1 | No, unless approved docs change | Canonical brand codes are already used by runtime and documentation. | M1 |
 | D03 | Legacy platform terminology migration | New schema uses `brand_id`/`brand_code`; `platform_id`/`platform_code` remain compatibility aliases only. | Pending owner confirmation | Blocks M1 | Yes, for migration naming plan | Prevents continuing platform confusion in SQL while allowing deliberate compatibility migration. | M1 owner review |
-| D04 | Application user scope | Global `app_users` linked to provider identity plus explicit `brand_memberships`; alternative: brand-scoped app users per auth identity. | Pending owner confirmation | Blocks M1 | Yes | Affects every user/profile/access/payment/session relation. | M1 owner review |
-| D05 | Brand membership model | Explicit `brand_memberships` table with lifecycle state and membership type. | Pending owner confirmation | Blocks M1 | Yes | Connects a global user to Medway/Elite without cross-brand access. | M1 owner review |
+| D04 | Application user scope | Global `app_users` linked to provider authentication identity; users exist at application level before brand activation. | Finalized | Blocks M1 | No | Owner-confirmed in Prompt 28; brand-scoped app users per auth identity are not the v1 default. | M1 |
+| D05 | Brand membership model | Explicit `brand_memberships` table with lifecycle state and membership type; activation follows verified brand-scoped commercial flow. | Finalized | Blocks M1 | No | Owner-confirmed in Prompt 28; registration does not automatically activate a Medway/Elite membership. | M1 |
 | D06 | Student profile scope | Brand-scoped `student_profiles`. | Proposed default | Blocks M1 | Yes | Academic term/year/university/student ID may differ per brand/product context. | M1 owner review |
 | D07 | Admin profile scope | Brand-scoped `admin_profiles` for v1; future alternative: global admin identity plus scoped assignments. | Proposed default | Blocks M1 | Yes | Safer isolation for the initial admin dashboard. | M1 owner review |
 | D08 | Future global/super admin model | Explicit global assignment/policy that still produces target-brand decisions. | Deferred | Does not block initial brand-admin migrations | Yes, before global-admin work | Avoids a nullable brand bypass. | Deferred governance phase |
-| D09 | RLS timing | RLS design/review remains M7, but any table exposed through Supabase/Data API before M7 must have RLS enabled before exposure. | Pending owner confirmation | Blocks Data API exposure | Yes | Prevents unprotected app tables from being exposed. | M7 / exposure review |
+| D09 | RLS timing | M7 remains the full RLS review/hardening/testing phase, but RLS is required before any Supabase/Data API exposure. | Finalized | Blocks Data API exposure | No | Owner-confirmed in Prompt 28; no app table may be exposed without explicit RLS/exposure approval. | M7 / exposure review |
 | D10 | App schema exposure model | Keep the app schema private and backend-mediated initially; no direct Supabase Data API exposure for sensitive app tables. | Proposed default | Blocks Data API exposure | Yes | Keeps the backend as authorization source of truth. | M7 / exposure review |
 | D11 | Enrollment role | Retain enrollment as participation/progress evidence, never authorization. | Pending owner confirmation | Blocks M3 or learning/assessment FKs if used there | Yes | Avoids mixing learning participation with entitlement. | M3/M6 owner review |
 | D12 | Access grant model | Explicit brand-scoped `access_grants` with user/seat/resource/product scope where needed. | Proposed default | Blocks M3 | Yes | `access_grant` is the explicit authorization input. | M3 |
@@ -100,9 +100,9 @@ The following are **Finalized** because they are already required by approved ar
 | D16 | Payment transaction naming | `payment_transactions`. | Pending owner confirmation | Blocks M3 | Yes | Provides consistent financial event naming across schema and architecture docs. | M3 owner review |
 | D17 | Manual payment evidence | Store payment evidence as append-only review input; approval creates financial/commercial state, not direct access. | Proposed default | Blocks M3 | Yes | Manual payment remains backend-mediated and audited. | M3 |
 | D18 | Refund/access relationship | Refund is financial state; access revocation/update occurs through an explicit access policy/command. | Proposed default | Blocks M3 | Yes | Keeps financial and authorization transitions separate. | M3 |
-| D19 | Device scope for v1 | Devices are server-managed and brand-scoped for v1 policy/risk evaluation; global device identity may be considered later if multi-brand reuse is needed. | Pending owner confirmation | Blocks M4 | Yes | Anti-sharing policies are brand/access scoped. | M4 owner review |
+| D19 | Device scope for v1 | Devices are server-managed and brand-scoped for v1 policy/risk evaluation; global device identity may be considered later. | Finalized | Blocks M4 | No | Owner-confirmed in Prompt 28; this supports anti-sharing, access validation, and brand-scoped risk policy. | M4 |
 | D20 | Device replacement policy | Versioned policy plus append-only device replacement/event evidence. | Pending owner confirmation | Does not block M1, blocks M4 policy tables | Yes | Replacement counts and reasons need explicit owner policy. | M4 owner review |
-| D21 | Session scope for v1 | Sessions carry brand context for v1 request/access validation. | Proposed default | Blocks M4 | Yes | Prevents session reuse from silently crossing brands. | M4 |
+| D21 | Session scope for v1 | Sessions carry brand context for v1 request/access validation. | Finalized | Blocks M4 | No | Owner-confirmed in Prompt 28; prevents session reuse from silently crossing Medway/Elite brand scope. | M4 |
 | D22 | Concurrent usage/risk events | Record risk signals/events separately from the hard authorization decision. | Proposed default | Blocks M4 security/risk tables | Yes | Concurrency is a signal, not automatic proof. | M4 |
 | D23 | Full-view/video limit meaning | Treat it as a risk/policy accounting metric, not direct access authority. | Pending owner confirmation | Does not block identity foundation; affects media/playback policy | Yes | “3 full views” must be precisely defined before enforcement. | M5 policy review |
 | D24 | Media authorization retention | Append-only decisions with policy-controlled retention/anonymization. | Pending owner confirmation | Blocks M5 | Yes | Protected media authorization needs traceability and privacy policy. | M5 owner review |
@@ -120,7 +120,13 @@ The following are **Finalized** because they are already required by approved ar
 | D36 | Seed data strategy | Minimal Medway/Elite staging seed after migrations, not before schema decisions. | Proposed default | Blocks M8 | Yes | Seed data must follow approved schema and brand decisions. | M8 |
 | D37 | Migration execution policy | SQL authoring, migration review, staging application, and production application are separate explicit phases. | Finalized | Blocks all migrations | No | Preserves deployment control and migration safety. | All migration phases |
 
-## 6. Blocking decision groups
+## 6. Prompt 28 owner-confirmed clarifications
+
+Prompt 28 owner review finalized D01, D04, D05, D09, D19, and D21. The D01 correction is explicit: the canonical table is `educational_brands`, not `brands`. Domain terminology remains brand scope, and schema fields remain concise as `brand_id`, `brand_code`, and `brand_memberships`; do not introduce `educational_brand_id` or `educational_brand_code` unless explicitly decided later.
+
+Brand membership is not automatic after registration. A global `app_user` becomes an active Medway or Elite brand user only after a brand-scoped commercial flow is verified. For paid access, manual payment evidence must include a transfer/reference number, an admin must verify it, and only an approved backend-mediated flow may activate the membership, subscription/seat assignment, and explicit access grant. Payment evidence or reference submission alone is not authorization.
+
+## 7. Blocking decision groups
 
 ### A. Blocks M1 identity/brand foundation
 
@@ -150,17 +156,16 @@ D26, D27, D28, D35.
 
 D09, D10.
 
-## 7. Owner confirmation checklist before SQL
+## 8. Remaining owner confirmation checklist before SQL
 
-- [ ] Confirm the table name: `brands` versus `educational_brands`.
-- [ ] Confirm the application user model: global `app_users` plus memberships versus brand-scoped app users per auth identity.
-- [ ] Confirm the explicit `brand_memberships` model and lifecycle/type fields.
+- [x] Owner-confirm D01: canonical table name is `educational_brands`.
+- [x] Owner-confirm D04/D05: global `app_users` plus explicit `brand_memberships`.
+- [x] Owner-confirm D09: RLS is required before any Data API exposure; M7 remains full review/hardening/testing.
+- [x] Owner-confirm D19/D21: brand-scoped devices and brand-context sessions for v1.
 - [ ] Confirm brand-scoped student and admin profile scope for v1.
-- [ ] Confirm RLS timing and the rule requiring RLS before any Data API exposure.
 - [ ] Confirm enrollment remains participation/progress evidence, not authorization.
 - [ ] Confirm subscription seat limits and policy snapshot semantics.
 - [ ] Confirm `payment_transactions` as the canonical transaction name.
-- [ ] Confirm v1 device and session brand scope.
 - [ ] Confirm the device replacement policy and evidence requirements.
 - [ ] Define the meaning of a video “full view” for policy accounting.
 - [ ] Confirm media authorization retention and anonymization rules.
@@ -169,11 +174,11 @@ D09, D10.
 - [ ] Confirm canonical content hierarchy levels.
 - [ ] Confirm organization ownership remains deferred for initial migrations.
 
-## 8. Recommended defaults summary
+## 9. Recommended defaults summary
 
 Until the owner confirms pending decisions, the recommended planning defaults are:
 
-- `brands` with canonical codes `medway` and `elite`;
+- `educational_brands` with canonical codes `medway` and `elite`;
 - global `app_users` plus explicit `brand_memberships`;
 - brand-scoped student and admin profiles for v1;
 - a private, backend-mediated app schema initially;
@@ -185,7 +190,7 @@ Until the owner confirms pending decisions, the recommended planning defaults ar
 - no permanent protected-media URLs; and
 - separate migration authoring, review, application, seed, and production phases.
 
-## 9. Migration readiness gate
+## 10. Migration readiness gate
 
 - No M1 SQL or migration may start until all M1 blockers are resolved and owner-confirmed where required.
 - No M2–M6 migration may start until its listed blocker group is resolved.
@@ -193,12 +198,12 @@ Until the owner confirms pending decisions, the recommended planning defaults ar
 - No production migration may start without explicit production-phase approval, separate from local commit approval.
 - No decision may be bypassed by encoding an implicit nullable-brand or cross-brand exception in SQL, application code, seed data, or provider configuration.
 
-## 10. Next phase recommendation
+## 11. Next phase recommendation
 
-### Prompt 28 — Schema Decision Owner Review
+### Prompt 29 — Remaining Schema Decisions Review
 
-Recommended next phase. The owner answers the pending decisions, the register statuses are updated, and the result remains documentation-only with no SQL or migrations.
+Recommended next phase. Review and finalize remaining M1 blockers first, then decide whether M2/M3 blockers can be finalized now or deferred. The result remains documentation-only with no SQL or migrations unless a later phase explicitly changes scope.
 
-### Prompt 28B — M1 Migration Draft Plan
+### Prompt 29B — M1 Migration Draft Plan
 
-This is an alternative only if the owner decisions are already explicitly approved and recorded. It must not begin before the M1 blockers and the migration-readiness gate are confirmed.
+This is an alternative only after all M1 blockers are resolved and explicitly recorded. It must not begin before the migration-readiness gate is confirmed.

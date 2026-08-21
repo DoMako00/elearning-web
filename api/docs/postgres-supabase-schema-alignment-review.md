@@ -226,3 +226,5 @@ Organization ownership is not a prerequisite unless the adapter or migration exp
 Proceed with **Prompt 27 — Schema Decision Register**. It should resolve the blocking naming, identity, membership, assessment, retention, and transaction decisions before SQL or migrations are written. It remains documentation-only unless a future task explicitly expands the scope.
 
 See [Schema Decision Register](schema-decision-register.md) for the tracked decision register, owner-confirmation status, and migration blockers.
+
+Prompt 28 owner review finalized D01, D04, D05, D09, D19, and D21. D01 is finalized as `educational_brands`, not `brands`; domain terminology remains brand scope with concise fields such as `brand_id`, `brand_code`, and `brand_memberships`. Manual payment reference verification is required before active brand membership and access activation.
