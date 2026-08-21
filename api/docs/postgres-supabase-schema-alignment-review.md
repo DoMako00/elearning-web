@@ -240,3 +240,5 @@ Prompt 32 maps those finalized M1 decisions into a non-applied [PostgreSQL-compa
 Prompt 33 completed the static [M1 SQL Draft Review Fixes](m1-sql-draft-review-fixes.md). The draft remains non-applied and preserves canonical `educational_brands`, concise brand scope, same-brand integrity, and the RLS/Data API exposure gate.
 
 Prompt 34 separates Supabase project/environment setup from SQL application. The `app` schema remains private; schema exposure, grants, and RLS implementation are not part of Prompt 34. See the [Supabase Environment Boundary](supabase-environment-boundary.md) for names-only placeholders and future staging handling.
+
+Prompt 35 maps the reviewed M1 draft to a future staging-only application process in the [M1 Staging Migration Apply Plan](m1-staging-migration-apply-plan.md). Production remains out of scope; SQL authoring, staging application, and migration application remain separate explicit approvals.

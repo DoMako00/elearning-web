@@ -111,3 +111,7 @@ Prompt 32 and Prompt 33 SQL remain draft-only and unapplied. Prompt 34 does not 
 - No runtime Supabase adapter.
 - No production project use.
 - No push or deploy from this phase.
+
+## Prompt 35 staging-apply planning note
+
+Prompt 35 records a future [M1 Staging Migration Apply Plan](m1-staging-migration-apply-plan.md). Codex MCP is connected for staging planning only; the environment boundary is unchanged, real keys remain outside Git, and the `app` schema remains private and unexposed. Prompt 35 neither applies the draft nor creates runtime integration.

@@ -103,3 +103,7 @@ The next step is later migration-review/apply planning. It must not apply this S
 ## Prompt 34 environment boundary
 
 Prompt 34 creates environment placeholders and setup documentation only. The SQL draft remains unapplied; placeholders do not imply Supabase connection, schema exposure, RLS readiness, or approval to apply M1.
+
+## Prompt 35 staging-apply planning
+
+The reviewed draft is the intended M1 staging-application candidate described in the [M1 Staging Migration Apply Plan](m1-staging-migration-apply-plan.md). It remains blocked from active migration authoring and application until a later Prompt 36 staging-only approval.

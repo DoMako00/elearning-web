@@ -385,3 +385,7 @@ Prompt 33 completed the static [M1 SQL Draft Review Fixes](m1-sql-draft-review-f
 ## Prompt 34 status
 
 The [Supabase Environment Boundary](supabase-environment-boundary.md) and Dokploy staging guide document names-only environment placeholders and secret handling. The runtime remains mock-backed; no Supabase adapter/provider, SQL application, database connection, or migration application was added. A later phase may plan staging migration application.
+
+## Prompt 35 status
+
+The [M1 Staging Migration Apply Plan](m1-staging-migration-apply-plan.md) defines the required future staging-only application gates for the reviewed M1 SQL draft. Runtime remains mock-backed and provider adapters remain pending; no SQL, database connection, migration application, or runtime integration was added. Prompt 36 requires explicit approval before staging mutation.

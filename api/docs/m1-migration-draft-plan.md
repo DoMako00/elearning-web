@@ -252,3 +252,7 @@ Prompt 32 created non-applied M1 SQL drafts under [`api/db/migration-drafts/m1/`
 ## 17. Prompt 33 review status
 
 Prompt 33 completed the static [M1 SQL Draft Review Fixes](m1-sql-draft-review-fixes.md). No SQL change or application occurred. The review confirms the private draft boundary, same-brand integrity constraints, index/trigger plan, and continued RLS/Data API and D36 seed-data gates.
+
+## 18. Prompt 35 staging-apply planning status
+
+The [M1 Staging Migration Apply Plan](m1-staging-migration-apply-plan.md) now defines a future staging-only application runbook for the reviewed draft. SQL remains unapplied, and Prompt 36 requires explicit owner approval before any active migration artifact or staging mutation is created.
