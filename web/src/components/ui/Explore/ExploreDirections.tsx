@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
-import { DIRECTION_ITEMS, type DirectionItem } from "./exploreData";
+// import { DIRECTION_ITEMS, type DirectionItem } from "./exploreData";
+import { DIRECTION_ITEMS } from "./exploreData";
 
 interface ExploreDirectionsProps {
   onSelectDirection?: (categoryId: string) => void;
