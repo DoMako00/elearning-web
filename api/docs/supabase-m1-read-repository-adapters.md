@@ -45,6 +45,12 @@ No database package is currently installed or added. The next phase must explici
 `PERSISTENCE_PROVIDER=mock` remains the active default. The current mock request-context, admin overview, HTTP runtime, frontend, and Dokploy staging configuration remain unchanged.
 
 The next integration phase should review and approve the concrete private-schema transport, connection lifecycle, observability, adapter composition, and runtime switch separately.
+
+Prompt 40 verified the underlying private-schema read path in staging without invoking repository lookups or exposing personal rows. All nine M1 tables were present with zero rows, and the application runtime remains mock-only.
 ## Prompt 39 transport
 
 Prompt 38 adapters can now receive a future direct-PostgreSQL `ReadQueryTransport`; the `pg` pool implementation remains unconstructed by the current mock runtime. The private `app` schema is not exposed through Data API.
+
+## Prompt 40 status
+
+The staging verifier performs transport-level checks only and does not enumerate personal M1 records or wire adapters into the application runtime.
