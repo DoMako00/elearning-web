@@ -373,3 +373,7 @@ Prompt 30 records owner confirmation of the remaining schema defaults and resolv
 ## Prompt 31 status
 
 The [M1 Migration Draft Plan](m1-migration-draft-plan.md) defines the first identity, educational-brand, global app-user, membership, profile, and admin role-assignment foundation. No SQL, migration files, provider code, or runtime behavior was added. A separate validated push checkpoint may be considered only after explicit approval; no push is part of Prompt 31.
+
+## Prompt 32 status
+
+Prompt 32 created the non-applied [M1 SQL draft](../db/migration-drafts/m1/README.md) and [M1 SQL Draft Review](m1-sql-draft-review.md). No provider integration, runtime adapter, database/Supabase connection, or migration application was added or performed. The next step should be a separate SQL review/fix phase, not migration application.

@@ -214,3 +214,7 @@ See [Schema Decision Owner Confirmation Batch](schema-decision-owner-confirmatio
 ## 14. Prompt 31 M1 migration planning
 
 See [M1 Migration Draft Plan](m1-migration-draft-plan.md). M1 planning follows the Prompt 30 Finalized decisions, but no SQL or migration implementation exists. Any staging checkpoint push is a separate explicit action after validation and approval; it is not part of Prompt 31.
+
+## 15. Prompt 32 M1 SQL draft
+
+See the non-applied [M1 SQL draft](../db/migration-drafts/m1/README.md) and [M1 SQL Draft Review](m1-sql-draft-review.md). The draft follows the finalized Prompt 30/31 M1 decisions but does not authorize or perform migration application. D08, D31, and D36 remain Deferred; D36 specifically means Prompt 32 contains no seed data. RLS and explicit exposure approval remain mandatory before any Supabase/Data API exposure.
