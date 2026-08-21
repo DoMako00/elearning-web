@@ -392,74 +392,11 @@ main[data-main-workspace] {
   gap: clamp(12px, 1vw, 16px);
 }
 
-.explore-courses {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 10px;
-}
-
 .student-page__rail {
   display: grid;
   min-width: 0;
   min-height: 0;
   grid-template-rows: minmax(0, 1fr) minmax(0, .67fr) clamp(240px, 29vh, 280px);
-  gap: clamp(12px, 1vw, 16px);
-}
-
-.student-page--explore {
-  display: grid;
-  grid-template-rows: auto minmax(250px, 1.55fr) auto minmax(150px, .8fr);
-  gap: clamp(12px, 1vw, 16px);
-}
-
-.explore-toolbar {
-  display: flex;
-  min-width: 0;
-  align-items: end;
-  justify-content: space-between;
-  gap: clamp(14px, 2vw, 32px);
-}
-
-.explore-toolbar__tools {
-  width: min(43%, 560px);
-  min-height: 44px;
-  flex: 0 1 560px;
-}
-
-.explore-featured {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(340px, .9fr);
-  gap: clamp(12px, 1vw, 16px);
-}
-
-.explore-featured>.student-page-region {
-  align-items: center;
-  justify-content: center;
-  border-color: #d3e4da;
-  background: linear-gradient(135deg, #f7fcf9, #ffffff);
-}
-
-.explore-featured>.student-page-region .student-page-region__label {
-  color: var(--color-brand-hover);
-  font-size: 14px;
-}
-
-.explore-featured__aside {
-  display: grid;
-  grid-template-rows: minmax(0, 1.35fr) minmax(0, .75fr);
-  gap: clamp(12px, 1vw, 16px);
-}
-
-.explore-categories {
-  min-height: 52px;
-  align-items: center;
-}
-
-.explore-courses__grid {
-  display: grid;
-  min-width: 0;
-  min-height: 0;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: clamp(12px, 1vw, 16px);
 }
 
@@ -470,12 +407,8 @@ main[data-main-workspace] {
 
   .student-page__primary,
   .student-page__rail,
-  .student-page--explore,
   .my-courses-overview,
-  .my-courses-overview__summaries,
-  .explore-featured,
-  .explore-featured__aside,
-  .explore-courses__grid {
+  .my-courses-overview__summaries {
     gap: 12px;
   }
 }
@@ -487,8 +420,7 @@ main[data-main-workspace] {
     overflow: visible;
   }
 
-  .student-page--courses,
-  .student-page--explore {
+  .student-page--courses {
     display: flex;
     flex-direction: column;
   }
@@ -502,25 +434,14 @@ main[data-main-workspace] {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-template-rows: minmax(240px, 1fr);
   }
-
-  .explore-featured {
-    min-height: 330px;
-  }
-
-  .explore-courses {
-    min-height: 190px;
-  }
 }
 
 @media (max-width: 760px) {
-
-  .my-courses-overview,
-  .explore-featured {
+  .my-courses-overview {
     grid-template-columns: 1fr;
   }
 
-  .my-courses-overview__summaries,
-  .explore-featured__aside {
+  .my-courses-overview__summaries {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: minmax(130px, 1fr);
   }
@@ -529,20 +450,6 @@ main[data-main-workspace] {
     min-height: 0;
     grid-template-columns: 1fr;
     grid-template-rows: repeat(3, minmax(160px, auto));
-  }
-
-  .explore-courses__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .explore-toolbar {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .explore-toolbar__tools {
-    width: 100%;
-    flex-basis: 44px;
   }
 }
 
