@@ -369,3 +369,7 @@ Prompt 29 adds the [Remaining Schema Decisions Review](remaining-schema-decision
 ## Prompt 30 status
 
 Prompt 30 records owner confirmation of the remaining schema defaults and resolves the M1 decision blockers. No SQL, migrations, provider code, or runtime behavior was added. The recommended next phase is Prompt 31 — M1 Migration Draft Plan; applying migrations remains forbidden until a later explicit phase.
+
+## Prompt 31 status
+
+The [M1 Migration Draft Plan](m1-migration-draft-plan.md) defines the first identity, educational-brand, global app-user, membership, profile, and admin role-assignment foundation. No SQL, migration files, provider code, or runtime behavior was added. A separate validated push checkpoint may be considered only after explicit approval; no push is part of Prompt 31.

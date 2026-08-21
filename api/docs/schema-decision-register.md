@@ -210,3 +210,7 @@ The remaining schema decisions are reviewed in [Remaining Schema Decisions Revie
 ## 13. Prompt 30 owner confirmation batch
 
 See [Schema Decision Owner Confirmation Batch](schema-decision-owner-confirmation-batch.md) for the complete approval record. D03, D06, D07, D10–D18, D20, D22–D24, D26–D30, and D32–D35 are Finalized; D08, D31, and D36 are Deferred. M1/M2/M3/M4/M5/M6 decision blockers are resolved or intentionally deferred, but no SQL or migration is authorized by this documentation phase.
+
+## 14. Prompt 31 M1 migration planning
+
+See [M1 Migration Draft Plan](m1-migration-draft-plan.md). M1 planning follows the Prompt 30 Finalized decisions, but no SQL or migration implementation exists. Any staging checkpoint push is a separate explicit action after validation and approval; it is not part of Prompt 31.

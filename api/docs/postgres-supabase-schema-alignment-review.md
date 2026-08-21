@@ -232,3 +232,5 @@ Prompt 28 owner review finalized D01, D04, D05, D09, D19, and D21. D01 is finali
 See [Remaining Schema Decisions Review](remaining-schema-decisions-review.md) for the Prompt 29 review and owner-confirmation checklist. M1 migration work must not start until all remaining M1 blockers, including D03, are resolved.
 
 Prompt 30 owner confirmation resolved the remaining M1 decision blockers. A future phase may plan M1 migrations, but SQL authoring and migration application remain separate explicit phases.
+
+See [M1 Migration Draft Plan](m1-migration-draft-plan.md) for the documentation-only M1 plan covering `educational_brands`, global `app_users`, `brand_memberships`, brand-scoped student/admin profiles, and the admin role-assignment foundation. SQL authoring and migration application remain separate phases.
