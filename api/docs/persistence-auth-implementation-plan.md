@@ -361,3 +361,7 @@ The [Schema Decision Register](schema-decision-register.md) was created to track
 ## Prompt 28 status
 
 Prompt 28 records owner decisions: D01 is finalized as `educational_brands`; global `app_users` plus explicit `brand_memberships` are finalized; manual payment reference verification before brand activation is required; RLS before Supabase/Data API exposure is finalized; and brand-scoped devices/sessions for v1 are finalized. No SQL, migrations, provider code, or runtime behavior was added. Remaining pending decisions must be reviewed before an M1 migration draft.
+
+## Prompt 29 status
+
+Prompt 29 adds the [Remaining Schema Decisions Review](remaining-schema-decisions-review.md), preserving unresolved statuses while grouping recommended owner defaults and migration blockers. No SQL, migrations, provider code, or runtime behavior was added. An M1 migration draft remains blocked pending owner confirmation of D03, D06, D07, D10, and D32.

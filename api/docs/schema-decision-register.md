@@ -207,3 +207,7 @@ Recommended next phase. Review and finalize remaining M1 blockers first, then de
 ### Prompt 29B — M1 Migration Draft Plan
 
 This is an alternative only after all M1 blockers are resolved and explicitly recorded. It must not begin before the migration-readiness gate is confirmed.
+
+## 12. Prompt 29 remaining-decision review
+
+The remaining schema decisions are reviewed in [Remaining Schema Decisions Review](remaining-schema-decisions-review.md). Prompt 28 finalized D01, D04, D05, D09, D19, and D21, and D37 remains Finalized. Unresolved decisions must not be marked Finalized without explicit owner confirmation. M1 remains blocked by D03, D06, D07, D10, and D32; verifying D37 does not remove those blockers.

@@ -228,3 +228,5 @@ Proceed with **Prompt 27 — Schema Decision Register**. It should resolve the b
 See [Schema Decision Register](schema-decision-register.md) for the tracked decision register, owner-confirmation status, and migration blockers.
 
 Prompt 28 owner review finalized D01, D04, D05, D09, D19, and D21. D01 is finalized as `educational_brands`, not `brands`; domain terminology remains brand scope with concise fields such as `brand_id`, `brand_code`, and `brand_memberships`. Manual payment reference verification is required before active brand membership and access activation.
+
+See [Remaining Schema Decisions Review](remaining-schema-decisions-review.md) for the Prompt 29 review and owner-confirmation checklist. M1 migration work must not start until all remaining M1 blockers, including D03, are resolved.
