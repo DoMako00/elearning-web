@@ -61,6 +61,8 @@ Existing `AdminPlatformCode`, `AdminPlatformContext`, `platformId`, `platformCod
 
 Future persistence and authentication integration must use brand terminology as the canonical business scope. Transitional platform-named aliases may remain only for compatibility while callers and physical schema decisions are migrated deliberately. See [Persistence and Auth Integration Boundary](persistence-auth-integration-boundary.md).
 
+The [Postgres/Supabase Schema Alignment Review](postgres-supabase-schema-alignment-review.md) maps these legacy platform fields to canonical brand fields for future migrations; it does not create a migration or remove any compatibility alias.
+
 ## 8. Future schema direction
 
 A future schema pass may rename a physical `platforms` concept to `brands`, or introduce `brands` under one application/platform record. That physical decision is deferred and must not be silently applied here.

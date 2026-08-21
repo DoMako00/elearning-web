@@ -349,3 +349,11 @@ No real authentication, provider, database, SQL, migration, or persistence behav
 Prompt 25 adds the formal `AdminOverviewReadModel` boundary under `api/src/modules/admin/read-models/`, plus an in-memory adapter and independently callable parity self-test. It preserves the current overview snapshot shape, validates one canonical Medway or Elite brand scope, and delegates to the existing mock overview provider.
 
 No Postgres/Supabase adapter, feature-flag runtime selection, command persistence, or HTTP runtime wiring was added. The current HTTP overview route remains mock-backed and unchanged. A later phase may choose one of: mock-only runtime wiring behind a read-model source boundary, a Postgres/Supabase schema alignment review, or grouped admin command interfaces.
+
+## Prompt 26 status
+
+Prompt 26 adds the [Postgres/Supabase Schema Alignment Review](postgres-supabase-schema-alignment-review.md). It aligns future schema terminology and migration order around canonical brand scope, while preserving current platform-named compatibility references. No SQL, migration, provider code, or runtime behavior was added. The recommended next phase is Prompt 27 — Schema Decision Register.
+
+## Prompt 27 status
+
+The [Schema Decision Register](schema-decision-register.md) was created to track schema decisions, owner-confirmation items, and migration blockers. No SQL, migrations, provider code, or runtime behavior was added. The next phase is owner review of the pending decisions.
