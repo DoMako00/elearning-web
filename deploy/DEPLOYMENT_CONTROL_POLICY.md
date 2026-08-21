@@ -219,3 +219,6 @@ Prompt 37 adds only a local backend configuration boundary with `PERSISTENCE_PRO
 ## Prompt 38 read-adapter note
 
 Prompt 38 adds unused local read-adapter code only. Dokploy remains mock-backed and receives no Supabase transport, credential, provider, or runtime configuration change. A future push may still redeploy the mock application because the trigger is **On Push**, but it does not create a database connection or change the active provider.
+## Prompt 39 status
+
+The API image now carries the approved `pg` dependency for a future backend read transport, but no pool is constructed in mock runtime and no Supabase connection occurs. Dokploy values remain mock-only; this phase performs no push or deployment.

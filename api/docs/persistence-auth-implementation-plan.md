@@ -405,3 +405,6 @@ The [Supabase Adapter Boundary](supabase-adapter-boundary.md) adds configuration
 ## Prompt 38 status
 
 The [Supabase M1 Read Repository Adapters](supabase-m1-read-repository-adapters.md) add unused, read-only M1 mapping adapters behind a fakeable parameterized `SELECT` transport contract. No driver, database connection, query execution, runtime wiring, provider switch, or entitlement behavior was added. Mock remains the active runtime source.
+## Prompt 39 status
+
+Added an explicit, dependency-approved `pg` read transport boundary with bounded pool settings and SELECT-only enforcement. No runtime composition, connection, query, provider switch, or deployment integration was added; mock remains the active provider.

@@ -44,12 +44,12 @@ export async function runHttpSmokeSelfTest(): Promise<HttpSmokeSelfTestRunResult
   const invoke = async (method: string, url: string, headers: Readonly<Record<string, string>> = {}): Promise<CapturedResponse> => {
     const responseHeaders: Record<string, string> = {};
     let serializedBody = "";
-    const response: ServerResponse = {
+    const response = {
       statusCode: 200,
-      setHeader(name, value) { responseHeaders[name.toLowerCase()] = String(value); },
-      end(body) { serializedBody = body ?? ""; },
-    };
-    const request: IncomingMessage = { method, url, headers };
+      setHeader(name: string, value: string | number) { responseHeaders[name.toLowerCase()] = String(value); },
+      end(body: string | undefined) { serializedBody = body ?? ""; },
+    } as unknown as ServerResponse;
+    const request = { method, url, headers } as unknown as IncomingMessage;
     await handler(request, response);
     return { statusCode: response.statusCode, headers: responseHeaders, body: asRecord(JSON.parse(serializedBody)), serializedBody };
   };

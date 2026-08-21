@@ -11,6 +11,8 @@ export type RepositoryErrorCode =
   | "provider_unavailable"
   | "persistence_data_invalid"
   | "query_failed"
+  | "query_timeout"
+  | "invalid_query_intent"
   | "provider_not_implemented"
   | "authentication_required"
   | "authentication_invalid"

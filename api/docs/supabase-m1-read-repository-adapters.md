@@ -45,3 +45,6 @@ No database package is currently installed or added. The next phase must explici
 `PERSISTENCE_PROVIDER=mock` remains the active default. The current mock request-context, admin overview, HTTP runtime, frontend, and Dokploy staging configuration remain unchanged.
 
 The next integration phase should review and approve the concrete private-schema transport, connection lifecycle, observability, adapter composition, and runtime switch separately.
+## Prompt 39 transport
+
+Prompt 38 adapters can now receive a future direct-PostgreSQL `ReadQueryTransport`; the `pg` pool implementation remains unconstructed by the current mock runtime. The private `app` schema is not exposed through Data API.
