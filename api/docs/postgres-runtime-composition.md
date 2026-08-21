@@ -21,3 +21,7 @@ The composition owns the transport lifecycle. `close()` is a safe no-op in mock 
 ## Runtime boundary
 
 The live Admin Overview endpoint still uses its existing in-memory read model. Prompt 41 does not switch routes, auth, request context, frontend data sources, or Dokploy values. Prompt 42 is the next boundary for an explicitly controlled Admin Overview read-model integration.
+
+## Prompt 42 status
+
+Prompt 42 adds `ADMIN_READ_MODEL_SOURCE=mock|postgres` inside application composition. Mock remains the default. PostgreSQL source requires Supabase persistence, constructs without querying, and uses only M1 brand resolution; the deployed Dokploy and frontend sources remain mock-backed.

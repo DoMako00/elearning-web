@@ -509,3 +509,7 @@ Admin overview reads now have a formal provider-neutral `AdminOverviewReadModel`
 
 Command persistence remains a separate concern: it must continue to validate permission, active and target brand scope, lifecycle and policy state, required reasons and idempotency keys, and append-only evidence before a command changes state.
 
+## Prompt 42 PostgreSQL source note
+
+The first PostgreSQL overview source preserves the existing response contract and resolves only the active M1 educational brand. Payment, subscription, access, content, assessment, audit, and security cards remain zero/empty until their authoritative read models exist. The default runtime source remains mock; see [PostgreSQL Admin Overview Read Model](postgres-admin-overview-read-model.md).
+

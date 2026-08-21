@@ -3,13 +3,13 @@ import type { AdminPermissionResolver } from "../../core/permissions";
 import type { AdminPolicyValidator } from "../../core/policies";
 import type { AdminEvidenceWriter } from "../../core/logging";
 import { getAdminOverview } from "./admin-overview.query";
-import type { AdminReadModels } from "./in-memory-admin-read-models";
+import type { AdminOverviewReadModel } from "./read-models";
 import { executeAdminCommandBoundary, type AdminCommandBoundaryDependencies, type AdminCommandBoundaryInput } from "./admin-command-boundary";
 
-export interface AdminModuleDependencies { readonly permissionResolver: AdminPermissionResolver; readonly policyValidator: AdminPolicyValidator; readonly evidenceWriter: AdminEvidenceWriter; readonly readModels?: AdminReadModels; }
+export interface AdminModuleDependencies { readonly permissionResolver: AdminPermissionResolver; readonly policyValidator: AdminPolicyValidator; readonly evidenceWriter: AdminEvidenceWriter; readonly overviewReadModel?: AdminOverviewReadModel; }
 export function createAdminModule(dependencies: AdminModuleDependencies) {
-  const readModels = dependencies.readModels;
-  if (!readModels) throw new Error("Admin module requires read models for the current composition boundary.");
+  const overviewReadModel = dependencies.overviewReadModel;
+  if (!overviewReadModel) throw new Error("Admin module requires an overview read model for the current composition boundary.");
   const boundary: AdminCommandBoundaryDependencies = dependencies;
-  return { queries: { getAdminOverview: (context: AdminRequestContext) => getAdminOverview(context, readModels) }, commands: { executeAdminCommandBoundary: <T>(input: AdminCommandBoundaryInput<T>) => executeAdminCommandBoundary(input, boundary) } };
+  return { queries: { getAdminOverview: (context: AdminRequestContext) => getAdminOverview(context, overviewReadModel) }, commands: { executeAdminCommandBoundary: <T>(input: AdminCommandBoundaryInput<T>) => executeAdminCommandBoundary(input, boundary) } };
 }

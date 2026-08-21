@@ -232,3 +232,7 @@ Prompt 40 completed its single authorized read-only staging verification outside
 ## Prompt 41 status
 
 Prompt 41 adds only backend composition code. `PERSISTENCE_PROVIDER=mock` remains the Dokploy default; no `SUPABASE_DB_URL` was added to Dokploy or Compose. A future push may redeploy staging, but no database query occurs unless an explicit provider opt-in is configured.
+
+## Prompt 42 status
+
+Prompt 42 adds an optional backend Admin Overview PostgreSQL source behind `ADMIN_READ_MODEL_SOURCE=postgres`, which also requires Supabase persistence. Dokploy continues to use `PERSISTENCE_PROVIDER=mock` and `ADMIN_READ_MODEL_SOURCE=mock`; no database secret, deployment configuration, push, or deployment action is included.

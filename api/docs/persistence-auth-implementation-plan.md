@@ -418,3 +418,7 @@ Prompt 40 completed successfully against staging ref `mgrsgibxuwgbxtdqprkw`: the
 ## Prompt 41 status
 
 The [PostgreSQL Runtime Composition](postgres-runtime-composition.md) adds an opt-in `PERSISTENCE_PROVIDER=supabase` composition owned by `createApplication()`. Mock remains the default, construction performs no query, the Admin Overview remains in-memory, and Dokploy remains mock-backed. Prompt 42 owns any controlled read-model integration.
+
+## Prompt 42 status
+
+The [PostgreSQL Admin Overview Read Model](postgres-admin-overview-read-model.md) adds a separate `ADMIN_READ_MODEL_SOURCE=mock|postgres` selector. Default mock behavior is unchanged; PostgreSQL source requires Supabase persistence and resolves only active M1 brands. Existing cards without M1 authority are zero/empty, and staging endpoint verification remains blocked by the intentionally empty M1 tables.
