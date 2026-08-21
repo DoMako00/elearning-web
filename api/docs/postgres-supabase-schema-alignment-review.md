@@ -236,3 +236,5 @@ Prompt 30 owner confirmation resolved the remaining M1 decision blockers. A futu
 See [M1 Migration Draft Plan](m1-migration-draft-plan.md) for the documentation-only M1 plan covering `educational_brands`, global `app_users`, `brand_memberships`, brand-scoped student/admin profiles, and the admin role-assignment foundation. SQL authoring and migration application remain separate phases.
 
 Prompt 32 maps those finalized M1 decisions into a non-applied [PostgreSQL-compatible draft](../db/migration-drafts/m1/README.md): `educational_brands`, global `app_users`, explicit `brand_memberships`, brand-scoped student/admin profiles, and brand-scoped admin role assignments. See the [M1 SQL Draft Review](m1-sql-draft-review.md). The SQL remains unapplied, and review and application remain separate explicit phases.
+
+Prompt 33 completed the static [M1 SQL Draft Review Fixes](m1-sql-draft-review-fixes.md). The draft remains non-applied and preserves canonical `educational_brands`, concise brand scope, same-brand integrity, and the RLS/Data API exposure gate.

@@ -377,3 +377,7 @@ The [M1 Migration Draft Plan](m1-migration-draft-plan.md) defines the first iden
 ## Prompt 32 status
 
 Prompt 32 created the non-applied [M1 SQL draft](../db/migration-drafts/m1/README.md) and [M1 SQL Draft Review](m1-sql-draft-review.md). No provider integration, runtime adapter, database/Supabase connection, or migration application was added or performed. The next step should be a separate SQL review/fix phase, not migration application.
+
+## Prompt 33 status
+
+Prompt 33 completed the static [M1 SQL Draft Review Fixes](m1-sql-draft-review-fixes.md) without changing or applying the SQL draft. No provider/runtime adapter, database/Supabase connection, or migration application was added. Migration authoring/application still requires a later explicit phase.

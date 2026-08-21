@@ -94,4 +94,8 @@ The `app` schema remains private/backend-mediated. No Supabase/Data API exposure
 
 ## Next review phase
 
-The next step should be a dedicated SQL review/fix phase. It must not apply this SQL. Active migration authoring, staging application, and production application remain separate explicit approvals.
+## Prompt 33 review result
+
+Prompt 33 completed a static review without changing the SQL draft. All eight tables with `updated_at` have one explicit update trigger. The ninth table, `admin_role_permissions`, is deliberately an immutable join table with `created_at` only, so it has no `updated_at` column or update trigger. See [M1 SQL Draft Review Fixes](m1-sql-draft-review-fixes.md) for the review record, deferred items, and validation result.
+
+The next step is later migration-review/apply planning. It must not apply this SQL. Active migration authoring, staging application, and production application remain separate explicit approvals.

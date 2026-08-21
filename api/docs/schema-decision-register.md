@@ -218,3 +218,7 @@ See [M1 Migration Draft Plan](m1-migration-draft-plan.md). M1 planning follows t
 ## 15. Prompt 32 M1 SQL draft
 
 See the non-applied [M1 SQL draft](../db/migration-drafts/m1/README.md) and [M1 SQL Draft Review](m1-sql-draft-review.md). The draft follows the finalized Prompt 30/31 M1 decisions but does not authorize or perform migration application. D08, D31, and D36 remain Deferred; D36 specifically means Prompt 32 contains no seed data. RLS and explicit exposure approval remain mandatory before any Supabase/Data API exposure.
+
+## 16. Prompt 33 M1 SQL draft review
+
+See [M1 SQL Draft Review Fixes](m1-sql-draft-review-fixes.md). Prompt 33 completed the static draft review without applying SQL. D08, D31, and D36 remain Deferred; no seed, RLS/Data API exposure, or migration application is authorized by the review.

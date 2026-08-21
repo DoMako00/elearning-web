@@ -53,7 +53,7 @@ The `app` schema is private and backend-mediated initially. Prompt 32 does not e
 
 ## Future phases
 
-- Prompt 33 or a later phase may review and correct the SQL draft.
+- Prompt 33 completed a static review; see the [M1 SQL Draft Review Fixes](../../../docs/m1-sql-draft-review-fixes.md). The draft remains non-applied.
 - Migration application requires a separate explicit phase.
 - Supabase connection and provider/runtime integration remain separate phases.
 - D36 defers Medway/Elite brand and permission seed data until migrations and seed strategy are separately reviewed.

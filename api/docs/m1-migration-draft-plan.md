@@ -248,3 +248,7 @@ Prompt 32 may draft SQL migration files only if explicitly approved. Applying mi
 ## 16. Prompt 32 status
 
 Prompt 32 created non-applied M1 SQL drafts under [`api/db/migration-drafts/m1/`](../db/migration-drafts/m1/README.md) and recorded their review gates in the [M1 SQL Draft Review](m1-sql-draft-review.md). The SQL remains draft-only and unapplied; a separate SQL review is required before active migration authoring or application. The RLS/Data API gate is unchanged, and D36 continues to defer all seed data.
+
+## 17. Prompt 33 review status
+
+Prompt 33 completed the static [M1 SQL Draft Review Fixes](m1-sql-draft-review-fixes.md). No SQL change or application occurred. The review confirms the private draft boundary, same-brand integrity constraints, index/trigger plan, and continued RLS/Data API and D36 seed-data gates.
