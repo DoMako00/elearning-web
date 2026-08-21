@@ -15,8 +15,8 @@ import {
   Palette,
   UserRoundCheck,
 } from "lucide-react";
-import robotAsset from "../../../Assets/ai-learning-robot.png";
-import journeyIllustration from "../../../Assets/empty-learning-journey.png";
+import robotAsset from "../../../Assets/ai-learning-robot.webp";
+import journeyIllustration from "../../../Assets/empty-learning-journey.webp";
 import "./EmptyLearningState.css";
 
 const benefits = [

@@ -1,5 +1,5 @@
 import { SlidersHorizontal } from "lucide-react";
-import fireAsset from "../../../Assets/fire.png";
+import fireAsset from "../../../Assets/fire.webp";
 import type { WeeklyGoalCardProps } from "./weekly-goal-card.types";
 import "./WeeklyGoalCard.css";
 

@@ -1,5 +1,5 @@
 import { Atom, Route, Sparkles, Workflow } from "lucide-react";
-import robotAsset from "../../../Assets/ai-learning-robot.png";
+import robotAsset from "../../../Assets/ai-learning-robot.webp";
 import "./AILearningGuide.css";
 
 const suggestions = [

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { MoreHorizontal, Bookmark, Play } from 'lucide-react';
-import courseImage from '../../../Assets/image.png';
+import courseImage from '../../../Assets/image.webp';
 import './index.css';
 
 interface Continue_learningProps {

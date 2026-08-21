@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Sparkles, X } from "lucide-react";
-import robotAsset from "../../../Assets/ai-learning-robot.png";
+import robotAsset from "../../../Assets/ai-learning-robot.webp";
 import { AILearningGuide } from "../AILearningGuide";
 import ContinueLearning from "../Continue_Learning/continue_learning";
 import { MyProgress } from "../MyProgress";

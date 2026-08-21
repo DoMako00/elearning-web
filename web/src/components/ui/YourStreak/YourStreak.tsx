@@ -1,7 +1,7 @@
 import { useId } from "react";
 import { Check } from "lucide-react";
-import fireAsset from "../../../Assets/fire.png";
-import trophyAsset from "../../../Assets/trophy.png";
+import fireAsset from "../../../Assets/fire.webp";
+import trophyAsset from "../../../Assets/trophy.webp";
 import type { YourStreakProps } from "./your-streak.types";
 import "./YourStreak.css";
 
