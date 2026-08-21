@@ -408,3 +408,9 @@ The [Supabase M1 Read Repository Adapters](supabase-m1-read-repository-adapters.
 ## Prompt 39 status
 
 Added an explicit, dependency-approved `pg` read transport boundary with bounded pool settings and SELECT-only enforcement. No runtime composition, connection, query, provider switch, or deployment integration was added; mock remains the active provider.
+
+## Prompt 40 status
+
+Prompt 40 adds a manually invoked, staging-only read verification script. It does not change provider composition; runtime remains mock-backed and any live database activity is limited to the approved SELECT checks after explicit process-level enablement.
+
+Prompt 40 completed successfully against staging ref `mgrsgibxuwgbxtdqprkw`: the private `app` schema and all nine M1 tables were confirmed, all row counts were zero, and the pool closed cleanly. No runtime switch or provider integration occurred.

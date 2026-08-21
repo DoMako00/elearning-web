@@ -22,12 +22,21 @@ export function assertReadOnlySelect(text: string): void {
 function translateQueryError(error: unknown): PostgresReadTransportError {
   const code = typeof error === "object" && error !== null && "code" in error ? String(error.code) : "";
   if (code === "ETIMEDOUT" || code === "57014" || code === "CONNECTION_TIMEOUT") {
-    return new PostgresReadTransportError("query_timeout", "The Postgres read query timed out.");
+    return new PostgresReadTransportError("query_timeout", "The Postgres read query timed out.", code);
   }
-  if (["ECONNREFUSED", "ENOTFOUND", "ECONNRESET", "EHOSTUNREACH"].includes(code)) {
-    return new PostgresReadTransportError("provider_unavailable", "The Postgres provider is unavailable.");
+  if (["SELF_SIGNED_CERT_IN_CHAIN", "UNABLE_TO_VERIFY_LEAF_SIGNATURE", "DEPTH_ZERO_SELF_SIGNED_CERT", "ERR_TLS_CERT_ALTNAME_INVALID"].includes(code)) {
+    return new PostgresReadTransportError("tls_verification_failed", "TLS certificate verification failed.", code);
   }
-  return new PostgresReadTransportError("query_failed", "The Postgres read query failed.");
+  if (["28P01", "28000"].includes(code)) {
+    return new PostgresReadTransportError("provider_unavailable", "The Postgres provider rejected authentication.", code);
+  }
+  if (["3D000"].includes(code)) {
+    return new PostgresReadTransportError("provider_unavailable", "The Postgres database is unavailable.", code);
+  }
+  if (["ECONNREFUSED", "ENOTFOUND", "ECONNRESET", "EHOSTUNREACH", "ENETUNREACH", "EAI_AGAIN", "ECONNABORTED", "EPIPE"].includes(code)) {
+    return new PostgresReadTransportError("provider_unavailable", "The Postgres provider is unavailable.", code);
+  }
+  return new PostgresReadTransportError("query_failed", "The Postgres read query failed.", code || "unknown");
 }
 
 export class PostgresReadTransport implements ReadQueryTransport {

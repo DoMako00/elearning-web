@@ -222,3 +222,9 @@ Prompt 38 adds unused local read-adapter code only. Dokploy remains mock-backed 
 ## Prompt 39 status
 
 The API image now carries the approved `pg` dependency for a future backend read transport, but no pool is constructed in mock runtime and no Supabase connection occurs. Dokploy values remain mock-only; this phase performs no push or deployment.
+
+## Prompt 40 status
+
+The staging read verifier runs outside Dokploy with process-only credentials. It does not add database secrets to Dokploy, change Compose, switch runtime providers, push, or deploy.
+
+Prompt 40 completed its single authorized read-only staging verification outside Dokploy. It performed no deployment or runtime switch; future `dev` pushes may redeploy the mock container but do not reapply database SQL.
