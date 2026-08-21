@@ -58,6 +58,17 @@ docker compose -f deploy/dokploy/docker-compose.yml --env-file deploy/dokploy/.e
 
 Confirm generated `api/dist` and `web/dist` output remains ignored and is not committed.
 
+### Pre-deploy reminder
+
+Before an intentional push or Dokploy deployment, confirm:
+
+- this deployment is intended for the VPS staging environment;
+- the relevant local validation has passed;
+- pushing to `dev` is intentional because Dokploy uses an **On Push** trigger;
+- no secrets, credential-bearing `.env` files, or generated `dist`/`build` output are staged.
+
+Review [DEPLOYMENT_CONTROL_POLICY.md](../../deploy/DEPLOYMENT_CONTROL_POLICY.md) before continuing.
+
 ## Git checklist before VPS/Dokploy
 
 ```text

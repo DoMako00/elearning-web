@@ -153,3 +153,7 @@ The deployment progression now continues:
 Prompt 19A is documentation and operational checklist work only. It does not change Compose services, runtime behavior, frontend behavior, backend business rules, or provider/database/authentication boundaries. The deployment remains mock-only and staging-oriented.
 
 The current Docker/Dokploy deployment remains mock-only until the persistence and authentication integration boundary is implemented. Runtime and container smoke results do not prove real identity, persistence, authorization-provider, payment, or protected-media readiness.
+
+## Deployment control policy
+
+Future work must follow the [Deployment Control Policy](DEPLOYMENT_CONTROL_POLICY.md): local changes → validation → local commit → intentional push → Dokploy monitoring. Dokploy is connected to `dev` with an **On Push** trigger, so a push may deploy to the VPS staging environment. Do not push until staging deployment is intended and the relevant validation has passed.

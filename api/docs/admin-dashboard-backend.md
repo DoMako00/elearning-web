@@ -19,6 +19,8 @@ The document aligns with the current logical schema, ERD, authorization/RLS, aut
 
 Future persistence and authentication work must follow the [Persistence and Auth Integration Boundary](persistence-auth-integration-boundary.md). The current admin dashboard remains backend-mediated and mock-only until real authentication, persistence, and provider adapters are introduced behind the existing contracts.
 
+When persistence begins, admin integration must start with read-only read-model interfaces and mock-versus-real parity checks before any admin command persistence is enabled. Command writes remain a later, sensitive phase requiring explicit approval, rollback planning, brand validation, idempotency, and evidence.
+
 ## 2. Authority Model
 
 ### 2.1 Authority layers

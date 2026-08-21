@@ -4,6 +4,8 @@
 
 This document defines the boundary for introducing real persistence and authentication into the e-learning application later. It is a design and sequencing document only. Its purpose is to preserve the existing admin contracts, brand-scope isolation, backend-mediated authorization, mock runtime, and future provider adapters while real infrastructure is added incrementally.
 
+The concrete staged roadmap is documented in [Persistence/Auth Implementation Plan](persistence-auth-implementation-plan.md). This boundary document remains the provider-neutral architectural contract; the implementation plan defines sequencing, feature controls, validation gates, and deployment impact.
+
 The application remains one platform. Medway and Elite are educational brands inside that platform. Brand scope is the isolation boundary for catalog, content, pricing, subscriptions, seats, access grants, admin visibility, protected media policy, and evidence.
 
 ## 2. Non-goals
