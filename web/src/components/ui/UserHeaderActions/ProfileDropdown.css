@@ -27,7 +27,6 @@
   }
 }
 
-/* Little top pointer pointing to the avatar */
 .profile-dropdown-beak {
   position: absolute;
   top: -6px;
@@ -42,7 +41,6 @@
   pointer-events: none;
 }
 
-/* Header section with User info */
 .profile-dropdown-header {
   position: relative;
   overflow: hidden;
@@ -50,14 +48,24 @@
   padding: 8px 6px 12px;
 }
 
-.profile-dropdown-wave {
+.profile-dropdown-header-bg {
   position: absolute;
-  top: -10px;
-  right: -10px;
-  width: 140px;
-  height: 75px;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 46px; 
   pointer-events: none;
   z-index: 0;
+  overflow: hidden;
+  border-top-right-radius: 14px;
+}
+
+.profile-dropdown-header-bg img,
+.profile-dropdown-header-bg svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .profile-dropdown-header__content {
@@ -132,14 +140,12 @@
   transform: translateY(-0.5px);
 }
 
-/* Subtle separator divider */
 .profile-dropdown-divider {
   height: 1px;
   background: #f1f5f9;
   margin: 4px 0 6px;
 }
 
-/* Items List */
 .profile-dropdown-list {
   list-style: none;
   margin: 0;

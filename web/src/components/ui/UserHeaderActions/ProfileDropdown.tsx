@@ -114,31 +114,31 @@ export function ProfileDropdown({
       role="menu"
       aria-label="User profile menu"
     >
-      {/* Little Top Arrow Pointer */}
       <div className="profile-dropdown-beak" aria-hidden="true" />
 
-      {/* Header Profile Section */}
       <div className="profile-dropdown-header">
-        {/* Subtle decorative wave SVG */}
-        <svg
-          className="profile-dropdown-wave"
-          viewBox="0 0 160 80"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path
-            d="M0,50 C40,20 100,70 160,30 L160,0 L0,0 Z"
-            fill="url(#headerWaveGrad)"
-            opacity="0.6"
-          />
-          <defs>
-            <linearGradient id="headerWaveGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#86efac" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#22c55e" stopOpacity="0.08" />
-            </linearGradient>
-          </defs>
-        </svg>
+        <div className="profile-dropdown-header-bg" aria-hidden="true">
+          <svg
+            className="profile-dropdown-wave"
+            viewBox="0 0 240 80"
+            fill="none"
+            preserveAspectRatio="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M0,55 C70,18 160,60 240,15 L240,0 L0,0 Z"
+              fill="url(#headerWaveGrad)"
+              opacity="0.85"
+            />
+            <defs>
+              <linearGradient id="headerWaveGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#bbf7d0" stopOpacity="0.55" />
+                <stop offset="50%" stopColor="#86efac" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#22c55e" stopOpacity="0.12" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
 
         <div className="profile-dropdown-header__content">
           <div className="profile-dropdown-avatar">
