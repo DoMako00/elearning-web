@@ -13,6 +13,7 @@ import "./ProfileDropdown.css";
 export interface ProfileDropdownProps {
   isOpen: boolean;
   onClose: () => void;
+  triggerRef?: React.RefObject<HTMLElement | null>;
   avatarSrc: string;
   avatarAlt?: string;
   userName?: string;
@@ -26,6 +27,7 @@ export interface ProfileDropdownProps {
 export function ProfileDropdown({
   isOpen,
   onClose,
+  triggerRef,
   avatarSrc,
   avatarAlt = "User",
   userName = "Juliana Silva",
@@ -42,9 +44,13 @@ export function ProfileDropdown({
     if (!isOpen) return;
 
     function handleClickOutside(event: MouseEvent) {
+      const target = event.target as Node;
+      if (triggerRef?.current && triggerRef.current.contains(target)) {
+        return; // Let the trigger button's onClick handle toggling
+      }
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        !dropdownRef.current.contains(target)
       ) {
         onClose();
       }
@@ -63,7 +69,7 @@ export function ProfileDropdown({
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, triggerRef]);
 
   if (!isOpen) return null;
 

@@ -1,5 +1,5 @@
 import { Bell, ChevronDown, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ProfileDropdown } from "./ProfileDropdown";
 import type { UserHeaderActionsProps } from "./user-header-actions.types";
 import "./UserHeaderActions.css";
@@ -23,6 +23,7 @@ export function UserHeaderActions({
   className = "",
 }: UserHeaderActionsProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const formattedXp = `${numberFormatter.format(xp)} XP`;
 
   const toggleDropdown = () => {
@@ -71,6 +72,7 @@ export function UserHeaderActions({
       {/* Profile Trigger (Avatar + Chevron) */}
       <div className="relative flex items-center user-header-actions__profile-wrap">
         <button
+          ref={triggerRef}
           type="button"
           className={`user-header-actions__profile-btn flex items-center gap-2 rounded-full transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] focus-visible:ring-offset-2 ${
             isDropdownOpen ? "opacity-100" : "hover:opacity-90"
@@ -107,6 +109,7 @@ export function UserHeaderActions({
         <ProfileDropdown
           isOpen={isDropdownOpen}
           onClose={() => setIsDropdownOpen(false)}
+          triggerRef={triggerRef}
           avatarSrc={avatarSrc}
           avatarAlt={avatarAlt}
           userName={userName}
