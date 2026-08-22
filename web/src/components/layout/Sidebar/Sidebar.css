@@ -1,8 +1,29 @@
+.student-sidebar {
+  position: relative;
+  z-index: 60;
+  overflow: visible;
+}
+
 .student-sidebar .sidebar-brand { margin-inline: -2px; }
 .student-sidebar .sidebar-primary-nav { padding-top: 2px; }
 .student-sidebar .sidebar-secondary-nav { padding-top: 14px; border-top: 1px solid #edf2ef; }
-.student-sidebar .sidebar-profile { border: 1px solid rgb(222 242 230 / 75%); box-shadow: 0 6px 18px rgb(23 82 51 / 3%); }
+.student-sidebar .sidebar-profile {
+  border: 1px solid rgb(222 242 230 / 75%);
+  box-shadow: 0 6px 18px rgb(23 82 51 / 3%);
+  cursor: pointer;
+}
 .student-sidebar .sidebar-nav-item { letter-spacing: -.01em; }
+
+.sidebar-profile-status-dot {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 2px solid #ffffff;
+}
 
 @media (max-width: 1535px) {
   .student-sidebar {

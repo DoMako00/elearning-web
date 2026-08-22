@@ -1,6 +1,8 @@
-import { ChevronDown, Leaf } from "lucide-react";
+import { ChevronLeft, Leaf } from "lucide-react";
+import { useRef, useState } from "react";
 import { useBrand } from "../../../app/providers/BrandProvider";
 import { SidebarNavItem } from "./SidebarNavItem";
+import { SidebarProfileDropdown } from "./SidebarProfileDropdown";
 import {
   primarySidebarItems,
   secondarySidebarItems,
@@ -10,6 +12,8 @@ import "./Sidebar.css";
 
 export function Sidebar() {
   const { brand } = useBrand();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   return (
     <aside
@@ -48,22 +52,52 @@ export function Sidebar() {
         </ul>
       </nav>
 
-      <div className="sidebar-profile flex min-h-[78px] shrink-0 items-center gap-3 rounded-[var(--radius-profile)] bg-[var(--color-brand-soft)] px-3">
-        <span className="sidebar-profile-avatar grid size-11 shrink-0 place-items-center rounded-full bg-[var(--color-brand-hover)] text-sm font-semibold text-white">
-          {sidebarProfile.initials}
-        </span>
-        <span className="sidebar-profile-copy min-w-0 flex-1">
-          <span className="block truncate text-sm font-semibold text-[var(--color-text-primary)]">
-            {sidebarProfile.name}
+      <div className="relative">
+        <button
+          ref={triggerRef}
+          type="button"
+          className={`sidebar-profile flex w-full min-h-[78px] shrink-0 items-center gap-3 rounded-[var(--radius-profile)] bg-[var(--color-brand-soft)] px-3 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] ${
+            isProfileOpen
+              ? "ring-2 ring-[var(--color-brand,#20a862)]"
+              : "hover:opacity-90"
+          }`}
+          aria-label={`Open profile options for ${sidebarProfile.name}`}
+          aria-haspopup="true"
+          aria-expanded={isProfileOpen}
+          onClick={() => setIsProfileOpen((prev) => !prev)}
+        >
+          <div className="sidebar-profile-avatar-wrap relative shrink-0">
+            <span className="sidebar-profile-avatar grid size-11 shrink-0 place-items-center rounded-full bg-[var(--color-brand-hover)] text-sm font-semibold text-white">
+              {sidebarProfile.initials}
+            </span>
+            <span className="sidebar-profile-status-dot" aria-hidden="true" />
+          </div>
+
+          <span className="sidebar-profile-copy min-w-0 flex-1">
+            <span className="block truncate text-sm font-semibold text-[var(--color-text-primary)]">
+              {sidebarProfile.name}
+            </span>
+            <span className="mt-1 block truncate text-xs text-[var(--color-text-secondary)]">
+              {sidebarProfile.role}
+            </span>
           </span>
-          <span className="mt-1 block truncate text-xs text-[var(--color-text-secondary)]">
-            {sidebarProfile.role}
-          </span>
-        </span>
-        <ChevronDown
-          className="sidebar-profile-chevron size-4 shrink-0 text-[var(--color-text-secondary)]"
-          strokeWidth={1.8}
-          aria-hidden="true"
+
+          <ChevronLeft
+            className={`sidebar-profile-chevron size-4 shrink-0 text-[var(--color-text-secondary)] transition-transform duration-200 ${
+              isProfileOpen ? "rotate-180 text-[var(--color-brand-hover)]" : ""
+            }`}
+            strokeWidth={1.8}
+            aria-hidden="true"
+          />
+        </button>
+
+        <SidebarProfileDropdown
+          isOpen={isProfileOpen}
+          onClose={() => setIsProfileOpen(false)}
+          triggerRef={triggerRef}
+          name={`${sidebarProfile.name} Silva`}
+          role={sidebarProfile.role}
+          initials={sidebarProfile.initials}
         />
       </div>
     </aside>
