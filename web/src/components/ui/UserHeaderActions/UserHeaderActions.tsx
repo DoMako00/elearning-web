@@ -1,4 +1,6 @@
 import { Bell, ChevronDown, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { ProfileDropdown } from "./ProfileDropdown";
 import type { UserHeaderActionsProps } from "./user-header-actions.types";
 import "./UserHeaderActions.css";
 
@@ -6,24 +8,37 @@ const numberFormatter = new Intl.NumberFormat("en-US");
 
 export function UserHeaderActions({
   avatarSrc,
-  avatarAlt = "User avatar",
+  avatarAlt = "Juliana Silva",
+  userName = "Juliana Silva",
+  userRole = "Student",
   xp = 2450,
   hasNotification = false,
+  unreadNotificationsCount = 3,
   onNotificationClick,
   onXpClick,
   onAvatarClick,
+  onViewProfile,
+  onMenuItemClick,
+  onLogOut,
   className = "",
 }: UserHeaderActionsProps) {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const formattedXp = `${numberFormatter.format(xp)} XP`;
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen((prev) => !prev);
+    onAvatarClick?.();
+  };
 
   return (
     <div
-      className={`user-header-actions flex h-[60px] w-max shrink-0 items-center gap-0 ${className}`}
+      className={`user-header-actions relative flex items-center ${className}`}
       aria-label="User header actions"
     >
+      {/* Notifications Button */}
       <button
         type="button"
-        className="user-header-actions__notifications relative grid size-[28px] shrink-0 place-items-center rounded-full text-[var(--color-text-primary)] transition-opacity duration-150 hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] focus-visible:ring-offset-2"
+        className="user-header-actions__notifications relative grid shrink-0 place-items-center rounded-full text-[var(--color-text-primary)] transition-opacity duration-150 hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] focus-visible:ring-offset-2"
         aria-label="Notifications"
         onClick={onNotificationClick}
       >
@@ -36,9 +51,10 @@ export function UserHeaderActions({
         ) : null}
       </button>
 
+      {/* Experience Points Button */}
       <button
         type="button"
-        className="user-header-actions__xp ml-8 flex h-[58px] w-[138px] shrink-0 items-center justify-center gap-[11px] rounded-full border border-[var(--color-border-subtle)] bg-[var(--color-surface-hover)] text-[var(--color-text-primary)] transition-opacity duration-150 hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] focus-visible:ring-offset-2"
+        className="user-header-actions__xp flex shrink-0 items-center justify-center rounded-full border border-[var(--color-border-subtle)] bg-[var(--color-surface-hover)] text-[var(--color-text-primary)] transition-opacity duration-150 hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] focus-visible:ring-offset-2"
         aria-label={`${formattedXp} experience points`}
         onClick={onXpClick}
       >
@@ -52,24 +68,55 @@ export function UserHeaderActions({
         </span>
       </button>
 
-      <button
-        type="button"
-        className="user-header-actions__avatar ml-[30px] size-14 shrink-0 overflow-hidden rounded-full transition-opacity duration-150 hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] focus-visible:ring-offset-2"
-        aria-label={`Open profile options for ${avatarAlt}`}
-        onClick={onAvatarClick}
-      >
-        <img
-          className="size-full object-cover"
-          src={avatarSrc}
-          alt={avatarAlt}
-        />
-      </button>
+      {/* Profile Trigger (Avatar + Chevron) */}
+      <div className="relative flex items-center user-header-actions__profile-wrap">
+        <button
+          type="button"
+          className={`user-header-actions__profile-btn flex items-center gap-2 rounded-full transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] focus-visible:ring-offset-2 ${
+            isDropdownOpen ? "opacity-100" : "hover:opacity-90"
+          }`}
+          aria-label={`User menu for ${userName}`}
+          aria-haspopup="true"
+          aria-expanded={isDropdownOpen}
+          onClick={toggleDropdown}
+        >
+          <div
+            className={`user-header-actions__avatar shrink-0 overflow-hidden rounded-full transition-all duration-200 ${
+              isDropdownOpen
+                ? "ring-2 ring-[var(--color-brand,#20a862)] ring-offset-2"
+                : ""
+            }`}
+          >
+            <img
+              className="size-full object-cover"
+              src={avatarSrc}
+              alt={avatarAlt}
+            />
+          </div>
 
-      <ChevronDown
-        className="user-header-actions__chevron ml-2 size-[18px] shrink-0 text-[var(--color-text-primary)]"
-        strokeWidth={2}
-        aria-hidden="true"
-      />
+          <ChevronDown
+            className={`user-header-actions__chevron shrink-0 text-[var(--color-text-primary)] transition-transform duration-200 ${
+              isDropdownOpen ? "rotate-180 text-[var(--color-brand,#20a862)]" : ""
+            }`}
+            strokeWidth={2}
+            aria-hidden="true"
+          />
+        </button>
+
+        {/* Profile Dropdown Popup */}
+        <ProfileDropdown
+          isOpen={isDropdownOpen}
+          onClose={() => setIsDropdownOpen(false)}
+          avatarSrc={avatarSrc}
+          avatarAlt={avatarAlt}
+          userName={userName}
+          userRole={userRole}
+          unreadNotificationsCount={unreadNotificationsCount}
+          onViewProfile={onViewProfile}
+          onMenuItemClick={onMenuItemClick}
+          onLogOut={onLogOut}
+        />
+      </div>
     </div>
   );
 }
