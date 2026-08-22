@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useState, type KeyboardEvent } from "react";
 import { Link } from "react-router-dom";
+import anatomyHeroBg from "../../../Assets/image copy.webp";
 import "./CourseOverviewPage.css";
 
 const FIRST_LESSON_ID = "human-anatomy-i-lesson-1";
@@ -153,37 +154,11 @@ function InstructorPortrait() {
 function AnatomyHeroArt() {
   return (
     <div className="course-overview-hero__art" aria-hidden="true">
-      <svg viewBox="0 0 620 300" preserveAspectRatio="xMidYMid meet">
-        <g className="anatomy-art__guides">
-          <circle cx="286" cy="151" r="127" />
-          <path d="M286 11v278M151 151h270M195 41l182 220M377 41 195 261" />
-          <path d="M33 55h65M33 68h43M39 232h76M39 245h50M468 44h72M494 57h46" />
-          <path d="M88 25v14M81 32h14M437 20v16M429 28h16M558 93v14M551 100h14M105 190v15M98 197h14" />
-        </g>
-        <g className="anatomy-art__body">
-          <circle cx="286" cy="48" r="18" />
-          <path d="M276 66c-4 13-14 21-31 27l-61 27M296 66c4 13 14 21 31 27l61 27" />
-          <path d="M184 120 111 93M388 120l73-27M112 93 67 133M460 93l-67 133" />
-          <path d="M264 78c-14 23-17 61-12 91l-17 76M308 78c14 23 17 61 12 91l17 76" />
-          <path d="M252 169c11 8 23 12 34 12s23-4 34-12M235 245l-17 40M337 245l17 40" />
-          <path d="M271 82c8 5 22 5 30 0M286 68v113M261 111c14-11 36-11 50 0M257 133c17-12 41-12 58 0M255 153c19-10 43-10 62 0" />
-          <path d="M265 101c-8 6-12 18-12 31M307 101c8 6 12 18 12 31M269 181l-5 64M303 181l5 64" />
-          <circle cx="286" cy="104" r="4" /><circle cx="286" cy="128" r="4" /><circle cx="286" cy="153" r="4" />
-          <circle cx="184" cy="120" r="4" /><circle cx="388" cy="120" r="4" /><circle cx="235" cy="245" r="4" /><circle cx="337" cy="245" r="4" />
-        </g>
-        <g className="anatomy-art__ribcage">
-          <rect x="462" y="92" width="126" height="150" rx="9" />
-          <path d="M525 108v117M525 120c-27-15-47-5-48 14-1 18 19 27 48 35M525 120c27-15 47-5 48 14 1 18-19 27-48 35" />
-          <path d="M525 136c-22-11-38-3-39 11-1 14 16 22 39 31M525 136c22-11 38-3 39 11 1 14-16 22-39 31" />
-          <path d="M525 153c-17-8-29-2-30 9-1 11 12 17 30 24M525 153c17-8 29-2 30 9 1 11-12 17-30 24" />
-          <path d="m512 221 13 9 13-9M482 107h86" />
-        </g>
-        <g className="anatomy-art__labels">
-          <circle cx="128" cy="155" r="10" /><path d="M128 140v30M113 155h30M138 155h59" />
-          <path d="M91 276h73M91 264h48M408 270h74M428 258h54" />
-          <circle cx="439" cy="73" r="5" /><path d="M444 73h52" />
-        </g>
-      </svg>
+      <img
+        src={anatomyHeroBg}
+        alt=""
+        className="course-overview-hero__art-img"
+      />
     </div>
   );
 }
@@ -329,7 +304,9 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
             <div className="course-overview-info-row">
               <article className="course-overview-card course-overview-about">
                 <h2>About this course</h2>
-                <p>Build a clear foundation in human anatomy through anatomical terminology, body organization, and the structures used in clinical study.</p>
+                <p>
+                  Build a clear foundation in human anatomy through anatomical terminology, body organization, and the structures used in clinical study and practice.
+                </p>
                 <dl>
                   <div><Gauge aria-hidden="true" /><span><dt>Level</dt><dd>Beginner</dd></span></div>
                   <div><UsersRound aria-hidden="true" /><span><dt>Students enrolled</dt><dd>12.6K</dd></span></div>

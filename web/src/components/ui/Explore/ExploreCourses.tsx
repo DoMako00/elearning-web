@@ -8,6 +8,7 @@ import {
   List,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ExploreCourseArt } from "./ExploreCourseArt";
 import { type ExploreCourse } from "./exploreData";
 
@@ -22,6 +23,7 @@ export function ExploreCourses({
   searchQuery = "",
   onClearSearch,
 }: ExploreCoursesProps) {
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState<"relevant" | "rating" | "popular">("relevant");
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -232,6 +234,7 @@ export function ExploreCourses({
                   type="button"
                   className="explore-action-btn explore-action-btn--arrow"
                   aria-label={`Open ${course.title}`}
+                  onClick={() => navigate("/my-courses/human-anatomy-i")}
                 >
                   <ArrowRight className="size-3.5" aria-hidden="true" />
                 </button>
@@ -262,7 +265,11 @@ export function ExploreCourses({
             <div className="explore-courses__track">
               {sortedCourses.map((course) => (
                 <article key={course.id} className="explore-course-card" aria-label={course.title}>
-                  <div className="explore-course-card__art">
+                  <div
+                    className="explore-course-card__art"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => navigate("/my-courses/human-anatomy-i")}
+                  >
                     <ExploreCourseArt artType={course.artType} />
                   </div>
 
@@ -270,7 +277,12 @@ export function ExploreCourses({
                     <span className={`explore-course-tag explore-course-tag--${course.categoryId}`}>
                       {course.category}
                     </span>
-                    <h3 className="explore-course-card__title" title={course.title}>
+                    <h3
+                      className="explore-course-card__title"
+                      title={course.title}
+                      style={{ cursor: "pointer" }}
+                      onClick={() => navigate("/my-courses/human-anatomy-i")}
+                    >
                       {course.title}
                     </h3>
                     <div className="explore-course-card__bottom-row">
@@ -297,6 +309,7 @@ export function ExploreCourses({
                           type="button"
                           className="explore-action-btn explore-action-btn--arrow"
                           aria-label={`Open ${course.title}`}
+                          onClick={() => navigate("/my-courses/human-anatomy-i")}
                         >
                           <ArrowRight className="size-3.5" aria-hidden="true" />
                         </button>

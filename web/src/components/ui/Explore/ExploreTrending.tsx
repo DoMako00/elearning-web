@@ -1,4 +1,5 @@
 import { Box, Sparkles, TrendingUp } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { TRENDING_ITEMS, type TrendingItem } from "./exploreData";
 
 interface ExploreTrendingProps {
@@ -6,6 +7,8 @@ interface ExploreTrendingProps {
 }
 
 export function ExploreTrending({ onSelectTopic }: ExploreTrendingProps) {
+  const navigate = useNavigate();
+
   const renderIcon = (item: TrendingItem) => {
     switch (item.iconType) {
       case "js":
@@ -29,7 +32,10 @@ export function ExploreTrending({ onSelectTopic }: ExploreTrendingProps) {
             <button
               type="button"
               className="explore-trending__button"
-              onClick={() => onSelectTopic?.(item)}
+              onClick={() => {
+                if (onSelectTopic) onSelectTopic(item);
+                else navigate("/my-courses/human-anatomy-i");
+              }}
               aria-label={`${item.title}, ${item.level}, ${item.duration}, rated ${item.rating}`}
             >
               <span className="explore-trending__rank">{item.rank}</span>

@@ -1,8 +1,10 @@
 import { ArrowRight, Bookmark, Star } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { HERO_PATH } from "./exploreData";
 
 export function ExploreHero() {
+  const navigate = useNavigate();
   const [isSaved, setIsSaved] = useState(false);
 
   return (
@@ -110,7 +112,11 @@ export function ExploreHero() {
         </div>
 
         <div className="explore-hero__actions">
-          <button type="button" className="explore-hero__cta">
+          <button
+            type="button"
+            className="explore-hero__cta"
+            onClick={() => navigate("/my-courses/human-anatomy-i")}
+          >
             Explore path <ArrowRight className="size-4" aria-hidden="true" />
           </button>
           <button
