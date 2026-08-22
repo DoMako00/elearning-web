@@ -101,6 +101,10 @@ Use status plus `archived_at`, `ended_at`, `revoked_at`, `cancelled_at`, or rete
 
 This v1 schema is a historical logical design and retains platform-named learning concepts for compatibility. Future M2 planning must use the Prompt 43 BUC boundary: shared academic reference entities are distinct from brand-owned courses and their brand-scoped content, instructor associations, commerce, enrollment, and access. Historical tables and terminology are not silently rewritten by this note. See [BUC Curriculum, Brand Course, and Instructor Boundary Review](buc-curriculum-brand-instructor-boundary.md).
 
+## Prompt 44 M2 draft note
+
+The non-applied M2 draft follows the Prompt 43 canonical boundary and adds only the seven shared academic/instructor/brand-course concepts documented in [M2 Curriculum, Brand Course, and Instructor Schema Draft](m2-curriculum-brand-course-instructor-schema.md). This historical v1 document is not rewritten and no M2 SQL is applied.
+
 ## Migration order
 
 1. Extensions, `app` schema, enums, platforms, policy sets.

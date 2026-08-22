@@ -426,3 +426,7 @@ The [PostgreSQL Admin Overview Read Model](postgres-admin-overview-read-model.md
 ## Prompt 43 status
 
 The [BUC Curriculum, Brand Course, and Instructor Boundary Review](buc-curriculum-brand-instructor-boundary.md) defines the documentation-only split between shared BUC academic reference data, brand-owned courses/content, and global instructors with explicit brand/course assignments. M1 identity tables, SQL, runtime providers, and current mock behavior are unchanged. The recommended next milestone is Prompt 44 — M2 Curriculum, Brand Course, and Instructor Migration Draft Plan, after owner decisions are confirmed.
+
+## Prompt 44 status
+
+Prompt 44 created the non-applied [M2 Curriculum, Brand Course, and Instructor Schema Draft](m2-curriculum-brand-course-instructor-schema.md) and draft SQL outside active migration paths. No M1 change, student-profile backfill, runtime/provider integration, seed, database connection, or migration application occurred. SQL review/fix and controlled staging application remain separate approvals.

@@ -145,3 +145,7 @@ Handle cross-platform identifiers, a disabled content owner, withdrawn content w
 ## Prompt 43 BUC curriculum boundary note
 
 The historical hierarchy in this document uses compatibility `platform*` terminology and describes brand-scoped teaching content. Prompt 43 adds a future canonical split: shared BUC academic reference data (`academic_levels` → `academic_semesters` → `academic_modules`) connects to, but does not own, brand-scoped `brand_courses`. Chapters, lessons, resources, releases, media, and assessments remain owned by the brand course. See [BUC Curriculum, Brand Course, and Instructor Boundary Review](buc-curriculum-brand-instructor-boundary.md). No schema or runtime change is made here.
+
+## Prompt 44 M2 draft note
+
+The M2 schema draft preserves this separation: future chapters, lessons, resources, releases, media, and assessments attach beneath a brand-owned course, never directly to a shared academic module. The draft is unapplied and does not alter this historical hierarchy or its compatibility terminology.

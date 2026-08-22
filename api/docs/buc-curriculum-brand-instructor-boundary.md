@@ -200,3 +200,7 @@ Existing `StudentProfile` academic fields remain compatible as context fields. E
 ## Recommended next milestone
 
 Prompt 44 — **M2 Curriculum, Brand Course, and Instructor Migration Draft Plan**, after the owner questions above are resolved. Prompt 44 may plan SQL concepts and migration order, but application, seed, RLS/Data API exposure, runtime integration, and production changes must remain separately approved.
+
+## Prompt 44 status
+
+Prompt 44 adds a reviewed-but-unapplied M2 draft for `academic_levels`, `academic_semesters`, `academic_modules`, `instructors`, `brand_instructors`, `brand_courses`, and `course_instructors`. The draft keeps BUC academic reference data separate from brand-owned courses, allows multiple offerings per brand/module, uses the minimal `curriculum | standalone` course scope, and preserves global instructors with same-brand assignment constraints. Student-profile academic foreign keys, prerequisites, offering subtypes, seeds, RLS, runtime integration, and migration application remain deferred.
