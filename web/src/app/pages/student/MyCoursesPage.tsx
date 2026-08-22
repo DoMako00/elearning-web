@@ -15,6 +15,7 @@ import {
   YAxis,
 } from "recharts";
 import { CourseLibrary } from "../../../components/ui/CourseLibrary";
+import { useNavigate } from "react-router-dom";
 
 const PACE_CHART_DATA = [10, 18, 14, 22, 19, 28, 24, 30, 27, 30, 32, 40, 70, 78, 60, 32, 55, 56, 60, 50, 63, 65, 67, 72, 70, 80];
 
@@ -37,6 +38,7 @@ function PaceCustomTooltip({ active, payload }: PaceCustomTooltipProps) {
 }
 
 export function MyCoursesPage() {
+  const navigate = useNavigate();
   const pacePoints = buildPacePoints(PACE_CHART_DATA);
 
   return (
@@ -61,7 +63,7 @@ export function MyCoursesPage() {
         </header>
 
         <div className="my-courses-overview">
-          <article className="course-focus-card" aria-label="Continue Advanced UI UX Design">
+          <article className="course-focus-card" aria-label="Start Advanced UI UX Design">
             <div className="course-focus-card__art" aria-hidden="true">
               <svg viewBox="0 0 520 320" preserveAspectRatio="xMidYMid meet">
                 <g className="course-focus-card__grid"><path d="M26 273H188M31 290H204M48 306H221M42 257H169" /><path d="M77 227V45H267V227H77Z" /><path d="M77 77H267M110 45V77M238 45V77" /><circle cx="103" cy="61" r="4" /><circle cx="120" cy="61" r="4" /><circle cx="137" cy="61" r="4" /></g>
@@ -79,7 +81,7 @@ export function MyCoursesPage() {
               <div className="course-focus-card__instructor"><span>AM</span><div><b>Alex Morgan</b><small>Lead Product Designer</small></div></div>
             </div>
             <button type="button" className="course-focus-card__play" aria-label="Play Advanced UI UX Design"><CirclePlay aria-hidden="true" /></button>
-            <footer className="course-focus-card__footer"><div><small>Next lesson</small><b>Design Systems &amp; Components</b></div><button type="button">Resume lesson <ArrowRight aria-hidden="true" /></button></footer>
+            <footer className="course-focus-card__footer"><div><small>Course overview</small><b>Human Anatomy I</b></div><button type="button" onClick={() => navigate("/my-courses/human-anatomy-i")}>Start lesson <ArrowRight aria-hidden="true" /></button></footer>
           </article>
           <div className="my-courses-overview__summaries">
             <article className="course-summary course-summary--week">

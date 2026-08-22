@@ -1,0 +1,431 @@
+import {
+  ArrowRight,
+  BookOpen,
+  Bookmark,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  CirclePlay,
+  Clock3,
+  Download,
+  FileText,
+  Gauge,
+  LayoutGrid,
+  MessageSquareText,
+  Paperclip,
+  Play,
+  Presentation,
+  ShieldCheck,
+  Sparkles,
+  StickyNote,
+  UsersRound,
+} from "lucide-react";
+import { useState, type KeyboardEvent } from "react";
+import { Link } from "react-router-dom";
+import "./CourseOverviewPage.css";
+
+const FIRST_LESSON_ID = "human-anatomy-i-lesson-1";
+
+const TABS = [
+  { id: "overview", label: "Overview", icon: LayoutGrid },
+  { id: "notes", label: "Notes", icon: StickyNote },
+  { id: "resources", label: "Resources", icon: Paperclip },
+  { id: "discussion", label: "Discussion", icon: MessageSquareText },
+] as const;
+
+type CourseTabId = (typeof TABS)[number]["id"];
+
+interface Lesson {
+  id: string;
+  number: number;
+  title: string;
+  duration: string;
+  ready?: boolean;
+}
+
+interface CourseModule {
+  id: string;
+  number: number;
+  title: string;
+  lessonCount: number;
+  lessons?: Lesson[];
+}
+
+interface CourseMaterial {
+  id: string;
+  title: string;
+  extension: "pdf" | "pptx";
+  size: string;
+}
+
+export interface CourseOverviewPageProps {
+  onStartLesson?: (lessonId: string) => void;
+}
+
+const COURSE_MODULES: CourseModule[] = [
+  {
+    id: "module-1",
+    number: 1,
+    title: "Introduction to Anatomy",
+    lessonCount: 3,
+    lessons: [
+      {
+        id: FIRST_LESSON_ID,
+        number: 1,
+        title: "Introduction to Anatomy & Anatomical Terms",
+        duration: "24:35",
+        ready: true,
+      },
+      {
+        id: "human-anatomy-i-lesson-2",
+        number: 2,
+        title: "Basic Anatomical Positions & Directional Terms",
+        duration: "18:50",
+      },
+      {
+        id: "human-anatomy-i-lesson-3",
+        number: 3,
+        title: "Body Cavities & Regions",
+        duration: "20:15",
+      },
+    ],
+  },
+  { id: "module-2", number: 2, title: "Upper Limb", lessonCount: 5 },
+  { id: "module-3", number: 3, title: "Thorax", lessonCount: 4 },
+  { id: "module-4", number: 4, title: "Abdomen & Pelvis", lessonCount: 5 },
+  { id: "module-5", number: 5, title: "Lower Limb", lessonCount: 4 },
+  {
+    id: "module-6",
+    number: 6,
+    title: "Neuroanatomy Foundations",
+    lessonCount: 3,
+  },
+];
+
+const COURSE_MATERIALS: CourseMaterial[] = [
+  {
+    id: "anatomy-syllabus",
+    title: "Human Anatomy I Syllabus.pdf",
+    extension: "pdf",
+    size: "1.2 MB",
+  },
+  {
+    id: "anatomy-slides",
+    title: "Intro to Anatomy Slides.pptx",
+    extension: "pptx",
+    size: "8.6 MB",
+  },
+  {
+    id: "anatomical-terms-checklist",
+    title: "Anatomical Terms Checklist.pdf",
+    extension: "pdf",
+    size: "420 KB",
+  },
+  {
+    id: "osteology-atlas",
+    title: "Basic Osteology Atlas.pdf",
+    extension: "pdf",
+    size: "12.4 MB",
+  },
+];
+
+const LEARNING_OUTCOMES = [
+  "Understand anatomy fundamentals and terminology",
+  "Use anatomical positions and directional terms",
+  "Identify major bones, muscles, and organs",
+  "Describe the organization of body systems",
+  "Apply anatomy to real medical scenarios",
+] as const;
+
+function InstructorPortrait() {
+  return (
+    <span className="course-overview-hero__portrait" aria-hidden="true">
+      <svg viewBox="0 0 48 48" role="presentation">
+        <circle cx="24" cy="16" r="8" />
+        <path d="M11 44c1-11 5-17 13-17s12 6 13 17" />
+        <path d="m17 29 7 8 7-8M24 37v7" />
+        <path d="M11 44h26" />
+      </svg>
+    </span>
+  );
+}
+
+function AnatomyHeroArt() {
+  return (
+    <div className="course-overview-hero__art" aria-hidden="true">
+      <svg viewBox="0 0 620 300" preserveAspectRatio="xMidYMid meet">
+        <g className="anatomy-art__guides">
+          <circle cx="286" cy="151" r="127" />
+          <path d="M286 11v278M151 151h270M195 41l182 220M377 41 195 261" />
+          <path d="M33 55h65M33 68h43M39 232h76M39 245h50M468 44h72M494 57h46" />
+          <path d="M88 25v14M81 32h14M437 20v16M429 28h16M558 93v14M551 100h14M105 190v15M98 197h14" />
+        </g>
+        <g className="anatomy-art__body">
+          <circle cx="286" cy="48" r="18" />
+          <path d="M276 66c-4 13-14 21-31 27l-61 27M296 66c4 13 14 21 31 27l61 27" />
+          <path d="M184 120 111 93M388 120l73-27M112 93 67 133M460 93l-67 133" />
+          <path d="M264 78c-14 23-17 61-12 91l-17 76M308 78c14 23 17 61 12 91l17 76" />
+          <path d="M252 169c11 8 23 12 34 12s23-4 34-12M235 245l-17 40M337 245l17 40" />
+          <path d="M271 82c8 5 22 5 30 0M286 68v113M261 111c14-11 36-11 50 0M257 133c17-12 41-12 58 0M255 153c19-10 43-10 62 0" />
+          <path d="M265 101c-8 6-12 18-12 31M307 101c8 6 12 18 12 31M269 181l-5 64M303 181l5 64" />
+          <circle cx="286" cy="104" r="4" /><circle cx="286" cy="128" r="4" /><circle cx="286" cy="153" r="4" />
+          <circle cx="184" cy="120" r="4" /><circle cx="388" cy="120" r="4" /><circle cx="235" cy="245" r="4" /><circle cx="337" cy="245" r="4" />
+        </g>
+        <g className="anatomy-art__ribcage">
+          <rect x="462" y="92" width="126" height="150" rx="9" />
+          <path d="M525 108v117M525 120c-27-15-47-5-48 14-1 18 19 27 48 35M525 120c27-15 47-5 48 14 1 18-19 27-48 35" />
+          <path d="M525 136c-22-11-38-3-39 11-1 14 16 22 39 31M525 136c22-11 38-3 39 11 1 14-16 22-39 31" />
+          <path d="M525 153c-17-8-29-2-30 9-1 11 12 17 30 24M525 153c17-8 29-2 30 9 1 11-12 17-30 24" />
+          <path d="m512 221 13 9 13-9M482 107h86" />
+        </g>
+        <g className="anatomy-art__labels">
+          <circle cx="128" cy="155" r="10" /><path d="M128 140v30M113 155h30M138 155h59" />
+          <path d="M91 276h73M91 264h48M408 270h74M428 258h54" />
+          <circle cx="439" cy="73" r="5" /><path d="M444 73h52" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+function MaterialsGrid() {
+  return (
+    <div className="course-overview-materials__grid">
+      {COURSE_MATERIALS.map((material) => {
+        const MaterialIcon = material.extension === "pptx" ? Presentation : FileText;
+
+        return (
+          <button
+            type="button"
+            className={`course-overview-material course-overview-material--${material.extension}`}
+            key={material.id}
+            aria-label={`Open ${material.title}, ${material.size}`}
+          >
+            <span className="course-overview-material__icon">
+              <MaterialIcon aria-hidden="true" />
+              <small>{material.extension}</small>
+            </span>
+            <span className="course-overview-material__copy">
+              <strong>{material.title}</strong>
+              <small>{material.size}</small>
+            </span>
+            <Download className="course-overview-material__download" aria-hidden="true" />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [activeTab, setActiveTab] = useState<CourseTabId>("overview");
+  const [expandedModuleId, setExpandedModuleId] = useState<string | null>("module-1");
+
+  const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, tabIndex: number) => {
+    let nextIndex = tabIndex;
+
+    if (event.key === "ArrowRight") nextIndex = (tabIndex + 1) % TABS.length;
+    else if (event.key === "ArrowLeft") nextIndex = (tabIndex - 1 + TABS.length) % TABS.length;
+    else if (event.key === "Home") nextIndex = 0;
+    else if (event.key === "End") nextIndex = TABS.length - 1;
+    else return;
+
+    event.preventDefault();
+    const nextTab = TABS[nextIndex];
+    setActiveTab(nextTab.id);
+    event.currentTarget.parentElement
+      ?.querySelector<HTMLButtonElement>(`#course-overview-tab-${nextTab.id}`)
+      ?.focus();
+  };
+
+  const toggleBookmark = () => setIsBookmarked((current) => !current);
+
+  return (
+    <section className="course-overview-page" aria-labelledby="course-overview-title">
+      <header className="course-overview-heading">
+        <nav className="course-overview-breadcrumb" aria-label="Breadcrumb">
+          <Link to="/my-courses">My Courses</Link>
+          <ChevronRight aria-hidden="true" />
+          <span aria-current="page">Human Anatomy I</span>
+        </nav>
+        <div className="course-overview-heading__row">
+          <div>
+            <h1 id="course-overview-title">Human Anatomy I</h1>
+            <p>BUC School of Medicine <i /> Semester 1 <i /> Basic Medical Sciences</p>
+          </div>
+          <button
+            type="button"
+            className="course-overview-heading__bookmark"
+            aria-label={isBookmarked ? "Remove Human Anatomy I from saved courses" : "Save Human Anatomy I"}
+            aria-pressed={isBookmarked}
+            onClick={toggleBookmark}
+          >
+            <Bookmark aria-hidden="true" fill={isBookmarked ? "currentColor" : "none"} />
+          </button>
+        </div>
+      </header>
+
+      <div className="course-overview-layout">
+        <div className="course-overview-primary">
+          <article className="course-overview-hero" aria-labelledby="course-lesson-title">
+            <AnatomyHeroArt />
+            <div className="course-overview-hero__content">
+              <span className="course-overview-hero__status">Ready to start</span>
+              <h2 id="course-lesson-title">Introduction to Anatomy &amp; Anatomical Terms</h2>
+              <p className="course-overview-hero__lesson">Lesson 1 of 14</p>
+              <div className="course-overview-hero__instructor">
+                <InstructorPortrait />
+                <span><strong>Dr. Ahmed Hassan</strong><small>Professor of Anatomy</small></span>
+              </div>
+              <div className="course-overview-hero__actions">
+                <button type="button" className="course-overview-hero__start" onClick={() => onStartLesson?.(FIRST_LESSON_ID)}>
+                  <CirclePlay aria-hidden="true" /> Start lesson
+                </button>
+                <button
+                  type="button"
+                  className="course-overview-hero__bookmark"
+                  aria-label={isBookmarked ? "Remove lesson bookmark" : "Bookmark first lesson"}
+                  aria-pressed={isBookmarked}
+                  onClick={toggleBookmark}
+                >
+                  <Bookmark aria-hidden="true" fill={isBookmarked ? "currentColor" : "none"} />
+                </button>
+              </div>
+            </div>
+            <dl className="course-overview-hero__meta">
+              <div><Clock3 aria-hidden="true" /><span><dt>Duration</dt><dd>24:35 min</dd></span></div>
+              <div><Gauge aria-hidden="true" /><span><dt>Level</dt><dd>Beginner</dd></span></div>
+              <div><Sparkles aria-hidden="true" /><span><dt>XP Reward</dt><dd>50 XP</dd></span></div>
+            </dl>
+          </article>
+
+          <div className="course-overview-tabs" role="tablist" aria-label="Course sections">
+            {TABS.map(({ id, label, icon: Icon }, index) => (
+              <button
+                type="button"
+                role="tab"
+                id={`course-overview-tab-${id}`}
+                aria-selected={activeTab === id}
+                aria-controls={`course-overview-panel-${id}`}
+                tabIndex={activeTab === id ? 0 : -1}
+                className={activeTab === id ? "is-active" : ""}
+                key={id}
+                onClick={() => setActiveTab(id)}
+                onKeyDown={(event) => handleTabKeyDown(event, index)}
+              >
+                <Icon aria-hidden="true" /> {label}
+              </button>
+            ))}
+          </div>
+
+          <div
+            className="course-overview-panel course-overview-panel--overview"
+            role="tabpanel"
+            id="course-overview-panel-overview"
+            aria-labelledby="course-overview-tab-overview"
+            hidden={activeTab !== "overview"}
+          >
+            <div className="course-overview-info-row">
+              <article className="course-overview-card course-overview-about">
+                <h2>About this course</h2>
+                <p>Build a clear foundation in human anatomy through anatomical terminology, body organization, and the structures used in clinical study.</p>
+                <dl>
+                  <div><Gauge aria-hidden="true" /><span><dt>Level</dt><dd>Beginner</dd></span></div>
+                  <div><UsersRound aria-hidden="true" /><span><dt>Students enrolled</dt><dd>12.6K</dd></span></div>
+                  <div><BookOpen aria-hidden="true" /><span><dt>Modules</dt><dd>6</dd></span></div>
+                  <div><ShieldCheck aria-hidden="true" /><span><dt>Certificate</dt><dd>Yes</dd></span></div>
+                </dl>
+              </article>
+              <article className="course-overview-card course-overview-learn">
+                <h2>What you’ll learn</h2>
+                <ul>
+                  {LEARNING_OUTCOMES.map((outcome) => (
+                    <li key={outcome}><CheckCircle2 aria-hidden="true" /><span>{outcome}</span></li>
+                  ))}
+                </ul>
+              </article>
+            </div>
+            <article className="course-overview-card course-overview-materials">
+              <header>
+                <h2>Recent materials</h2>
+                <button type="button">View all resources <ArrowRight aria-hidden="true" /></button>
+              </header>
+              <MaterialsGrid />
+            </article>
+          </div>
+
+          <div className="course-overview-panel course-overview-panel--message" role="tabpanel" id="course-overview-panel-notes" aria-labelledby="course-overview-tab-notes" hidden={activeTab !== "notes"}>
+            <StickyNote aria-hidden="true" /><div><h2>No notes yet</h2><p>Start the first lesson to create and organize your anatomy notes.</p></div>
+          </div>
+          <div className="course-overview-panel course-overview-panel--resources" role="tabpanel" id="course-overview-panel-resources" aria-labelledby="course-overview-tab-resources" hidden={activeTab !== "resources"}>
+            <header><div><h2>Course resources</h2><p>Reference files provided for Human Anatomy I.</p></div></header>
+            <MaterialsGrid />
+          </div>
+          <div className="course-overview-panel course-overview-panel--message" role="tabpanel" id="course-overview-panel-discussion" aria-labelledby="course-overview-tab-discussion" hidden={activeTab !== "discussion"}>
+            <MessageSquareText aria-hidden="true" /><div><h2>Discussion opens with Lesson 1</h2><p>Start the course to join the anatomy discussion with your instructor and classmates.</p></div>
+          </div>
+        </div>
+
+        <aside className="course-overview-rail" aria-label="Course support information">
+          <article className="course-overview-card course-overview-curriculum">
+            <header>
+              <h2>Course curriculum</h2>
+              <span>0% complete</span>
+            </header>
+            <div className="course-overview-curriculum__modules">
+              {COURSE_MODULES.map((module) => {
+                const isExpanded = expandedModuleId === module.id;
+                return (
+                  <section className={`course-overview-module${isExpanded ? " is-expanded" : ""}`} key={module.id}>
+                    <button
+                      type="button"
+                      className="course-overview-module__trigger"
+                      aria-expanded={isExpanded}
+                      aria-controls={`course-overview-${module.id}-lessons`}
+                      onClick={() => setExpandedModuleId(isExpanded ? null : module.id)}
+                    >
+                      <ChevronRight className="course-overview-module__leading-chevron" aria-hidden="true" />
+                      <span><strong>Module {module.number}: {module.title}</strong></span>
+                      <small>{module.lessonCount} lessons</small>
+                      <ChevronDown className="course-overview-module__trailing-chevron" aria-hidden="true" />
+                    </button>
+                    <div className="course-overview-module__lessons" id={`course-overview-${module.id}-lessons`} hidden={!isExpanded}>
+                      {module.lessons?.map((lesson) => (
+                        <button
+                          type="button"
+                          className={`course-overview-lesson${lesson.ready ? " is-ready" : ""}`}
+                          key={lesson.id}
+                          aria-label={`${lesson.title}, ${lesson.duration}${lesson.ready ? ", ready to begin" : ""}`}
+                          onClick={lesson.ready ? () => onStartLesson?.(lesson.id) : undefined}
+                        >
+                          <span className="course-overview-lesson__marker">{lesson.ready ? <Play aria-hidden="true" /> : <i />}</span>
+                          <span className="course-overview-lesson__number">{lesson.number}</span>
+                          <strong>{lesson.title}</strong>
+                          {lesson.ready ? <em>Ready</em> : null}
+                          <time>{lesson.duration}</time>
+                        </button>
+                      )) ?? (
+                        <p className="course-overview-module__summary"><BookOpen aria-hidden="true" /> {module.lessonCount} lessons in this module</p>
+                      )}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+          </article>
+
+          <article className="course-overview-card course-overview-progress">
+            <header><h2>Course progress</h2><strong>0%</strong></header>
+            <div className="course-overview-progress__track" role="progressbar" aria-label="Course progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={0}><span /></div>
+            <div className="course-overview-progress__footer">
+              <p>0 of 14 lessons completed</p>
+              <button type="button">View my progress <ArrowRight aria-hidden="true" /></button>
+            </div>
+          </article>
+
+        </aside>
+      </div>
+    </section>
+  );
+}
