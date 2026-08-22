@@ -20,6 +20,7 @@ import { fail, ok, type Result } from "../../shared";
 import { executeAdminCommandBoundary, type AdminCommandBoundaryDependencies } from "./admin-command-boundary";
 import { createAdminModule } from "./admin.module";
 import { InMemoryAdminReadModels, type AdminOverviewSnapshot } from "./in-memory-admin-read-models";
+import { InMemoryAdminOverviewReadModel } from "./read-models";
 
 export type SelfTestCaseResult = { name: string; passed: boolean; details?: Record<string, unknown> };
 export type SelfTestRunResult = { passed: boolean; cases: SelfTestCaseResult[] };
@@ -73,7 +74,7 @@ function dependencies(writer: InMemoryAdminEvidenceWriter, contexts: readonly Ad
 
 export async function runAdminBrandScopeSelfTest(): Promise<SelfTestRunResult> {
   const cases: SelfTestCaseResult[] = [];
-  const overview = createAdminModule({ permissionResolver: new InMemoryAdminPermissionResolver(), policyValidator: new InMemoryAdminPolicyValidator(), evidenceWriter: new InMemoryAdminEvidenceWriter(), readModels: createBrandScopedReadModels() });
+  const overview = createAdminModule({ permissionResolver: new InMemoryAdminPermissionResolver(), policyValidator: new InMemoryAdminPolicyValidator(), evidenceWriter: new InMemoryAdminEvidenceWriter(), overviewReadModel: new InMemoryAdminOverviewReadModel(createBrandScopedReadModels()) });
   cases.push(await recordCase("overview is brand scoped", async () => {
     const medway = assertOkResult(await overview.queries.getAdminOverview(medwayContext), "Medway overview should succeed");
     const elite = assertOkResult(await overview.queries.getAdminOverview(eliteContext), "Elite overview should succeed");

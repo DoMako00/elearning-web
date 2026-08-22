@@ -41,6 +41,10 @@ A later explicitly approved provider-integration phase may add a real backend ad
 ## Prompt 38 read-adapter note
 
 Prompt 38 adds unused M1 read adapters behind a dependency-free parameterized `SELECT` transport contract. No concrete transport, client, connection, query execution, or runtime composition was added. The private `app` schema remains unexposed and `PERSISTENCE_PROVIDER=mock` remains active.
+
+## Prompt 41 composition note
+
+The backend application now owns an opt-in persistence composition. Mock remains the default and creates no PostgreSQL pool; explicit `PERSISTENCE_PROVIDER=supabase` constructs the read-only transport and M1 repository bundle without querying. No Admin Overview, frontend, Dokploy, Data API, RLS, policy, or grant behavior changed.
 ## Prompt 39 status
 
 The direct `pg` read transport is now available as an unused backend capability. It requires explicit future composition, enforces private-schema parameterized SELECT reads, and does not connect or change the mock runtime.

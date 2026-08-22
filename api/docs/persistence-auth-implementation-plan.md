@@ -414,3 +414,19 @@ Added an explicit, dependency-approved `pg` read transport boundary with bounded
 Prompt 40 adds a manually invoked, staging-only read verification script. It does not change provider composition; runtime remains mock-backed and any live database activity is limited to the approved SELECT checks after explicit process-level enablement.
 
 Prompt 40 completed successfully against staging ref `mgrsgibxuwgbxtdqprkw`: the private `app` schema and all nine M1 tables were confirmed, all row counts were zero, and the pool closed cleanly. No runtime switch or provider integration occurred.
+
+## Prompt 41 status
+
+The [PostgreSQL Runtime Composition](postgres-runtime-composition.md) adds an opt-in `PERSISTENCE_PROVIDER=supabase` composition owned by `createApplication()`. Mock remains the default, construction performs no query, the Admin Overview remains in-memory, and Dokploy remains mock-backed. Prompt 42 owns any controlled read-model integration.
+
+## Prompt 42 status
+
+The [PostgreSQL Admin Overview Read Model](postgres-admin-overview-read-model.md) adds a separate `ADMIN_READ_MODEL_SOURCE=mock|postgres` selector. Default mock behavior is unchanged; PostgreSQL source requires Supabase persistence and resolves only active M1 brands. Existing cards without M1 authority are zero/empty, and staging endpoint verification remains blocked by the intentionally empty M1 tables.
+
+## Prompt 43 status
+
+The [BUC Curriculum, Brand Course, and Instructor Boundary Review](buc-curriculum-brand-instructor-boundary.md) defines the documentation-only split between shared BUC academic reference data, brand-owned courses/content, and global instructors with explicit brand/course assignments. M1 identity tables, SQL, runtime providers, and current mock behavior are unchanged. The recommended next milestone is Prompt 44 — M2 Curriculum, Brand Course, and Instructor Migration Draft Plan, after owner decisions are confirmed.
+
+## Prompt 44 status
+
+Prompt 44 created the non-applied [M2 Curriculum, Brand Course, and Instructor Schema Draft](m2-curriculum-brand-course-instructor-schema.md) and draft SQL outside active migration paths. No M1 change, student-profile backfill, runtime/provider integration, seed, database connection, or migration application occurred. SQL review/fix and controlled staging application remain separate approvals.

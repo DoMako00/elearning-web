@@ -204,6 +204,10 @@ Adding names-only Supabase environment placeholders locally has no server impact
 
 The [M1 Staging Migration Apply Plan](../api/docs/m1-staging-migration-apply-plan.md) is documentation-only. A database migration application is not a Dokploy deployment, but it is a sensitive staging database mutation and requires explicit approval, target verification, and a rollback plan. Prompt 35 does not push; any future push to `dev` may still trigger Dokploy because the trigger remains **On Push**.
 
+## Prompt 44 M2 draft note
+
+Prompt 44 creates only a local, non-applied M2 SQL draft and schema documentation. It is not a deployment, does not mutate Supabase, and does not change Dokploy or runtime values. SQL review, staging application, and production application require separate explicit approvals; Prompt 44 does not push to `dev`.
+
 ## Prompt 36 staging-database note
 
 Prompt 36 applied the reviewed M1 schema once to the approved Supabase staging project; this database mutation was separate from Dokploy deployment. No push or deployment occurred. A future push to `dev` may redeploy the mock application because Dokploy remains **On Push**, but it does not automatically reapply the recorded Supabase migration.
@@ -228,3 +232,11 @@ The API image now carries the approved `pg` dependency for a future backend read
 The staging read verifier runs outside Dokploy with process-only credentials. It does not add database secrets to Dokploy, change Compose, switch runtime providers, push, or deploy.
 
 Prompt 40 completed its single authorized read-only staging verification outside Dokploy. It performed no deployment or runtime switch; future `dev` pushes may redeploy the mock container but do not reapply database SQL.
+
+## Prompt 41 status
+
+Prompt 41 adds only backend composition code. `PERSISTENCE_PROVIDER=mock` remains the Dokploy default; no `SUPABASE_DB_URL` was added to Dokploy or Compose. A future push may redeploy staging, but no database query occurs unless an explicit provider opt-in is configured.
+
+## Prompt 42 status
+
+Prompt 42 adds an optional backend Admin Overview PostgreSQL source behind `ADMIN_READ_MODEL_SOURCE=postgres`, which also requires Supabase persistence. Dokploy continues to use `PERSISTENCE_PROVIDER=mock` and `ADMIN_READ_MODEL_SOURCE=mock`; no database secret, deployment configuration, push, or deployment action is included.

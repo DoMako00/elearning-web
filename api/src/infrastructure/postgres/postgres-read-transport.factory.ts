@@ -8,9 +8,11 @@ export type PostgresTransportBoundary =
   | { readonly kind: "mock-disabled"; readonly transport: undefined }
   | { readonly kind: "supabase-configured-not-wired"; readonly transport: PostgresReadTransport };
 
+export type PostgresPoolFactory = (configuration: ConstructorParameters<typeof Pool>[0]) => PgPoolLike;
+
 export function createPostgresReadTransportFromEnvironment(
   environment: SupabaseBoundaryEnvironment = process.env,
-  poolFactory: (configuration: ConstructorParameters<typeof Pool>[0]) => PgPoolLike = (configuration) => new Pool(configuration),
+  poolFactory: PostgresPoolFactory = (configuration) => new Pool(configuration),
 ): PostgresTransportBoundary {
   const boundary = resolveSupabaseBoundaryConfiguration(environment);
   if (boundary.persistenceProvider === "mock") return { kind: "mock-disabled", transport: undefined };
