@@ -513,3 +513,7 @@ Command persistence remains a separate concern: it must continue to validate per
 
 The first PostgreSQL overview source preserves the existing response contract and resolves only the active M1 educational brand. Payment, subscription, access, content, assessment, audit, and security cards remain zero/empty until their authoritative read models exist. The default runtime source remains mock; see [PostgreSQL Admin Overview Read Model](postgres-admin-overview-read-model.md).
 
+## Prompt 43 curriculum and instructor boundary note
+
+Future curriculum administration must distinguish shared BUC academic reference data from brand-owned courses and content. Instructors remain global people with explicit brand associations and course assignments; an instructor may teach for both Medway and Elite, while every course/content operation remains brand-scoped. This architecture note does not alter the current Admin Overview, command boundary, permissions, or mock runtime. See [BUC Curriculum, Brand Course, and Instructor Boundary Review](buc-curriculum-brand-instructor-boundary.md).
+
