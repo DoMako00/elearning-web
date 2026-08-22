@@ -430,3 +430,7 @@ The [BUC Curriculum, Brand Course, and Instructor Boundary Review](buc-curriculu
 ## Prompt 44 status
 
 Prompt 44 created the non-applied [M2 Curriculum, Brand Course, and Instructor Schema Draft](m2-curriculum-brand-course-instructor-schema.md) and draft SQL outside active migration paths. No M1 change, student-profile backfill, runtime/provider integration, seed, database connection, or migration application occurred. SQL review/fix and controlled staging application remain separate approvals.
+
+## Prompt 45 status
+
+Prompt 45 completed the static [M2 SQL Draft Review and Staging Apply Plan](m2-sql-draft-review-apply-plan.md), including named-constraint, text-check, composite-FK index, and redundant-index hardening. M2 remains outside active migration paths and unapplied. Current API, Admin Overview, persistence flags, and Dokploy stay mock-backed; Prompt 46 requires explicit staging-only approval and catalog preflight before any database mutation.

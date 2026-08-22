@@ -208,6 +208,10 @@ The [M1 Staging Migration Apply Plan](../api/docs/m1-staging-migration-apply-pla
 
 Prompt 44 creates only a local, non-applied M2 SQL draft and schema documentation. It is not a deployment, does not mutate Supabase, and does not change Dokploy or runtime values. SQL review, staging application, and production application require separate explicit approvals; Prompt 44 does not push to `dev`.
 
+## Prompt 45 M2 review note
+
+Prompt 45 reviews and hardens only the non-active M2 draft and adds the staging apply plan. It performs no SQL execution, database mutation, Supabase connection, runtime/configuration change, push, or deployment. A future Prompt 46 database apply is a separately approved sensitive-staging mutation, not a Dokploy deployment; any later push to `dev` may still trigger Dokploy but must not automatically reapply M2.
+
 ## Prompt 36 staging-database note
 
 Prompt 36 applied the reviewed M1 schema once to the approved Supabase staging project; this database mutation was separate from Dokploy deployment. No push or deployment occurred. A future push to `dev` may redeploy the mock application because Dokploy remains **On Push**, but it does not automatically reapply the recorded Supabase migration.

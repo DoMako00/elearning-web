@@ -2,11 +2,11 @@
 
 ## Status and safety
 
-This directory contains Prompt 44 non-applied SQL drafts for the shared BUC academic reference hierarchy, global instructor identity, brand-instructor associations, brand-owned courses, and course-instructor assignments.
+This directory contains the Prompt 44 non-applied SQL draft, statically reviewed and hardened by Prompt 45, for the shared BUC academic reference hierarchy, global instructor identity, brand-instructor associations, brand-owned courses, and course-instructor assignments.
 
 The files are deliberately outside `supabase/migrations` and `api/db/migrations`. They are not connected to a migration runner and must not be applied to local, staging, or production databases without separate SQL review and migration-application approval.
 
-Prompt 44 does not connect to Supabase, use MCP, execute SQL, create seed rows, alter the already-applied M1 schema, expose the private `app` schema, enable RLS, create policies, add grants, or change runtime behavior.
+Prompt 44 and Prompt 45 do not connect to Supabase, use MCP, execute SQL, create seed rows, alter the already-applied M1 schema, expose the private `app` schema, enable RLS, create policies, add grants, or change runtime behavior.
 
 ## M2 contents
 
@@ -46,3 +46,9 @@ The `course_scope` check is intentionally minimal: `curriculum` requires an acad
 ## Future application phases
 
 SQL authoring, SQL review/fix, staging application, staging verification, production application, RLS/Data API exposure, seed strategy, and runtime/provider integration remain separate explicit phases. Prompt 44 performs none of them.
+
+## Prompt 45 review outcome
+
+Prompt 45 found the seven-table design ready for a separately approved staging apply after mandatory catalog preflight. It explicitly names all seven primary-key constraints, rejects empty required academic labels/titles, removes redundant indexes already covered by constraint-backed indexes, and adds exact child-side indexes for both `course_instructors` composite foreign keys.
+
+The reviewed draft now has seven tables, 48 named constraints, seven explicit indexes, and seven `app.set_updated_at()` triggers. It remains unapplied and contains no seed, write, grant, RLS, policy, schema/extension creation, or Data API statement. See [M2 SQL Draft Review and Staging Apply Plan](../../../docs/m2-sql-draft-review-apply-plan.md).

@@ -204,3 +204,7 @@ Prompt 44 — **M2 Curriculum, Brand Course, and Instructor Migration Draft Plan
 ## Prompt 44 status
 
 Prompt 44 adds a reviewed-but-unapplied M2 draft for `academic_levels`, `academic_semesters`, `academic_modules`, `instructors`, `brand_instructors`, `brand_courses`, and `course_instructors`. The draft keeps BUC academic reference data separate from brand-owned courses, allows multiple offerings per brand/module, uses the minimal `curriculum | standalone` course scope, and preserves global instructors with same-brand assignment constraints. Student-profile academic foreign keys, prerequisites, offering subtypes, seeds, RLS, runtime integration, and migration application remain deferred.
+
+## Prompt 45 status
+
+Prompt 45 statically reviewed and hardened the M2 draft without applying it. The review confirms that composite course/brand and brand/instructor foreign keys preserve instructor assignment scope, while the same global instructor may teach both brands through separate `brand_instructors` rows. Standalone courses and multiple courses per brand/module remain supported; no university model, seed, student-profile change, access/commercial inference, RLS, grant, exposure, or runtime behavior was added. See [M2 SQL Draft Review and Staging Apply Plan](m2-sql-draft-review-apply-plan.md).

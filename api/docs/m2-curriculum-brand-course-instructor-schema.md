@@ -86,6 +86,10 @@ M1 `student_profiles` is unchanged. Its current textual `academic_year`, `academ
 
 The private `app` schema remains backend-only. Prompt 44 adds no RLS enablement, policies, grants, exposed-schema change, or Data API configuration. No data rows are included. D36 seed strategy remains deferred. Applying this draft requires separate SQL review/fix, controlled staging-apply approval, post-apply verification, rollback planning, and production approval.
 
+## Prompt 45 review status
+
+Prompt 45 completed the static [M2 SQL Draft Review and Staging Apply Plan](m2-sql-draft-review-apply-plan.md). The draft retains the same seven-table domain design, now with explicitly named primary keys, non-empty checks for required academic labels/titles, and seven focused explicit indexes after redundant index removal. The two `course_instructors` composite foreign keys have matching child-side composite indexes. M2 remains unapplied; live M1 dependency and M2-conflict checks are mandatory Prompt 46 preflight.
+
 ## Deferred owner decisions
 
 - Exact source codes/titles and provenance, including `1105`.

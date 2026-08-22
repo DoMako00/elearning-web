@@ -1,6 +1,7 @@
 /*
  * ============================================================================
- * PROMPT 44 — M2 DRAFT ONLY / NOT AN APPROVED OR APPLIED MIGRATION
+ * PROMPT 44 DRAFT / PROMPT 45 REVIEWED AND HARDENED
+ * NOT AN APPROVED OR APPLIED MIGRATION
  * ============================================================================
  *
  * Prerequisite: the reviewed M1 private app schema, including
@@ -21,23 +22,26 @@
  */
 
 create table app.academic_levels (
-  id uuid primary key default gen_random_uuid(),
+  id uuid not null default gen_random_uuid(),
   level_number integer not null,
   display_name text not null,
   sort_order integer not null,
   status text not null default 'active',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
+  constraint academic_levels_pkey primary key (id),
   constraint academic_levels_level_number_key unique (level_number),
   constraint academic_levels_sort_order_key unique (sort_order),
   constraint academic_levels_level_number_check check (level_number > 0),
   constraint academic_levels_sort_order_check check (sort_order > 0),
+  constraint academic_levels_display_name_check
+    check (length(trim(display_name)) > 0),
   constraint academic_levels_status_check
     check (status in ('active', 'inactive'))
 );
 
 create table app.academic_semesters (
-  id uuid primary key default gen_random_uuid(),
+  id uuid not null default gen_random_uuid(),
   level_id uuid not null,
   semester_number integer not null,
   display_name text not null,
@@ -46,6 +50,7 @@ create table app.academic_semesters (
   status text not null default 'active',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
+  constraint academic_semesters_pkey primary key (id),
   constraint academic_semesters_level_id_fkey
     foreign key (level_id) references app.academic_levels (id)
     on delete no action,
@@ -55,17 +60,16 @@ create table app.academic_semesters (
   constraint academic_semesters_semester_number_check
     check (semester_number > 0),
   constraint academic_semesters_sort_order_check check (sort_order > 0),
+  constraint academic_semesters_display_name_check
+    check (length(trim(display_name)) > 0),
   constraint academic_semesters_phase_check
     check (phase in ('phase_i', 'phase_ii')),
   constraint academic_semesters_status_check
     check (status in ('active', 'inactive'))
 );
 
-create index academic_semesters_level_id_idx
-  on app.academic_semesters (level_id);
-
 create table app.academic_modules (
-  id uuid primary key default gen_random_uuid(),
+  id uuid not null default gen_random_uuid(),
   semester_id uuid not null,
   module_code text not null,
   title text not null,
@@ -73,6 +77,7 @@ create table app.academic_modules (
   status text not null default 'active',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
+  constraint academic_modules_pkey primary key (id),
   constraint academic_modules_semester_id_fkey
     foreign key (semester_id) references app.academic_semesters (id)
     on delete no action,
@@ -81,21 +86,21 @@ create table app.academic_modules (
     unique (semester_id, sort_order),
   constraint academic_modules_module_code_check
     check (length(trim(module_code)) > 0),
+  constraint academic_modules_title_check
+    check (length(trim(title)) > 0),
   constraint academic_modules_sort_order_check check (sort_order > 0),
   constraint academic_modules_status_check
     check (status in ('active', 'inactive'))
 );
 
-create index academic_modules_semester_id_idx
-  on app.academic_modules (semester_id);
-
 create table app.instructors (
-  id uuid primary key default gen_random_uuid(),
+  id uuid not null default gen_random_uuid(),
   display_name text not null,
   professional_title text,
   status text not null default 'active',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
+  constraint instructors_pkey primary key (id),
   constraint instructors_display_name_check
     check (length(trim(display_name)) > 0),
   constraint instructors_status_check
@@ -103,12 +108,13 @@ create table app.instructors (
 );
 
 create table app.brand_instructors (
-  id uuid primary key default gen_random_uuid(),
+  id uuid not null default gen_random_uuid(),
   brand_id uuid not null,
   instructor_id uuid not null,
   status text not null default 'active',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
+  constraint brand_instructors_pkey primary key (id),
   constraint brand_instructors_brand_id_fkey
     foreign key (brand_id) references app.educational_brands (id)
     on delete no action,
@@ -123,14 +129,11 @@ create table app.brand_instructors (
     check (status in ('active', 'inactive'))
 );
 
-create index brand_instructors_brand_id_idx
-  on app.brand_instructors (brand_id);
-
 create index brand_instructors_instructor_id_idx
   on app.brand_instructors (instructor_id);
 
 create table app.brand_courses (
-  id uuid primary key default gen_random_uuid(),
+  id uuid not null default gen_random_uuid(),
   brand_id uuid not null,
   academic_module_id uuid,
   course_code text not null,
@@ -139,6 +142,7 @@ create table app.brand_courses (
   status text not null default 'draft',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
+  constraint brand_courses_pkey primary key (id),
   constraint brand_courses_brand_id_fkey
     foreign key (brand_id) references app.educational_brands (id)
     on delete no action,
@@ -161,9 +165,6 @@ create table app.brand_courses (
     check (status in ('draft', 'published', 'archived'))
 );
 
-create index brand_courses_brand_id_idx
-  on app.brand_courses (brand_id);
-
 create index brand_courses_academic_module_id_idx
   on app.brand_courses (academic_module_id)
   where academic_module_id is not null;
@@ -176,13 +177,14 @@ create index brand_courses_brand_status_idx
   on app.brand_courses (brand_id, status);
 
 create table app.course_instructors (
-  id uuid primary key default gen_random_uuid(),
+  id uuid not null default gen_random_uuid(),
   course_id uuid not null,
   brand_id uuid not null,
   instructor_id uuid not null,
   status text not null default 'active',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
+  constraint course_instructors_pkey primary key (id),
   constraint course_instructors_course_brand_fkey
     foreign key (course_id, brand_id)
     references app.brand_courses (id, brand_id)
@@ -197,14 +199,14 @@ create table app.course_instructors (
     check (status in ('active', 'inactive'))
 );
 
-create index course_instructors_course_id_idx
-  on app.course_instructors (course_id);
+create index course_instructors_course_brand_idx
+  on app.course_instructors (course_id, brand_id);
+
+create index course_instructors_brand_instructor_idx
+  on app.course_instructors (brand_id, instructor_id);
 
 create index course_instructors_instructor_id_idx
   on app.course_instructors (instructor_id);
-
-create index course_instructors_brand_id_idx
-  on app.course_instructors (brand_id);
 
 create trigger academic_levels_set_updated_at
 before update on app.academic_levels
@@ -235,7 +237,7 @@ before update on app.course_instructors
 for each row execute function app.set_updated_at();
 
 /*
- * Prompt 44 ends here. M2 is not applied, seeded, exposed, or connected to
- * runtime composition. Student-profile academic FKs remain deferred pending
+ * Prompt 45 review ends here. M2 is not applied, seeded, exposed, or connected
+ * to runtime composition. Student-profile academic FKs remain deferred pending
  * a compatibility/backfill decision.
  */
