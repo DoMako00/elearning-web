@@ -49,6 +49,7 @@ export async function runPersistenceRuntimeCompositionSelfTest(): Promise<void> 
   });
   assert(supabase.provider === "supabase" && supabase.status === "supabase-read-only-configured", "supabase composition not configured");
   assert(supabase.m1Repositories?.educationalBrands !== undefined, "M1 repository bundle missing");
+  assert(supabase.m2Repositories?.academicModules !== undefined, "M2 repository bundle missing");
   assert(pool.queryCount === 0, "composition must not query during construction");
   await Promise.all([supabase.close(), supabase.close()]);
   assert(pool.endCount === 1, "close should end the pool once");

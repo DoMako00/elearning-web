@@ -1,4 +1,5 @@
 import type { M1ReadRepositories, PersistenceRuntimeComposition } from "../core/persistence/runtime-composition";
+import type { M2ReadRepositories } from "../core/repositories";
 import type { SupabaseBoundaryEnvironment } from "./supabase/supabase-config";
 import {
   SupabaseM1AdminPermissionReadRepository,
@@ -10,6 +11,7 @@ import {
   SupabaseM1BrandMembershipReadRepository,
   SupabaseM1EducationalBrandReadRepository,
   SupabaseM1StudentProfileReadRepository,
+  SupabaseM2AcademicLevelReadRepository, SupabaseM2AcademicSemesterReadRepository, SupabaseM2AcademicModuleReadRepository, SupabaseM2InstructorReadRepository, SupabaseM2BrandInstructorReadRepository, SupabaseM2BrandCourseReadRepository, SupabaseM2CourseInstructorReadRepository,
 } from "./supabase/repositories";
 import { createPostgresReadTransportFromEnvironment, type PostgresPoolFactory } from "./postgres";
 
@@ -17,6 +19,7 @@ export interface PersistenceRuntimeCompositionOptions {
   readonly environment?: SupabaseBoundaryEnvironment;
   readonly poolFactory?: PostgresPoolFactory;
 }
+function createM2ReadRepositories(transport: NonNullable<PersistenceRuntimeComposition["readTransport"]>): M2ReadRepositories { return { academicLevels:new SupabaseM2AcademicLevelReadRepository(transport), academicSemesters:new SupabaseM2AcademicSemesterReadRepository(transport), academicModules:new SupabaseM2AcademicModuleReadRepository(transport), instructors:new SupabaseM2InstructorReadRepository(transport), brandInstructors:new SupabaseM2BrandInstructorReadRepository(transport), brandCourses:new SupabaseM2BrandCourseReadRepository(transport), courseInstructors:new SupabaseM2CourseInstructorReadRepository(transport) }; }
 
 function createMockComposition(): PersistenceRuntimeComposition {
   return { provider: "mock", status: "mock-disabled", close: async () => undefined };
@@ -49,6 +52,7 @@ export function createPersistenceRuntimeComposition(
     status: "supabase-read-only-configured",
     readTransport: transport,
     m1Repositories: createM1ReadRepositories(transport),
+    m2Repositories: createM2ReadRepositories(transport),
     close: () => {
       if (!closePromise) closePromise = transport.close();
       return closePromise;

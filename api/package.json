@@ -1,6 +1,7 @@
 {
   "name": "elearning-api",
   "private": true,
+  "type": "commonjs",
   "scripts": {
     "typecheck": "node ../web/node_modules/typescript/bin/tsc -p tsconfig.json --pretty false",
     "build": "node ../web/node_modules/typescript/bin/tsc -p tsconfig.build.json --pretty false",

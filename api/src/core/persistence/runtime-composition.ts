@@ -9,6 +9,7 @@ import type {
   M1EducationalBrandReadRepository,
   M1StudentProfileReadRepository,
 } from "../repositories";
+import type { M2ReadRepositories } from "../repositories";
 import type { ReadQueryTransport } from "../../infrastructure/supabase/read-query-transport";
 
 export interface M1ReadRepositories {
@@ -31,5 +32,6 @@ export interface PersistenceRuntimeComposition {
   readonly status: PersistenceRuntimeStatus;
   readonly readTransport?: ReadQueryTransport;
   readonly m1Repositories?: M1ReadRepositories;
+  readonly m2Repositories?: M2ReadRepositories;
   close(): Promise<void>;
 }
