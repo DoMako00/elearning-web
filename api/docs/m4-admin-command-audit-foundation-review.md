@@ -2,7 +2,7 @@
 
 ## Status and scope
 
-This is the static design review for the non-active M4 draft, not a schema apply record. The draft remains outside active migration paths and has not been executed against any database. It is the prerequisite for future atomic M2 Admin write execution; it creates no M2 write repository, handler, HTTP route, seed, runtime switch, RLS policy, grant, or Data API exposure.
+This is the static design review for the M4 draft. The draft remains outside active migration paths; it was applied exactly once to the approved staging target in Prompt 53B and verified through SELECT-only catalog checks. It remains a prerequisite for future atomic M2 Admin write execution; this phase created no M2 write repository, handler, HTTP route, seed, runtime switch, RLS policy, grant, or Data API exposure. See [the sanitized staging apply report](m4-admin-command-audit-staging-apply-report.md).
 
 The accepted contract baseline is `a527386cbb5218f7db03126e2e28e8b2ca0ab243` (`feat(api): define admin M2 write command policies`). The review preserves its sensitive-command requirements: trusted brand context, admin-profile actor, non-empty reason, correlation ID, and idempotency key.
 
@@ -83,9 +83,9 @@ The required successful path is: resolve trusted request context and permissions
 
 ## Future Prompt 53B controlled staging apply
 
-A future separately authorized apply must target only staging project `mgrsgibxuwgbxtdqprkw`. It must run Git preflight, validate process-only credentials/TLS and production exclusion, and perform SELECT-only checks for the private `app` schema, `educational_brands`, `admin_profiles`, the `admin_profiles (id, brand_id)` unique key, UUID/default support, absence of equivalent M4 objects, and unchanged RLS/policy/grant/Data API boundaries.
+A future recovery or re-application must target only staging project `mgrsgibxuwgbxtdqprkw`. The completed Prompt 53B apply ran Git preflight, validated process-only credentials/TLS and production exclusion, and performed SELECT-only checks for the private `app` schema, `educational_brands`, `admin_profiles`, the `admin_profiles (id, brand_id)` unique key, UUID/default support, absence of equivalent M4 objects, and unchanged RLS/policy/grant/Data API boundaries.
 
-It must apply the reviewed ordinary transactional DDL once, then use SELECT-only catalog checks for the two tables, named constraints, indexes, zero rows, schema privacy, and unchanged exposure settings. A sanitized apply report and separate local documentation commit follow only after success. There is no production access, runtime switch, deployment, or push in that phase.
+The completed apply executed the reviewed ordinary transactional DDL once, then used SELECT-only catalog checks for the two tables, named constraints, indexes, zero rows, schema privacy, and unchanged exposure settings. The result is recorded in the sanitized apply report. There was no production access, runtime switch, deployment, or push.
 
 ## Deferred work
 

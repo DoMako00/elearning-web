@@ -1,6 +1,6 @@
 # Admin Command Audit Foundation Gap
 
-## Prompt 53 stop condition
+## Prompt 53 stop condition and staging status
 
 Prompt 53 write execution is intentionally stopped before any M2 write repository, PostgreSQL write transport, command handler, or HTTP write route is implemented.
 
@@ -28,4 +28,4 @@ The draft contains no seed rows, no active migration registration, no public sch
 3. Verify the applied audit tables, constraints, indexes, zero-row state, private-schema boundary, and absence of RLS/policy/grant/Data API changes with SELECT-only catalog checks.
 4. Only then implement Prompt 53 write repositories and transaction-scoped evidence adapters. Those implementations must use one checked-out PostgreSQL client for domain mutation, `admin_actions`, and `audit_logs`, rolling back all three on any failure.
 
-Until those phases are complete, M2 write execution remains unavailable by design. The current staging foundation data must not be mutated for this gap assessment.
+The M4 schema prerequisite was subsequently applied exactly once to approved staging and verified through SELECT-only catalog checks. See [the sanitized staging apply report](m4-admin-command-audit-staging-apply-report.md). The schema gap is satisfied on staging, but runtime M2 write execution remains unavailable until Prompt 53 implements and validates transaction-scoped repositories/evidence handling.
