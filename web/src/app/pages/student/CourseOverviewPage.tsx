@@ -192,6 +192,26 @@ function MaterialsGrid() {
   );
 }
 
+interface MaterialsCardProps {
+  className?: string;
+  hidden?: boolean;
+}
+
+function MaterialsCard({ className = "", hidden = false }: MaterialsCardProps) {
+  return (
+    <article
+      className={`course-overview-card course-overview-materials${className ? ` ${className}` : ""}`}
+      hidden={hidden}
+    >
+      <header>
+        <h2>Recent materials</h2>
+        <button type="button">View all resources <ArrowRight aria-hidden="true" /></button>
+      </header>
+      <MaterialsGrid />
+    </article>
+  );
+}
+
 export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [activeTab, setActiveTab] = useState<CourseTabId>("overview");
@@ -323,13 +343,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
                 </ul>
               </article>
             </div>
-            <article className="course-overview-card course-overview-materials">
-              <header>
-                <h2>Recent materials</h2>
-                <button type="button">View all resources <ArrowRight aria-hidden="true" /></button>
-              </header>
-              <MaterialsGrid />
-            </article>
+            <MaterialsCard className="course-overview-materials--primary" />
           </div>
 
           <div className="course-overview-panel course-overview-panel--message" role="tabpanel" id="course-overview-panel-notes" aria-labelledby="course-overview-tab-notes" hidden={activeTab !== "notes"}>
@@ -395,13 +409,20 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
           <article className="course-overview-card course-overview-progress">
             <header><h2>Course progress</h2><strong>0%</strong></header>
             <div className="course-overview-progress__track" role="progressbar" aria-label="Course progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={0}><span /></div>
-            <div className="course-overview-progress__footer">
-              <p>0 of 14 lessons completed</p>
-              <button type="button">View my progress <ArrowRight aria-hidden="true" /></button>
-            </div>
+            <dl className="course-overview-progress__metrics">
+              <div><dt>Lessons</dt><dd>14</dd></div>
+              <div><dt>Modules</dt><dd>6</dd></div>
+              <div><dt>Total duration</dt><dd>12h 40m</dd></div>
+              <div><dt>Certificate</dt><dd>1</dd></div>
+            </dl>
           </article>
 
         </aside>
+
+        <MaterialsCard
+          className="course-overview-materials--full"
+          hidden={activeTab !== "overview"}
+        />
       </div>
     </section>
   );
