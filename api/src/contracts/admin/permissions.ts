@@ -10,7 +10,11 @@ export type AdminPermissionCode =
   | "admin.content.publish" | "admin.content.withdraw" | "admin.media.read"
   | "admin.media.manage" | "admin.assessments.read" | "admin.assessments.review"
   | "admin.audit.read" | "admin.security.read" | "admin.roles.read"
-  | "admin.roles.manage" | "admin.policies.read" | "admin.policies.manage";
+  | "admin.roles.manage" | "admin.policies.read" | "admin.policies.manage"
+  | "admin.instructors.create" | "admin.instructors.update"
+  | "admin.brand_instructors.assign" | "admin.brand_instructors.update"
+  | "admin.brand_courses.create" | "admin.brand_courses.update"
+  | "admin.course_instructors.assign" | "admin.course_instructors.update";
 
 /** UI permission gates are presentation only; backend validation is authoritative. */
 export interface AdminPrincipalSummary {

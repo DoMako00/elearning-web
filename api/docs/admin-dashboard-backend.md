@@ -509,6 +509,10 @@ Admin overview reads now have a formal provider-neutral `AdminOverviewReadModel`
 
 Command persistence remains a separate concern: it must continue to validate permission, active and target brand scope, lifecycle and policy state, required reasons and idempotency keys, and append-only evidence before a command changes state.
 
+## Prompt 52 M2 command-contract note
+
+Prompt 52 defines pure Admin M2 command and policy contracts for global instructors, brand-instructor associations, brand courses, and course-instructor assignments. The contracts preserve explicit brand scope, status-based relationships, immutable brand-local course codes, conservative course archival, required idempotency/evidence, and the separation between academic reference data, commercial state, and access. They do not implement database writes or Admin HTTP write endpoints; see [Admin M2 Write Command and Policy Contracts](admin-m2-write-command-policy-contracts.md).
+
 ## Prompt 42 PostgreSQL source note
 
 The first PostgreSQL overview source preserves the existing response contract and resolves only the active M1 educational brand. Payment, subscription, access, content, assessment, audit, and security cards remain zero/empty until their authoritative read models exist. The default runtime source remains mock; see [PostgreSQL Admin Overview Read Model](postgres-admin-overview-read-model.md).
