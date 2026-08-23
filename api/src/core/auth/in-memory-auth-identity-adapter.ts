@@ -11,8 +11,11 @@ export interface InMemoryAuthIdentityFixture extends VerifiedAuthIdentity {
   readonly mockCredential: string;
 }
 
+/** UUIDv5: DNS namespace + elearning.verification.staging.p56.v1/auth-identity. */
+export const medwayAdminVerificationAuthIdentityId = "02694d40-9dec-5f53-a613-6fb946a2b0fa" as AuthIdentityId;
+
 const defaultFixtures: readonly InMemoryAuthIdentityFixture[] = [
-  { authIdentityId: "auth-medway-admin-001" as AuthIdentityId, provider: "mock", subject: "mock-medway-admin-001", mockCredential: "mock-auth-medway-admin-001", verifiedAt: "2026-01-01T00:00:00.000Z" },
+  { authIdentityId: medwayAdminVerificationAuthIdentityId, provider: "mock", subject: "mock-medway-admin-001", mockCredential: "mock-auth-medway-admin-001", verifiedAt: "2026-01-01T00:00:00.000Z" },
   { authIdentityId: "auth-medway-student-001" as AuthIdentityId, provider: "mock", subject: "mock-medway-student-001", mockCredential: "mock-auth-medway-student-001", verifiedAt: "2026-01-01T00:00:00.000Z" },
   { authIdentityId: "auth-elite-admin-001" as AuthIdentityId, provider: "mock", subject: "mock-elite-admin-001", mockCredential: "mock-auth-elite-admin-001", verifiedAt: "2026-01-01T00:00:00.000Z" },
   { authIdentityId: "auth-elite-student-001" as AuthIdentityId, provider: "mock", subject: "mock-elite-student-001", mockCredential: "mock-auth-elite-student-001", verifiedAt: "2026-01-01T00:00:00.000Z" },

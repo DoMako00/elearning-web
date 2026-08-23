@@ -1,4 +1,4 @@
-import { InMemoryAuthIdentityAdapter, type AuthIdentityAdapter } from "../../core/auth";
+import { InMemoryAuthIdentityAdapter, medwayAdminVerificationAuthIdentityId, type AuthIdentityAdapter } from "../../core/auth";
 import { DefaultAdminHttpRequestContextResolver, type AdminHttpRequestContextResolver } from "../../core/context";
 import { repositoryErr, repositoryOk, type PersistenceRuntimeComposition } from "../../core/persistence";
 import type { M1AdminAuthorizationSnapshot, M1AdminProfile, M1AdminProfileReadRepository, M1EducationalBrand, M1EducationalBrandReadRepository } from "../../core/repositories";
@@ -30,12 +30,12 @@ class MockAdminProfiles implements M1AdminProfileReadRepository {
   private profile(input: { readonly appUserId: string; readonly brandId: string }): M1AdminProfile | undefined {
     const brand = mockBrands.find((item) => item.id === input.brandId);
     if (!brand) return undefined;
-    const expected = brand.code === "medway" ? "auth-medway-admin-001" : "auth-elite-admin-001";
+    const expected = brand.code === "medway" ? medwayAdminVerificationAuthIdentityId : "auth-elite-admin-001";
     if (input.appUserId !== expected) return undefined;
     return { id: brand.code === "medway" ? "10000000-0000-4000-8000-000000000002" : "10000000-0000-4000-8000-000000000004", brandId: brand.id, appUserId: input.appUserId, displayName: `${brand.name} Admin`, status: "active", createdAt: now, updatedAt: now };
   }
   async findAdminProfileById(input: { readonly id: string; readonly brand: { readonly brandId: string }; readonly correlationId?: string }) {
-    const profile = this.profile({ appUserId: input.brand.brandId === mockBrands[0]?.id ? "auth-medway-admin-001" : "auth-elite-admin-001", brandId: input.brand.brandId });
+    const profile = this.profile({ appUserId: input.brand.brandId === mockBrands[0]?.id ? medwayAdminVerificationAuthIdentityId : "auth-elite-admin-001", brandId: input.brand.brandId });
     return profile?.id === input.id ? repositoryOk(profile) : repositoryErr({ code: "not_found", message: "Requested record was not found.", correlationId: input.correlationId });
   }
   async findAdminProfileByUserId(input: { readonly appUserId: string; readonly brand: { readonly brandId: string }; readonly correlationId?: string }) {

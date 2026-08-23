@@ -1,5 +1,6 @@
 import type { AdminUser, AppSession, Device, StudentProfile, User } from "../../domain";
 import type { BrandScope } from "../brand-scope";
+import { medwayAdminVerificationAuthIdentityId } from "../auth";
 import {
   repositoryErr,
   repositoryOk,
@@ -44,7 +45,7 @@ export const inMemoryContextUsers: readonly User[] = [
 ];
 
 const authToUser = new Map<AuthIdentityId, AppUserId>([
-  ["auth-medway-admin-001" as AuthIdentityId, asAppUserId("user-medway-admin-001")],
+  [medwayAdminVerificationAuthIdentityId, asAppUserId("user-medway-admin-001")],
   ["auth-medway-student-001" as AuthIdentityId, asAppUserId("user-medway-student-001")],
   ["auth-elite-admin-001" as AuthIdentityId, asAppUserId("user-elite-admin-001")],
   ["auth-elite-student-001" as AuthIdentityId, asAppUserId("user-elite-student-001")],

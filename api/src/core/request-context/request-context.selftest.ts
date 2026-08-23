@@ -2,6 +2,7 @@ import { createInMemoryRequestContextDependencies } from "./in-memory-request-co
 import { buildRequestContext } from "./request-context-builder";
 import type { RequestContextInput } from "./request-context-input";
 import type { DeviceId, SessionId } from "../persistence";
+import { medwayAdminVerificationAuthIdentityId } from "../auth";
 
 const sessionId = (value: string) => value as SessionId;
 const deviceId = (value: string) => value as DeviceId;
@@ -60,6 +61,7 @@ export async function runRequestContextSelfTest(): Promise<RequestContextSelfTes
   await recordCase(cases, "Medway admin context builds correctly", async () => {
     const result = await createInMemoryRequestContextDependencies().authIdentityAdapter.verifyRequestAuth({ bearerToken: "mock-auth-medway-admin-001" });
     assertTruthy(result.ok, "Mock admin identity should verify");
+    if (result.ok) assertEqual(result.value.authIdentityId, medwayAdminVerificationAuthIdentityId, "Mock admin UUID identity");
     const deps = createInMemoryRequestContextDependencies();
     const context = await buildRequestContext(baseInput(), deps);
     assertTruthy(context.ok, "Medway admin context should build");
