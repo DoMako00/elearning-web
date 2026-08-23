@@ -411,15 +411,15 @@
 .course-overview-info-row>.course-overview-card {
   height: auto;
   overflow: hidden;
-  padding: 14px 16px;
+  padding: 18px 20px;
 }
 
 .course-overview-about>p {
-  max-width: 480px;
-  margin: 6px 0 0;
-  color: var(--color-text-secondary);
-  font-size: 11.5px;
-  line-height: 1.5;
+  max-width: none;
+  margin: 8px 0 0;
+  color: #6b7a86;
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .course-overview-about__divider {
@@ -431,35 +431,52 @@
 }
 
 .course-overview-about dl {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px 16px;
-  margin: 0;
+  gap: 14px 28px;
+  margin: 16px 0 0;
+  padding: 0 4px;
+}
+
+.course-overview-about dl::before {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 50%;
+  width: 1px;
+  background: #e6ebe8;
+  content: "";
+  transform: translateX(-50%);
+  pointer-events: none;
 }
 
 .course-overview-about dl>div {
   display: flex;
-  align-items: center;
-  gap: 7px;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .course-overview-about dl svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   flex: 0 0 auto;
-  color: #516173;
+  margin-top: 1px;
+  color: #8b95a5;
 }
 
 .course-overview-about dt {
-  color: #46515e;
-  font-size: 10px;
+  color: #1f2a37;
+  font-size: 12px;
   font-weight: 700;
+  line-height: 1.2;
 }
 
 .course-overview-about dd {
-  margin: 1px 0 0;
+  margin: 3px 0 0;
   color: #7b8794;
-  font-size: 10px;
+  font-size: 12px;
+  line-height: 1.2;
 }
 
 .course-overview-learn {
@@ -660,7 +677,7 @@
 
 .course-overview-rail {
   display: grid;
-  grid-template-rows: minmax(0, 1fr) minmax(104px, 16%);
+  grid-template-rows: minmax(0, 1fr) auto;
   gap: clamp(12px, 1.35cqh, 15px);
   overflow: hidden;
 }
@@ -864,7 +881,7 @@
 
 .course-overview-progress {
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
   padding: 13px 15px;
 }
 
@@ -898,7 +915,7 @@
 .course-overview-progress__footer {
   display: flex;
   min-height: 0;
-  align-items: end;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   margin-top: 7px;
@@ -1031,7 +1048,6 @@
   }
 }
 
-/* Tablets & iPads — shared base (Air / Pro / mini) */
 @media (max-width: 1199px) {
   .course-overview-page {
     height: auto;
@@ -1177,6 +1193,11 @@
     font-size: 12px;
   }
 
+  .course-overview-about dl {
+    gap: 12px 24px;
+    margin-top: 14px;
+  }
+
   .course-overview-materials {
     overflow: visible;
     padding: 12px 14px 14px;
@@ -1257,12 +1278,27 @@
   }
 
   .course-overview-progress {
-    padding: 14px 15px 16px;
+    padding: 10px 12px 11px;
+    flex: 0 0 auto;
+  }
+
+  .course-overview-progress > header h2 {
+    font-size: 14px;
+  }
+
+  .course-overview-progress__track {
+    margin-top: 7px;
+    height: 4px;
   }
 
   .course-overview-progress__footer {
     align-items: center;
     flex-wrap: wrap;
+    margin-top: 5px;
+  }
+
+  .course-overview-progress__footer button {
+    min-height: 24px;
   }
 }
 
@@ -1377,6 +1413,19 @@
   .course-overview-materials {
     overflow: visible;
   }
+
+  .course-overview-progress {
+    padding: 10px 12px;
+  }
+
+  .course-overview-progress__track {
+    margin-top: 6px;
+    height: 4px;
+  }
+
+  .course-overview-progress__footer {
+    margin-top: 5px;
+  }
 }
 
 /* iPad portrait & mid tablets */
@@ -1422,7 +1471,7 @@
   }
 
   .course-overview-about dl {
-    gap: 8px 20px;
+    gap: 12px 22px;
   }
 
   .course-overview-materials > header {
@@ -1581,6 +1630,12 @@
 
   .course-overview-about dl {
     grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 0;
+  }
+
+  .course-overview-about dl::before {
+    display: none;
   }
 }
 

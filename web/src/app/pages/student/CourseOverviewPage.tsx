@@ -305,12 +305,12 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
               <article className="course-overview-card course-overview-about">
                 <h2>About this course</h2>
                 <p>
-                  Build a clear foundation in human anatomy through anatomical terminology, body organization, and the structures used in clinical study and practice.
+                  This course provides a comprehensive introduction to human anatomy, covering the structure and function of the human body systems.
                 </p>
                 <dl>
-                  <div><Gauge aria-hidden="true" /><span><dt>Level</dt><dd>Beginner</dd></span></div>
+                  <div><Sparkles aria-hidden="true" /><span><dt>Level</dt><dd>Beginner</dd></span></div>
+                  <div><LayoutGrid aria-hidden="true" /><span><dt>Modules</dt><dd>6</dd></span></div>
                   <div><UsersRound aria-hidden="true" /><span><dt>Students enrolled</dt><dd>12.6K</dd></span></div>
-                  <div><BookOpen aria-hidden="true" /><span><dt>Modules</dt><dd>6</dd></span></div>
                   <div><ShieldCheck aria-hidden="true" /><span><dt>Certificate</dt><dd>Yes</dd></span></div>
                 </dl>
               </article>
