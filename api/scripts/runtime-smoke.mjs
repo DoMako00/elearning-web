@@ -162,6 +162,18 @@ async function run() {
         assertEqual(response.body.checks?.database, "not_configured", "Database readiness");
         assertEqual(response.body.checks?.auth, "not_configured", "Auth readiness");
       }],
+      ["M2 curriculum levels are mock-empty", async () => {
+        const response = await request("GET", "/v1/admin/curriculum/levels");
+        assertEqual(response.status, 200, "Curriculum levels status");
+        assertEqual(response.body.ok, true, "Curriculum levels response");
+        assertTruthy(Array.isArray(response.body.data) && response.body.data.length === 0, "Curriculum levels must be empty in mock runtime");
+      }],
+      ["M2 instructors are mock-empty", async () => {
+        const response = await request("GET", "/v1/admin/instructors");
+        assertEqual(response.status, 200, "Instructors status");
+        assertEqual(response.body.ok, true, "Instructors response");
+        assertTruthy(Array.isArray(response.body.data) && response.body.data.length === 0, "Instructors must be empty in mock runtime");
+      }],
       ["overview missing brand", async () => {
         const response = await request("GET", "/v1/admin/overview");
         assertEqual(response.status, 400, "Missing brand status");

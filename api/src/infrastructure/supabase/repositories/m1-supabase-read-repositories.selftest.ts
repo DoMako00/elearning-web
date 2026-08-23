@@ -88,6 +88,28 @@ export async function runM1SupabaseReadRepositorySelfTest(): Promise<M1SupabaseR
     const byCode = await repository.findEducationalBrandByCode({ code: "medway" });
     assertTruthy(byId.ok && byId.value.code === "medway", "Brand ID result");
     assertTruthy(byCode.ok && byCode.value.id === "brand-medway", "Brand code result");
+    assertTruthy(byId.ok && byId.value.createdAt === brandRow.created_at && byId.value.updatedAt === brandRow.updated_at, "Existing string timestamps must remain unchanged");
+  });
+
+  await recordCase(cases, "M1 Date timestamps normalize to ISO strings", async () => {
+    const createdAt = new Date("2026-02-03T04:05:06.000Z");
+    const updatedAt = new Date("2026-02-04T05:06:07.000Z");
+    const transport = new FakeReadQueryTransport({
+      "m1.educational-brand.by-id": [{ ...brandRow, created_at: createdAt, updated_at: updatedAt }],
+      "m1.brand-membership.by-user-brand": [{ ...membershipRow, activated_at: createdAt, created_at: createdAt, updated_at: updatedAt }],
+    });
+    const educationalBrand = await new SupabaseM1EducationalBrandReadRepository(transport).findEducationalBrandById({ id: "brand-medway" });
+    const membership = await new SupabaseM1BrandMembershipReadRepository(transport).findBrandMembershipByUserId({ appUserId: "user-global-001", brand: medway });
+    assertTruthy(educationalBrand.ok && educationalBrand.value.createdAt === createdAt.toISOString() && educationalBrand.value.updatedAt === updatedAt.toISOString(), "Educational-brand Date timestamps must normalize");
+    assertTruthy(membership.ok && membership.value.activatedAt === createdAt.toISOString() && membership.value.updatedAt === updatedAt.toISOString(), "Membership Date timestamps must normalize");
+  });
+
+  await recordCase(cases, "M1 malformed timestamps fail safely", async () => {
+    const invalidDate = new Date("invalid");
+    const dateResult = await new SupabaseM1EducationalBrandReadRepository(new FakeReadQueryTransport({ "m1.educational-brand.by-id": [{ ...brandRow, created_at: invalidDate }] })).findEducationalBrandById({ id: "brand-medway" });
+    const primitiveResult = await new SupabaseM1EducationalBrandReadRepository(new FakeReadQueryTransport({ "m1.educational-brand.by-id": [{ ...brandRow, updated_at: 42 }] })).findEducationalBrandById({ id: "brand-medway" });
+    assertTruthy(!dateResult.ok && dateResult.error.code === "persistence_data_invalid", "Invalid Date must map safely");
+    assertTruthy(!primitiveResult.ok && primitiveResult.error.code === "persistence_data_invalid", "Non-timestamp primitive must map safely");
   });
 
   await recordCase(cases, "Global app-user lookup has no brand predicate", async () => {

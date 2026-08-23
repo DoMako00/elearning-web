@@ -16,7 +16,7 @@ Academic and instructor lookups do not require a brand and do not imply enrollme
 
 ## Mapping and errors
 
-Adapters preserve UUID and timestamp values as strings and preserve nullable fields. They accept only the applied status, scope, and phase values. Empty list results are valid, and empty-table find methods return `not_found`. Malformed rows return `persistence_data_invalid`; transport failures return sanitized `query_failed`; no SQL, host, credential, or cross-brand details are exposed.
+Adapters preserve UUID and timestamp values as strings and preserve nullable fields. At the transport boundary they accept an already-string timestamp or a valid PostgreSQL `Date`, normalizing a `Date` to its ISO string representation without changing the repository contract. Invalid timestamp values remain malformed persistence data. They accept only the applied status, scope, and phase values. Empty list results are valid, and empty-table find methods return `not_found`. Malformed rows return `persistence_data_invalid`; transport failures return sanitized `query_failed`; no SQL, host, credential, or cross-brand details are exposed.
 
 ## Runtime and testing boundary
 

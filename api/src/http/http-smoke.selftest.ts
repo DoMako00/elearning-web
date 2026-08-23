@@ -75,6 +75,72 @@ export async function runHttpSmokeSelfTest(): Promise<HttpSmokeSelfTestRunResult
     assertEqual(checks.auth, "not_configured", "Auth check");
   }));
 
+  cases.push(await recordCase("GET /v1/admin/curriculum/levels returns an empty mock list", async () => {
+    const response = await invoke("GET", "/v1/admin/curriculum/levels");
+    assertEqual(response.statusCode, 200, "Curriculum levels status");
+    assertEqual(response.body.ok, true, "Curriculum levels response");
+    assertTruthy(Array.isArray(response.body.data) && response.body.data.length === 0, "Curriculum levels must be mock-empty");
+  }));
+
+  cases.push(await recordCase("GET /v1/admin/instructors returns an empty mock list", async () => {
+    const response = await invoke("GET", "/v1/admin/instructors");
+    assertEqual(response.statusCode, 200, "Instructors status");
+    assertEqual(response.body.ok, true, "Instructors response");
+    assertTruthy(Array.isArray(response.body.data) && response.body.data.length === 0, "Instructors must be mock-empty");
+  }));
+
+  cases.push(await recordCase("M2 no-filter routes reject unsupported or repeated query parameters", async () => {
+    const validBrandId = "00000000-0000-4000-8000-000000000001";
+    const validResourceId = "00000000-0000-4000-8000-000000000002";
+    for (const url of [
+      "/v1/admin/curriculum/levels?unexpected=value",
+      "/v1/admin/curriculum/levels?unexpected=value&unexpected=again",
+      "/v1/admin/instructors?unexpected=value",
+      `/v1/admin/curriculum/modules/${validResourceId}?unexpected=value`,
+      `/v1/admin/brands/${validBrandId}/instructors?unexpected=value`,
+      `/v1/admin/brands/${validBrandId}/courses/${validResourceId}?unexpected=value`,
+    ]) {
+      const response = await invoke("GET", url);
+      assertEqual(response.statusCode, 400, `Unsupported M2 query status for ${url}`);
+      assertEqual(response.body.ok, false, `Unsupported M2 query response for ${url}`);
+      assertNoUnsafeErrorPayload(response.body);
+    }
+  }));
+
+  cases.push(await recordCase("M2 supported filters and valid no-filter requests retain their behavior", async () => {
+    const validBrandId = "00000000-0000-4000-8000-000000000001";
+    const validResourceId = "00000000-0000-4000-8000-000000000002";
+    for (const url of [
+      "/v1/admin/curriculum/semesters?levelId=00000000-0000-4000-8000-000000000003",
+      "/v1/admin/curriculum/modules?semesterId=00000000-0000-4000-8000-000000000004",
+      `/v1/admin/brands/${validBrandId}/courses?academicModuleId=${validResourceId}`,
+      `/v1/admin/brands/${validBrandId}/courses?scope=standalone`,
+    ]) {
+      const response = await invoke("GET", url);
+      assertEqual(response.statusCode, 200, `Supported M2 filter status for ${url}`);
+    }
+    const response = await invoke("GET", "/v1/admin/curriculum/levels");
+    assertEqual(response.statusCode, 200, "Valid no-filter M2 request status");
+  }));
+
+  cases.push(await recordCase("M2 brand-course filters reject conflicts and repeated unsupported parameters", async () => {
+    const validBrandId = "00000000-0000-4000-8000-000000000001";
+    const validModuleId = "00000000-0000-4000-8000-000000000002";
+    for (const url of [
+      `/v1/admin/brands/${validBrandId}/courses?academicModuleId=${validModuleId}&scope=standalone`,
+      `/v1/admin/brands/${validBrandId}/courses?unexpected=value&unexpected=again`,
+    ]) {
+      const response = await invoke("GET", url);
+      assertEqual(response.statusCode, 400, `Invalid M2 course filter status for ${url}`);
+    }
+  }));
+
+  cases.push(await recordCase("POST M2 route is rejected before a read", async () => {
+    const response = await invoke("POST", "/v1/admin/curriculum/levels");
+    assertEqual(response.statusCode, 405, "M2 POST status");
+    assertTruthy(response.headers.allow?.includes("GET"), "M2 POST allow header");
+  }));
+
   cases.push(await recordCase("GET /v1/admin/overview requires brand", async () => {
     const response = await invoke("GET", "/v1/admin/overview");
     assertEqual(response.statusCode, 400, "Missing brand status");
