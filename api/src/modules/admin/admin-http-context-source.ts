@@ -4,6 +4,8 @@ import { repositoryErr, repositoryOk, type PersistenceRuntimeComposition } from 
 import type { M1AdminAuthorizationSnapshot, M1AdminProfile, M1AdminProfileReadRepository, M1EducationalBrand, M1EducationalBrandReadRepository } from "../../core/repositories";
 import type { SupabaseBoundaryEnvironment } from "../../infrastructure/supabase/supabase-config";
 import { resolveSupabaseBoundaryConfiguration } from "../../infrastructure/supabase/supabase-config";
+import { resolveSupabaseAuthConfiguration, SupabaseAuthConfigurationError } from "../../infrastructure/supabase/supabase-auth-config";
+import { SupabaseJwtJwksAuthIdentityAdapter } from "../../infrastructure/supabase/supabase-jwt-adapter";
 
 export class AdminHttpContextConfigurationError extends Error {
   constructor(message: string) { super(message); this.name = "AdminHttpContextConfigurationError"; }
@@ -65,7 +67,18 @@ export function createAdminHttpRequestContextResolver(input: {
 }): AdminHttpRequestContextResolver {
   const configuration = resolveSupabaseBoundaryConfiguration(input.environment);
   if (configuration.authProvider === "supabase") {
-    throw new AdminHttpContextConfigurationError("Supabase Admin authentication is not implemented; the runtime fails closed.");
+    try {
+      const authConfiguration = resolveSupabaseAuthConfiguration(input.environment);
+      const authIdentityAdapter = input.authIdentityAdapter ?? new SupabaseJwtJwksAuthIdentityAdapter(authConfiguration);
+      if (input.persistence.provider === "mock") {
+        return new DefaultAdminHttpRequestContextResolver({ authIdentityAdapter, educationalBrands: new MockEducationalBrands(), adminProfiles: new MockAdminProfiles() });
+      }
+      if (!input.persistence.m1Repositories) throw new AdminHttpContextConfigurationError("Administrative context persistence is unavailable.");
+      return new DefaultAdminHttpRequestContextResolver({ authIdentityAdapter, educationalBrands: input.persistence.m1Repositories.educationalBrands, adminProfiles: input.persistence.m1Repositories.adminProfiles });
+    } catch (error) {
+      if (error instanceof SupabaseAuthConfigurationError) throw new AdminHttpContextConfigurationError("Supabase authentication configuration is invalid.");
+      throw error;
+    }
   }
   const authIdentityAdapter = input.authIdentityAdapter ?? new InMemoryAuthIdentityAdapter();
   if (input.persistence.provider === "mock") {

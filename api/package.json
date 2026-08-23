@@ -9,6 +9,7 @@
     "smoke:runtime": "npm run build && node scripts/runtime-smoke.mjs"
   },
   "dependencies": {
+    "jose": "6.2.10",
     "pg": "^8.23.0"
   },
   "devDependencies": {

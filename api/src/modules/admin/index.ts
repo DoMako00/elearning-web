@@ -6,3 +6,4 @@ export * from "./read-models";
 export * from "./admin-brand-scope.selftest";
 export * from "./commands";
 export * from "./admin-http-context-source";
+export * from "./admin-http-context-source.selftest";
