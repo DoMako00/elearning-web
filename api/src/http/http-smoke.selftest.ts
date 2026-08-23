@@ -75,6 +75,26 @@ export async function runHttpSmokeSelfTest(): Promise<HttpSmokeSelfTestRunResult
     assertEqual(checks.auth, "not_configured", "Auth check");
   }));
 
+  cases.push(await recordCase("GET /v1/admin/curriculum/levels returns an empty mock list", async () => {
+    const response = await invoke("GET", "/v1/admin/curriculum/levels");
+    assertEqual(response.statusCode, 200, "Curriculum levels status");
+    assertEqual(response.body.ok, true, "Curriculum levels response");
+    assertTruthy(Array.isArray(response.body.data) && response.body.data.length === 0, "Curriculum levels must be mock-empty");
+  }));
+
+  cases.push(await recordCase("GET /v1/admin/instructors returns an empty mock list", async () => {
+    const response = await invoke("GET", "/v1/admin/instructors");
+    assertEqual(response.statusCode, 200, "Instructors status");
+    assertEqual(response.body.ok, true, "Instructors response");
+    assertTruthy(Array.isArray(response.body.data) && response.body.data.length === 0, "Instructors must be mock-empty");
+  }));
+
+  cases.push(await recordCase("POST M2 route is rejected before a read", async () => {
+    const response = await invoke("POST", "/v1/admin/curriculum/levels");
+    assertEqual(response.statusCode, 405, "M2 POST status");
+    assertTruthy(response.headers.allow?.includes("GET"), "M2 POST allow header");
+  }));
+
   cases.push(await recordCase("GET /v1/admin/overview requires brand", async () => {
     const response = await invoke("GET", "/v1/admin/overview");
     assertEqual(response.statusCode, 400, "Missing brand status");
