@@ -34,6 +34,6 @@ Unknown brands map safely to scoped absence, while an inactive brand, no active 
 
 ## Prompt 53 and Prompt 55 handoff
 
-Prompt 53's programmatic executor already requires a trusted `AdminRequestContext`. Prompt 55 may add authenticated HTTP mutation routes only by obtaining that context from this resolver using a canonical `:brandId` route scope before it calls the executor. It must not reconstruct authority in each handler, accept client actor/permission values, or expose a write path before body validation and trusted authentication are separately approved.
+Prompt 53's programmatic executor already requires a trusted `AdminRequestContext`. Prompt 55 now obtains that context from this resolver using a canonical `:brandId` route scope before it calls the executor. The HTTP adapter does not reconstruct authority, accept client actor/permission values, or bypass executor-side authorization. Its bounded transport contract is documented in [Authenticated Admin M2 HTTP Write APIs](admin-m2-authenticated-http-write-apis.md).
 
-No POST, PUT, PATCH, or DELETE Admin endpoint is mounted by Prompt 54.
+Prompt 54 itself mounted no write route; Prompt 55 is the distinct, authenticated route boundary. Real Supabase-authenticated activation remains fail-closed until a reviewed verifier exists.

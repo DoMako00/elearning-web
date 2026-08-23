@@ -49,7 +49,10 @@ class MockAdminProfiles implements M1AdminProfileReadRepository {
       appUser: { id: profile.appUserId, authUserId: input.authUserId, primaryEmail: null, primaryPhone: null, status: "active", createdAt: now, updatedAt: now },
       adminProfile: profile,
       roleCodes: ["admin.support"],
-      permissionCodes: ["admin.students.read", "admin.audit.read", "admin.security.read"],
+      // The mock principal is intentionally permitted to reach the disabled
+      // command-source boundary in deterministic HTTP tests. It cannot mutate:
+      // mock command composition never supplies an executor.
+      permissionCodes: ["admin.students.read", "admin.audit.read", "admin.security.read", "admin.instructors.create", "admin.instructors.update", "admin.brand_instructors.assign", "admin.brand_instructors.update", "admin.brand_courses.create", "admin.brand_courses.update", "admin.course_instructors.assign", "admin.course_instructors.update"],
     };
     return repositoryOk(snapshot);
   }

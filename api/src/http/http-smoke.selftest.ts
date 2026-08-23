@@ -40,8 +40,8 @@ function responseError(body: Record<string, unknown>): Record<string, unknown> {
 
 export async function runHttpSmokeSelfTest(): Promise<HttpSmokeSelfTestRunResult> {
   const application = createApplication();
-  const handler = createHttpApp({ admin: application.admin });
-  const invoke = async (method: string, url: string, headers: Readonly<Record<string, string>> = {}): Promise<CapturedResponse> => {
+  const handler = createHttpApp({ admin: application.admin, adminHttpContextResolver: application.adminHttpContextResolver });
+  const invoke = async (method: string, url: string, headers: Readonly<Record<string, string>> = {}, body?: string): Promise<CapturedResponse> => {
     const responseHeaders: Record<string, string> = {};
     let serializedBody = "";
     const response = {
@@ -49,7 +49,7 @@ export async function runHttpSmokeSelfTest(): Promise<HttpSmokeSelfTestRunResult
       setHeader(name: string, value: string | number) { responseHeaders[name.toLowerCase()] = String(value); },
       end(body: string | undefined) { serializedBody = body ?? ""; },
     } as unknown as ServerResponse;
-    const request = { method, url, headers } as unknown as IncomingMessage;
+    const request = { method, url, headers, async *[Symbol.asyncIterator]() { if (body !== undefined) yield Buffer.from(body, "utf8"); } } as unknown as IncomingMessage;
     await handler(request, response);
     return { statusCode: response.statusCode, headers: responseHeaders, body: asRecord(JSON.parse(serializedBody)), serializedBody };
   };
@@ -139,6 +139,16 @@ export async function runHttpSmokeSelfTest(): Promise<HttpSmokeSelfTestRunResult
     const response = await invoke("POST", "/v1/admin/curriculum/levels");
     assertEqual(response.statusCode, 405, "M2 POST status");
     assertTruthy(response.headers.allow?.includes("GET"), "M2 POST allow header");
+  }));
+
+  cases.push(await recordCase("default mock runtime never reports an Admin M2 write success", async () => {
+    const brandId = "10000000-0000-4000-8000-000000000001";
+    const url = `/v1/admin/brands/${brandId}/instructors/global`;
+    const unauthenticated = await invoke("POST", url, {}, JSON.stringify({ displayName: "No Auth", reason: "Smoke test." }));
+    assertEqual(unauthenticated.statusCode, 401, "Unauthenticated write status");
+    const disabled = await invoke("POST", url, { authorization: "Bearer mock-auth-medway-admin-001", "idempotency-key": "smoke-write-disabled-001" }, JSON.stringify({ displayName: "No Persistence", reason: "Smoke test." }));
+    assertEqual(disabled.statusCode, 503, "Mock command source must fail closed");
+    assertEqual(disabled.body.ok, false, "Mock command source must not report success");
   }));
 
   cases.push(await recordCase("GET /v1/admin/overview requires brand", async () => {

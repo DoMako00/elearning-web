@@ -6,7 +6,7 @@ Prompt 53 implements the provider-neutral, programmatic execution boundary for t
 
 `ADMIN_COMMAND_SOURCE=mock` remains the default. It constructs no write pool and exposes no executable M2 command service. `ADMIN_COMMAND_SOURCE=postgres` requires `PERSISTENCE_PROVIDER=supabase`; it constructs a lazy dedicated write pool and the command executor without opening a connection or issuing a query. The existing Admin Overview and Admin M2 read selectors remain independent.
 
-The current HTTP Admin boundary is intentionally unsuitable for writes: it is a mock, unauthenticated skeleton and does not resolve a durable `app.admin_profiles.id`. Trusted authenticated request-context construction and HTTP JSON command routes require a later approval. No POST, PUT, PATCH, or DELETE route was added.
+Prompt 54 added the reusable trusted context boundary, and Prompt 55 adds its thin authenticated HTTP command adapter. The adapter is documented in [Authenticated Admin M2 HTTP Write APIs](admin-m2-authenticated-http-write-apis.md). It remains fail-closed under default mock command composition and does not change the executor's transactional or evidence ownership.
 
 ## Command catalogue
 
@@ -88,4 +88,4 @@ Application shutdown closes the read transport and optional write pool idempoten
 
 ## Next boundary
 
-A future phase may add authenticated Admin HTTP command routes only after the HTTP boundary can resolve a trusted active Admin profile, brand, permissions, request metadata, and JSON body without relying on the current mock context. Live staging command verification also requires separate explicit authorization and disposable, owner-approved data. This implementation alone does not authorize a database mutation.
+Prompt 56 is the future controlled staging command verification phase. It requires separate explicit authorization and disposable, owner-approved data; this implementation alone does not authorize a database mutation.
