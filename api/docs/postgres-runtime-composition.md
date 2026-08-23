@@ -25,3 +25,7 @@ The live Admin Overview endpoint still uses its existing in-memory read model. P
 ## Prompt 42 status
 
 Prompt 42 adds `ADMIN_READ_MODEL_SOURCE=mock|postgres` inside application composition. Mock remains the default. PostgreSQL source requires Supabase persistence, constructs without querying, and uses only M1 brand resolution; the deployed Dokploy and frontend sources remain mock-backed.
+
+## Prompt 53 command composition
+
+`ADMIN_COMMAND_SOURCE=mock|postgres` is independent from the read selectors and defaults to `mock`. Mock creates no write pool or executable M2 command service. PostgreSQL commands require Supabase persistence and use a dedicated lazy pool so the existing `ReadQueryTransport` stays strictly read-only. Construction performs no connection or query; application shutdown closes the optional write pool and read transport idempotently. The executor is programmatic only and is not mounted on HTTP routes.

@@ -4,7 +4,8 @@ export type AdminCoreErrorCode =
   | "unauthenticated" | "platform_required" | "platform_mismatch" | "admin_user_missing_or_inactive"
   | "permission_denied" | "target_not_found" | "target_platform_mismatch" | "brand_mismatch" | "target_brand_mismatch"
   | "validation_failed" | "reason_required" | "idempotency_key_required" | "policy_validation_failed"
-  | "lifecycle_transition_denied" | "unsupported_scope" | "audit_write_failed" | "not_implemented" | "conflict";
+  | "lifecycle_transition_denied" | "unsupported_scope" | "audit_write_failed" | "not_implemented" | "conflict"
+  | "idempotency_key_reused" | "persistence_failed";
 
 export interface AdminCoreError { readonly code: AdminCoreErrorCode; readonly message: string; readonly correlationId: CorrelationId; readonly details?: Readonly<Record<string, unknown>>; }
 export function adminCoreError(code: AdminCoreErrorCode, message: string, correlationId: CorrelationId, details?: Readonly<Record<string, unknown>>): AdminCoreError { return { code, message, correlationId, details }; }

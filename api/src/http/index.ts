@@ -2,6 +2,7 @@ export * from "./http-types";
 export * from "./http-app";
 export * from "./http-server";
 export * from "./middleware/correlation";
+export * from "./middleware/request-id";
 export * from "./middleware/json-response";
 export * from "./middleware/error-response";
 export * from "./runtime/brand-resolver";

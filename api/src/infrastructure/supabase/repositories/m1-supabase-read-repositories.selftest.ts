@@ -29,6 +29,7 @@ const membershipRow = { id: "membership-medway-001", brand_id: "brand-medway", a
 const studentRow = { id: "student-medway-001", brand_id: "brand-medway", app_user_id: "user-global-001", brand_membership_id: "membership-medway-001", full_name: "Medway Student", phone: null, email: "student@example.test", academic_year: "2026", academic_term: "term-1", university: "Example University", student_id: "STUDENT-001", status: "active", created_at: "2026-01-01T00:00:00.000Z", updated_at: "2026-01-01T00:00:00.000Z" };
 const adminRow = { id: "admin-medway-001", brand_id: "brand-medway", app_user_id: "user-global-001", display_name: "Medway Admin", status: "active", created_at: "2026-01-01T00:00:00.000Z", updated_at: "2026-01-01T00:00:00.000Z" };
 const assignmentRow = { id: "assignment-medway-001", brand_id: "brand-medway", admin_profile_id: "admin-medway-001", role_id: "role-medway-001", assigned_by_admin_profile_id: null, assigned_at: "2026-01-01T00:00:00.000Z", revoked_at: null, status: "active", created_at: "2026-01-01T00:00:00.000Z", updated_at: "2026-01-01T00:00:00.000Z" };
+const authorizationRow = { app_user_id: "user-global-001", auth_user_id: "auth-001", primary_email: null, primary_phone: null, app_user_status: "active", app_user_created_at: "2026-01-01T00:00:00.000Z", app_user_updated_at: "2026-01-01T00:00:00.000Z", admin_profile_id: "admin-medway-001", brand_id: "brand-medway", display_name: "Medway Admin", admin_profile_status: "active", admin_profile_created_at: "2026-01-01T00:00:00.000Z", admin_profile_updated_at: "2026-01-01T00:00:00.000Z", role_codes: ["admin.support", "admin.support"], permission_codes: ["admin.instructors.create", "admin.audit.read"] };
 
 class FakeReadQueryTransport implements ReadQueryTransport {
   readonly requests: ReadQueryRequest[] = [];
@@ -79,6 +80,29 @@ export async function runM1SupabaseReadRepositorySelfTest(): Promise<M1SupabaseR
     new SupabaseM1AdminProfileReadRepository(transport);
     new SupabaseM1AdminRoleAssignmentReadRepository(transport);
     assertEqual(transport.requests.length, 0, "Constructor query count");
+  });
+
+  await recordCase(cases, "Admin authorization projection binds identity and brand with active authority rows", async () => {
+    const transport = new FakeReadQueryTransport({ "m1.admin-authorization.by-auth-user-brand": [authorizationRow] });
+    const result = await new SupabaseM1AdminProfileReadRepository(transport).resolveAdminAuthorizationByAuthUserId({ authUserId: "auth-001", brand: medway });
+    assertTruthy(result.ok, "Authorization projection result");
+    if (result.ok) {
+      assertEqual(result.value.appUser.authUserId, "auth-001", "Authorization auth identity");
+      assertEqual(result.value.adminProfile.id, "admin-medway-001", "Authorization profile");
+      assertEqual(result.value.roleCodes.length, 1, "Role codes must deduplicate");
+      assertEqual(result.value.permissionCodes[0], "admin.audit.read", "Permission codes must sort deterministically");
+    }
+    const request = transport.requests[0]!;
+    assertSelectOnly(request);
+    assertEqual(request.values[0], "auth-001", "Authorization auth identity binding");
+    assertEqual(request.values[1], medway.brandId, "Authorization brand binding");
+    assertTruthy(request.text.includes("app.admin_role_assignments") && request.text.includes("app.admin_permissions"), "Authorization projection must use M1 role/permission tables");
+  });
+
+  await recordCase(cases, "Malformed authorization projection rows fail safely", async () => {
+    const result = await new SupabaseM1AdminProfileReadRepository(new FakeReadQueryTransport({ "m1.admin-authorization.by-auth-user-brand": [{ ...authorizationRow, permission_codes: "not-an-array" }] })).resolveAdminAuthorizationByAuthUserId({ authUserId: "auth-001", brand: medway });
+    assertEqual(result.ok, false, "Malformed authorization result");
+    if (!result.ok) assertEqual(result.error.code, "persistence_data_invalid", "Malformed authorization error code");
   });
 
   await recordCase(cases, "Educational brand lookup supports ID and canonical code", async () => {

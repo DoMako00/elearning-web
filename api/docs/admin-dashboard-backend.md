@@ -513,6 +513,10 @@ Command persistence remains a separate concern: it must continue to validate per
 
 Prompt 52 defines pure Admin M2 command and policy contracts for global instructors, brand-instructor associations, brand courses, and course-instructor assignments. The contracts preserve explicit brand scope, status-based relationships, immutable brand-local course codes, conservative course archival, required idempotency/evidence, and the separation between academic reference data, commercial state, and access. They do not implement database writes or Admin HTTP write endpoints; see [Admin M2 Write Command and Policy Contracts](admin-m2-write-command-policy-contracts.md).
 
+## Prompt 53 transactional command note
+
+Prompt 53 implements the ten M2 commands as a provider-neutral programmatic executor over one checked-out PostgreSQL transaction. An actual mutation and its M4 action/audit evidence commit or roll back together; durable retries use the M4 idempotency identity and canonical command fingerprint. `ADMIN_COMMAND_SOURCE=mock` remains the default, and no HTTP write route is mounted because the present HTTP Admin identity is still a mock skeleton. See [Admin M2 Transactional Write Execution](admin-m2-write-execution.md).
+
 ## Prompt 42 PostgreSQL source note
 
 The first PostgreSQL overview source preserves the existing response contract and resolves only the active M1 educational brand. Payment, subscription, access, content, assessment, audit, and security cards remain zero/empty until their authoritative read models exist. The default runtime source remains mock; see [PostgreSQL Admin Overview Read Model](postgres-admin-overview-read-model.md).
