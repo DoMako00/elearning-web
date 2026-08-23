@@ -7,6 +7,7 @@ import type { AdminM2CommandExecutor } from "../../modules/admin/commands";
 import type { AdminModule } from "../http-types";
 import type { HttpJsonResponse, HttpRequestContext } from "../http-types";
 import { badRequestResponse, conflictResponse, forbiddenResponse, internalErrorResponse, jsonResponse, methodNotAllowedResponse, notFoundResponse, serviceUnavailableResponse, unauthorizedResponse } from "../middleware/json-response";
+import { parseStrictBearerToken } from "../strict-bearer";
 
 const MAX_BODY_BYTES = 32 * 1024;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -69,11 +70,6 @@ async function readObjectBody(request: IncomingMessage, correlationId: string): 
   return value as Readonly<Record<string, unknown>>;
 }
 
-function bearer(headers: HttpRequestContext["headers"]): string | undefined {
-  const value = headers.authorization;
-  const match = typeof value === "string" ? /^Bearer ([A-Za-z0-9._~+\/=:-]+)$/.exec(value) : undefined;
-  return match?.[1];
-}
 function idempotency(headers: HttpRequestContext["headers"]): string | undefined {
   const value = headers["idempotency-key"];
   return typeof value === "string" && IDEMPOTENCY.test(value) ? value : undefined;
@@ -126,8 +122,13 @@ export async function handleAdminM2Write(request: IncomingMessage, context: Http
   if (context.method !== input.route.method) return methodNotAllowedResponse(context.correlationId, [input.route.method]);
   if ([...parsed.searchParams.keys()].length > 0) return badRequestResponse(context.correlationId, "Query parameters are not supported for this operation.");
   if (!validId(input.brandId) || (input.instructorId !== undefined && !validId(input.instructorId)) || (input.courseId !== undefined && !validId(input.courseId))) return badRequestResponse(context.correlationId, "A route identifier is invalid.");
-  if (Array.isArray(request.headers.authorization) || Array.isArray(request.headers["idempotency-key"])) return badRequestResponse(context.correlationId, "Duplicate security headers are not supported.");
-  const token = bearer(context.headers); if (!token) return unauthorizedResponse(context.correlationId);
+  const bearerResult = parseStrictBearerToken(request);
+  if (!bearerResult.ok) {
+    if (bearerResult.code === "duplicate" || bearerResult.code === "oversized") return badRequestResponse(context.correlationId, "The Authorization header is invalid.");
+    return unauthorizedResponse(context.correlationId);
+  }
+  if (Array.isArray(request.headers["idempotency-key"])) return badRequestResponse(context.correlationId, "Duplicate security headers are not supported.");
+  const token = bearerResult.token;
   const parsedBody = await readObjectBody(request, context.correlationId); if (isHttpResponse(parsedBody)) return parsedBody;
   const invalid = badBody(parsedBody, input.route.fields, context.correlationId); if (invalid) return invalid;
   const key = idempotency(context.headers); if (!key) return badRequestResponse(context.correlationId, "A valid Idempotency-Key header is required.");

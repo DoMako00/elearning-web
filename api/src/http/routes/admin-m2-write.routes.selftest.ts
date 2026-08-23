@@ -31,7 +31,7 @@ export async function runAdminM2WriteRouteSelfTest(): Promise<void> {
   const handler = createHttpApp({ admin, adminHttpContextResolver: resolver });
   const invoke = async (method: string, path: string, body: object, headers: Record<string, string> = {}) => {
     let output = ""; const response = { statusCode: 200, setHeader() {}, end(value?: string) { output = value ?? ""; } } as unknown as ServerResponse;
-    const request = { method, url: path, headers: { authorization: "Bearer test-token", "idempotency-key": "write-route-selftest-key", ...headers }, async *[Symbol.asyncIterator]() { yield Buffer.from(JSON.stringify(body)); } } as unknown as IncomingMessage;
+    const request = { method, url: path, headers: { authorization: "Bearer mock-auth-write-route-001", "idempotency-key": "write-route-selftest-key", ...headers }, async *[Symbol.asyncIterator]() { yield Buffer.from(JSON.stringify(body)); } } as unknown as IncomingMessage;
     await handler(request, response); return { status: response.statusCode, body: JSON.parse(output) as Record<string, unknown> };
   };
   const cases: readonly [string, string, object, string][] = [
