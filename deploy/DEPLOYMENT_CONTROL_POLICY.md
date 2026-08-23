@@ -244,3 +244,7 @@ Prompt 41 adds only backend composition code. `PERSISTENCE_PROVIDER=mock` remain
 ## Prompt 42 status
 
 Prompt 42 adds an optional backend Admin Overview PostgreSQL source behind `ADMIN_READ_MODEL_SOURCE=postgres`, which also requires Supabase persistence. Dokploy continues to use `PERSISTENCE_PROVIDER=mock` and `ADMIN_READ_MODEL_SOURCE=mock`; no database secret, deployment configuration, push, or deployment action is included.
+
+## Prompt 53 transactional-write status
+
+Prompt 53 adds a backend-only Admin M2 command executor behind `ADMIN_COMMAND_SOURCE=postgres`, which also requires `PERSISTENCE_PROVIDER=supabase`. The committed default remains `ADMIN_COMMAND_SOURCE=mock`; no write route, Dokploy environment value, frontend integration, staging mutation, push, or deployment is part of the phase. Enabling the command source or performing a live Admin mutation requires a separate controlled approval.
