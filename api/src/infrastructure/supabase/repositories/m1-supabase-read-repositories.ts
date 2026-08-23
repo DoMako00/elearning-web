@@ -21,6 +21,7 @@ import type {
   M1StudentProfileReadRepository,
 } from "../../../core/repositories";
 import type { ReadQueryRequest, ReadQueryTransport } from "../read-query-transport";
+import { nullablePersistenceTimestamp, requiredPersistenceTimestamp } from "./persistence-timestamp";
 
 type Row = Readonly<Record<string, unknown>>;
 
@@ -96,7 +97,7 @@ function mapEducationalBrand(row: Row): M1EducationalBrand {
   return {
     id: requiredString(row, "id"), code: oneOf(row, "code", ["medway", "elite"]), name: requiredString(row, "name"),
     slug: requiredString(row, "slug"), status: oneOf(row, "status", ["active", "inactive"]),
-    createdAt: requiredString(row, "created_at"), updatedAt: requiredString(row, "updated_at"),
+    createdAt: requiredPersistenceTimestamp(row.created_at), updatedAt: requiredPersistenceTimestamp(row.updated_at),
   };
 }
 
@@ -105,7 +106,7 @@ function mapAppUser(row: Row): M1AppUser {
     id: requiredString(row, "id"), authUserId: requiredString(row, "auth_user_id"),
     primaryEmail: nullableString(row, "primary_email"), primaryPhone: nullableString(row, "primary_phone"),
     status: oneOf(row, "status", ["active", "disabled", "anonymized"]),
-    createdAt: requiredString(row, "created_at"), updatedAt: requiredString(row, "updated_at"),
+    createdAt: requiredPersistenceTimestamp(row.created_at), updatedAt: requiredPersistenceTimestamp(row.updated_at),
   };
 }
 
@@ -114,9 +115,9 @@ function mapBrandMembership(row: Row): M1BrandMembership {
     id: requiredString(row, "id"), brandId: requiredString(row, "brand_id"), appUserId: requiredString(row, "app_user_id"),
     membershipType: oneOf(row, "membership_type", ["student", "admin_candidate", "staff"]),
     status: oneOf(row, "status", ["pending_payment", "pending_review", "active", "suspended", "expired", "cancelled", "rejected"]),
-    activatedAt: nullableString(row, "activated_at"), suspendedAt: nullableString(row, "suspended_at"),
-    expiredAt: nullableString(row, "expired_at"), cancelledAt: nullableString(row, "cancelled_at"), rejectedAt: nullableString(row, "rejected_at"),
-    createdAt: requiredString(row, "created_at"), updatedAt: requiredString(row, "updated_at"),
+    activatedAt: nullablePersistenceTimestamp(row.activated_at), suspendedAt: nullablePersistenceTimestamp(row.suspended_at),
+    expiredAt: nullablePersistenceTimestamp(row.expired_at), cancelledAt: nullablePersistenceTimestamp(row.cancelled_at), rejectedAt: nullablePersistenceTimestamp(row.rejected_at),
+    createdAt: requiredPersistenceTimestamp(row.created_at), updatedAt: requiredPersistenceTimestamp(row.updated_at),
   };
 }
 
@@ -127,7 +128,7 @@ function mapStudentProfile(row: Row): M1StudentProfile {
     phone: nullableString(row, "phone"), email: nullableString(row, "email"), academicYear: nullableString(row, "academic_year"),
     academicTerm: nullableString(row, "academic_term"), university: nullableString(row, "university"), studentId: nullableString(row, "student_id"),
     status: oneOf(row, "status", ["pending", "active", "suspended", "archived"]),
-    createdAt: requiredString(row, "created_at"), updatedAt: requiredString(row, "updated_at"),
+    createdAt: requiredPersistenceTimestamp(row.created_at), updatedAt: requiredPersistenceTimestamp(row.updated_at),
   };
 }
 
@@ -135,7 +136,7 @@ function mapAdminProfile(row: Row): M1AdminProfile {
   return {
     id: requiredString(row, "id"), brandId: requiredString(row, "brand_id"), appUserId: requiredString(row, "app_user_id"),
     displayName: requiredString(row, "display_name"), status: oneOf(row, "status", ["active", "suspended", "revoked"]),
-    createdAt: requiredString(row, "created_at"), updatedAt: requiredString(row, "updated_at"),
+    createdAt: requiredPersistenceTimestamp(row.created_at), updatedAt: requiredPersistenceTimestamp(row.updated_at),
   };
 }
 
@@ -143,7 +144,7 @@ function mapAdminPermission(row: Row): M1AdminPermission {
   return {
     id: requiredString(row, "id"), code: requiredString(row, "code"), category: requiredString(row, "category"),
     description: nullableString(row, "description"), status: oneOf(row, "status", ["active", "deprecated", "disabled"]),
-    createdAt: requiredString(row, "created_at"), updatedAt: requiredString(row, "updated_at"),
+    createdAt: requiredPersistenceTimestamp(row.created_at), updatedAt: requiredPersistenceTimestamp(row.updated_at),
   };
 }
 
@@ -152,20 +153,20 @@ function mapAdminRole(row: Row): M1AdminRole {
     id: requiredString(row, "id"), brandId: requiredString(row, "brand_id"), code: requiredString(row, "code"),
     name: requiredString(row, "name"), description: nullableString(row, "description"),
     status: oneOf(row, "status", ["active", "disabled", "archived"]),
-    createdAt: requiredString(row, "created_at"), updatedAt: requiredString(row, "updated_at"),
+    createdAt: requiredPersistenceTimestamp(row.created_at), updatedAt: requiredPersistenceTimestamp(row.updated_at),
   };
 }
 
 function mapAdminRolePermission(row: Row): M1AdminRolePermission {
-  return { roleId: requiredString(row, "role_id"), permissionId: requiredString(row, "permission_id"), createdAt: requiredString(row, "created_at") };
+  return { roleId: requiredString(row, "role_id"), permissionId: requiredString(row, "permission_id"), createdAt: requiredPersistenceTimestamp(row.created_at) };
 }
 
 function mapAdminRoleAssignment(row: Row): M1AdminRoleAssignment {
   return {
     id: requiredString(row, "id"), brandId: requiredString(row, "brand_id"), adminProfileId: requiredString(row, "admin_profile_id"),
     roleId: requiredString(row, "role_id"), assignedByAdminProfileId: nullableString(row, "assigned_by_admin_profile_id"),
-    assignedAt: requiredString(row, "assigned_at"), revokedAt: nullableString(row, "revoked_at"),
-    status: oneOf(row, "status", ["active", "revoked"]), createdAt: requiredString(row, "created_at"), updatedAt: requiredString(row, "updated_at"),
+    assignedAt: requiredPersistenceTimestamp(row.assigned_at), revokedAt: nullablePersistenceTimestamp(row.revoked_at),
+    status: oneOf(row, "status", ["active", "revoked"]), createdAt: requiredPersistenceTimestamp(row.created_at), updatedAt: requiredPersistenceTimestamp(row.updated_at),
   };
 }
 
