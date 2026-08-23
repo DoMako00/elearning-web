@@ -68,7 +68,7 @@ export async function runPersistenceRuntimeCompositionSelfTest(): Promise<void> 
   }
 
   const application = createApplication({ environment: { PERSISTENCE_PROVIDER: "mock" }, writePoolFactory: () => { throw new Error("mock application must not construct a write pool"); } });
-  assert(application.admin !== undefined && application.persistence.status === "mock-disabled" && application.adminCommandSource === "mock" && application.admin.commands.m2 === undefined, "existing mock application changed");
+  assert(application.admin !== undefined && application.adminHttpContextResolver !== undefined && application.persistence.status === "mock-disabled" && application.adminCommandSource === "mock" && application.admin.commands.m2 === undefined, "existing mock application changed");
   await application.close();
 
   try {
@@ -76,13 +76,18 @@ export async function runPersistenceRuntimeCompositionSelfTest(): Promise<void> 
     throw new Error("mock persistence with postgres commands was accepted");
   } catch (error) { assert(error instanceof Error && !error.message.includes("SUPABASE_DB_URL"), "invalid command matrix did not fail safely"); }
 
+  try {
+    createApplication({ environment: { PERSISTENCE_PROVIDER: "mock", AUTH_PROVIDER: "supabase" } });
+    throw new Error("unimplemented Supabase authentication was accepted");
+  } catch (error) { assert(error instanceof Error && !error.message.includes("SUPABASE_DB_URL"), "Supabase auth fail-closed error leaked configuration"); }
+
   const readPool = new FakePool(); const writePool = new FakeWritePool();
   const writeApplication = createApplication({
     environment: { PERSISTENCE_PROVIDER: "supabase", ADMIN_COMMAND_SOURCE: "postgres", SUPABASE_DB_URL: "postgresql://test.invalid/db?sslmode=verify-full" },
     poolFactory: () => readPool,
     writePoolFactory: () => writePool,
   });
-  assert(writeApplication.admin.commands.m2 !== undefined && readPool.queryCount === 0 && writePool.connectCount === 0, "postgres command construction queried a provider");
+  assert(writeApplication.admin.commands.m2 !== undefined && writeApplication.adminHttpContextResolver !== undefined && readPool.queryCount === 0 && writePool.connectCount === 0, "postgres command construction queried a provider");
   await Promise.all([writeApplication.close(), writeApplication.close()]);
   assert(readPool.endCount === 1 && writePool.endCount === 1, "application close did not close both pools once");
 }

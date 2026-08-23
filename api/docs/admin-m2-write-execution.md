@@ -23,7 +23,7 @@ The current HTTP Admin boundary is intentionally unsuitable for writes: it is a 
 | Assign instructor to course | `admin.course_instructors.assign` | same-brand teaching assignment |
 | Set course-instructor status | `admin.course_instructors.update` | same-brand teaching assignment |
 
-The trusted Admin context now names `adminProfileId` explicitly. The older `adminUserId` remains a deprecated compatibility alias and must contain the same value. Actor identity, active brand, permission snapshot, correlation/request identifiers, and server time are never accepted from a command body.
+The trusted Admin context now names `adminProfileId` explicitly. The older `adminUserId` remains a deprecated compatibility alias and must contain the same value. Actor identity, active brand, permission snapshot, correlation/request identifiers, and server time are never accepted from a command body. Prompt 54 provides the reusable [Trusted Admin HTTP Context](trusted-admin-auth-http-context.md) resolver for a future authenticated route boundary; it does not mount M2 write routes.
 
 ## Transaction and lock model
 

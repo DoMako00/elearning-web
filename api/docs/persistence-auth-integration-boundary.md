@@ -299,4 +299,6 @@ Until those checks are met, deployment remains mock-only and the current HTTP/co
 
 ## Canonical request-context implementation
 
-The provider-neutral context contracts are now backed by an exported skeleton in `api/src/core/request-context/`, including `RequestContextBuilder`, `InMemoryRequestContextFactory`, and the independently callable request-context self-test. `api/src/core/brand-scope/` contains the canonical in-memory brand resolver. These files are contracts and deterministic test fixtures only; they are not a Supabase, database, or production authentication adapter. The current admin-core `AdminRequestContext` remains the compatibility context until a controlled migration is approved.
+The provider-neutral context contracts are backed by an exported skeleton in `api/src/core/request-context/`, including `RequestContextBuilder`, `InMemoryRequestContextFactory`, and the independently callable request-context self-test. `api/src/core/brand-scope/` contains the canonical in-memory brand resolver.
+
+Prompt 54 additionally introduces the [Trusted Admin HTTP Context](trusted-admin-auth-http-context.md) boundary. It resolves the existing M1 global app-user, brand-scoped Admin-profile, role, and permission records into the Prompt 53 `AdminRequestContext`; `adminProfileId` is its canonical durable actor identity. The current Admin GET routes retain their mock-compatible behavior. Supabase authentication remains explicitly fail-closed until a separately reviewed JWT/JWKS adapter exists, and no HTTP mutation route is enabled by this boundary.

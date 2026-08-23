@@ -3,6 +3,7 @@ import { repositoryErr, repositoryOk, type RepositoryResult } from "../../../cor
 import type {
   M1AdminPermission,
   M1AdminPermissionReadRepository,
+  M1AdminAuthorizationSnapshot,
   M1AdminProfile,
   M1AdminProfileReadRepository,
   M1AdminRole,
@@ -36,6 +37,14 @@ function nullableString(row: Row, column: string): string | null {
   if (value === null || value === undefined) return null;
   if (typeof value !== "string") throw new Error(`Nullable persistence column is malformed: ${column}.`);
   return value;
+}
+
+function stringArray(row: Row, column: string): readonly string[] {
+  const value = row[column];
+  if (!Array.isArray(value) || value.some((item) => typeof item !== "string" || !item)) {
+    throw new Error(`Persistence array column is malformed: ${column}.`);
+  }
+  return Object.freeze([...new Set(value)].sort((left, right) => left.localeCompare(right)));
 }
 
 function oneOf<T extends string>(row: Row, column: string, allowed: readonly T[]): T {
@@ -140,6 +149,24 @@ function mapAdminProfile(row: Row): M1AdminProfile {
   };
 }
 
+function mapAdminAuthorizationSnapshot(row: Row): M1AdminAuthorizationSnapshot {
+  return {
+    appUser: {
+      id: requiredString(row, "app_user_id"), authUserId: requiredString(row, "auth_user_id"),
+      primaryEmail: nullableString(row, "primary_email"), primaryPhone: nullableString(row, "primary_phone"),
+      status: oneOf(row, "app_user_status", ["active", "disabled", "anonymized"]),
+      createdAt: requiredPersistenceTimestamp(row.app_user_created_at), updatedAt: requiredPersistenceTimestamp(row.app_user_updated_at),
+    },
+    adminProfile: {
+      id: requiredString(row, "admin_profile_id"), brandId: requiredString(row, "brand_id"), appUserId: requiredString(row, "app_user_id"),
+      displayName: requiredString(row, "display_name"), status: oneOf(row, "admin_profile_status", ["active", "suspended", "revoked"]),
+      createdAt: requiredPersistenceTimestamp(row.admin_profile_created_at), updatedAt: requiredPersistenceTimestamp(row.admin_profile_updated_at),
+    },
+    roleCodes: stringArray(row, "role_codes"),
+    permissionCodes: stringArray(row, "permission_codes"),
+  };
+}
+
 function mapAdminPermission(row: Row): M1AdminPermission {
   return {
     id: requiredString(row, "id"), code: requiredString(row, "code"), category: requiredString(row, "category"),
@@ -221,6 +248,13 @@ export class SupabaseM1AdminProfileReadRepository extends SupabaseM1ReadReposito
   }
   async findAdminProfileByUserId(input: { readonly appUserId: string; readonly brand: BrandScope; readonly correlationId?: string }): Promise<RepositoryResult<M1AdminProfile>> {
     return mapResult(await this.one({ label: "m1.admin-profile.by-user-brand", text: `select ${adminProfileColumns} from app.admin_profiles where app_user_id = $1 and brand_id = $2 limit 1`, values: [input.appUserId, input.brand.brandId] }, input.correlationId), mapAdminProfile, input.correlationId);
+  }
+  async resolveAdminAuthorizationByAuthUserId(input: { readonly authUserId: string; readonly brand: BrandScope; readonly correlationId?: string }): Promise<RepositoryResult<M1AdminAuthorizationSnapshot>> {
+    return mapResult(await this.one({
+      label: "m1.admin-authorization.by-auth-user-brand",
+      text: "select au.id as app_user_id, au.auth_user_id, au.primary_email, au.primary_phone, au.status as app_user_status, au.created_at as app_user_created_at, au.updated_at as app_user_updated_at, ap.id as admin_profile_id, ap.brand_id, ap.display_name, ap.status as admin_profile_status, ap.created_at as admin_profile_created_at, ap.updated_at as admin_profile_updated_at, coalesce(array_agg(distinct ar.code) filter (where ara.status = 'active' and ar.status = 'active'), array[]::text[]) as role_codes, coalesce(array_agg(distinct perm.code) filter (where ara.status = 'active' and ar.status = 'active' and perm.status = 'active'), array[]::text[]) as permission_codes from app.app_users au inner join app.admin_profiles ap on ap.app_user_id = au.id left join app.admin_role_assignments ara on ara.admin_profile_id = ap.id and ara.brand_id = ap.brand_id left join app.admin_roles ar on ar.id = ara.role_id and ar.brand_id = ap.brand_id left join app.admin_role_permissions arp on arp.role_id = ar.id left join app.admin_permissions perm on perm.id = arp.permission_id where au.auth_user_id = $1 and ap.brand_id = $2 group by au.id, au.auth_user_id, au.primary_email, au.primary_phone, au.status, au.created_at, au.updated_at, ap.id, ap.brand_id, ap.display_name, ap.status, ap.created_at, ap.updated_at limit 1",
+      values: [input.authUserId, input.brand.brandId],
+    }, input.correlationId), mapAdminAuthorizationSnapshot, input.correlationId);
   }
 }
 

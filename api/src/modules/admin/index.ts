@@ -5,3 +5,4 @@ export * from "./in-memory-admin-read-models";
 export * from "./read-models";
 export * from "./admin-brand-scope.selftest";
 export * from "./commands";
+export * from "./admin-http-context-source";

@@ -63,6 +63,18 @@ export interface M1AdminProfile {
   readonly updatedAt: string;
 }
 
+/**
+ * Backend-only projection of the existing M1 authority tables. This is not a
+ * second RBAC model: it binds one authenticated application user to one
+ * brand-scoped Admin profile and its active role/permission state.
+ */
+export interface M1AdminAuthorizationSnapshot {
+  readonly appUser: M1AppUser;
+  readonly adminProfile: M1AdminProfile;
+  readonly roleCodes: readonly string[];
+  readonly permissionCodes: readonly string[];
+}
+
 export interface M1AdminPermission {
   readonly id: string;
   readonly code: string;
@@ -127,6 +139,7 @@ export interface M1StudentProfileReadRepository {
 export interface M1AdminProfileReadRepository {
   findAdminProfileById(input: { readonly id: string; readonly brand: BrandScope; readonly correlationId?: string }): Promise<RepositoryResult<M1AdminProfile>>;
   findAdminProfileByUserId(input: { readonly appUserId: string; readonly brand: BrandScope; readonly correlationId?: string }): Promise<RepositoryResult<M1AdminProfile>>;
+  resolveAdminAuthorizationByAuthUserId(input: { readonly authUserId: string; readonly brand: BrandScope; readonly correlationId?: string }): Promise<RepositoryResult<M1AdminAuthorizationSnapshot>>;
 }
 
 export interface M1AdminRoleReadRepository {
