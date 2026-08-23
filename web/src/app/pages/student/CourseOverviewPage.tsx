@@ -21,7 +21,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import { useState, type KeyboardEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import anatomyHeroBg from "../../../Assets/image copy.webp";
 import "./CourseOverviewPage.css";
 
@@ -213,9 +213,15 @@ function MaterialsCard({ className = "", hidden = false }: MaterialsCardProps) {
 }
 
 export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
+  const navigate = useNavigate();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [activeTab, setActiveTab] = useState<CourseTabId>("overview");
   const [expandedModuleId, setExpandedModuleId] = useState<string | null>("module-1");
+
+  const startLesson = (lessonId: string) => {
+    onStartLesson?.(lessonId);
+    navigate(`/my-courses/human-anatomy-i/lessons/${lessonId}`);
+  };
 
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, tabIndex: number) => {
     let nextIndex = tabIndex;
@@ -286,7 +292,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
                 </div>
                 <span className="course-overview-hero__divider" aria-hidden="true" />
                 <div className="course-overview-hero__actions">
-                  <button type="button" className="course-overview-hero__start" onClick={() => onStartLesson?.(FIRST_LESSON_ID)}>
+                  <button type="button" className="course-overview-hero__start" onClick={() => startLesson(FIRST_LESSON_ID)}>
                     <CirclePlay aria-hidden="true" /> Start lesson
                   </button>
                   <button
@@ -401,7 +407,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
                           className={`course-overview-lesson${lesson.ready ? " is-ready" : ""}`}
                           key={lesson.id}
                           aria-label={`${lesson.title}, ${lesson.duration}${lesson.ready ? ", ready to begin" : ""}`}
-                          onClick={lesson.ready ? () => onStartLesson?.(lesson.id) : undefined}
+                          onClick={lesson.ready ? () => startLesson(lesson.id) : undefined}
                         >
                           <span className="course-overview-lesson__marker">{lesson.ready ? <Play aria-hidden="true" /> : <i />}</span>
                           <span className="course-overview-lesson__number">{lesson.number}</span>
