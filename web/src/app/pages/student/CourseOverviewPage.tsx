@@ -266,26 +266,39 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
           <article className="course-overview-hero" aria-labelledby="course-lesson-title">
             <AnatomyHeroArt />
             <div className="course-overview-hero__content">
-              <span className="course-overview-hero__status">Ready to start</span>
-              <h2 id="course-lesson-title">Introduction to Anatomy &amp; Anatomical Terms</h2>
-              <p className="course-overview-hero__lesson">Lesson 1 of 14</p>
-              <div className="course-overview-hero__instructor">
-                <InstructorPortrait />
-                <span><strong>Dr. Ahmed Hassan</strong><small>Professor of Anatomy</small></span>
+              <div className="course-overview-hero__intro">
+                <span className="course-overview-hero__status">
+                  <CirclePlay aria-hidden="true" />
+                  Ready to start
+                </span>
+                <h2 id="course-lesson-title">
+                  <span className="course-overview-hero__title-line">Introduction to </span>
+                  <span className="course-overview-hero__title-line">Anatomy &amp; </span>
+                  <span className="course-overview-hero__title-line">Anatomical Terms</span>
+                </h2>
+                <p className="course-overview-hero__lesson">Lesson 1 of 14</p>
+                <span className="course-overview-hero__divider" aria-hidden="true" />
               </div>
-              <div className="course-overview-hero__actions">
-                <button type="button" className="course-overview-hero__start" onClick={() => onStartLesson?.(FIRST_LESSON_ID)}>
-                  <CirclePlay aria-hidden="true" /> Start lesson
-                </button>
-                <button
-                  type="button"
-                  className="course-overview-hero__bookmark"
-                  aria-label={isBookmarked ? "Remove lesson bookmark" : "Bookmark first lesson"}
-                  aria-pressed={isBookmarked}
-                  onClick={toggleBookmark}
-                >
-                  <Bookmark aria-hidden="true" fill={isBookmarked ? "currentColor" : "none"} />
-                </button>
+              <div className="course-overview-hero__footer">
+                <div className="course-overview-hero__instructor">
+                  <InstructorPortrait />
+                  <span><strong>Dr. Ahmed Hassan</strong><small>Professor of Anatomy</small></span>
+                </div>
+                <span className="course-overview-hero__divider" aria-hidden="true" />
+                <div className="course-overview-hero__actions">
+                  <button type="button" className="course-overview-hero__start" onClick={() => onStartLesson?.(FIRST_LESSON_ID)}>
+                    <CirclePlay aria-hidden="true" /> Start lesson
+                  </button>
+                  <button
+                    type="button"
+                    className="course-overview-hero__bookmark"
+                    aria-label={isBookmarked ? "Remove lesson bookmark" : "Bookmark first lesson"}
+                    aria-pressed={isBookmarked}
+                    onClick={toggleBookmark}
+                  >
+                    <Bookmark aria-hidden="true" fill={isBookmarked ? "currentColor" : "none"} />
+                  </button>
+                </div>
               </div>
             </div>
             <dl className="course-overview-hero__meta">

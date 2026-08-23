@@ -168,10 +168,20 @@
   padding: clamp(18px, 2.2cqh, 24px) 0 clamp(16px, 2cqh, 24px) clamp(24px, 1.55vw, 30px);
 }
 
+.course-overview-hero__intro,
+.course-overview-hero__footer {
+  display: contents;
+}
+
+.course-overview-hero__divider {
+  display: none;
+}
+
 .course-overview-hero__status {
   display: inline-flex;
   min-height: 24px;
   align-items: center;
+  gap: 6px;
   padding: 0 10px;
   border: 1px solid rgb(77 231 132 / 16%);
   border-radius: 999px;
@@ -181,6 +191,11 @@
   font-weight: 800;
   letter-spacing: .055em;
   text-transform: uppercase;
+}
+
+.course-overview-hero__status svg {
+  width: 14px;
+  height: 14px;
 }
 
 .course-overview-hero h2 {
@@ -1707,58 +1722,217 @@
   }
 
   .course-overview-hero {
-    min-height: clamp(360px, 38vh, 520px);
+    width: 100%;
+    height: clamp(360px, 38vh, 519px);
+    min-height: clamp(360px, 38vh, 519px);
+    max-height: 519px;
+    grid-template-columns: 40% 60%;
+    grid-template-rows: minmax(0, 1fr);
+    border-color: #176a49;
+    border-radius: 16px;
+    background:
+      radial-gradient(circle at 72% 42%, rgb(12 102 67 / 28%), transparent 42%),
+      linear-gradient(90deg, #012f20 0%, #023a27 42%, #03482f 100%);
+    box-shadow:
+      inset 0 1px 0 rgb(126 245 172 / 12%),
+      0 10px 26px rgb(0 35 23 / 8%);
+  }
+
+  .course-overview-hero::before {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    display: block;
+    background:
+      linear-gradient(90deg, rgb(0 34 23 / 78%) 0%, rgb(0 38 25 / 68%) 38%, rgb(0 46 30 / 18%) 58%, transparent 76%),
+      radial-gradient(circle at 44% 48%, rgb(20 139 84 / 10%), transparent 38%);
+    content: "";
+    pointer-events: none;
+  }
+
+  .course-overview-hero__art {
+    z-index: 0;
+    left: 40%;
+  }
+
+  .course-overview-hero__art-img {
+    object-position: center;
+    filter: saturate(1.06) brightness(1.03);
+  }
+
+  .course-overview-hero__content {
+    grid-column: 1;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 26px 10px 26px 26px;
+  }
+
+  .course-overview-hero__intro,
+  .course-overview-hero__footer {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .course-overview-hero__intro {
+    width: 100%;
+    gap: 0;
+  }
+
+  .course-overview-hero__footer {
+    width: min(280px, calc(100vw - 132px));
+    gap: 0;
   }
 
   .course-overview-hero h2 {
-    font-size: clamp(19px, 2.8vw, 27px);
+    max-width: 218px;
+    margin-top: 26px;
+    font-size: clamp(19px, 2.45vw, 25px);
     line-height: 1.08;
+    letter-spacing: -.04em;
+  }
+
+  .course-overview-hero__title-line {
+    display: block;
+    white-space: nowrap;
   }
 
   .course-overview-hero__status {
-    min-height: 26px;
-    font-size: 10px;
+    min-height: 34px;
+    gap: 7px;
+    padding: 0 12px;
+    border-color: rgb(57 218 120 / 30%);
+    background: rgb(22 132 76 / 18%);
+    box-shadow: inset 0 0 18px rgb(35 206 108 / 5%);
+    color: #74eea3;
+    font-size: 10.5px;
+  }
+
+  .course-overview-hero__status svg {
+    width: 17px;
+    height: 17px;
   }
 
   .course-overview-hero__lesson {
-    font-size: 13px;
+    margin-top: 24px;
+    color: #d8f5e3;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .course-overview-hero__divider {
+    display: block;
+    width: 100%;
+    height: 1px;
+    flex: 0 0 auto;
+    border: 0;
+    background: rgb(145 222 174 / 18%);
+  }
+
+  .course-overview-hero__intro .course-overview-hero__divider {
+    margin-top: 20px;
+  }
+
+  .course-overview-hero__footer .course-overview-hero__divider {
+    margin: 17px 0;
   }
 
   .course-overview-hero__instructor strong {
-    font-size: 12.5px;
+    font-size: 14px;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .course-overview-hero__instructor {
+    gap: 12px;
+    margin-top: 0;
   }
 
   .course-overview-hero__instructor small {
-    font-size: 11px;
+    margin-top: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .course-overview-hero__portrait {
+    width: 46px;
+    height: 46px;
+  }
+
+  .course-overview-hero__portrait svg {
+    width: 39px;
+    height: 39px;
   }
 
   .course-overview-hero__start,
-  .course-overview-hero__bookmark,
-  .course-overview-heading__bookmark {
-    min-width: 44px;
-    width: 44px;
-    height: 44px;
+  .course-overview-hero__bookmark {
+    height: 50px;
   }
 
   .course-overview-hero__start {
     width: auto;
-    font-size: 14px;
+    border-radius: 9px;
+    font-size: 15px;
   }
 
-  .course-overview-hero__meta {
-    gap: 12px;
-    padding: 12px 10px 16px;
-  }
-
-  .course-overview-hero__meta svg {
+  .course-overview-hero__start svg {
     width: 20px;
     height: 20px;
   }
 
-  .course-overview-hero__meta dt,
-  .course-overview-hero__meta dd {
+  .course-overview-hero__bookmark {
+    width: 50px;
+    min-width: 50px;
+    border-color: rgb(188 233 205 / 28%);
+    border-radius: 9px;
+    background: rgb(2 42 28 / 56%);
+  }
+
+  .course-overview-hero__bookmark svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .course-overview-hero__actions {
+    width: 280px;
+    gap: 12px;
+    margin-top: 0;
+  }
+
+  .course-overview-hero__meta {
+    position: absolute;
+    z-index: 3;
+    right: 20px;
+    bottom: 24px;
+    width: 132px;
+    gap: 0;
+    padding: 0;
+  }
+
+  .course-overview-hero__meta > div {
+    gap: 9px;
+    padding: 0 0 11px;
+  }
+
+  .course-overview-hero__meta > div + div {
+    padding-top: 11px;
+    border-top: 1px solid rgb(145 222 174 / 16%);
+  }
+
+  .course-overview-hero__meta svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .course-overview-hero__meta dt {
     font-size: 11px;
-    line-height: 1.2;
+    line-height: 1.05;
+  }
+
+  .course-overview-hero__meta dd {
+    margin-top: 3px;
+    font-size: 12.5px;
+    line-height: 1.1;
   }
 
   .course-overview-tabs {
@@ -2007,6 +2181,124 @@
 
   .course-overview-progress__metrics dd {
     font-size: 13px;
+  }
+}
+
+/* Exact reference size at the 1024px iPad portrait canvas. */
+@media (min-width: 1000px) and (max-width: 1025px) and (orientation: portrait) {
+  .course-overview-hero {
+    width: 611px;
+    max-width: 611px;
+    height: 519px;
+    min-height: 519px;
+    max-height: 519px;
+  }
+}
+
+/* Preserve the reference composition when the two-column tablet canvas narrows. */
+@media (min-width: 641px) and (max-width: 900px) and (orientation: portrait) {
+  .course-overview-hero__content {
+    padding: 18px 6px 18px 18px;
+  }
+
+  .course-overview-hero__status {
+    min-height: 30px;
+    padding-inline: 9px;
+    font-size: 9px;
+  }
+
+  .course-overview-hero__status svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .course-overview-hero h2 {
+    max-width: 100%;
+    margin-top: 18px;
+    font-size: clamp(15.5px, 2.1vw, 19px);
+    letter-spacing: -.055em;
+  }
+
+  .course-overview-hero__lesson {
+    margin-top: 18px;
+    font-size: 12px;
+  }
+
+  .course-overview-hero__intro .course-overview-hero__divider {
+    margin-top: 14px;
+  }
+
+  .course-overview-hero__footer {
+    width: min(250px, calc(100vw - 118px));
+  }
+
+  .course-overview-hero__footer .course-overview-hero__divider {
+    margin-block: 14px;
+  }
+
+  .course-overview-hero__portrait {
+    width: 40px;
+    height: 40px;
+  }
+
+  .course-overview-hero__portrait svg {
+    width: 34px;
+    height: 34px;
+  }
+
+  .course-overview-hero__instructor {
+    gap: 9px;
+  }
+
+  .course-overview-hero__instructor strong {
+    font-size: 12px;
+  }
+
+  .course-overview-hero__instructor small {
+    font-size: 10px;
+  }
+
+  .course-overview-hero__actions {
+    width: 250px;
+    gap: 9px;
+  }
+
+  .course-overview-hero__start,
+  .course-overview-hero__bookmark {
+    height: 44px;
+  }
+
+  .course-overview-hero__bookmark {
+    width: 44px;
+    min-width: 44px;
+  }
+
+  .course-overview-hero__meta {
+    right: 10px;
+    bottom: 16px;
+    width: 108px;
+  }
+
+  .course-overview-hero__meta > div {
+    gap: 6px;
+    padding-bottom: 8px;
+  }
+
+  .course-overview-hero__meta > div + div {
+    padding-top: 8px;
+  }
+
+  .course-overview-hero__meta svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .course-overview-hero__meta dt {
+    font-size: 9px;
+  }
+
+  .course-overview-hero__meta dd {
+    font-size: 10px;
   }
 }
 
