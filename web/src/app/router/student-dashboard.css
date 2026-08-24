@@ -61,6 +61,20 @@ main[data-main-workspace] {
     clamp(6px, 0.6vw, 12px) clamp(12px, 1.46vw, 28px) clamp(8px, 0.8vw, 14px) clamp(12px, 1.67vw, 32px);
 }
 
+@media (min-width: 1200px) {
+  .student-dashboard__content {
+    width: min(100%, 2200px);
+    margin-inline: auto;
+    padding: clamp(10px, 1vw, 18px) clamp(18px, 1.7vw, 36px) clamp(12px, 1.2vw, 22px);
+  }
+
+  .my-courses-workspace,
+  .explore-workspace,
+  .course-overview-page {
+    margin-inline: auto;
+  }
+}
+
 [data-main-workspace],
 [data-main-workspace] section,
 [data-main-workspace] article {
@@ -536,6 +550,13 @@ main[data-main-workspace] {
   padding: clamp(14px, 1.2vw, 24px);
   border-radius: 19px;
   background: var(--color-surface);
+}
+
+@media (min-width: 1600px) {
+  .my-courses-workspace {
+    gap: clamp(18px, 1.15vw, 24px);
+    padding: clamp(20px, 1.25vw, 28px);
+  }
 }
 
 .my-courses-heading {

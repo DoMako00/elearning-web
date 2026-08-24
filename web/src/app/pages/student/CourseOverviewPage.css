@@ -15,7 +15,7 @@
   grid-template-rows: auto minmax(0, 1fr);
   gap: clamp(12px, 1.35cqh, 16px);
   overflow: hidden;
-  padding: clamp(8px, 1.1cqh, 12px) clamp(8px, .6vw, 12px) 0;
+  padding: clamp(12px, 1.2cqh, 18px) clamp(12px, 1vw, 24px) clamp(6px, .7cqh, 12px);
   color: var(--color-text-primary);
 }
 
@@ -112,8 +112,8 @@
 
 .course-overview-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 390px;
-  gap: clamp(18px, 1.6vw, 28px);
+  grid-template-columns: minmax(0, 1fr) clamp(330px, 22vw, 390px);
+  gap: clamp(18px, 1.7vw, 32px);
   overflow: hidden;
 }
 
@@ -122,7 +122,7 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  grid-template-rows: 340px 50px auto;
+  grid-template-rows: clamp(340px, 40vh, 390px) 50px auto;
   gap: clamp(8px, 1.35cqh, 12px);
   overflow: hidden;
 }

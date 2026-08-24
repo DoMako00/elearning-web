@@ -15,8 +15,8 @@
   min-width: 0;
   min-height: 0;
   grid-template-rows: auto minmax(0, 1.15fr) auto minmax(0, 1fr);
-  gap: clamp(10px, 1vw, 16px);
-  padding: clamp(12px, 1.1vw, 22px);
+  gap: clamp(12px, 1vw, 20px);
+  padding: clamp(14px, 1.2vw, 26px);
   border-radius: 19px;
   background: var(--color-surface);
   overflow: hidden;
@@ -1822,5 +1822,12 @@
 
   .explore-direction-card {
     min-height: auto;
+  }
+}
+
+@media (min-width: 1600px) {
+  .explore-workspace {
+    grid-template-rows: auto minmax(0, 1.1fr) auto minmax(0, 1.05fr);
+    max-width: 2100px;
   }
 }

@@ -55,6 +55,7 @@ export function SignInPage() {
         <AuthButton type="submit">Continue <ArrowRight aria-hidden="true" /></AuthButton>
         <div className="auth-divider"><span>or</span></div>
         <AuthButton type="button" variant="secondary" onClick={() => navigate("/auth/verify-otp")}><span className="auth-google-mark" aria-hidden="true">G</span> Continue with Google</AuthButton>
+        <p className="auth-switch-copy">Don&apos;t have an account? <button type="button" className="auth-inline-link" onClick={() => navigate("/auth/register")}>Create account</button></p>
       </form>
     </AuthShell>
   );

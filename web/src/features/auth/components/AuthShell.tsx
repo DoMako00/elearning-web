@@ -35,9 +35,11 @@ export function AuthShell({ children, step, stepNumber, stepLabel, aside, pendin
             <div className="auth-card__content">{children}</div>
             {aside && <aside className="auth-card__aside">{aside}</aside>}
           </div>
+          <footer className="auth-card__footer">
+            <AuthProgressBar currentStep={step} pending={pending} />
+            <p className="auth-demo-note">Frontend preview only — no live authentication, payment, or access grant is performed.</p>
+          </footer>
         </section>
-        <AuthProgressBar currentStep={step} pending={pending} />
-        <p className="auth-demo-note">Frontend preview only — no live authentication, payment, or access grant is performed.</p>
       </main>
     </div>
   );

@@ -50,7 +50,7 @@ export function CompleteProfilePage() {
         <AuthTextField label="Phone number" name="phone" autoComplete="tel" value={form.phone} onChange={(event) => update("phone", event.target.value)} error={errors.phone} />
         <AuthSelectField label="Semester" name="semester" value={form.semester} onChange={(event) => update("semester", event.target.value)} error={errors.semester}>{semesters.map((semester) => <option key={semester}>{semester}</option>)}</AuthSelectField>
         <AuthTextField label="Email address" name="email" type="email" autoComplete="email" value={form.email} onChange={(event) => update("email", event.target.value)} error={errors.email} />
-        <AuthTextField label="Student ID" name="studentId" value={form.studentId} onChange={(event) => update("studentId", event.target.value)} error={errors.studentId} />
+        <AuthTextField label="Username / Student ID" name="studentId" value={form.studentId} onChange={(event) => update("studentId", event.target.value)} error={errors.studentId} />
         <AuthTextField label="University" name="university" value={form.university} onChange={(event) => update("university", event.target.value)} error={errors.university} />
         <div className="auth-profile-form__terms">
           <label className="auth-checkbox"><input type="checkbox" checked={form.termsAccepted} onChange={(event) => update("termsAccepted", event.target.checked)} /><span>I agree to the <button type="button" className="auth-inline-link">Terms of Service</button></span></label>
