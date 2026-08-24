@@ -30,6 +30,15 @@ import {
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import anatomyArt from "../../../Assets/image copy.webp";
+import { CourseDiscussionPanel } from "../../../components/learning-space/CourseDiscussionPanel";
+import { CourseResourcesPanel } from "../../../components/learning-space/CourseResourcesPanel";
+import {
+  DiscussionWorkspaceRail,
+  NotesWorkspaceRail,
+  ResourcesWorkspaceRail,
+} from "../../../components/learning-space/LearningSpaceRails";
+import { LearningNotesPanel } from "../../../components/learning-space/LearningNotesPanel";
+import "../../../components/learning-space/learningSpace.css";
 import "./CourseOverviewPage.css";
 import "./LessonPlayerPage.css";
 
@@ -489,8 +498,8 @@ export function LessonPlayerPage() {
       </header>
 
       <div className="course-overview-layout">
-        <div className="course-overview-primary">
-          <LessonVideoPlayer />
+        <div className={`course-overview-primary${activeTab === "overview" ? "" : " is-tab-expanded"}`}>
+          {activeTab === "overview" ? <LessonVideoPlayer /> : null}
 
           <div className="course-overview-tabs" role="tablist" aria-label="Lesson sections">
             {TABS.map(({ id, label, icon: Icon }, index) => (
@@ -546,31 +555,40 @@ export function LessonPlayerPage() {
             <MaterialsCard className="course-overview-materials--primary" />
           </div>
 
-          <div className="course-overview-panel course-overview-panel--message" role="tabpanel" id="lesson-player-panel-notes" aria-labelledby="lesson-player-tab-notes" hidden={activeTab !== "notes"}>
-            <StickyNote aria-hidden="true" /><div><h2>No notes yet</h2><p>Take notes while watching to keep anatomical terms organized.</p></div>
+          <div className="course-overview-panel course-overview-panel--notes" role="tabpanel" id="lesson-player-panel-notes" aria-labelledby="lesson-player-tab-notes" hidden={activeTab !== "notes"}>
+            <LearningNotesPanel onViewResources={() => setActiveTab("resources")} />
           </div>
           <div className="course-overview-panel course-overview-panel--resources" role="tabpanel" id="lesson-player-panel-resources" aria-labelledby="lesson-player-tab-resources" hidden={activeTab !== "resources"}>
-            <header><div><h2>Lesson resources</h2><p>Files provided for this lesson.</p></div></header>
-            <MaterialsGrid />
+            <CourseResourcesPanel />
           </div>
-          <div className="course-overview-panel course-overview-panel--message" role="tabpanel" id="lesson-player-panel-discussion" aria-labelledby="lesson-player-tab-discussion" hidden={activeTab !== "discussion"}>
-            <MessageSquareText aria-hidden="true" /><div><h2>Join the discussion</h2><p>Ask questions about anatomical terms and share insights with classmates.</p></div>
+          <div className="course-overview-panel course-overview-panel--discussion" role="tabpanel" id="lesson-player-panel-discussion" aria-labelledby="lesson-player-tab-discussion" hidden={activeTab !== "discussion"}>
+            <CourseDiscussionPanel />
           </div>
 
-          <nav className="lesson-player-nav" aria-label="Lesson navigation">
-            <button type="button" className="lesson-player-nav__ghost" disabled={!previous} onClick={() => previous && openLesson(previous.id)}>
-              <ChevronLeft aria-hidden="true" /> Previous lesson
-            </button>
-            <button type="button" className={`lesson-player-nav__complete${isComplete ? " is-done" : ""}`} onClick={() => setIsComplete((currentValue) => !currentValue)}>
-              <CheckCircle2 aria-hidden="true" /> {isComplete ? "Completed" : "Mark as complete"}
-            </button>
-            <button type="button" className="lesson-player-nav__ghost" disabled={!next} onClick={() => next && openLesson(next.id)}>
-              Next lesson <ChevronRight aria-hidden="true" />
-            </button>
-          </nav>
+          {activeTab === "overview" ? (
+            <nav className="lesson-player-nav" aria-label="Lesson navigation">
+              <button type="button" className="lesson-player-nav__ghost" disabled={!previous} onClick={() => previous && openLesson(previous.id)}>
+                <ChevronLeft aria-hidden="true" /> Previous lesson
+              </button>
+              <button type="button" className={`lesson-player-nav__complete${isComplete ? " is-done" : ""}`} onClick={() => setIsComplete((currentValue) => !currentValue)}>
+                <CheckCircle2 aria-hidden="true" /> {isComplete ? "Completed" : "Mark as complete"}
+              </button>
+              <button type="button" className="lesson-player-nav__ghost" disabled={!next} onClick={() => next && openLesson(next.id)}>
+                Next lesson <ChevronRight aria-hidden="true" />
+              </button>
+            </nav>
+          ) : null}
         </div>
 
         <aside className="course-overview-rail" aria-label="Course support information">
+          {activeTab === "notes" ? (
+            <NotesWorkspaceRail />
+          ) : activeTab === "resources" ? (
+            <ResourcesWorkspaceRail />
+          ) : activeTab === "discussion" ? (
+            <DiscussionWorkspaceRail />
+          ) : (
+            <>
           <article className="course-overview-card course-overview-curriculum">
             <header>
               <h2>Course curriculum</h2>
@@ -642,6 +660,8 @@ export function LessonPlayerPage() {
               </button>
             </article>
           ) : null}
+            </>
+          )}
         </aside>
 
         <MaterialsCard

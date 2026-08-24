@@ -2,6 +2,11 @@
   grid-template-rows: 340px 50px minmax(0, 1fr) auto;
 }
 
+/* Notes / Resources / Discussion tabs expand over the video area */
+.lesson-player-page .course-overview-primary.is-tab-expanded {
+  grid-template-rows: 50px minmax(0, 1fr);
+}
+
 .lesson-player-page .course-overview-rail {
   grid-template-rows: minmax(0, 1fr) auto auto;
 }
@@ -399,6 +404,10 @@
     grid-template-rows: minmax(200px, 34%) 44px minmax(0, 1fr) auto;
   }
 
+  .lesson-player-page .course-overview-primary.is-tab-expanded {
+    grid-template-rows: 44px minmax(0, 1fr);
+  }
+
   .lesson-player-nav button {
     min-height: 38px;
   }
@@ -411,6 +420,10 @@
 @media (max-height: 700px) and (min-width: 1200px) {
   .lesson-player-page .course-overview-primary {
     grid-template-rows: minmax(180px, 32%) 40px minmax(0, 1fr) auto;
+  }
+
+  .lesson-player-page .course-overview-primary.is-tab-expanded {
+    grid-template-rows: 40px minmax(0, 1fr);
   }
 
   .lesson-player__play-center {
