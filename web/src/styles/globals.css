@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Instrument+Sans:wdth,wght@75..100,400;75..100,500;75..100,600;75..100,700&family=WDXL+Lubrifont+SC&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 @import "./tokens.css";
 
@@ -47,7 +47,6 @@ h4,
 h5,
 h6 {
   font-family: var(--font-heading);
-  font-weight: 400 !important;
 }
 
 /* Tablets and mobile use the document as the single, reliable scroll owner. */

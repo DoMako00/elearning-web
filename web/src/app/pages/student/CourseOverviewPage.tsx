@@ -18,11 +18,11 @@ import {
   ShieldCheck,
   Sparkles,
   StickyNote,
-  UsersRound,
 } from "lucide-react";
 import { useState, type KeyboardEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import anatomyHeroBg from "../../../Assets/image copy.webp";
+import { useNavigate } from "react-router-dom";
+import heroBackground from "../../../Assets/dashboard/my-courses-hero-background.png";
+import anatomyOverlay from "../../../Assets/dashboard/my-courses-anatomy-overlay.png";
 import "./CourseOverviewPage.css";
 
 const FIRST_LESSON_ID = "human-anatomy-i-lesson-1";
@@ -155,10 +155,11 @@ function AnatomyHeroArt() {
   return (
     <div className="course-overview-hero__art" aria-hidden="true">
       <img
-        src={anatomyHeroBg}
+        src={heroBackground}
         alt=""
-        className="course-overview-hero__art-img"
+        className="course-overview-hero__art-bg"
       />
+      <img src={anatomyOverlay} alt="" className="course-overview-hero__art-anatomy" />
     </div>
   );
 }
@@ -244,29 +245,6 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
 
   return (
     <section className="course-overview-page" aria-labelledby="course-overview-title">
-      <header className="course-overview-heading">
-        <nav className="course-overview-breadcrumb" aria-label="Breadcrumb">
-          <Link to="/my-courses">My Courses</Link>
-          <ChevronRight aria-hidden="true" />
-          <span aria-current="page">Human Anatomy I</span>
-        </nav>
-        <div className="course-overview-heading__row">
-          <div>
-            <h1 id="course-overview-title">Human Anatomy I</h1>
-            <p>BUC School of Medicine <i /> Semester 1 <i /> Basic Medical Sciences</p>
-          </div>
-          <button
-            type="button"
-            className="course-overview-heading__bookmark"
-            aria-label={isBookmarked ? "Remove Human Anatomy I from saved courses" : "Save Human Anatomy I"}
-            aria-pressed={isBookmarked}
-            onClick={toggleBookmark}
-          >
-            <Bookmark aria-hidden="true" fill={isBookmarked ? "currentColor" : "none"} />
-          </button>
-        </div>
-      </header>
-
       <div className="course-overview-layout">
         <div className="course-overview-primary">
           <article className="course-overview-hero" aria-labelledby="course-lesson-title">
@@ -275,14 +253,16 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
               <div className="course-overview-hero__intro">
                 <span className="course-overview-hero__status">
                   <CirclePlay aria-hidden="true" />
-                  Ready to start
+                  Lesson 1 of 14
                 </span>
-                <h2 id="course-lesson-title">
-                  <span className="course-overview-hero__title-line">Introduction to </span>
-                  <span className="course-overview-hero__title-line">Anatomy &amp; </span>
-                  <span className="course-overview-hero__title-line">Anatomical Terms</span>
-                </h2>
-                <p className="course-overview-hero__lesson">Lesson 1 of 14</p>
+                <h2 id="course-lesson-title">Introduction to Anatomy &amp; Anatomical Terms</h2>
+                <p className="course-overview-hero__context">
+                  <span>BUC School of Medicine</span>
+                  <i aria-hidden="true" />
+                  <span>Semester 1</span>
+                  <i aria-hidden="true" />
+                  <span>Basic Medical Sciences</span>
+                </p>
                 <span className="course-overview-hero__divider" aria-hidden="true" />
               </div>
               <div className="course-overview-hero__footer">
@@ -291,21 +271,21 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
                   <span><strong>Dr. Ahmed Hassan</strong><small>Professor of Anatomy</small></span>
                 </div>
                 <span className="course-overview-hero__divider" aria-hidden="true" />
-                <div className="course-overview-hero__actions">
-                  <button type="button" className="course-overview-hero__start" onClick={() => startLesson(FIRST_LESSON_ID)}>
-                    <CirclePlay aria-hidden="true" /> Start lesson
-                  </button>
-                  <button
-                    type="button"
-                    className="course-overview-hero__bookmark"
-                    aria-label={isBookmarked ? "Remove lesson bookmark" : "Bookmark first lesson"}
-                    aria-pressed={isBookmarked}
-                    onClick={toggleBookmark}
-                  >
-                    <Bookmark aria-hidden="true" fill={isBookmarked ? "currentColor" : "none"} />
-                  </button>
-                </div>
               </div>
+            </div>
+            <div className="course-overview-hero__actions">
+              <button
+                type="button"
+                className="course-overview-hero__bookmark"
+                aria-label={isBookmarked ? "Remove lesson bookmark" : "Bookmark first lesson"}
+                aria-pressed={isBookmarked}
+                onClick={toggleBookmark}
+              >
+                <Bookmark aria-hidden="true" fill={isBookmarked ? "currentColor" : "none"} />
+              </button>
+              <button type="button" className="course-overview-hero__start" onClick={() => startLesson(FIRST_LESSON_ID)}>
+                Continue Lesson <ArrowRight aria-hidden="true" />
+              </button>
             </div>
             <dl className="course-overview-hero__meta">
               <div><Clock3 aria-hidden="true" /><span><dt>Duration</dt><dd>24:35 min</dd></span></div>
@@ -342,15 +322,15 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
           >
             <div className="course-overview-info-row">
               <article className="course-overview-card course-overview-about">
-                <h2>About this course</h2>
+                <h2>About this lesson</h2>
                 <p>
-                  This course provides a comprehensive introduction to human anatomy, covering the structure and function of the human body systems.
+                  An introduction to the human body and the essential anatomical terms used throughout your studies.
                 </p>
                 <dl>
                   <div><Sparkles aria-hidden="true" /><span><dt>Level</dt><dd>Beginner</dd></span></div>
-                  <div><LayoutGrid aria-hidden="true" /><span><dt>Modules</dt><dd>6</dd></span></div>
-                  <div><UsersRound aria-hidden="true" /><span><dt>Students enrolled</dt><dd>12.6K</dd></span></div>
-                  <div><ShieldCheck aria-hidden="true" /><span><dt>Certificate</dt><dd>Yes</dd></span></div>
+                  <div><LayoutGrid aria-hidden="true" /><span><dt>Includes</dt><dd>Video, Notes, Quiz</dd></span></div>
+                  <div><Clock3 aria-hidden="true" /><span><dt>Estimated time</dt><dd>24:35 min</dd></span></div>
+                  <div><ShieldCheck aria-hidden="true" /><span><dt>Certificate</dt><dd>Available</dd></span></div>
                 </dl>
               </article>
               <article className="course-overview-card course-overview-learn">
@@ -426,7 +406,8 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
           </article>
 
           <article className="course-overview-card course-overview-progress">
-            <header><h2>Course progress</h2><strong>0%</strong></header>
+            <header><h2>Course progress</h2><small>0%</small></header>
+            <p className="course-overview-progress__summary"><strong>0%</strong><span>completed</span></p>
             <div className="course-overview-progress__track" role="progressbar" aria-label="Course progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={0}><span /></div>
             <dl className="course-overview-progress__metrics">
               <div><dt>Lessons</dt><dd>14</dd></div>

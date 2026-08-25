@@ -5,15 +5,9 @@
   min-width: 0;
   min-height: 0;
   grid-template-rows:
-    minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1.2fr);
+    minmax(0, 1.22fr) minmax(0, 0.98fr) minmax(0, 1.3fr);
   gap: clamp(10px, 0.8vw, 16px);
   overflow: hidden;
-}
-
-.dashboard-bento h1,
-.dashboard-bento h2,
-.dashboard-bento h3 {
-  font-family: var(--font-body);
 }
 
 .dashboard-bento__row {
@@ -140,7 +134,7 @@
     display: grid;
     grid-template-columns: repeat(24, minmax(0, 1fr));
     grid-template-rows:
-      340px 290px 280px 240px;
+      340px 290px 280px 260px;
     gap: 14px;
     overflow: visible;
   }
@@ -365,7 +359,7 @@
 @media (max-width: 780px) {
   .dashboard-bento {
     grid-template-rows:
-      260px 280px 270px 220px;
+      260px 280px 270px 240px;
     gap: 10px;
   }
 }

@@ -36,6 +36,7 @@ main[data-main-workspace] {
   gap: clamp(12px, 1.7vw, 32px);
   padding:
     clamp(8px, 1vw, 16px) clamp(16px, 1.7vw, 32px) 0 clamp(16px, 2.1vw, 40px);
+  border-bottom: 1px solid var(--color-border-subtle, #e5ebe7);
 }
 
 .student-dashboard__search {
@@ -43,6 +44,100 @@ main[data-main-workspace] {
   min-width: 0;
   max-width: 790px;
   flex: 1 1 790px;
+}
+
+.student-dashboard__page-title {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 0 9px;
+}
+
+.student-dashboard--my-courses .student-dashboard__page-title {
+  flex: 0 1 auto;
+}
+
+.student-dashboard__course-breadcrumb {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.student-dashboard__course-breadcrumb a {
+  color: var(--color-brand-hover);
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.student-dashboard__course-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.student-dashboard__course-breadcrumb > span[aria-hidden="true"] {
+  color: var(--color-text-tertiary, #8ca097);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.student-dashboard__course-breadcrumb-title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: clamp(20px, 1.8vw, 28px);
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.student-dashboard__course-breadcrumb strong {
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-weight: 750;
+  text-overflow: ellipsis;
+}
+
+.student-dashboard__page-title-label {
+  color: #087f55;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.student-dashboard__page-title-separator {
+  color: var(--color-text-tertiary, #8ca097);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.student-dashboard__page-title h1 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: clamp(20px, 1.8vw, 28px);
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+
+.student-dashboard__page-title p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.35;
+  white-space: nowrap;
 }
 
 .student-dashboard__actions {
@@ -562,7 +657,7 @@ main[data-main-workspace] {
 
   .my-courses-heading {
     min-height: 72px;
-    align-items: end;
+    align-items: stretch;
   }
 
   .my-courses-overview {
@@ -581,17 +676,31 @@ main[data-main-workspace] {
 .my-courses-heading {
   display: flex;
   min-width: 0;
-  align-items: end;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: flex-start;
   gap: 20px;
 }
 
 .my-courses-heading__controls {
   display: flex;
+  width: 100%;
   min-width: 0;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 12px;
+}
+
+.my-courses-heading__search {
+  width: clamp(320px, 38vw, 600px);
+  min-width: 260px;
+  order: -1;
+  margin-right: auto;
+  flex: 0 1 600px;
+}
+
+.my-courses-heading__search .search-bar {
+  height: 53px;
+  border-radius: 13px;
 }
 
 .course-status-tabs {
@@ -1237,7 +1346,7 @@ main[data-main-workspace] {
 
   .my-courses-heading__controls {
     width: 100%;
-    justify-content: space-between;
+    justify-content: flex-start;
   }
 
   .my-courses-overview {
@@ -1363,9 +1472,23 @@ main[data-main-workspace] {
 }
 
 @media (max-width: 760px) {
+  .student-dashboard__page-title h1 {
+    font-size: 20px;
+  }
+
+  .student-dashboard__page-title p {
+    font-size: 12px;
+  }
+
   .my-courses-heading__controls {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .my-courses-heading__search {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
   }
 
   .course-status-tabs {

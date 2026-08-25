@@ -16,6 +16,7 @@ import {
   YAxis,
 } from "recharts";
 import { CourseLibrary } from "../../../components/ui/CourseLibrary";
+import { SearchBar } from "../../../components/ui/SearchBar";
 import heroBackground from "../../../Assets/dashboard/my-courses-hero-background.png";
 import anatomyOverlay from "../../../Assets/dashboard/my-courses-anatomy-overlay.png";
 import { useNavigate } from "react-router-dom";
@@ -48,11 +49,6 @@ export function MyCoursesPage() {
     <section className="student-page student-page--courses" aria-labelledby="my-courses-title">
       <div className="my-courses-workspace">
         <header className="my-courses-heading">
-          <div className="student-page-intro">
-            <span>Learning space</span>
-            <h1 id="my-courses-title">My Courses</h1>
-            <p>Pick up where you left off.</p>
-          </div>
           <div className="my-courses-heading__controls" aria-label="Course status controls">
             <div className="course-status-tabs" role="tablist" aria-label="Course status">
               <button type="button" className="course-status-tabs__tab is-active" role="tab" aria-selected="true">In progress <b>4</b></button>
@@ -62,6 +58,9 @@ export function MyCoursesPage() {
             <button type="button" className="course-sort" aria-label="Sort courses by last opened">
               <Clock3 aria-hidden="true" /> Last opened <ChevronDown aria-hidden="true" />
             </button>
+            <div className="my-courses-heading__search">
+              <SearchBar />
+            </div>
           </div>
         </header>
 

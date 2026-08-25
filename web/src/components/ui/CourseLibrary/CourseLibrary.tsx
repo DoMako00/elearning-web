@@ -14,10 +14,10 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import anatomyImage from "../../../Assets/dashboard/human-anatomy.webp";
-import biochemistryImage from "../../../Assets/dashboard/biochemistry-essentials.webp";
-import histologyImage from "../../../Assets/dashboard/histology-basics.webp";
-import physiologyImage from "../../../Assets/dashboard/medical-physiology.webp";
+import anatomyImage from "../../../Assets/course-library/human-anatomy.webp";
+import biochemistryImage from "../../../Assets/course-library/biochemistry-essentials.webp";
+import histologyImage from "../../../Assets/course-library/histology-basics.webp";
+import physiologyImage from "../../../Assets/course-library/medical-physiology.webp";
 import "./CourseLibrary.css";
 
 const courses = [
