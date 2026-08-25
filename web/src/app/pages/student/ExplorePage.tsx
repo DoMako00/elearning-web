@@ -35,11 +35,11 @@ export function ExplorePage() {
     <section className="student-page student-page--explore" aria-labelledby="explore-title">
       <div className="explore-workspace">
         <header className="explore-toolbar">
-          <div className="student-page-intro">
+          {/* <div className="student-page-intro">
             <span>Discover</span>
             <h1 id="explore-title">Explore</h1>
             <p>Find the next skill worth building.</p>
-          </div>
+          </div> */}
 
           <div className="explore-toolbar__tools">
             <div className="explore-search-bar">
