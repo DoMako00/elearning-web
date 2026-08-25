@@ -2,9 +2,30 @@
   position: relative;
   z-index: 60;
   overflow: visible;
+  border-right: none !important;
+  padding-top: 0 !important;
 }
 
-.student-sidebar .sidebar-brand { margin-inline: -2px; }
+.student-sidebar::after {
+  content: "";
+  position: absolute;
+  top: var(--topbar-height, 76px);
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--color-border-subtle, #e8ecef);
+  pointer-events: none;
+}
+
+.sidebar-brand-wrapper {
+  height: var(--topbar-height, 76px);
+  min-height: var(--topbar-height, 76px);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.student-sidebar .sidebar-brand { margin-inline: -2px; width: 100%; }
 .student-sidebar .sidebar-primary-nav { padding-top: 2px; }
 .student-sidebar .sidebar-secondary-nav { padding-top: 14px; border-top: 1px solid #edf2ef; }
 .student-sidebar .sidebar-profile {
@@ -27,7 +48,7 @@
 
 @media (max-width: 1535px) {
   .student-sidebar {
-    padding-top: 28px;
+    padding-top: 0 !important;
   }
 
   .sidebar-brand {
@@ -83,21 +104,18 @@
 
 @media (min-height: 1351px) {
   .student-sidebar {
-    padding-top: calc(40px + ((100dvh - 1350px) / 2));
     padding-bottom: calc(15px + ((100dvh - 1350px) / 2));
   }
 }
 
 @media (max-width: 1535px) and (min-height: 1351px) {
   .student-sidebar {
-    padding-top: calc(28px + ((100dvh - 1350px) / 2));
     padding-bottom: calc(15px + ((100dvh - 1350px) / 2));
   }
 }
 
 @media (max-height: 760px) {
   .student-sidebar {
-    padding-top: 18px;
     padding-bottom: 10px;
   }
 

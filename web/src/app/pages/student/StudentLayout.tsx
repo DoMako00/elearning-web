@@ -86,12 +86,9 @@ export function StudentLayout() {
           aria-label="Student dashboard header"
         >
           {isHome ? (
-            <>
-              <div className="student-dashboard__header-spacer" aria-hidden="true" />
-              <div className="student-dashboard__search">
-                <SearchBar />
-              </div>
-            </>
+            <div className="student-dashboard__search">
+              <SearchBar />
+            </div>
           ) : (
             renderBreadcrumb()
           )}

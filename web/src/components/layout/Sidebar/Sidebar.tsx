@@ -17,20 +17,22 @@ export function Sidebar() {
 
   return (
     <aside
-      className="student-sidebar flex h-full min-h-0 flex-col border-r border-[var(--color-border-subtle)] bg-[var(--color-surface)] px-[var(--sidebar-gutter)] pb-[15px] pt-10"
+      className="student-sidebar flex h-full min-h-0 flex-col bg-[var(--color-surface)] px-[var(--sidebar-gutter)] pb-[15px]"
       aria-label="Student navigation"
       data-sidebar
     >
-      <div className="sidebar-brand flex h-10 shrink-0 items-center gap-3 px-[15px]">
-        <span className="sidebar-brand-mark grid size-8 place-items-center rounded-[9px] bg-[var(--color-brand-hover)] text-white">
-          <Leaf className="size-5" strokeWidth={2} aria-hidden="true" />
-        </span>
-        <span className="sidebar-brand-name truncate text-[19px] font-semibold text-[var(--color-text-primary)]">
-          {brand.name}
-        </span>
+      <div className="sidebar-brand-wrapper">
+        <div className="sidebar-brand flex h-10 shrink-0 items-center gap-3 px-[15px]">
+          <span className="sidebar-brand-mark grid size-8 place-items-center rounded-[9px] bg-[var(--color-brand-hover)] text-white">
+            <Leaf className="size-5" strokeWidth={2} aria-hidden="true" />
+          </span>
+          <span className="sidebar-brand-name truncate text-[19px] font-semibold text-[var(--color-text-primary)]">
+            {brand.name}
+          </span>
+        </div>
       </div>
 
-      <nav className="sidebar-primary-nav mt-10" aria-label="Primary navigation">
+      <nav className="sidebar-primary-nav mt-4" aria-label="Primary navigation">
         <ul className="space-y-[var(--sidebar-nav-gap)]">
           {primarySidebarItems.map((item) => (
             <li key={item.label}>
