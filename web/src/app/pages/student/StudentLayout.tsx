@@ -5,36 +5,105 @@ import { UserHeaderActions } from "../../../components/ui/UserHeaderActions";
 
 export function StudentLayout() {
   const location = useLocation();
-  const isMyCourses = location.pathname === "/my-courses";
-  const isCourseOverview = location.pathname === "/my-courses/human-anatomy-i";
+  const pathname = location.pathname;
+
+  const isHome = pathname === "/" || pathname === "";
+  const isMyCourses = pathname === "/my-courses";
+  const isCourseOverview = pathname === "/my-courses/human-anatomy-i";
+  const isLessonPlayer = pathname.startsWith("/my-courses/human-anatomy-i/lessons");
+  const isExplore = pathname === "/explore";
+
+  const renderBreadcrumb = () => {
+    if (isMyCourses) {
+      return (
+        <div className="student-dashboard__page-title">
+          <span className="student-dashboard__page-title-label">Learning space</span>
+          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
+          <h1 id="my-courses-title">My Courses</h1>
+        </div>
+      );
+    }
+
+    if (isCourseOverview) {
+      return (
+        <nav className="student-dashboard__course-breadcrumb" aria-label="Lesson breadcrumb">
+          <Link to="/my-courses">My Courses</Link>
+          <span aria-hidden="true">›</span>
+          <h1 id="course-overview-title" className="student-dashboard__course-breadcrumb-title">Human Anatomy</h1>
+          <span aria-hidden="true">›</span>
+          <strong aria-current="page">Lesson 1</strong>
+        </nav>
+      );
+    }
+
+    if (isLessonPlayer) {
+      return (
+        <nav className="student-dashboard__course-breadcrumb" aria-label="Lesson breadcrumb">
+          <Link to="/my-courses">My Courses</Link>
+          <span aria-hidden="true">›</span>
+          <Link to="/my-courses/human-anatomy-i">Human Anatomy</Link>
+          <span aria-hidden="true">›</span>
+          <strong aria-current="page">Lesson Player</strong>
+        </nav>
+      );
+    }
+
+    if (isExplore) {
+      return (
+        <div className="student-dashboard__page-title">
+          <span className="student-dashboard__page-title-label">Learning space</span>
+          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
+          <h1 id="explore-header-title">Explore</h1>
+        </div>
+      );
+    }
+
+    const segments = pathname.split("/").filter(Boolean);
+    const lastSegment = segments[segments.length - 1] || "Dashboard";
+    const formattedTitle = lastSegment
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+
+    return (
+      <div className="student-dashboard__page-title">
+        <span className="student-dashboard__page-title-label">Learning space</span>
+        <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
+        <h1>{formattedTitle}</h1>
+      </div>
+    );
+  };
 
   return (
     <AppShell>
-      <div className={`student-dashboard${isMyCourses ? " student-dashboard--my-courses" : ""}${isCourseOverview ? " student-dashboard--course-overview" : ""}`}>
-        <header className="student-dashboard__header" aria-label="Student dashboard header">
-          {isMyCourses ? (
-            <div className="student-dashboard__page-title">
-              <span className="student-dashboard__page-title-label">Learning space</span>
-              <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-              <h1 id="my-courses-title">My Courses</h1>
-            </div>
-          ) : null}
-          {isCourseOverview ? (
-            <nav className="student-dashboard__course-breadcrumb" aria-label="Lesson breadcrumb">
-              <Link to="/my-courses">My Courses</Link>
-              <span aria-hidden="true">›</span>
-              <h1 id="course-overview-title" className="student-dashboard__course-breadcrumb-title">Human Anatomy</h1>
-              <span aria-hidden="true">›</span>
-              <strong aria-current="page">Lesson 1</strong>
-            </nav>
-          ) : null}
-          {!isMyCourses && !isCourseOverview && <div className="student-dashboard__search"><SearchBar /></div>}
+      <div
+        className={`student-dashboard${isHome ? " student-dashboard--home" : ""}${
+          isMyCourses ? " student-dashboard--my-courses" : ""
+        }${isCourseOverview ? " student-dashboard--course-overview" : ""}`}
+      >
+        <header
+          className={`student-dashboard__header${isHome ? " student-dashboard__header--home" : ""}`}
+          aria-label="Student dashboard header"
+        >
+          {isHome ? (
+            <>
+              <div className="student-dashboard__header-spacer" aria-hidden="true" />
+              <div className="student-dashboard__search">
+                <SearchBar />
+              </div>
+            </>
+          ) : (
+            renderBreadcrumb()
+          )}
           <div className="student-dashboard__actions">
             <UserHeaderActions avatarSrc="https://i.pravatar.cc/112?img=47" avatarAlt="Juliana" hasNotification />
           </div>
         </header>
-        <div className="student-dashboard__content"><Outlet /></div>
+        <div className="student-dashboard__content">
+          <Outlet />
+        </div>
       </div>
     </AppShell>
   );
 }
+
