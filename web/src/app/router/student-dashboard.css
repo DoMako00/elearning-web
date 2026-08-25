@@ -703,36 +703,31 @@ main[data-main-workspace] {
 
 .course-focus-card__art {
   position: absolute;
-  display: none;
+  display: block;
   z-index: 0;
-  top: 11%;
-  right: 3%;
-  width: min(57%, 540px);
-  height: 77%;
+  inset: 0 0 0 auto;
+  width: min(58%, 540px);
+  height: 100%;
   color: rgb(156 255 191 / 32%);
   pointer-events: none;
 }
 
 .course-focus-card__art svg {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
+  display: none;
 }
 
 .course-focus-card__art > img {
   position: absolute;
-  display: none;
-  right: 8%;
-  bottom: -14%;
-  width: 66%;
-  height: 115%;
+  display: block;
+  z-index: 0;
+  right: -3%;
+  bottom: -11%;
+  width: 102%;
+  height: 114%;
   object-fit: contain;
   object-position: center bottom;
-  opacity: .63;
-  filter: saturate(.72) contrast(1.08) brightness(.83);
-  mix-blend-mode: screen;
+  opacity: .94;
+  filter: saturate(.9) contrast(1.03);
 }
 
 .course-focus-card__art text {
