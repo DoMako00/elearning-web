@@ -909,6 +909,8 @@ main[data-main-workspace] {
 }
 
 .course-focus-card__footer {
+  position: relative;
+  z-index: 1;
   display: flex;
   min-width: 0;
   align-items: end;
