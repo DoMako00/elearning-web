@@ -16,7 +16,7 @@ import {
   YAxis,
 } from "recharts";
 import { CourseLibrary } from "../../../components/ui/CourseLibrary";
-import anatomyImage from "../../../Assets/dashboard/human-anatomy.webp";
+import heroBackground from "../../../Assets/dashboard/my-courses-hero-background.png";
 import { useNavigate } from "react-router-dom";
 
 const PACE_CHART_DATA = [10, 18, 14, 22, 19, 28, 24, 30, 27, 30, 32, 40, 70, 78, 60, 32, 55, 56, 60, 50, 63, 65, 67, 72, 70, 80];
@@ -65,9 +65,12 @@ export function MyCoursesPage() {
         </header>
 
         <div className="my-courses-overview">
-          <article className="course-focus-card" aria-label="Continue Human Anatomy I">
+          <article
+            className="course-focus-card"
+            aria-label="Continue Human Anatomy I"
+            style={{ backgroundImage: `url(${heroBackground})` }}
+          >
             <div className="course-focus-card__art" aria-hidden="true">
-              <img src={anatomyImage} alt="" />
               <svg viewBox="0 0 520 320" preserveAspectRatio="xMidYMid meet">
                 <g className="course-focus-card__grid"><path d="M17 70H170M17 103H170M17 136H170M17 169H170M17 202H170M17 235H170M17 268H170M206 28V295M258 28V295M310 28V295M362 28V295M414 28V295M466 28V295" /></g>
                 <g className="course-focus-card__labels"><path d="M31 77H160M31 132H160M31 187H160" /><text x="34" y="68">SKELETAL SYSTEM</text><text x="34" y="123">MUSCULAR SYSTEM</text><text x="34" y="178">BODY STRUCTURE</text></g>

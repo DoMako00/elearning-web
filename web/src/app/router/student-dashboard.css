@@ -685,7 +685,10 @@ main[data-main-workspace] {
   overflow: hidden;
   border: 1px solid #0d5137;
   border-radius: 16px;
-  background: radial-gradient(circle at 77% 26%, rgb(32 129 78 / 17%), transparent 34%), linear-gradient(118deg, #013a28, #032e22 54%, #033221);
+  background-color: #033126;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
   color: #f3fff8;
   isolation: isolate;
 }
@@ -694,13 +697,13 @@ main[data-main-workspace] {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background-image: linear-gradient(rgb(190 255 211 / 4%) 1px, transparent 1px), linear-gradient(90deg, rgb(190 255 211 / 4%) 1px, transparent 1px);
-  background-size: 30px 30px;
+  background: linear-gradient(90deg, rgb(0 31 23 / 12%), transparent 58%);
   content: "";
 }
 
 .course-focus-card__art {
   position: absolute;
+  display: none;
   z-index: 0;
   top: 11%;
   right: 3%;
@@ -720,7 +723,7 @@ main[data-main-workspace] {
 
 .course-focus-card__art > img {
   position: absolute;
-  z-index: 0;
+  display: none;
   right: 8%;
   bottom: -14%;
   width: 66%;
