@@ -5,7 +5,7 @@ import './index.css';
 const DEFAULT_ITEMS: UpcomingItem[] = [
   {
     id: '1',
-    title: 'React Quiz',
+    title: 'Anatomy Quiz',
     time: 'Tomorrow, 10:00 AM',
     iconType: 'quiz',
   },

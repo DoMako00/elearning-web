@@ -316,8 +316,8 @@
   }
 
   .my-progress-chart-wrap {
-    height: min(100%, 150px);
-    max-height: 150px;
+    height: min(100%, 180px);
+    max-height: 180px;
   }
 
   .my-progress-cta {

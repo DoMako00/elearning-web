@@ -10,6 +10,12 @@
   overflow: hidden;
 }
 
+.dashboard-bento h1,
+.dashboard-bento h2,
+.dashboard-bento h3 {
+  font-family: var(--font-body);
+}
+
 .dashboard-bento__row {
   display: grid;
   min-width: 0;
@@ -20,13 +26,13 @@
 
 .dashboard-bento__row--top {
   grid-template-columns:
-    minmax(0, 1.1fr) minmax(0, 1.7fr) minmax(0, 0.9fr);
+    minmax(0, 1.25fr) minmax(0, 1.55fr) minmax(0, 1fr);
   grid-template-areas: "continue ai goal";
 }
 
 .dashboard-bento__row--middle {
   grid-template-columns:
-    minmax(0, 0.9fr) minmax(0, 1.02fr) minmax(0, 1.65fr);
+    minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1.58fr);
   grid-template-areas: "progress upcoming streak";
 }
 

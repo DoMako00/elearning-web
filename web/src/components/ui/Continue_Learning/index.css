@@ -205,12 +205,25 @@
   word-break: normal;
   overflow-wrap: break-word;
   overflow: hidden;
-  max-height: 2.6em;
+  max-height: 1.3em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.continue-learning-course-subtitle {
+  overflow: hidden;
+  margin: clamp(3px, 1.4cqh, 6px) 0 0;
+  color: #667085;
+  font-size: clamp(11px, 3.1cqw, 13px);
+  font-weight: 400;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .continue-learning-metrics {
   width: 100%;
-  margin: clamp(12px, 3.5cqh, 16px) 0 0;
+  margin: clamp(8px, 2.8cqh, 14px) 0 0;
 }
 
 .continue-learning-progress-row {
@@ -328,6 +341,10 @@
     font-size: clamp(18px, 5.8cqw, 20px);
   }
 
+  .continue-learning-course-subtitle {
+    font-size: 11px;
+  }
+
   .continue-learning-status {
     height: 24px;
     padding-inline: 10px;
@@ -383,7 +400,12 @@
     margin-top: 6px;
     font-size: clamp(16px, 4.2cqw, 20px);
     line-height: 1.2;
-    max-height: 2.5em;
+    max-height: 1.2em;
+  }
+
+  .continue-learning-course-subtitle {
+    margin-top: 3px;
+    font-size: 10px;
   }
 
   .continue-learning-status {
@@ -475,6 +497,10 @@
     font-size: clamp(17px, 7cqw, 22px);
   }
 
+  .continue-learning-course-subtitle {
+    font-size: 10px;
+  }
+
   .continue-learning-status {
     height: 22px;
     max-width: 100%;
@@ -555,13 +581,13 @@
 }
 
 /* Restrained expansion for the largest supported dashboard canvas. */
-@container bento-slot (min-width: 600px) and (min-height: 450px) {
+@container bento-slot (min-width: 600px) and (min-height: 380px) {
   .continue-learning {
     --card-padding-left: 26px;
     --card-padding-right: 24px;
     --card-padding-top: 24px;
     --card-padding-bottom: 24px;
-    --media-column-width: clamp(196px, 28cqw, 220px);
+    --media-column-width: clamp(260px, 38cqw, 300px);
     --media-details-gap: 24px;
     --section-gap: 20px;
   }
@@ -576,7 +602,7 @@
 
   .continue-learning-media {
     height: auto;
-    max-height: 220px;
+    max-height: 270px;
     align-self: center;
     aspect-ratio: 0.96 / 1;
   }
@@ -595,6 +621,11 @@
   .continue-learning-course-title {
     margin-top: 12px;
     font-size: 28px;
+  }
+
+  .continue-learning-course-subtitle {
+    margin-top: 6px;
+    font-size: 14px;
   }
 
   .continue-learning-metrics {
@@ -686,6 +717,11 @@
     font-size: clamp(20px, 3.2cqw, 28px);
     line-height: 1.15;
     font-weight: 700;
+  }
+
+  .continue-learning-course-subtitle {
+    margin-top: 4px;
+    font-size: 13px;
   }
 
   .continue-learning-metrics {

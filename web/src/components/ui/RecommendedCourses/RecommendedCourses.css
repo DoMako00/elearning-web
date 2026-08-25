@@ -10,6 +10,7 @@
   border: 1px solid var(--color-border-subtle);
   border-radius: 16px;
   background: var(--color-surface);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 3%);
 }
 
 .recommended-header {
@@ -70,7 +71,6 @@
   align-items: stretch;
   gap: clamp(8px, 1.05cqw, 16px);
   padding-top: clamp(6px, 2.5cqh, 12px);
-  padding-right: 48px;
 }
 
 .recommended-course {
@@ -80,9 +80,9 @@
   min-height: 0;
   height: 100%;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   overflow: hidden;
-  padding: clamp(11px, 5.5cqh, 16px);
+  padding: 0;
   border: 1px solid #e5eaee;
   border-radius: 14px;
   background: #ffffff;
@@ -95,56 +95,32 @@
   box-shadow: 0 6px 18px rgba(21, 148, 85, 0.08);
 }
 
-.recommended-course-wash {
-  position: absolute;
-  top: -35px;
-  right: -32px;
-  width: 132px;
-  height: 102px;
-  border-radius: 50%;
-  background: radial-gradient(circle at center, #d9f4e5 0, #eefaf3 48%, transparent 70%);
-  transform: rotate(-15deg);
-}
-
-.recommended-course-icon,
-.recommended-bookmark {
+.recommended-course-media {
   position: relative;
-  z-index: 1;
+  width: 100%;
+  height: clamp(92px, 49cqh, 205px);
+  min-height: 0;
+  flex: 0 0 auto;
+  overflow: hidden;
+  background: #f5faf7;
 }
 
-.recommended-course-icon {
-  display: flex;
-  width: auto;
-  height: auto;
-  align-items: center;
-  justify-content: flex-start;
-  border-radius: 0;
-  background: transparent;
-  color: #159455;
+.recommended-course-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 320ms ease;
 }
 
-.recommended-course-icon svg {
-  width: 50px;
-  height: 50px;
-  stroke-width: 1.8;
-}
-.recommended-course-icon--node svg { fill: #d9f4e5; }
-.recommended-course-js {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 50px;
-  height: 50px;
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.05em;
-  color: #159455;
+.recommended-course:hover .recommended-course-media img {
+  transform: scale(1.025);
 }
 
 .recommended-bookmark {
   position: absolute;
-  top: 13px;
-  right: 13px;
+  top: 9px;
+  right: 9px;
   display: grid;
   width: 34px;
   height: 34px;
@@ -193,14 +169,14 @@
   min-width: 0;
   flex: 1 1 auto;
   flex-direction: column;
-  justify-content: flex-end;
-  margin-top: auto;
-  padding-top: clamp(10px, 4cqh, 18px);
+  justify-content: flex-start;
+  margin: 0;
+  padding: clamp(8px, 3.2cqh, 13px) clamp(9px, 1.1cqw, 14px) clamp(8px, 3cqh, 12px);
 }
 
 .recommended-title-wrap {
-  width: fit-content;
-  max-width: min(100%, 14ch);
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
 }
 
@@ -211,7 +187,7 @@
   overflow: hidden;
   margin: 0;
   color: var(--color-text-primary);
-  font-size: clamp(15px, 1.45cqw, 18px);
+  font-size: clamp(12px, 1cqw, 15px);
   font-weight: 700;
   line-height: 1.22;
   letter-spacing: -0.015em;
@@ -220,21 +196,56 @@
   max-height: 2.45em;
 }
 
+.recommended-course-subtitle {
+  overflow: hidden;
+  margin: 3px 0 0;
+  color: #667085;
+  font-size: clamp(9px, 0.82cqw, 12px);
+  font-weight: 400;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .recommended-course-footer {
   display: flex;
   width: 100%;
   align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  margin-top: clamp(8px, 2.5cqh, 14px);
+  justify-content: flex-start;
+  gap: clamp(4px, 0.48cqw, 7px);
+  margin-top: auto;
+  padding-top: clamp(5px, 2cqh, 9px);
 }
 
 .recommended-course-level {
+  display: inline-flex;
+  min-width: 0;
+  height: 21px;
+  align-items: center;
+  padding: 0 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-brand-soft);
+  color: #168f52;
+  font-size: clamp(9px, 0.72cqw, 11px);
+  font-weight: 600;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recommended-course-separator {
+  flex: 0 0 auto;
+  color: #98a2b3;
+  font-size: 10px;
+}
+
+.recommended-course-lessons {
   overflow: hidden;
   color: #667085;
-  font-size: clamp(12px, 1.05cqw, 14px);
+  font-size: clamp(9px, 0.72cqw, 11px);
   font-weight: 500;
-  line-height: 1.3;
+  line-height: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -244,7 +255,8 @@
   align-items: center;
   gap: 4px;
   color: #111827;
-  font-size: clamp(12px, 1.05cqw, 14px);
+  margin-left: auto;
+  font-size: clamp(10px, 0.78cqw, 12px);
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -475,18 +487,16 @@
     max-width: 300px;
     height: 100%;
     scroll-snap-align: start;
-    padding: 12px 14px;
+    padding: 0;
     border-radius: 14px;
   }
 
-  .recommended-course-icon svg,
-  .recommended-course-js {
-    width: 36px;
-    height: 36px;
+  .recommended-course-media {
+    height: 88px;
   }
 
-  .recommended-course-js {
-    font-size: 18px;
+  .recommended-course-copy {
+    padding: 8px 10px;
   }
 
   .recommended-bookmark {
@@ -501,16 +511,21 @@
   }
 
   .recommended-course-copy h3 {
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1.25;
   }
 
-  .recommended-course-level {
-    font-size: 12px;
+  .recommended-course-subtitle {
+    font-size: 10px;
   }
 
+  .recommended-course-level {
+    font-size: 9px;
+  }
+
+  .recommended-course-lessons,
   .recommended-rating {
-    font-size: 12px;
+    font-size: 9px;
   }
 
   .recommended-prev,
@@ -543,7 +558,7 @@
   .recommended-course {
     flex: 0 0 calc((100% - 10px) / 2);
     min-width: 160px;
-    padding: 10px 12px;
+    padding: 0;
   }
 
   .recommended-course-copy h3 {
@@ -559,45 +574,20 @@
   }
 }
 
-/* Desktop full-width bento row — bigger Recommended course icons */
-@media (min-width: 1200px) {
-  .recommended-course-icon svg {
-    width: 52px !important;
-    height: 52px !important;
-  }
-
-  .recommended-course-js {
-    width: 52px !important;
-    height: 52px !important;
-    font-size: 26px !important;
-  }
-}
-
-/* Large desktop / fullscreen 1920×1080 — bigger Recommended course icons */
+/* Large desktop / fullscreen 1920×1080 refinements. */
 @media (min-width: 1400px) {
-  .recommended-course-icon svg {
-    width: 58px !important;
-    height: 58px !important;
-  }
-
-  .recommended-course-js {
-    width: 58px !important;
-    height: 58px !important;
-    font-size: 28px !important;
-  }
-
-  .recommended-course-wash {
-    width: 170px;
-    height: 130px;
-  }
-
   .recommended-course-copy h3 {
-    font-size: 19px;
+    font-size: 15px;
+  }
+
+  .recommended-course-subtitle {
+    font-size: 12px;
   }
 
   .recommended-course-level,
+  .recommended-course-lessons,
   .recommended-rating {
-    font-size: 14px;
+    font-size: 11px;
   }
 
   .recommended-rating svg {
@@ -606,24 +596,24 @@
   }
 
   .recommended-bookmark {
-    width: 40px;
-    height: 40px;
-    top: 16px;
-    right: 16px;
-    border-radius: 11px;
+    width: 34px;
+    height: 34px;
+    top: 9px;
+    right: 9px;
+    border-radius: 9px;
   }
 
   .recommended-bookmark svg {
-    width: 20px;
-    height: 20px;
+    width: 17px;
+    height: 17px;
   }
 
   .recommended-header h2 {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .recommended-view-all {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .recommended-view-all svg {

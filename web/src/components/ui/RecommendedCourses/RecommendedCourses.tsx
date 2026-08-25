@@ -1,32 +1,65 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
-  Atom,
   Bookmark,
   ChevronLeft,
   ChevronRight,
-  Hexagon,
-  Leaf,
   Star,
-  Waves,
 } from "lucide-react";
+import anatomyImage from "../../../Assets/dashboard/human-anatomy.webp";
+import histologyImage from "../../../Assets/dashboard/histology-basics.webp";
+import physiologyImage from "../../../Assets/dashboard/medical-physiology.webp";
+import biochemistryImage from "../../../Assets/dashboard/biochemistry-essentials.webp";
+import embryologyImage from "../../../Assets/dashboard/embryology-foundations.webp";
 import "./RecommendedCourses.css";
 
 const courses = [
-  { title: "JavaScript Mastery", level: "Intermediate", rating: "4.8", icon: "js" },
-  { title: "React Complete Guide", level: "Intermediate", rating: "4.7", icon: "react" },
-  { title: "UI/UX Design Principles", level: "Beginner", rating: "4.6", icon: "design" },
-  { title: "Node.js Backend Dev", level: "Intermediate", rating: "4.8", icon: "node" },
-  { title: "Tailwind CSS From Zero", level: "Beginner", rating: "4.7", icon: "tailwind" },
+  {
+    title: "Human Anatomy I",
+    subtitle: "Structure & Organization",
+    level: "Intermediate",
+    lessons: 8,
+    rating: "4.8",
+    image: anatomyImage,
+    imagePosition: "50% 28%",
+  },
+  {
+    title: "Histology Basics",
+    subtitle: "Tissues of the Human Body",
+    level: "Beginner",
+    lessons: 6,
+    rating: "4.7",
+    image: histologyImage,
+    imagePosition: "center",
+  },
+  {
+    title: "Medical Physiology",
+    subtitle: "Body Functions & Regulation",
+    level: "Intermediate",
+    lessons: 10,
+    rating: "4.8",
+    image: physiologyImage,
+    imagePosition: "center",
+  },
+  {
+    title: "Biochemistry Essentials",
+    subtitle: "Molecules of Life",
+    level: "Intermediate",
+    lessons: 7,
+    rating: "4.6",
+    image: biochemistryImage,
+    imagePosition: "center",
+  },
+  {
+    title: "Embryology Foundations",
+    subtitle: "Development of Human Life",
+    level: "Beginner",
+    lessons: 5,
+    rating: "4.8",
+    image: embryologyImage,
+    imagePosition: "center",
+  },
 ] as const;
-
-function CourseIcon({ type }: { type: (typeof courses)[number]["icon"] }) {
-  if (type === "js") return <span className="recommended-course-js">JS</span>;
-  if (type === "react") return <Atom aria-hidden="true" />;
-  if (type === "design") return <Leaf aria-hidden="true" />;
-  if (type === "node") return <Hexagon aria-hidden="true" />;
-  return <Waves aria-hidden="true" />;
-}
 
 export function RecommendedCourses() {
   const [bookmarkedCourses, setBookmarkedCourses] = useState<Record<string, boolean>>({});
@@ -76,7 +109,7 @@ export function RecommendedCourses() {
   return (
     <section className="recommended-card" aria-labelledby="recommended-title">
       <header className="recommended-header">
-        <h2 id="recommended-title">Recommended for you</h2>
+        <h2 id="recommended-title">Recommended Medical Modules For You</h2>
         <button type="button" className="recommended-view-all">
           <span>View all</span>
           <ArrowRight aria-hidden="true" />
@@ -100,28 +133,36 @@ export function RecommendedCourses() {
             const isBookmarked = !!bookmarkedCourses[course.title];
             return (
               <article className="recommended-course" key={course.title}>
-                <div className="recommended-course-wash" aria-hidden="true" />
-                <div className={`recommended-course-icon recommended-course-icon--${course.icon}`}>
-                  <CourseIcon type={course.icon} />
+                <div className="recommended-course-media">
+                  <img
+                    src={course.image}
+                    alt={`${course.title} medical illustration`}
+                    loading="lazy"
+                    decoding="async"
+                    style={{ objectPosition: course.imagePosition }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => toggleBookmark(course.title)}
+                    className={`recommended-bookmark ${isBookmarked ? "recommended-bookmark--active" : ""}`}
+                    aria-label={isBookmarked ? `Remove bookmark for ${course.title}` : `Bookmark ${course.title}`}
+                    aria-pressed={isBookmarked}
+                    data-bookmarked={isBookmarked}
+                  >
+                    <Bookmark className={isBookmarked ? "fill-current" : ""} aria-hidden="true" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => toggleBookmark(course.title)}
-                  className={`recommended-bookmark ${isBookmarked ? "recommended-bookmark--active" : ""}`}
-                  aria-label={isBookmarked ? `Remove bookmark for ${course.title}` : `Bookmark ${course.title}`}
-                  aria-pressed={isBookmarked}
-                  data-bookmarked={isBookmarked}
-                >
-                  <Bookmark className={isBookmarked ? "fill-current" : ""} aria-hidden="true" />
-                </button>
                 <div className="recommended-course-copy">
                   <div className="recommended-title-wrap">
                     <h3 title={course.title}>{course.title}</h3>
                   </div>
+                  <p className="recommended-course-subtitle" title={course.subtitle}>{course.subtitle}</p>
                   <div className="recommended-course-footer">
                     <span className="recommended-course-level" title={course.level}>
                       {course.level}
                     </span>
+                    <span className="recommended-course-separator" aria-hidden="true">•</span>
+                    <span className="recommended-course-lessons">{course.lessons} Lessons</span>
                     <span className="recommended-rating">
                       <Star aria-hidden="true" /> {course.rating}
                     </span>

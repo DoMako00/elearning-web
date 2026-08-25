@@ -224,11 +224,11 @@
 }
 
 /* Restrained expansion for the largest supported dashboard canvas. */
-@container bento-slot (min-width: 480px) and (min-height: 450px) {
+@container bento-slot (min-width: 480px) and (min-height: 380px) {
   .weekly-goal-card {
     --weekly-goal-ring-size: clamp(158px,
-        min(34cqw, 38cqh),
-        176px);
+        min(34cqw, 44cqh),
+        190px);
     padding: 26px 28px 22px;
   }
 

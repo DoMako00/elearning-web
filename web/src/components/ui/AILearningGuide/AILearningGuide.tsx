@@ -1,11 +1,11 @@
-import { Atom, Route, Sparkles, Workflow } from "lucide-react";
-import robotAsset from "../../../Assets/ai-learning-robot.webp";
+import { BookOpen, BrainCircuit, Route, Sparkles } from "lucide-react";
+import robotAsset from "../../../Assets/dashboard/doctor-robot.webp";
 import "./AILearningGuide.css";
 
 const suggestions = [
   { label: "Recommend a study path for me", icon: Route },
-  { label: "Explain useEffect in simple terms", icon: Atom },
-  { label: "Best practices for React performance", icon: Workflow },
+  { label: "Explain the function of cranial nerves", icon: BrainCircuit },
+  { label: "Best resources for learning anatomy", icon: BookOpen },
 ] as const;
 
 export function AILearningGuide() {
@@ -36,7 +36,8 @@ export function AILearningGuide() {
           <img
             className="ai-guide-robot"
             src={robotAsset}
-            alt="Friendly GreenLearn AI learning guide robot"
+            alt="Friendly GreenLearn doctor robot with a stethoscope"
+            decoding="async"
           />
         </div>
       </div>

@@ -306,8 +306,8 @@
   }
 
   .your-streak-trophy {
-    width: 185px;
-    max-height: 185px;
+    width: min(220px, 62cqh);
+    max-height: 220px;
   }
 
   .your-streak-badges-button {

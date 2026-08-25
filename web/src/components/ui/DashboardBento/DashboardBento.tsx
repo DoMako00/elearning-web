@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Sparkles, X } from "lucide-react";
-import robotAsset from "../../../Assets/ai-learning-robot.webp";
+import robotAsset from "../../../Assets/dashboard/doctor-robot.webp";
 import { AILearningGuide } from "../AILearningGuide";
 import ContinueLearning from "../Continue_Learning/continue_learning";
 import { MyProgress } from "../MyProgress";
@@ -15,6 +15,7 @@ export function DashboardBento() {
 
   return (
     <section className="dashboard-bento" aria-label="Learning dashboard">
+      <h1 className="sr-only">Student Home Dashboard</h1>
       <div className="dashboard-bento__row dashboard-bento__row--top">
         <div className="dashboard-bento__slot dashboard-bento__slot--continue">
           <ContinueLearning />

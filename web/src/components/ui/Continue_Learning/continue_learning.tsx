@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
 import { MoreHorizontal, Bookmark, Play } from 'lucide-react';
-import courseImage from '../../../Assets/image.webp';
+import courseImage from '../../../Assets/dashboard/human-anatomy.webp';
 import './index.css';
 
 interface Continue_learningProps {
   title?: string;
   courseName?: string;
+  courseSubtitle?: string;
   status?: string;
   currentLesson?: number;
   totalLessons?: number;
@@ -17,10 +18,11 @@ interface Continue_learningProps {
 
 const Continue_learning: React.FC<Continue_learningProps> = ({
   title = "Continue Learning",
-  courseName = "Advanced UI/UX Design",
+  courseName = "Human Anatomy I",
+  courseSubtitle = "Structure & Organization",
   status = "In Progress",
   currentLesson = 6,
-  totalLessons = 12,
+  totalLessons = 14,
   progressPercentage = 60,
   imageSrc = courseImage,
   onContinue,
@@ -32,17 +34,6 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
       return name.split('\n').map((line, idx) => (
         <span key={idx} className="block">{line}</span>
       ));
-    }
-    const words = name.trim().split(/\s+/);
-    if (words.length > 1) {
-      const firstWord = words[0];
-      const rest = words.slice(1).join(' ');
-      return (
-        <>
-          <span className="block">{firstWord}</span>
-          <span className="block">{rest}</span>
-        </>
-      );
     }
     return name;
   };
@@ -68,6 +59,8 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
             <img
               src={imageSrc}
               alt={courseName}
+              decoding="async"
+              loading="eager"
               className="continue-learning-image w-full h-full object-cover transition-transform duration-500 ease-out group-hover/media:scale-108"
             />
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -87,6 +80,7 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
                 <h3 className="continue-learning-course-title">
                   {renderCourseName(courseName)}
                 </h3>
+                <p className="continue-learning-course-subtitle">{courseSubtitle}</p>
 
                 <div className="continue-learning-metrics mt-auto">
                   <div className="continue-learning-progress-row flex items-center gap-3 mb-3">
