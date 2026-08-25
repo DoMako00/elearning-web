@@ -552,10 +552,29 @@ main[data-main-workspace] {
   background: var(--color-surface);
 }
 
+/* Desktop reference geometry: title, two-column overview and four-card library share one rail. */
+@media (min-width: 1200px) {
+  .my-courses-workspace {
+    grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(22px, 1.65vw, 30px);
+    padding: 0;
+  }
+
+  .my-courses-heading {
+    min-height: 72px;
+    align-items: end;
+  }
+
+  .my-courses-overview {
+    grid-template-columns: minmax(0, 1.53fr) minmax(420px, 1fr);
+    gap: clamp(20px, 1.55vw, 26px);
+  }
+}
+
 @media (min-width: 1600px) {
   .my-courses-workspace {
-    gap: clamp(18px, 1.15vw, 24px);
-    padding: clamp(20px, 1.25vw, 28px);
+    gap: clamp(22px, 1.65vw, 30px);
+    padding: 0;
   }
 }
 
@@ -692,9 +711,25 @@ main[data-main-workspace] {
 }
 
 .course-focus-card__art svg {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   overflow: visible;
+}
+
+.course-focus-card__art > img {
+  position: absolute;
+  z-index: 0;
+  right: 8%;
+  bottom: -14%;
+  width: 66%;
+  height: 115%;
+  object-fit: contain;
+  object-position: center bottom;
+  opacity: .63;
+  filter: saturate(.72) contrast(1.08) brightness(.83);
+  mix-blend-mode: screen;
 }
 
 .course-focus-card__art text {
@@ -1365,9 +1400,9 @@ main[data-main-workspace] {
   }
 
   .my-courses-workspace {
-    gap: 14px;
-    padding: 16px 22px;
-    overflow-y: auto;
+    gap: 18px;
+    padding: 0;
+    overflow: hidden;
   }
 
   .course-focus-card__content {

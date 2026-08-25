@@ -156,16 +156,16 @@
   width: max-content;
   min-width: 100%;
   height: 100%;
-  gap: clamp(14px, 1.2vw, 22px);
-  padding-right: 56px;
+  gap: clamp(18px, 1.35vw, 24px);
+  padding-right: 0;
 }
 
 .course-library__card {
   display: flex;
   flex-direction: column;
-  width: calc((100% - clamp(42px, 3.6vw, 66px)) / 4);
-  min-width: calc((100% - clamp(42px, 3.6vw, 66px)) / 4);
-  flex: 0 0 calc((100% - clamp(42px, 3.6vw, 66px)) / 4);
+  width: calc((100% - clamp(54px, 4.05vw, 72px)) / 4);
+  min-width: calc((100% - clamp(54px, 4.05vw, 72px)) / 4);
+  flex: 0 0 calc((100% - clamp(54px, 4.05vw, 72px)) / 4);
   height: clamp(265px, 29vh, 290px);
   overflow: hidden;
   border: 1px solid #dfe9e4;
@@ -202,8 +202,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: .68;
-  mix-blend-mode: screen;
+  opacity: 1;
+  mix-blend-mode: normal;
 }
 
 .course-library__art::before,
@@ -212,7 +212,7 @@
   z-index: -1;
   content: "";
   border-radius: 999px;
-  opacity: 0.82;
+  opacity: 0.32;
 }
 
 .course-library__art::before {
@@ -297,10 +297,14 @@
   color: #c5ffdc;
 }
 
-.course-library__art--anatomy > img { object-position: 50% 37%; opacity: .74; }
-.course-library__art--histology > img { opacity: .82; mix-blend-mode: normal; }
-.course-library__art--physiology > img { opacity: .74; }
-.course-library__art--biochemistry > img { opacity: .72; }
+.course-library__art > img + span {
+  display: none;
+}
+
+.course-library__art--anatomy > img { object-position: 50% 32%; }
+.course-library__art--histology > img { object-position: center; }
+.course-library__art--physiology > img { object-position: center; }
+.course-library__art--biochemistry > img { object-position: center; }
 
 .course-library__art--histology {
   background: radial-gradient(ellipse at 22% 28%, rgb(255 194 223 / 44%) 0 7%, transparent 8%), radial-gradient(ellipse at 68% 60%, rgb(255 144 191 / 45%) 0 10%, transparent 11%), linear-gradient(125deg, #7c255b, #e882ab 52%, #8e315d);
@@ -679,15 +683,15 @@
   }
 
   .course-library__card {
-    width: clamp(330px, 22.5vw, 395px);
-    min-width: clamp(330px, 22.5vw, 395px);
-    flex-basis: clamp(330px, 22.5vw, 395px);
-    height: clamp(255px, 28vh, 280px);
+    width: calc((100% - clamp(54px, 4.05vw, 72px)) / 4);
+    min-width: calc((100% - clamp(54px, 4.05vw, 72px)) / 4);
+    flex-basis: calc((100% - clamp(54px, 4.05vw, 72px)) / 4);
+    height: clamp(285px, 31vh, 310px);
   }
 
   .course-library__art {
-    height: 135px;
-    flex: 0 0 135px;
+    height: 138px;
+    flex: 0 0 138px;
     padding: 14px;
   }
 
