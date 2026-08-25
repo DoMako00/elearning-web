@@ -1,5 +1,6 @@
 import {
   ArrowRight,
+  Bookmark,
   CalendarDays,
   ChevronDown,
   CirclePlay,
@@ -63,25 +64,25 @@ export function MyCoursesPage() {
         </header>
 
         <div className="my-courses-overview">
-          <article className="course-focus-card" aria-label="Start Advanced UI UX Design">
+          <article className="course-focus-card" aria-label="Continue Human Anatomy I">
             <div className="course-focus-card__art" aria-hidden="true">
               <svg viewBox="0 0 520 320" preserveAspectRatio="xMidYMid meet">
-                <g className="course-focus-card__grid"><path d="M26 273H188M31 290H204M48 306H221M42 257H169" /><path d="M77 227V45H267V227H77Z" /><path d="M77 77H267M110 45V77M238 45V77" /><circle cx="103" cy="61" r="4" /><circle cx="120" cy="61" r="4" /><circle cx="137" cy="61" r="4" /></g>
-                <text x="91" y="174">UI</text><text x="91" y="251">UX</text>
-                <g className="course-focus-card__pen"><path d="M355 84 398 44 441 84 399 171Z" /><circle cx="398" cy="102" r="12" /><path d="M398 44V21M355 84 326 69M441 84 470 69M398 171V203" /></g>
-                <g className="course-focus-card__shapes"><rect x="310" y="35" width="15" height="15" rx="2" /><rect x="457" y="199" width="48" height="48" rx="7" /><path d="m295 212 30 36-14 7 15 28-22-4-12 14-6-31-20 2 17-16-15-22Z" /><path d="M300 59h100" /><circle cx="300" cy="59" r="7" /><circle cx="400" cy="59" r="7" /><circle cx="450" cy="59" r="7" /><path d="M450 59h24" /></g>
-                <g className="course-focus-card__spark"><path d="M36 25v15M28 32h16M284 5v13M277 11h14M478 16v15M470 23h16M292 205v15M284 212h16M493 117v15M485 124h16" /></g>
+                <g className="course-focus-card__grid"><path d="M17 70H170M17 103H170M17 136H170M17 169H170M17 202H170M17 235H170M17 268H170M206 28V295M258 28V295M310 28V295M362 28V295M414 28V295M466 28V295" /></g>
+                <g className="course-focus-card__labels"><path d="M31 77H160M31 132H160M31 187H160" /><text x="34" y="68">SKELETAL SYSTEM</text><text x="34" y="123">MUSCULAR SYSTEM</text><text x="34" y="178">BODY STRUCTURE</text></g>
+                <g className="course-focus-card__skeleton"><circle cx="350" cy="71" r="36" /><path d="M325 69h50M350 37v67M332 95l-23 35 18 15 23-20 23 20 18-15-23-35M350 107v59M327 136l-13 66M373 136l13 66M350 166l-28 85M350 166l28 85M317 205l-13 65M383 205l13 65" /><path d="M322 117q28 33 56 0M323 128q27 34 54 0M328 140q22 26 44 0" /><path d="M340 61h20M342 82h16" /></g>
+                <g className="course-focus-card__molecules"><circle cx="455" cy="77" r="8" /><circle cx="477" cy="96" r="5" /><circle cx="449" cy="116" r="6" /><path d="M460 83 473 92M472 100 454 112" /><circle cx="431" cy="181" r="6" /><circle cx="462" cy="190" r="9" /><path d="M437 183 453 188" /></g>
               </svg>
             </div>
             <div className="course-focus-card__content">
               <span className="course-focus-card__status">In progress</span>
-              <h2>Advanced UI/UX Design</h2>
+              <h2>Human Anatomy I</h2>
+              <p className="course-focus-card__subtitle">Structure &amp; Organization</p>
               <p className="course-focus-card__lesson">Lesson 6 of 12</p>
               <div className="course-focus-card__progress"><i><b /></i><strong>60%</strong></div>
-              <div className="course-focus-card__instructor"><span>AM</span><div><b>Alex Morgan</b><small>Lead Product Designer</small></div></div>
+              <div className="course-focus-card__instructor"><span>AH</span><div><b>Dr. Ahmed Hassan</b><small>Professor of Anatomy</small></div></div>
             </div>
-            <button type="button" className="course-focus-card__play" aria-label="Play Advanced UI UX Design"><CirclePlay aria-hidden="true" /></button>
-            <footer className="course-focus-card__footer"><div><small>Course overview</small><b>Human Anatomy I</b></div><button type="button" onClick={() => navigate("/my-courses/human-anatomy-i")}>Start lesson <ArrowRight aria-hidden="true" /></button></footer>
+            <button type="button" className="course-focus-card__play" aria-label="Play Human Anatomy I"><CirclePlay aria-hidden="true" /></button>
+            <footer className="course-focus-card__footer"><div><small>Course overview</small><b>Foundations of the human body</b></div><div className="course-focus-card__actions"><button type="button" className="course-focus-card__bookmark" aria-label="Save Human Anatomy I"><Bookmark aria-hidden="true" /></button><button type="button" onClick={() => navigate("/my-courses/human-anatomy-i")}>Continue Lesson <ArrowRight aria-hidden="true" /></button></div></footer>
           </article>
           <div className="my-courses-overview__summaries">
             <article className="course-summary course-summary--week">

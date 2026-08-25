@@ -706,6 +706,14 @@ main[data-main-workspace] {
   letter-spacing: -10px;
 }
 
+.course-focus-card__labels text {
+  fill: currentColor;
+  stroke: none;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
 .course-focus-card__art path,
 .course-focus-card__art rect,
 .course-focus-card__art circle {
@@ -717,6 +725,11 @@ main[data-main-workspace] {
 .course-focus-card__grid {
   opacity: .76;
 }
+
+.course-focus-card__labels { opacity: .42; }
+.course-focus-card__skeleton { opacity: .96; }
+.course-focus-card__skeleton circle { fill: rgb(184 255 211 / 10%); }
+.course-focus-card__molecules { opacity: .7; }
 
 .course-focus-card__pen {
   opacity: .9;
@@ -765,6 +778,13 @@ main[data-main-workspace] {
   color: #ace4c3;
   font-size: 15px;
   font-weight: 650;
+}
+
+.course-focus-card__subtitle {
+  margin: -2px 0 0;
+  color: #d4f2df;
+  font-size: clamp(14px, 1.05vw, 16px);
+  font-weight: 600;
 }
 
 .course-focus-card__progress {
@@ -900,6 +920,24 @@ main[data-main-workspace] {
   font-size: 14px;
   font-weight: 750;
 }
+
+.course-focus-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.course-focus-card__footer .course-focus-card__bookmark {
+  display: grid;
+  width: 48px;
+  padding: 0;
+  place-items: center;
+  border-color: rgb(255 255 255 / 32%);
+  background: rgb(255 255 255 / 8%);
+  color: #fff;
+}
+
+.course-focus-card__bookmark svg { width: 18px; height: 18px; }
 
 .course-focus-card__footer button svg {
   width: 16px;

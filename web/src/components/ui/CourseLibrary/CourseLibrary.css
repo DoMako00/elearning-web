@@ -163,9 +163,9 @@
 .course-library__card {
   display: flex;
   flex-direction: column;
-  width: clamp(340px, 28.5vw, 440px);
-  min-width: clamp(340px, 28.5vw, 440px);
-  flex: 0 0 clamp(340px, 28.5vw, 440px);
+  width: calc((100% - clamp(42px, 3.6vw, 66px)) / 4);
+  min-width: calc((100% - clamp(42px, 3.6vw, 66px)) / 4);
+  flex: 0 0 calc((100% - clamp(42px, 3.6vw, 66px)) / 4);
   height: clamp(265px, 29vh, 290px);
   overflow: hidden;
   border: 1px solid #dfe9e4;
@@ -193,6 +193,17 @@
   padding: 12px;
   color: #e6ffef;
   isolation: isolate;
+}
+
+.course-library__art > img {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: .68;
+  mix-blend-mode: screen;
 }
 
 .course-library__art::before,
@@ -281,34 +292,34 @@
   height: 16px;
 }
 
-.course-library__art--react {
-  background: radial-gradient(circle at 50% 50%, #0b9ab6 0 3%, transparent 4%), linear-gradient(130deg, #041d28, #073e45 52%, #022329);
-  color: #1ee4f0;
+.course-library__art--anatomy {
+  background: radial-gradient(circle at 68% 44%, rgb(142 255 191 / 28%), transparent 18%), linear-gradient(130deg, #052f26, #07513e 52%, #032b23);
+  color: #c5ffdc;
 }
 
-.course-library__art--javascript {
-  background: linear-gradient(125deg, #3b3100, #806d00 48%, #182911);
-  color: #ffe657;
+.course-library__art--anatomy > img { object-position: 50% 37%; opacity: .74; }
+.course-library__art--histology > img { opacity: .82; mix-blend-mode: normal; }
+.course-library__art--physiology > img { opacity: .74; }
+.course-library__art--biochemistry > img { opacity: .72; }
+
+.course-library__art--histology {
+  background: radial-gradient(ellipse at 22% 28%, rgb(255 194 223 / 44%) 0 7%, transparent 8%), radial-gradient(ellipse at 68% 60%, rgb(255 144 191 / 45%) 0 10%, transparent 11%), linear-gradient(125deg, #7c255b, #e882ab 52%, #8e315d);
+  color: #fff0f7;
 }
 
-.course-library__art--node {
-  background: linear-gradient(125deg, #071e15, #143c28 45%, #081a12);
-  color: #a8ec6c;
+.course-library__art--physiology {
+  background: radial-gradient(circle at 54% 50%, rgb(129 231 255 / 18%), transparent 28%), linear-gradient(125deg, #062840, #07547a 50%, #06233d);
+  color: #b7efff;
 }
 
-.course-library__art--design {
-  background: linear-gradient(125deg, #351059, #6c31a2 48%, #130a31);
-  color: #e7b6ff;
-}
-
-.course-library__art--data {
-  background: linear-gradient(125deg, #06314b, #076e85 45%, #03303b);
-  color: #8eeaf8;
+.course-library__art--biochemistry {
+  background: radial-gradient(circle at 30% 32%, rgb(237 189 255 / 40%) 0 4%, transparent 5%), radial-gradient(circle at 68% 58%, rgb(221 161 255 / 36%) 0 6%, transparent 7%), linear-gradient(125deg, #291047, #63308e 50%, #26123e);
+  color: #f0d5ff;
 }
 
 .course-library__card-body {
   display: grid;
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto auto auto 1fr;
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
@@ -328,6 +339,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
   align-self: start;
+}
+
+.course-library__card-body > p {
+  overflow: hidden;
+  margin: -2px 0 0;
+  color: #718087;
+  font-size: 12px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .course-library__progress {

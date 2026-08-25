@@ -1,28 +1,30 @@
 import {
   ArrowRight,
-  Atom,
+  Bone,
   Bookmark,
-  Box,
-  ChartNoAxesColumnIncreasing,
   ChevronLeft,
   ChevronRight,
-  Code2,
+  FlaskConical,
   Grid2X2,
   List,
-  Palette,
+  HeartPulse,
+  Microscope,
   Search,
   SlidersHorizontal,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import anatomyImage from "../../../Assets/dashboard/human-anatomy.webp";
+import biochemistryImage from "../../../Assets/dashboard/biochemistry-essentials.webp";
+import histologyImage from "../../../Assets/dashboard/histology-basics.webp";
+import physiologyImage from "../../../Assets/dashboard/medical-physiology.webp";
 import "./CourseLibrary.css";
 
 const courses = [
-  { title: "React Complete Guide", category: "Development", level: "Intermediate", progress: 42, opened: "Last opened 2 days ago", art: "react", Icon: Atom },
-  { title: "JavaScript Mastery", category: "Development", level: "Intermediate", progress: 78, opened: "Last opened yesterday", art: "javascript", Icon: Code2 },
-  { title: "Node.js Backend Dev", category: "Backend", level: "Advanced", progress: 25, opened: "Last opened 5 days ago", art: "node", Icon: Box },
-  { title: "UI/UX Design Principles", category: "Design", level: "Beginner", progress: 15, opened: "Last opened a week ago", art: "design", Icon: Palette },
-  { title: "Data Science Foundations", category: "Data", level: "Intermediate", progress: 36, opened: "Last opened 2 weeks ago", art: "data", Icon: ChartNoAxesColumnIncreasing },
+  { title: "Human Anatomy I", subtitle: "Structure & Organization", category: "Anatomy", level: "Beginner", progress: 60, opened: "Last opened today", art: "anatomy", image: anatomyImage, Icon: Bone },
+  { title: "Histology Basics", subtitle: "Tissues of the Human Body", category: "Histology", level: "Beginner", progress: 35, opened: "Last opened 3 days ago", art: "histology", image: histologyImage, Icon: Microscope },
+  { title: "Medical Physiology", subtitle: "Body Functions & Regulation", category: "Physiology", level: "Intermediate", progress: 25, opened: "Last opened 5 days ago", art: "physiology", image: physiologyImage, Icon: HeartPulse },
+  { title: "Biochemistry Essentials", subtitle: "Molecules of Life", category: "Biochemistry", level: "Advanced", progress: 18, opened: "Last opened 1 week ago", art: "biochemistry", image: biochemistryImage, Icon: FlaskConical },
 ];
 
 export function CourseLibrary() {
@@ -144,11 +146,11 @@ export function CourseLibrary() {
           {filteredCourses.map((course) => (
             <article className="course-library__list-item" key={course.title} aria-label={course.title}>
               <div className={`course-library__list-art course-library__art--${course.art}`}>
-                <span>{course.art === "javascript" ? "JS" : <course.Icon aria-hidden="true" />}</span>
+                <span><course.Icon aria-hidden="true" /></span>
               </div>
               <div className="course-library__list-content">
                 <div className="course-library__list-header">
-                  <h3 title={course.title}>{course.title}</h3>
+                  <h3 title={course.title}>{course.title}</h3><p>{course.subtitle}</p>
                   <div className="course-library__list-tags">
                     <em>{course.category}</em>
                     <em>{course.level}</em>
@@ -202,7 +204,8 @@ export function CourseLibrary() {
               {filteredCourses.map((course) => (
                 <article className="course-library__card" key={course.title} aria-label={course.title}>
                   <div className={`course-library__art course-library__art--${course.art}`}>
-                    <span>{course.art === "javascript" ? "JS" : <course.Icon aria-hidden="true" />}</span>
+                    <img src={course.image} alt="" />
+                    <span><course.Icon aria-hidden="true" /></span>
                     <div><em>{course.category}</em><em>{course.level}</em></div>
                     <button
                       type="button"
@@ -215,6 +218,7 @@ export function CourseLibrary() {
                   </div>
                   <div className="course-library__card-body">
                     <h3 title={course.title}>{course.title}</h3>
+                    <p>{course.subtitle}</p>
                     <div className="course-library__progress">
                       <i><b style={{ width: `${course.progress}%` }} /></i>
                       <strong>{course.progress}%</strong>
