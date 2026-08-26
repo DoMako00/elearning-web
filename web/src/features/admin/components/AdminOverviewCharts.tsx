@@ -1,0 +1,14 @@
+import { Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
+import type { AdminOverviewDashboard } from "../api";
+
+const number = new Intl.NumberFormat("en-EG");
+const colors = { success: "#38a65c", warning: "#e3aa3c", danger: "#d85a5a", neutral: "#8a9990" };
+
+export function AdminEnrollmentChart({ enrollment }: { enrollment: AdminOverviewDashboard["enrollment"] }) {
+  return <figure className="admin-enrollment-figure"><figcaption className="admin-sr-only">Enrollment rose to {number.format(enrollment.total)}, {enrollment.trendPercentage}% higher than the previous period.</figcaption><div className="admin-chart-frame"><ResponsiveContainer width="100%" height="100%"><LineChart data={enrollment.points} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}><CartesianGrid stroke="#e9eeeb" strokeDasharray="3 3" vertical={false} /><XAxis dataKey="label" tick={{ fontSize: 9, fill: "#7b8981" }} axisLine={false} tickLine={false} interval={1} /><YAxis tick={{ fontSize: 9, fill: "#7b8981" }} axisLine={false} tickLine={false} width={42} /><Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #dfe7e2", fontSize: 11 }} /><Line type="monotone" dataKey="previous" stroke="#b9c5be" strokeDasharray="4 4" strokeWidth={1.4} dot={false} /><Line type="monotone" dataKey="current" stroke="#2f9d59" strokeWidth={2} dot={false} activeDot={{ r: 3 }} /></LineChart></ResponsiveContainer></div><div className="admin-chart-legend"><span><i className="is-current" />This Month</span><span><i className="is-previous" />Last Month</span></div></figure>;
+}
+
+export function AdminPaymentDonut({ payment }: { payment: AdminOverviewDashboard["paymentStatus"] }) {
+  const currency = new Intl.NumberFormat("en-EG", { style: "currency", currency: payment.currency, maximumFractionDigits: 0 });
+  return <div className="admin-payment-summary"><figure className="admin-donut"><figcaption className="admin-sr-only">Payment status: {payment.segments.map((segment) => `${segment.label} ${segment.percentage}%`).join(", ")}.</figcaption><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={payment.segments} dataKey="value" nameKey="label" innerRadius="64%" outerRadius="88%" paddingAngle={0} stroke="none">{payment.segments.map((segment) => <Cell key={segment.id} fill={colors[segment.tone]} />)}</Pie><Tooltip formatter={(value) => currency.format(Number(value))} /></PieChart></ResponsiveContainer><div className="admin-donut__center"><strong>{currency.format(payment.totalRevenue)}</strong><span>Total Revenue</span></div></figure><ul className="admin-breakdown-list admin-breakdown-list--payment">{payment.segments.map((segment) => <li key={segment.id}><span><i className={`is-${segment.tone}`} />{segment.label}</span><strong>{currency.format(segment.value)}</strong><small>{segment.percentage}%</small></li>)}</ul></div>;
+}

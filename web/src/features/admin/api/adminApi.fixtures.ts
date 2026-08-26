@@ -5,6 +5,7 @@ import type {
   AdminStudentDetail, AdminSubscriptionDetail, AdminSeatSummary, AdminAttemptDetail,
   AdminUserSummary, AdminPlatformContext, AdminBrandContext,
 } from "./adminApi.types";
+import { eliteOverviewDashboard, medwayOverviewDashboard } from "./adminOverview.fixtures";
 
 // Canonical brand identities. Platform exports below are compatibility aliases only.
 export const medwayBrand: AdminBrandContext = { brandId: "platform-medway", brandCode: "medway", brandDisplayName: "Medway", platformId: "platform-medway", platformCode: "medway" };
@@ -20,6 +21,7 @@ const privateRef = (referenceId: string) => ({ referenceId, providerLabel: "driv
 
 export interface AdminFixtureBundle {
   platform: AdminPlatformContext;
+  overview: import("./adminApi.types").AdminOverviewDashboard;
   students: readonly AdminStudentDetail[];
   devices: readonly AdminDeviceSummary[];
   sessions: readonly AdminSessionSummary[];
@@ -119,7 +121,7 @@ const eliteActions: AdminAdminActionItem[] = [{ id: "elite-admin-action-001", pl
 const eliteRoles: AdminRoleSummary[] = [{ id: "elite-role-001", platform: elitePlatform, code: "elite_admin", name: "Elite Admin", permissionCodes: ["admin.audit.read", "admin.content.read", "admin.assessments.read"], status: "active" }];
 const eliteAdminUsers: AdminUserSummary[] = [{ id: "elite-admin-001", platform: elitePlatform, appUserId: "elite-user-001", displayName: "Elite Admin", emailMasked: "admin@e***.edu", status: "active", roleIds: ["elite-role-001"] }];
 
-export const medwayFixtures: AdminFixtureBundle = { platform: medwayPlatform, students: medStudents, devices: medDevices, sessions: medSessions, payments: medPayments, refunds: medRefunds, subscriptions: medSubscriptions, seats: medSeats, accessGrants: medGrants, contentTree: medContentTree, lessons: medLessons, mediaAssets: medMediaAssets, accessDecisions: medDecisions, playbackSessions: medPlayback, assessments: medAssessments, attempts: medAttempts, auditLogs: medAudit, securityEvents: medSecurity, adminActions: medAdminActions, roles: medRoles, adminUsers: medAdminUsers, policySets: [1, 2, 3].map((n) => medPolicy(n, ["Access policy", "Media policy", "Refund policy"][n - 1])) };
-export const eliteFixtures: AdminFixtureBundle = { platform: elitePlatform, students: eliteStudents, devices: eliteDevices, sessions: eliteSessions, payments: elitePayments, refunds: eliteRefunds, subscriptions: eliteSubscriptions, seats: [], accessGrants: eliteGrants, contentTree: eliteContentTree, lessons: eliteLessons, mediaAssets: eliteAssets, accessDecisions: eliteDecisions, playbackSessions: elitePlayback, assessments: eliteAssessments, attempts: eliteAttempts, auditLogs: eliteAudit, securityEvents: eliteSecurity, adminActions: eliteActions, roles: eliteRoles, adminUsers: eliteAdminUsers, policySets: [elitePolicy] };
+export const medwayFixtures: AdminFixtureBundle = { platform: medwayPlatform, overview: medwayOverviewDashboard, students: medStudents, devices: medDevices, sessions: medSessions, payments: medPayments, refunds: medRefunds, subscriptions: medSubscriptions, seats: medSeats, accessGrants: medGrants, contentTree: medContentTree, lessons: medLessons, mediaAssets: medMediaAssets, accessDecisions: medDecisions, playbackSessions: medPlayback, assessments: medAssessments, attempts: medAttempts, auditLogs: medAudit, securityEvents: medSecurity, adminActions: medAdminActions, roles: medRoles, adminUsers: medAdminUsers, policySets: [1, 2, 3].map((n) => medPolicy(n, ["Access policy", "Media policy", "Refund policy"][n - 1])) };
+export const eliteFixtures: AdminFixtureBundle = { platform: elitePlatform, overview: eliteOverviewDashboard, students: eliteStudents, devices: eliteDevices, sessions: eliteSessions, payments: elitePayments, refunds: eliteRefunds, subscriptions: eliteSubscriptions, seats: [], accessGrants: eliteGrants, contentTree: eliteContentTree, lessons: eliteLessons, mediaAssets: eliteAssets, accessDecisions: eliteDecisions, playbackSessions: elitePlayback, assessments: eliteAssessments, attempts: eliteAttempts, auditLogs: eliteAudit, securityEvents: eliteSecurity, adminActions: eliteActions, roles: eliteRoles, adminUsers: eliteAdminUsers, policySets: [elitePolicy] };
 
 export const adminFixtureBundles: readonly AdminFixtureBundle[] = [medwayFixtures, eliteFixtures];

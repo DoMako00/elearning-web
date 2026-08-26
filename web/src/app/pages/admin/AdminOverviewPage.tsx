@@ -1,19 +1,58 @@
-import { AlertCircle, LoaderCircle } from "lucide-react";
-import { useOutletContext } from "react-router-dom";
+import { ArrowRight, BarChart3, BookOpen, CreditCard, FileText, GraduationCap, LoaderCircle, Megaphone, Plus, Settings, ShoppingCart, UserPlus, UserRound, UsersRound } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useNavigate, useOutletContext } from "react-router-dom";
+import type { LucideIcon } from "lucide-react";
 import { useAdminOverview } from "../../../features/admin/hooks/useAdminOverview";
 import { brandToPlatform } from "../../../features/admin/hooks/useAdminBrand";
-import { AdminDataList } from "../../../features/admin/components/AdminDataList";
-import { AdminSectionCard } from "../../../features/admin/components/AdminSectionCard";
-import { AdminStatCard } from "../../../features/admin/components/AdminStatCard";
-import { AdminStatusPill } from "../../../features/admin/components/AdminStatusPill";
-import type { AdminOverview as AdminOverviewModel, AdminBrandContext } from "../../../features/admin/api";
+import { AdminStatCard, AdminTrendSparkline } from "../../../features/admin/components/AdminStatCard";
+import { AdminEnrollmentChart, AdminPaymentDonut } from "../../../features/admin/components/AdminOverviewCharts";
+import type { AdminBrandContext, AdminOverviewActivity, AdminOverviewDashboard, AdminOverviewMetricId } from "../../../features/admin/api";
 
-function formatTimestamp(value: string) { return new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)); }
-function OverviewLists({ overview }: { overview: AdminOverviewModel }) {
-  return <div className="admin-overview-lists"><AdminSectionCard title="Recent audit logs" eyebrow="Append-only evidence"><AdminDataList items={overview.recentAuditLogs} emptyMessage="No recent audit logs." renderItem={(item) => <div className="admin-event-row"><div><strong>{item.action}</strong><span>{item.entityType} · {item.entityId}</span></div><time dateTime={item.occurredAt}>{formatTimestamp(item.occurredAt)}</time></div>} /></AdminSectionCard><AdminSectionCard title="Recent admin actions" eyebrow="Read-only activity"><AdminDataList items={overview.recentAdminActions} emptyMessage="No recent admin actions." renderItem={(item) => <div className="admin-event-row"><div><strong>{item.actionType}</strong><span>{item.targetEntityType} · {item.targetEntityId}</span></div><span className="admin-event-row__meta"><AdminStatusPill label={item.outcome} tone={item.outcome === "succeeded" ? "success" : "warning"} /><time dateTime={item.occurredAt}>{formatTimestamp(item.occurredAt)}</time></span></div>} /></AdminSectionCard><AdminSectionCard title="Recent security events" eyebrow="Risk signals"><AdminDataList items={overview.recentSecurityEvents} emptyMessage="No recent security events." renderItem={(item) => <div className="admin-event-row"><div><strong>{item.eventType}</strong><span>{item.userId ? `User ${item.userId}` : "System event"}</span></div><span className="admin-event-row__meta"><AdminStatusPill label={item.severity} tone={item.severity === "critical" ? "danger" : item.severity === "warning" ? "warning" : "neutral"} /><time dateTime={item.occurredAt}>{formatTimestamp(item.occurredAt)}</time></span></div>} /></AdminSectionCard></div>;
+const number = new Intl.NumberFormat("en-EG");
+const metricIcons: Record<AdminOverviewMetricId, LucideIcon> = { students: UsersRound, courses: BookOpen, instructors: UserRound, revenue: CreditCard };
+const activityIcons: Record<AdminOverviewActivity["kind"], LucideIcon> = { student: GraduationCap, course: BookOpen, instructor: UserPlus, payment: CreditCard, content: FileText };
+const quickLinks = [
+  { label: "Add New Course", icon: BookOpen, path: "/admin/courses" }, { label: "Add New Instructor", icon: UserPlus, path: "/admin/instructors" },
+  { label: "Manage Students", icon: GraduationCap, path: "/admin/students" }, { label: "Create Announcement", icon: Megaphone },
+  { label: "Reports & Analytics", icon: BarChart3 }, { label: "System Settings", icon: Settings },
+] as const;
+
+function CardHeader({ title, count, action = "This Month" }: { title: string; count?: number; action?: string }) {
+  return <header className="admin-card-header"><h2>{title}{count !== undefined && <span>{count}</span>}</h2>{action && <button type="button" aria-label={`${action} for ${title}`}>{action}</button>}</header>;
 }
+
+function BreakdownList({ items }: { items: AdminOverviewDashboard["orders"]["statuses"] }) {
+  return <ul className="admin-breakdown-list">{items.map((item) => <li key={item.id}><span><i className={`is-${item.tone}`} />{item.label}</span><strong>{number.format(item.value)}</strong><small>{item.percentage}%</small></li>)}</ul>;
+}
+
+function OverviewContent({ dashboard }: { dashboard: AdminOverviewDashboard }) {
+  const navigate = useNavigate();
+  const [feedback, setFeedback] = useState("");
+  return <>
+    <div className="admin-metric-grid">{dashboard.metrics.map((metric) => <AdminStatCard key={metric.id} metric={metric} icon={metricIcons[metric.id]} />)}</div>
+    <div className="admin-overview-middle">
+      <article className="admin-dashboard-card admin-enrollment-card"><CardHeader title="Enrollment Overview" /><div className="admin-card-kpi"><div><strong>{number.format(dashboard.enrollment.total)}</strong><span>New Enrollments</span></div><span className="admin-trend is-up">↑ {dashboard.enrollment.trendPercentage}% <small>vs last month</small></span></div><AdminEnrollmentChart enrollment={dashboard.enrollment} /></article>
+      <article className="admin-dashboard-card admin-traffic-card"><CardHeader title="Platform Traffic" /><div className="admin-card-kpi admin-card-kpi--inline"><div><span>Total Visits</span><strong>{number.format(dashboard.traffic.total)}</strong></div><span className="admin-trend is-up">↑ {dashboard.traffic.trendPercentage}%</span><AdminTrendSparkline values={dashboard.traffic.sparkline} /></div><BreakdownList items={dashboard.traffic.sources} /><button className="admin-card-footer-link" type="button" onClick={() => setFeedback("Full analytics is a frontend preview action.")}>View full analytics <ArrowRight aria-hidden="true" /></button></article>
+      <article className="admin-dashboard-card admin-orders-card"><CardHeader title="Orders Summary" /><div className="admin-card-kpi admin-card-kpi--inline"><div><span>Total Orders</span><strong>{number.format(dashboard.orders.total)}</strong></div><span className="admin-trend is-up">↑ {dashboard.orders.trendPercentage}%</span><span className="admin-soft-icon"><ShoppingCart aria-hidden="true" /></span></div><BreakdownList items={dashboard.orders.statuses} /><button className="admin-card-footer-link" type="button" onClick={() => navigate("/admin/payments")}>View all orders <ArrowRight aria-hidden="true" /></button></article>
+      <article className="admin-dashboard-card admin-activity-card"><CardHeader title="Recent Activity" action="View all" /><ul className="admin-activity-list">{dashboard.recentActivity.map((activity) => { const Icon = activityIcons[activity.kind]; return <li key={activity.id}><span className="admin-list-icon"><Icon aria-hidden="true" /></span><span><strong>{activity.title}</strong><small>{activity.detail}</small></span><time>{activity.relativeTime}</time></li>; })}</ul></article>
+    </div>
+    <div className="admin-overview-bottom">
+      <article className="admin-dashboard-card admin-reviews-card"><CardHeader title="Pending Reviews" count={dashboard.pendingReviews.length} action="View all" /><ul className="admin-review-list">{dashboard.pendingReviews.map((review) => <li key={review.id}><span className="admin-list-icon"><BookOpen aria-hidden="true" /></span><span><strong>{review.title}</strong><small>{review.detail}</small></span><em className={`is-${review.tone}`}>{review.typeLabel}</em><time>{review.relativeTime}</time></li>)}</ul></article>
+      <article className="admin-dashboard-card admin-payment-card"><CardHeader title="Payment Status" /><AdminPaymentDonut payment={dashboard.paymentStatus} /><button className="admin-card-footer-link" type="button" onClick={() => navigate("/admin/payments")}>View transactions <ArrowRight aria-hidden="true" /></button></article>
+      <article className="admin-dashboard-card admin-quick-card"><CardHeader title="Quick Links" action="" /><div className="admin-quick-links">{quickLinks.map(({ label, icon: Icon, ...item }) => <button key={label} type="button" onClick={() => "path" in item ? navigate(item.path) : setFeedback(`${label} is a frontend preview action.`)}><Icon aria-hidden="true" /><span>{label}</span><Plus aria-hidden="true" /></button>)}</div></article>
+    </div>
+    <span className="admin-sr-only" role="status" aria-live="polite">{feedback}</span>
+  </>;
+}
+
 export function AdminOverviewPage() {
   const { brand } = useOutletContext<{ brand: AdminBrandContext }>();
-  const { data, error, loading, retry, correlationId, dataSource } = useAdminOverview(brandToPlatform(brand));
-  return <section className="admin-page" aria-labelledby="admin-dashboard-title"><header className="admin-page__heading"><div><p className="admin-eyebrow">Read-only operations workspace</p><h1 id="admin-dashboard-title">Admin Dashboard</h1><p className="admin-page__description">Brand-scoped operational signals for the selected educational identity.</p></div><div className="admin-page__status-group">{data && <AdminStatusPill label={`Active brand: ${brand.brandDisplayName}`} tone="success" />}<AdminStatusPill label={`Data source: ${dataSource}`} tone="neutral" /></div></header><aside className="admin-notice" aria-label="Authorization notice"><AlertCircle aria-hidden="true" /><span>Frontend permission visibility is presentation-only. Backend authorization and brand-scope validation remain authoritative.</span></aside>{loading && <div className="admin-feedback" aria-live="polite" aria-busy="true"><LoaderCircle className="admin-feedback__spinner" aria-hidden="true" /> Loading overview data…</div>}{error && <div className="admin-feedback admin-feedback--error" role="alert"><strong>{error.message}</strong><span>Correlation ID: {error.correlationId}</span><button type="button" onClick={retry}>Retry</button></div>}{data && !loading && !error && <><div className="admin-stat-grid"><AdminStatCard label="Pending payments" value={data.pendingPaymentReviewsCount} tone="warning" /><AdminStatCard label="Pending refunds" value={data.pendingRefundsCount} tone="warning" /><AdminStatCard label="Suspicious events" value={data.suspiciousSecurityEventsCount} tone="danger" /><AdminStatCard label="Active subscriptions" value={data.activeSubscriptionsCount} /><AdminStatCard label="Expired subscriptions" value={data.expiredSubscriptionsCount} tone="neutral" /><AdminStatCard label="Active grants" value={data.activeGrantsCount} /><AdminStatCard label="Revoked grants" value={data.revokedGrantsCount} tone="neutral" /><AdminStatCard label="Content awaiting release" value={data.contentAwaitingReleaseCount} tone="warning" /><AdminStatCard label="Assessments awaiting review" value={data.assessmentsAwaitingReviewCount} tone="warning" /></div><OverviewLists overview={data} /><p className="admin-debug-line">Read correlation: {correlationId}</p></>}</section>;
+  const platform = useMemo(() => brandToPlatform(brand), [brand]);
+  const { data, error, loading, retry, correlationId } = useAdminOverview(platform);
+  return <section className="admin-page admin-overview" aria-label={`${brand.brandDisplayName} overview`}>
+    {loading && <div className="admin-overview-loading" aria-live="polite" aria-busy="true"><LoaderCircle aria-hidden="true" /> Loading {brand.brandDisplayName} overview…</div>}
+    {error && <div className="admin-feedback admin-feedback--error" role="alert"><div><strong>{error.message}</strong><span>Correlation ID: {error.correlationId}</span></div><button type="button" onClick={retry}>Retry</button></div>}
+    {data && !loading && !error && data.dashboard && <OverviewContent dashboard={data.dashboard} />}
+    {data && !loading && !error && !data.dashboard && <div className="admin-feedback admin-feedback--error" role="status"><div><strong>Dashboard preview data is unavailable.</strong><span>Correlation ID: {correlationId}</span></div><button type="button" onClick={retry}>Retry</button></div>}
+  </section>;
 }
