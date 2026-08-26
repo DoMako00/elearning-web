@@ -1772,3 +1772,12 @@ main[data-main-workspace] {
     align-items: flex-start;
   }
 }
+
+@media (max-width: 1050px) {
+  .course-focus-card__footer {
+    flex-direction: column;
+    align-items: flex-start;
+  
+  }
+
+}
