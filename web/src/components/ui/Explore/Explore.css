@@ -417,7 +417,7 @@
 
 .explore-aside {
   display: grid;
-  grid-template-rows: minmax(0, 1.55fr) minmax(0, 0.85fr);
+  grid-template-rows: minmax(0, 1.25fr) minmax(0, 0.95fr);
   gap: clamp(6px, 0.7vw, 10px);
   min-width: 0;
   min-height: 0;
@@ -442,7 +442,7 @@
 .explore-directions__header h3 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 750;
   letter-spacing: -0.02em;
 }
@@ -569,27 +569,33 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: clamp(8px, 0.8vw, 13px);
+  padding: clamp(6px, 0.65vw, 10px);
   border: 1px solid #dfe9e3;
-  border-radius: 14px;
+  border-radius: 13px;
   background: #ffffff;
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .explore-directions__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(6px, 0.6vw, 10px);
-  margin-top: clamp(2px, 0.3vh, 5px);
+  gap: clamp(4px, 0.45vw, 8px);
+  margin-top: clamp(2px, 0.25vh, 4px);
   flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
 }
 
 .explore-direction-card {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: clamp(6px, 0.6vw, 10px) clamp(7px, 0.6vw, 11px);
+  justify-content: space-around;
+  gap: clamp(2px, 0.35vh, 4px);
+  padding: clamp(5px, 0.5vw, 8px) clamp(5px, 0.55vw, 8px);
+  padding-right: clamp(16px, 1.3vw, 20px);
   border: 1px solid #dfe9e3;
   border-radius: 9px;
   background: #ffffff;
@@ -598,8 +604,11 @@
   transition: all 160ms ease;
   position: relative;
   min-height: 0;
-  height: 100%;
+  min-width: 0;
+  height: 90%;
   width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .explore-direction-card:hover {
@@ -625,42 +634,50 @@
 .explore-direction-card__icon-wrap {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .explore-direction-card--green .explore-direction-card__icon {
   color: #16a34a;
-  width: clamp(14px, 0.85vw, 17px);
-  height: clamp(14px, 0.85vw, 17px);
+  width: clamp(13px, 0.75vw, 15px);
+  height: clamp(13px, 0.75vw, 15px);
 }
 
 .explore-direction-card--purple .explore-direction-card__icon {
   color: #9333ea;
-  width: clamp(14px, 0.85vw, 17px);
-  height: clamp(14px, 0.85vw, 17px);
+  width: clamp(13px, 0.75vw, 15px);
+  height: clamp(13px, 0.75vw, 15px);
 }
 
 .explore-direction-card--blue .explore-direction-card__icon {
   color: #0284c7;
-  width: clamp(14px, 0.85vw, 17px);
-  height: clamp(14px, 0.85vw, 17px);
+  width: clamp(13px, 0.75vw, 15px);
+  height: clamp(13px, 0.75vw, 15px);
 }
 
 .explore-direction-card__text {
-  margin-top: 2px;
+  margin-top: 0;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
 }
 
 .explore-direction-card__title {
   margin: 0;
-  font-size: clamp(11.5px, 0.75vw, 13.5px);
+  font-size: clamp(10.5px, 0.68vw, 12px);
   font-weight: 750;
   color: var(--color-text-primary);
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .explore-direction-card__subtitle {
-  margin: 1px 0 0;
-  font-size: clamp(9px, 0.6vw, 11px);
+  margin: 0;
+  font-size: clamp(8px, 0.52vw, 9.5px);
   color: #64748b;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -668,19 +685,20 @@
 
 .explore-direction-card__arrow {
   position: absolute;
-  top: clamp(5px, 0.5vw, 8px);
-  right: clamp(5px, 0.5vw, 8px);
+  top: clamp(4px, 0.4vw, 6px);
+  right: clamp(4px, 0.4vw, 6px);
   display: grid;
   place-items: center;
-  width: clamp(17px, 1.1vw, 21px);
-  height: clamp(17px, 1.1vw, 21px);
+  width: clamp(15px, 1vw, 18px);
+  height: clamp(15px, 1vw, 18px);
   border-radius: 50%;
   transition: all 150ms ease;
+  flex-shrink: 0;
 }
 
 .explore-direction-card__arrow svg {
-  width: clamp(10px, 0.65vw, 13px);
-  height: clamp(10px, 0.65vw, 13px);
+  width: clamp(8.5px, 0.55vw, 10.5px);
+  height: clamp(8.5px, 0.55vw, 10.5px);
 }
 
 .explore-direction-card--green .explore-direction-card__arrow {
@@ -1871,7 +1889,8 @@
     padding: clamp(7px, 1vw, 12px) clamp(8px, 1vw, 12px);
     min-height: 0;
     border-radius: 9px;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: clamp(3px, 0.4vh, 6px);
   }
 
   .explore-direction-card__title {
@@ -1960,5 +1979,28 @@
   .explore-workspace {
     grid-template-rows: auto minmax(0, 1.1fr) auto minmax(0, 1.05fr);
     max-width: 2100px;
+  }
+}
+
+@media (max-height: 750px) {
+  .student-page--explore {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .explore-workspace {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  .explore-top-section {
+    height: auto;
+    min-height: 230px;
+  }
+
+  .explore-aside {
+    height: auto;
+    min-height: 230px;
   }
 }
