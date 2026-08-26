@@ -3,4 +3,4 @@
  * of scope for this boundary correction.
  */
 export { createApplication } from "./app";
-export { startHttpServer } from "./http";
+export { startHttpServer, startHttpServerWithApplication } from "./http";
