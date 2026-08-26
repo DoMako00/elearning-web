@@ -152,7 +152,7 @@ export function MyCoursesPage() {
 
               {isSortOpen && (
                 <ul
-                  className="absolute top-[calc(100%+6px)] right-0 z-30 min-w-[190px] p-1.5 list-none bg-white border border-[#dfe9e3] rounded-xl shadow-lg"
+                  className="absolute top-[calc(100%+6px)] right-0 z-30 min-w-47.5 p-1.5 list-none bg-white border border-[#dfe9e3] rounded-xl shadow-lg"
                   role="listbox"
                   aria-label="Sort options"
                 >
@@ -246,7 +246,7 @@ export function MyCoursesPage() {
             </div>
 
             <div className="course-focus-card__content">
-              <span className={`course-focus-card__status ${activeFocusCourse.status === "completed" ? "!bg-[#16a34a] !text-white" : ""}`}>
+              <span className={`course-focus-card__status ${activeFocusCourse.status === "completed" ? "!bg-[#16a34a]! !text-white!" : ""}`}>
                 {activeFocusCourse.status === "completed" ? "Completed" : "In progress"}
               </span>
               <h2>{activeFocusCourse.title}</h2>
@@ -333,20 +333,31 @@ export function MyCoursesPage() {
             <article className="course-summary course-summary--pace">
               <header className="flex justify-between items-start">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h2>Your pace</h2>
-                    <button
-                      type="button"
-                      className="text-[10px] font-bold text-[#15803d] bg-[#eefaf2] px-2 py-0.5 rounded-md hover:bg-[#d9f4e4] transition-colors cursor-pointer"
-                      onClick={() => setIsPaceMonthly(!isPaceMonthly)}
-                    >
-                      {isPaceMonthly ? "Monthly" : "Weekly"}
-                    </button>
-                  </div>
+                  <h2>Your pace</h2>
                   <strong>{isPaceMonthly ? "88%" : "68%"}</strong>
                   <small>Course completion rate</small>
                 </div>
-                <TrendingUp aria-hidden="true" />
+                <div className="pace-header-actions">
+                  <div className="pace-switch" role="group" aria-label="Pace timeframe selector">
+                    <button
+                      type="button"
+                      className={`pace-switch__btn ${!isPaceMonthly ? "is-active" : ""}`}
+                      onClick={() => setIsPaceMonthly(false)}
+                      aria-pressed={!isPaceMonthly}
+                    >
+                      Weekly
+                    </button>
+                    <button
+                      type="button"
+                      className={`pace-switch__btn ${isPaceMonthly ? "is-active" : ""}`}
+                      onClick={() => setIsPaceMonthly(true)}
+                      aria-pressed={isPaceMonthly}
+                    >
+                      Monthly
+                    </button>
+                  </div>
+                  <TrendingUp aria-hidden="true" />
+                </div>
               </header>
               <div className="pace-chart-container">
                 <ResponsiveContainer width="100%" height="100%">
