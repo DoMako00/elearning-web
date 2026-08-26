@@ -49,7 +49,8 @@ export async function runHttpSmokeSelfTest(): Promise<HttpSmokeSelfTestRunResult
       setHeader(name: string, value: string | number) { responseHeaders[name.toLowerCase()] = String(value); },
       end(body: string | undefined) { serializedBody = body ?? ""; },
     } as unknown as ServerResponse;
-    const request = { method, url, headers, async *[Symbol.asyncIterator]() { if (body !== undefined) yield Buffer.from(body, "utf8"); } } as unknown as IncomingMessage;
+    const effectiveHeaders = method === "GET" && url.startsWith("/v1/admin/") && !Object.hasOwn(headers, "authorization") ? { authorization: "Bearer mock-auth-medway-admin-001", ...headers } : headers;
+    const request = { method, url, headers: effectiveHeaders, async *[Symbol.asyncIterator]() { if (body !== undefined) yield Buffer.from(body, "utf8"); } } as unknown as IncomingMessage;
     await handler(request, response);
     return { statusCode: response.statusCode, headers: responseHeaders, body: asRecord(JSON.parse(serializedBody)), serializedBody };
   };
@@ -90,7 +91,7 @@ export async function runHttpSmokeSelfTest(): Promise<HttpSmokeSelfTestRunResult
   }));
 
   cases.push(await recordCase("M2 no-filter routes reject unsupported or repeated query parameters", async () => {
-    const validBrandId = "00000000-0000-4000-8000-000000000001";
+    const validBrandId = "10000000-0000-4000-8000-000000000001";
     const validResourceId = "00000000-0000-4000-8000-000000000002";
     for (const url of [
       "/v1/admin/curriculum/levels?unexpected=value",
@@ -108,7 +109,7 @@ export async function runHttpSmokeSelfTest(): Promise<HttpSmokeSelfTestRunResult
   }));
 
   cases.push(await recordCase("M2 supported filters and valid no-filter requests retain their behavior", async () => {
-    const validBrandId = "00000000-0000-4000-8000-000000000001";
+    const validBrandId = "10000000-0000-4000-8000-000000000001";
     const validResourceId = "00000000-0000-4000-8000-000000000002";
     for (const url of [
       "/v1/admin/curriculum/semesters?levelId=00000000-0000-4000-8000-000000000003",
@@ -124,7 +125,7 @@ export async function runHttpSmokeSelfTest(): Promise<HttpSmokeSelfTestRunResult
   }));
 
   cases.push(await recordCase("M2 brand-course filters reject conflicts and repeated unsupported parameters", async () => {
-    const validBrandId = "00000000-0000-4000-8000-000000000001";
+    const validBrandId = "10000000-0000-4000-8000-000000000001";
     const validModuleId = "00000000-0000-4000-8000-000000000002";
     for (const url of [
       `/v1/admin/brands/${validBrandId}/courses?academicModuleId=${validModuleId}&scope=standalone`,
@@ -170,7 +171,7 @@ export async function runHttpSmokeSelfTest(): Promise<HttpSmokeSelfTestRunResult
 
   for (const [brandCode, brandId, correlationId, otherBrand] of [["medway", "brand-medway", "smoke-medway-001", "elite"], ["elite", "brand-elite", "smoke-elite-001", "medway"]] as const) {
     cases.push(await recordCase(`GET /v1/admin/overview returns ${brandCode === "medway" ? "Medway" : "Elite"} overview`, async () => {
-      const response = await invoke("GET", `/v1/admin/overview?brand=${brandCode}`, { "x-correlation-id": correlationId });
+      const response = await invoke("GET", `/v1/admin/overview?brand=${brandCode}`, { "x-correlation-id": correlationId, authorization: `Bearer mock-auth-${brandCode}-admin-001` });
       const brand = asRecord(response.body.brand);
       const data = asRecord(response.body.data);
       assertEqual(response.statusCode, 200, `${brandCode} overview status`);

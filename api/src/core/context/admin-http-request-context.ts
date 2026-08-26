@@ -13,7 +13,9 @@ export interface AdminHttpRequestContextInput {
   readonly correlationId: CorrelationId;
   readonly bearerToken?: string;
   /** Untrusted route-match selector. It is never an authorization decision. */
-  readonly requestedBrandId: string;
+  readonly requestedBrandId?: string;
+  /** Untrusted compatibility selector. It is never an authorization decision. */
+  readonly requestedBrandCode?: "medway" | "elite";
 }
 
 export interface AdminHttpRequestContextResolverDependencies {
@@ -39,7 +41,7 @@ function maskEmail(value: string | null): string | undefined {
 
 function asPermissionCodes(values: readonly string[], correlationId: string): RepositoryResult<readonly AdminPermissionCode[]> {
   const allowed: readonly AdminPermissionCode[] = [
-    "admin.students.read", "admin.students.suspend", "admin.students.restore", "admin.sessions.revoke", "admin.devices.revoke", "admin.payments.read", "admin.payments.review", "admin.refunds.read", "admin.refunds.decide", "admin.subscriptions.read", "admin.seats.manage", "admin.grants.read", "admin.grants.issue_exception", "admin.grants.revoke", "admin.content.read", "admin.content.publish", "admin.content.withdraw", "admin.media.read", "admin.media.manage", "admin.assessments.read", "admin.assessments.review", "admin.audit.read", "admin.security.read", "admin.roles.read", "admin.roles.manage", "admin.policies.read", "admin.policies.manage", "admin.instructors.create", "admin.instructors.update", "admin.brand_instructors.assign", "admin.brand_instructors.update", "admin.brand_courses.create", "admin.brand_courses.update", "admin.course_instructors.assign", "admin.course_instructors.update",
+    "admin.overview.read", "admin.curriculum.read", "admin.instructors.read", "admin.brand_instructors.read", "admin.brand_courses.read", "admin.course_instructors.read", "admin.students.read", "admin.students.suspend", "admin.students.restore", "admin.sessions.revoke", "admin.devices.revoke", "admin.payments.read", "admin.payments.review", "admin.refunds.read", "admin.refunds.decide", "admin.subscriptions.read", "admin.seats.manage", "admin.grants.read", "admin.grants.issue_exception", "admin.grants.revoke", "admin.content.read", "admin.content.publish", "admin.content.withdraw", "admin.media.read", "admin.media.manage", "admin.assessments.read", "admin.assessments.review", "admin.audit.read", "admin.security.read", "admin.roles.read", "admin.roles.manage", "admin.policies.read", "admin.policies.manage", "admin.instructors.create", "admin.instructors.update", "admin.brand_instructors.assign", "admin.brand_instructors.update", "admin.brand_courses.create", "admin.brand_courses.update", "admin.course_instructors.assign", "admin.course_instructors.update",
   ];
   if (values.some((value) => !allowed.includes(value as AdminPermissionCode))) {
     return failure("persistence_data_invalid", "Persisted administrative authority is malformed.", correlationId);
@@ -60,22 +62,38 @@ export class DefaultAdminHttpRequestContextResolver implements AdminHttpRequestC
   constructor(private readonly dependencies: AdminHttpRequestContextResolverDependencies) {}
 
   async resolve(input: AdminHttpRequestContextInput): Promise<RepositoryResult<AdminRequestContext>> {
-    if (!input.requestId.trim() || !input.correlationId.trim() || !uuid.test(input.requestedBrandId)) {
+    if (!input.requestId.trim() || !input.correlationId.trim() || (input.requestedBrandId !== undefined && !uuid.test(input.requestedBrandId)) || (input.requestedBrandId && input.requestedBrandCode)) {
       return failure("invalid_input", "A valid request context is required.", input.correlationId);
     }
     const identity = await this.dependencies.authIdentityAdapter.verifyRequestAuth({ bearerToken: input.bearerToken, correlationId: input.correlationId });
     if (!identity.ok) return identity;
-    const brandResult = await this.dependencies.educationalBrands.findEducationalBrandById({ id: input.requestedBrandId, correlationId: input.correlationId });
-    if (!brandResult.ok) return brandResult;
-    if (brandResult.value.status !== "active") return failure("permission_denied", "The requested administrative scope is unavailable.", input.correlationId);
-    const brand = asBrandScope(brandResult.value.id, brandResult.value.code, brandResult.value.name);
-    const authority = await this.dependencies.adminProfiles.resolveAdminAuthorizationByAuthUserId({ authUserId: identity.value.authIdentityId, brand, correlationId: input.correlationId });
+    let authority;
+    let brand;
+    if (input.requestedBrandId || input.requestedBrandCode) {
+      const brandResult = input.requestedBrandId
+        ? await this.dependencies.educationalBrands.findEducationalBrandById({ id: input.requestedBrandId, correlationId: input.correlationId })
+        : await this.dependencies.educationalBrands.findEducationalBrandByCode({ code: input.requestedBrandCode!, correlationId: input.correlationId });
+      if (!brandResult.ok) return brandResult;
+      if (brandResult.value.status !== "active") return failure("permission_denied", "The requested administrative scope is unavailable.", input.correlationId);
+      brand = asBrandScope(brandResult.value.id, brandResult.value.code, brandResult.value.name);
+      authority = await this.dependencies.adminProfiles.resolveAdminAuthorizationByAuthUserId({ authUserId: identity.value.authIdentityId, brand, correlationId: input.correlationId });
+    } else {
+      const candidates = await this.dependencies.adminProfiles.listAdminAuthorizationsByAuthUserId({ authUserId: identity.value.authIdentityId, correlationId: input.correlationId });
+      if (!candidates.ok) return candidates;
+      const eligible = candidates.value.filter((candidate) => candidate.appUser.status === "active" && candidate.adminProfile.status === "active" && candidate.roleCodes.length > 0);
+      if (eligible.length !== 1) return failure("permission_denied", "Administrative access is not available.", input.correlationId);
+      authority = repositoryOk(eligible[0]!);
+      const brandResult = await this.dependencies.educationalBrands.findEducationalBrandById({ id: eligible[0]!.adminProfile.brandId, correlationId: input.correlationId });
+      if (!brandResult.ok) return brandResult;
+      if (brandResult.value.status !== "active") return failure("permission_denied", "The requested administrative scope is unavailable.", input.correlationId);
+      brand = asBrandScope(brandResult.value.id, brandResult.value.code, brandResult.value.name);
+    }
     if (!authority.ok) {
       return authority.error.code === "not_found"
         ? failure("permission_denied", "Administrative access is not available.", input.correlationId)
         : authority;
     }
-    if (authority.value.appUser.status !== "active" || authority.value.adminProfile.status !== "active") {
+    if (authority.value.appUser.status !== "active" || authority.value.adminProfile.status !== "active" || authority.value.roleCodes.length === 0) {
       return failure("permission_denied", "Administrative access is not available.", input.correlationId);
     }
     if (authority.value.adminProfile.brandId !== brand.brandId || authority.value.adminProfile.appUserId !== authority.value.appUser.id) {
