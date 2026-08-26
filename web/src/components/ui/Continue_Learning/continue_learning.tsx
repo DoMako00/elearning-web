@@ -66,7 +66,7 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="w-18 h-18 rounded-full bg-white/30 scale-75 opacity-0 group-hover/media:opacity-100 group-hover/media:scale-125 transition-all duration-500 ease-out" />
               <div className="continue-learning-play-button absolute w-12 h-12 rounded-full bg-white opacity-100 group-hover/media:scale-110 transition-all duration-300 ease-out flex items-center justify-center shadow-sm">
-                <Play className="continue-learning-play-icon w-[18px] h-[18px] text-(--primary-color) fill-current ml-0.5 transition-transform duration-300 group-hover/media:scale-110" />
+                <Play className="continue-learning-play-icon w-4.5 h-4.5 text-(--primary-color) fill-current ml-0.5 transition-transform duration-300 group-hover/media:scale-110" />
               </div>
             </div>
           </div>
@@ -110,7 +110,7 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
             onClick={onContinue}
             className="continue-learning-cta relative group overflow-hidden flex-1 h-(--cta-height) max-w-(--cta-width) px-6 bg-(--primary-color) hover:shadow-md text-white font-semibold text-cta rounded-(--border-radius-cta) transition-all duration-300 active:scale-[0.99] cursor-pointer flex items-center justify-center text-center"
           >
-            <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-[350%] transition-transform duration-800 ease-in-out pointer-events-none" />
+            <div className="absolute inset-0 w-1/2 h-full bg-linear-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-[350%] transition-transform duration-800 ease-in-out pointer-events-none" />
             <span className="relative z-10">Continue Lesson</span>
           </button>
 
