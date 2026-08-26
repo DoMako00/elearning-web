@@ -1,49 +1,79 @@
 import {
   ArrowRight,
-  Bone,
   Bookmark,
   ChevronLeft,
   ChevronRight,
-  FlaskConical,
   Grid2X2,
   List,
-  HeartPulse,
-  Microscope,
   Search,
   SlidersHorizontal,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import anatomyImage from "../../../Assets/course-library/human-anatomy.webp";
-import biochemistryImage from "../../../Assets/course-library/biochemistry-essentials.webp";
-import histologyImage from "../../../Assets/course-library/histology-basics.webp";
-import physiologyImage from "../../../Assets/course-library/medical-physiology.webp";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { COURSE_CATEGORY_TABS, INITIAL_COURSES } from "./courses.data";
 import "./CourseLibrary.css";
 
-const courses = [
-  { title: "Human Anatomy I", subtitle: "Structure & Organization", category: "Anatomy", level: "Beginner", progress: 60, opened: "Last opened today", art: "anatomy", image: anatomyImage, Icon: Bone },
-  { title: "Histology Basics", subtitle: "Tissues of the Human Body", category: "Histology", level: "Beginner", progress: 35, opened: "Last opened 3 days ago", art: "histology", image: histologyImage, Icon: Microscope },
-  { title: "Medical Physiology", subtitle: "Body Functions & Regulation", category: "Physiology", level: "Intermediate", progress: 25, opened: "Last opened 5 days ago", art: "physiology", image: physiologyImage, Icon: HeartPulse },
-  { title: "Biochemistry Essentials", subtitle: "Molecules of Life", category: "Biochemistry", level: "Advanced", progress: 18, opened: "Last opened 1 week ago", art: "biochemistry", image: biochemistryImage, Icon: FlaskConical },
-];
+interface CourseLibraryProps {
+  statusFilter?: "in-progress" | "completed" | "saved";
+  searchQuery?: string;
+  sortBy?: "opened" | "progress" | "title";
+  bookmarked: Record<string, boolean>;
+  selectedCourseId: string;
+  onSelectCourse: (courseId: string) => void;
+  onToggleBookmark: (courseId: string) => void;
+  onClearSearch?: () => void;
+}
 
-export function CourseLibrary() {
+export function CourseLibrary({
+  statusFilter = "in-progress",
+  searchQuery = "",
+  sortBy = "opened",
+  bookmarked,
+  selectedCourseId,
+  onSelectCourse,
+  onToggleBookmark,
+  onClearSearch,
+}: CourseLibraryProps) {
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [bookmarked, setBookmarked] = useState<Record<string, boolean>>({});
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [localSearch, setLocalSearch] = useState<string>("");
+
   const viewportRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  const filteredCourses = courses.filter((course) => {
-    const q = searchQuery.toLowerCase().trim();
-    if (!q) return true;
-    return (
-      course.title.toLowerCase().includes(q) ||
-      course.category.toLowerCase().includes(q) ||
-      course.level.toLowerCase().includes(q)
-    );
-  });
+  // Combine top search and local search
+  const effectiveQuery = (searchQuery || localSearch).toLowerCase().trim();
+
+  // Filtered courses based on status tabs, categories, and search
+  const filteredCourses = useMemo(() => {
+    return INITIAL_COURSES.filter((course) => {
+      // 1. Status Filter
+      if (statusFilter === "in-progress" && course.status !== "in-progress") return false;
+      if (statusFilter === "completed" && course.status !== "completed") return false;
+      if (statusFilter === "saved" && !bookmarked[course.id]) return false;
+
+      // 2. Category Filter
+      if (categoryFilter !== "all" && course.categoryId !== categoryFilter) return false;
+
+      // 3. Search query
+      if (effectiveQuery) {
+        return (
+          course.title.toLowerCase().includes(effectiveQuery) ||
+          course.category.toLowerCase().includes(effectiveQuery) ||
+          course.subtitle.toLowerCase().includes(effectiveQuery) ||
+          course.level.toLowerCase().includes(effectiveQuery)
+        );
+      }
+      return true;
+    }).sort((a, b) => {
+      if (sortBy === "progress") return b.progress - a.progress;
+      if (sortBy === "title") return a.title.localeCompare(b.title);
+      return 0;
+    });
+  }, [statusFilter, categoryFilter, effectiveQuery, bookmarked, sortBy]);
 
   const checkScroll = () => {
     if (viewportRef.current) {
@@ -80,15 +110,39 @@ export function CourseLibrary() {
     }
   };
 
-  const toggleBookmark = (title: string) => {
-    setBookmarked((prev) => ({ ...prev, [title]: !prev[title] }));
-  };
-
   return (
     <section className={`course-library course-library--${viewMode}`} aria-labelledby="course-library-title">
       <header className="course-library__header">
-        <h2 id="course-library-title">Course library</h2>
+        <div className="flex items-center gap-3">
+          <h2 id="course-library-title">Course library</h2>
+          <span className="text-xs font-semibold text-[#64748b] bg-[#f1f5f3] px-2.5 py-0.5 rounded-full">
+            {filteredCourses.length} {filteredCourses.length === 1 ? "module" : "modules"}
+          </span>
+        </div>
+
         <div className="course-library__toolbar" aria-label="Course library view controls">
+          {/* Explore-styled Category Buttons in the Header Toolbar */}
+          <div className="course-library-categories__track" role="tablist">
+            {COURSE_CATEGORY_TABS.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = categoryFilter === tab.id;
+
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  className={`course-library-category-tab ${isActive ? "is-active" : ""}`}
+                  onClick={() => setCategoryFilter(tab.id)}
+                >
+                  {Icon && <Icon className="course-library-category-tab__icon" aria-hidden="true" />}
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
           <div className="course-library__view-toggle" role="group" aria-label="Course view">
             <button
               type="button"
@@ -109,21 +163,22 @@ export function CourseLibrary() {
               <List aria-hidden="true" />
             </button>
           </div>
+
           <label className="course-library__filter">
             <Search aria-hidden="true" />
             <input
               type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
               aria-label="Search and filter courses"
-              placeholder="Search & filter"
+              placeholder="Filter list..."
             />
-            {searchQuery ? (
+            {localSearch ? (
               <button
                 type="button"
                 className="course-library__filter-clear"
-                onClick={() => setSearchQuery("")}
-                aria-label="Clear search"
+                onClick={() => setLocalSearch("")}
+                aria-label="Clear filter"
               >
                 <X aria-hidden="true" />
               </button>
@@ -136,49 +191,80 @@ export function CourseLibrary() {
 
       {filteredCourses.length === 0 ? (
         <div className="course-library__empty">
-          <p>No courses found matching &quot;{searchQuery}&quot;</p>
-          <button type="button" onClick={() => setSearchQuery("")}>
-            Clear search
-          </button>
+          <p>
+            No courses found {effectiveQuery ? `matching "${effectiveQuery}"` : `in "${statusFilter}"`}
+          </p>
+          {(effectiveQuery || categoryFilter !== "all") && (
+            <button
+              type="button"
+              onClick={() => {
+                setLocalSearch("");
+                setCategoryFilter("all");
+                onClearSearch?.();
+              }}
+            >
+              Clear filters
+            </button>
+          )}
         </div>
       ) : viewMode === "list" ? (
         <div className="course-library__list" role="list">
-          {filteredCourses.map((course) => (
-            <article className="course-library__list-item" key={course.title} aria-label={course.title}>
-              <div className={`course-library__list-art course-library__art--${course.art}`}>
-                <span><course.Icon aria-hidden="true" /></span>
-              </div>
-              <div className="course-library__list-content">
-                <div className="course-library__list-header">
-                  <h3 title={course.title}>{course.title}</h3><p>{course.subtitle}</p>
-                  <div className="course-library__list-tags">
-                    <em>{course.category}</em>
-                    <em>{course.level}</em>
+          {filteredCourses.map((course) => {
+            const isSelected = selectedCourseId === course.id;
+            const isSaved = !!bookmarked[course.id];
+
+            return (
+              <article
+                className={`course-library__list-item transition-all cursor-pointer ${
+                  isSelected ? "ring-2 ring-[#24ad68] bg-[#f7fdf9]" : ""
+                }`}
+                key={course.id}
+                aria-label={course.title}
+                onClick={() => onSelectCourse(course.id)}
+              >
+                <div className={`course-library__list-art course-library__art--${course.art}`}>
+                  <span><course.Icon aria-hidden="true" /></span>
+                </div>
+                <div className="course-library__list-content">
+                  <div className="course-library__list-header">
+                    <h3 title={course.title}>
+                      {course.title} {isSelected && <span className="text-[10px] text-[#24ad68] font-bold ml-1">● Active</span>}
+                    </h3>
+                    <p>{course.subtitle}</p>
+                    <div className="course-library__list-tags">
+                      <em>{course.category}</em>
+                      <em>{course.level}</em>
+                    </div>
+                  </div>
+                  <p className="course-library__list-opened">{course.opened}</p>
+                </div>
+                <div className="course-library__list-progress-wrap">
+                  <div className="course-library__progress">
+                    <i><b style={{ width: `${course.progress}%` }} /></i>
+                    <strong>{course.progress}%</strong>
                   </div>
                 </div>
-                <p className="course-library__list-opened">{course.opened}</p>
-              </div>
-              <div className="course-library__list-progress-wrap">
-                <div className="course-library__progress">
-                  <i><b style={{ width: `${course.progress}%` }} /></i>
-                  <strong>{course.progress}%</strong>
+                <div className="course-library__list-actions" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    className={`course-library__list-bookmark cursor-pointer ${isSaved ? "is-saved" : ""}`}
+                    onClick={() => onToggleBookmark(course.id)}
+                    aria-label={`Save ${course.title}`}
+                  >
+                    <Bookmark aria-hidden="true" className={isSaved ? "fill-current text-[#16a34a]" : ""} />
+                  </button>
+                  <button
+                    type="button"
+                    className="course-library__list-arrow cursor-pointer"
+                    aria-label={`Open ${course.title}`}
+                    onClick={() => navigate(`/my-courses/${course.slug}`)}
+                  >
+                    <ArrowRight aria-hidden="true" />
+                  </button>
                 </div>
-              </div>
-              <div className="course-library__list-actions">
-                <button
-                  type="button"
-                  className={`course-library__list-bookmark ${bookmarked[course.title] ? "is-saved" : ""}`}
-                  onClick={() => toggleBookmark(course.title)}
-                  aria-label={`Save ${course.title}`}
-                >
-                  <Bookmark aria-hidden="true" className={bookmarked[course.title] ? "fill-current text-green-600" : ""} />
-                </button>
-                <button type="button" className="course-library__list-arrow" aria-label={`Open ${course.title}`}>
-                  <ArrowRight aria-hidden="true" />
-                </button>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       ) : (
         <div className="course-library__carousel">
@@ -201,35 +287,70 @@ export function CourseLibrary() {
             onScroll={checkScroll}
           >
             <div className="course-library__track">
-              {filteredCourses.map((course) => (
-                <article className="course-library__card" key={course.title} aria-label={course.title}>
-                  <div className={`course-library__art course-library__art--${course.art}`}>
-                    <img src={course.image} alt="" />
-                    <span><course.Icon aria-hidden="true" /></span>
-                    <div><em>{course.category}</em><em>{course.level}</em></div>
-                    <button
-                      type="button"
-                      className={bookmarked[course.title] ? "is-bookmarked" : ""}
-                      onClick={() => toggleBookmark(course.title)}
-                      aria-label={`Save ${course.title}`}
-                    >
-                      <Bookmark aria-hidden="true" className={bookmarked[course.title] ? "fill-current text-white" : ""} />
-                    </button>
-                  </div>
-                  <div className="course-library__card-body">
-                    <h3 title={course.title}>{course.title}</h3>
-                    <p>{course.subtitle}</p>
-                    <div className="course-library__progress">
-                      <i><b style={{ width: `${course.progress}%` }} /></i>
-                      <strong>{course.progress}%</strong>
+              {filteredCourses.map((course) => {
+                const isSelected = selectedCourseId === course.id;
+                const isSaved = !!bookmarked[course.id];
+
+                return (
+                  <article
+                    className={`course-library__card transition-all cursor-pointer ${
+                      isSelected ? "ring-2 ring-[#24ad68] shadow-md" : ""
+                    }`}
+                    key={course.id}
+                    aria-label={course.title}
+                    onClick={() => onSelectCourse(course.id)}
+                  >
+                    <div className={`course-library__art course-library__art--${course.art}`}>
+                      <img src={course.image} alt="" />
+                      <span><course.Icon aria-hidden="true" /></span>
+                      <div>
+                        <em>{course.category}</em>
+                        <em>{course.level}</em>
+                      </div>
+                      <button
+                        type="button"
+                        className={`cursor-pointer ${isSaved ? "is-bookmarked" : ""}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleBookmark(course.id);
+                        }}
+                        aria-label={`Save ${course.title}`}
+                      >
+                        <Bookmark aria-hidden="true" className={isSaved ? "fill-current text-white" : ""} />
+                      </button>
                     </div>
-                    <footer>
-                      <span>{course.opened}</span>
-                      <button type="button" aria-label={`Open ${course.title}`}><ArrowRight aria-hidden="true" /></button>
-                    </footer>
-                  </div>
-                </article>
-              ))}
+                    <div className="course-library__card-body">
+                      <div className="flex items-center justify-between">
+                        <h3 title={course.title}>{course.title}</h3>
+                        {isSelected && (
+                          <span className="text-[10px] text-[#16a34a] font-bold bg-[#eefaf2] px-1.5 py-0.5 rounded">
+                            Focusing
+                          </span>
+                        )}
+                      </div>
+                      <p>{course.subtitle}</p>
+                      <div className="course-library__progress">
+                        <i><b style={{ width: `${course.progress}%` }} /></i>
+                        <strong>{course.progress}%</strong>
+                      </div>
+                      <footer>
+                        <span>{course.opened}</span>
+                        <button
+                          type="button"
+                          className="cursor-pointer"
+                          aria-label={`Open ${course.title}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/my-courses/${course.slug}`);
+                          }}
+                        >
+                          <ArrowRight aria-hidden="true" />
+                        </button>
+                      </footer>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           </div>
 

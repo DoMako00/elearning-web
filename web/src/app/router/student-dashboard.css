@@ -758,10 +758,18 @@ main[data-main-workspace] {
 .course-status-tabs {
   display: flex;
   height: 44px;
-  overflow: hidden;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
   border: 1px solid #dfe9e3;
   border-radius: 11px;
   background: #fff;
+  flex-shrink: 0;
+  scrollbar-width: none;
+}
+
+.course-status-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .course-status-tabs__tab,
@@ -770,20 +778,21 @@ main[data-main-workspace] {
   min-width: 0;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: clamp(5px, 0.7vw, 9px);
   border: 0;
   background: transparent;
   color: var(--color-text-primary);
   cursor: pointer;
   font: inherit;
-  font-size: 13px;
+  font-size: clamp(11.5px, 0.9vw, 13px);
   font-weight: 700;
   white-space: nowrap;
 }
 
 .course-status-tabs__tab {
-  padding: 0 clamp(11px, 1.25vw, 19px);
+  padding: 0 clamp(8px, 1vw, 18px);
   border-left: 1px solid #e5ece8;
+  flex-shrink: 0;
 }
 
 .course-status-tabs__tab:first-child {
@@ -792,13 +801,13 @@ main[data-main-workspace] {
 
 .course-status-tabs__tab b {
   display: grid;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   place-items: center;
   border-radius: 50%;
   background: #eff4f1;
   color: #66766f;
-  font-size: 11px;
+  font-size: 10.5px;
 }
 
 .course-status-tabs__tab.is-active {
@@ -1130,9 +1139,23 @@ main[data-main-workspace] {
   width: 48px;
   padding: 0;
   place-items: center;
-  border-color: rgb(255 255 255 / 32%);
+  border: 1px solid rgb(255 255 255 / 32%);
+  border-radius: 11px;
   background: rgb(255 255 255 / 8%);
   color: #fff;
+  transition: all 150ms ease;
+}
+
+.course-focus-card__footer .course-focus-card__bookmark:hover {
+  background: rgb(255 255 255 / 20%);
+  border-color: #28ad68;
+}
+
+.course-focus-card__footer .course-focus-card__bookmark.is-saved {
+  border-color: #28ad68;
+  background: rgba(40, 173, 104, 0.25);
+  color: #6ef6b0;
+  box-shadow: 0 0 12px rgba(40, 173, 104, 0.35);
 }
 
 .course-focus-card__bookmark svg { width: 18px; height: 18px; }
@@ -1392,13 +1415,28 @@ main[data-main-workspace] {
   }
 
   .my-courses-heading {
-    align-items: flex-start;
+    align-items: stretch;
     flex-direction: column;
+    gap: 10px;
   }
 
   .my-courses-heading__controls {
     width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
     justify-content: flex-start;
+  }
+
+  .my-courses-heading__search {
+    flex: 1 1 240px;
+    width: auto;
+    min-width: 200px;
+  }
+
+  .course-status-tabs {
+    flex: 0 0 auto;
   }
 
   .my-courses-overview {
