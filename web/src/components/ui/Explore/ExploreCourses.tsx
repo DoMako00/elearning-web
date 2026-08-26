@@ -109,9 +109,9 @@ export function ExploreCourses({
       <header className="explore-courses__header">
         <div className="explore-courses__heading-wrap">
           <h2 id="courses-for-you-title" className="explore-courses__title">
-            Courses for you
+            Medical Modules For You
           </h2>
-          <span className="explore-courses__subtitle">Based on your interests</span>
+          <span className="explore-courses__subtitle">Tailored to your medical track</span>
         </div>
 
         <div className="explore-courses__controls">
@@ -234,7 +234,7 @@ export function ExploreCourses({
                   type="button"
                   className="explore-action-btn explore-action-btn--arrow"
                   aria-label={`Open ${course.title}`}
-                  onClick={() => navigate("/my-courses/human-anatomy-i")}
+                  onClick={() => navigate("/explore")}
                 >
                   <ArrowRight className="size-3.5" aria-hidden="true" />
                 </button>
@@ -268,7 +268,7 @@ export function ExploreCourses({
                   <div
                     className="explore-course-card__art"
                     style={{ cursor: "pointer" }}
-                    onClick={() => navigate("/my-courses/human-anatomy-i")}
+                    onClick={() => navigate("/explore")}
                   >
                     <ExploreCourseArt artType={course.artType} />
                   </div>
@@ -281,7 +281,7 @@ export function ExploreCourses({
                       className="explore-course-card__title"
                       title={course.title}
                       style={{ cursor: "pointer" }}
-                      onClick={() => navigate("/my-courses/human-anatomy-i")}
+                      onClick={() => navigate("/explore")}
                     >
                       {course.title}
                     </h3>
@@ -309,7 +309,7 @@ export function ExploreCourses({
                           type="button"
                           className="explore-action-btn explore-action-btn--arrow"
                           aria-label={`Open ${course.title}`}
-                          onClick={() => navigate("/my-courses/human-anatomy-i")}
+                          onClick={() => navigate("/explore")}
                         >
                           <ArrowRight className="size-3.5" aria-hidden="true" />
                         </button>

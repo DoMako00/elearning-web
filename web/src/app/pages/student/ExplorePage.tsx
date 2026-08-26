@@ -46,7 +46,7 @@ export function ExplorePage() {
               <Search aria-hidden="true" />
               <input
                 type="text"
-                placeholder="What do you want to learn?"
+                placeholder="Search anatomy, physiology, histology…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 aria-label="Search courses, skills, or topics"
@@ -74,7 +74,7 @@ export function ExplorePage() {
             <span className="explore-courses-count">
               {searchQuery || activeCategory !== "all"
                 ? `${filteredCourses.length} courses`
-                : "124 courses"}
+                : "124 medical modules"}
             </span>
           </div>
         </header>

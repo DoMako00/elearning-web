@@ -1,4 +1,4 @@
-import { Box, Sparkles, TrendingUp } from "lucide-react";
+import { Activity, Microscope, Stethoscope, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { TRENDING_ITEMS, type TrendingItem } from "./exploreData";
 
@@ -11,12 +11,12 @@ export function ExploreTrending({ onSelectTopic }: ExploreTrendingProps) {
 
   const renderIcon = (item: TrendingItem) => {
     switch (item.iconType) {
-      case "js":
-        return <span className="trending-icon__js">JS</span>;
-      case "cube":
-        return <Box className="size-4" aria-hidden="true" />;
-      case "sparkles":
-        return <Sparkles className="size-4" aria-hidden="true" />;
+      case "anatomy":
+        return <Stethoscope className="size-4" aria-hidden="true" />;
+      case "microscope":
+        return <Microscope className="size-4" aria-hidden="true" />;
+      case "heart":
+        return <Activity className="size-4" aria-hidden="true" />;
     }
   };
 
