@@ -5,6 +5,7 @@ import { request } from "node:http";
 import { createServer } from "node:net";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { classifyPostgresTarget } from "./postgres-target-classifier.mjs";
 
 const PROJECT_REF = "mgrsgibxuwgbxtdqprkw";
 const LOOPBACK = "127.0.0.1";
@@ -29,7 +30,7 @@ function missingGates() {
   if (process.env.NODE_TLS_REJECT_UNAUTHORIZED === "0") missing.push("NODE_TLS_REJECT_UNAUTHORIZED");
   if (present("PGSSLROOTCERT") && !existsSync(process.env.PGSSLROOTCERT)) missing.push("PGSSLROOTCERT");
   if (present("SUPABASE_LIVE_AUTH_MEDWAY_BRAND_ID") && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(process.env.SUPABASE_LIVE_AUTH_MEDWAY_BRAND_ID)) missing.push("SUPABASE_LIVE_AUTH_MEDWAY_BRAND_ID");
-  if (present("SUPABASE_DB_URL")) { try { const url = new URL(process.env.SUPABASE_DB_URL); if (!/^(postgres|postgresql):$/.test(url.protocol) || url.searchParams.get("sslmode") !== "verify-full" || url.pathname.replace(/^\//, "") !== "postgres" || !url.hostname.includes(PROJECT_REF) || /localhost|127\.0\.0\.1|::1/i.test(url.hostname)) missing.push("SUPABASE_DB_URL"); } catch { missing.push("SUPABASE_DB_URL"); } }
+  if (present("SUPABASE_DB_URL") && !classifyPostgresTarget(process.env.SUPABASE_DB_URL, PROJECT_REF)) missing.push("SUPABASE_DB_URL");
   return [...new Set(missing)];
 }
 function requestStatus(port, path, headers = {}) { return new Promise((resolve, reject) => { const client = request({ host: LOOPBACK, port, path, method: "GET", headers, timeout: 5000 }, (response) => { response.resume(); response.once("end", () => resolve(response.statusCode ?? 0)); }); client.once("timeout", () => client.destroy(new Error("timeout"))); client.once("error", reject); client.end(); }); }

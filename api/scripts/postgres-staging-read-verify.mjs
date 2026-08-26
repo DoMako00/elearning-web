@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { classifyPostgresTarget } from "./postgres-target-classifier.mjs";
 
 const TARGET_PROJECT_REF = "mgrsgibxuwgbxtdqprkw";
 const TARGET_ENVIRONMENT = "staging";
@@ -60,17 +61,7 @@ function validateTarget(environment) {
 }
 
 function validateDatabaseUrl(value) {
-  if (!value) throw new Error("SUPABASE_DB_URL is missing");
-  let parsed;
-  try {
-    parsed = new URL(value);
-  } catch {
-    throw new Error("SUPABASE_DB_URL is not a valid PostgreSQL URL");
-  }
-  if (parsed.protocol !== "postgres:" && parsed.protocol !== "postgresql:") throw new Error("SUPABASE_DB_URL protocol is invalid");
-  if (!parsed.hostname) throw new Error("SUPABASE_DB_URL hostname is missing");
-  if (!parsed.pathname || parsed.pathname === "/") throw new Error("SUPABASE_DB_URL database name is missing");
-  if (parsed.searchParams.get("sslmode") !== "verify-full") throw new Error("SUPABASE_DB_URL must use sslmode=verify-full");
+  if (!classifyPostgresTarget(value, TARGET_PROJECT_REF)) throw new Error("SUPABASE_DB_URL target is not approved");
 }
 
 function resultRows(result) {
