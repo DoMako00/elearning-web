@@ -306,6 +306,10 @@
     padding: 8px;
   }
 
+  .ai-guide-modal-inner .ai-guide-suggestion-btn:nth-child(3) {
+    width: 156%;
+  }
+
   .ai-guide-modal-close {
     position: absolute;
     top: 14px;
