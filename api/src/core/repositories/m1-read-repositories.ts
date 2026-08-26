@@ -140,6 +140,7 @@ export interface M1AdminProfileReadRepository {
   findAdminProfileById(input: { readonly id: string; readonly brand: BrandScope; readonly correlationId?: string }): Promise<RepositoryResult<M1AdminProfile>>;
   findAdminProfileByUserId(input: { readonly appUserId: string; readonly brand: BrandScope; readonly correlationId?: string }): Promise<RepositoryResult<M1AdminProfile>>;
   resolveAdminAuthorizationByAuthUserId(input: { readonly authUserId: string; readonly brand: BrandScope; readonly correlationId?: string }): Promise<RepositoryResult<M1AdminAuthorizationSnapshot>>;
+  listAdminAuthorizationsByAuthUserId(input: { readonly authUserId: string; readonly correlationId?: string }): Promise<RepositoryResult<readonly M1AdminAuthorizationSnapshot[]>>;
 }
 
 export interface M1AdminRoleReadRepository {

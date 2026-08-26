@@ -7,3 +7,4 @@ export * from "./admin-brand-scope.selftest";
 export * from "./commands";
 export * from "./admin-http-context-source";
 export * from "./admin-http-context-source.selftest";
+export * from "./admin-read-verifier-diagnostics";

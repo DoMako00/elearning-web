@@ -158,7 +158,23 @@ export interface AdminUserSummary { id: EntityId; platform: AdminPlatformContext
 export interface AdminRoleAssignmentSummary { id: EntityId; platform: AdminPlatformContext; adminUserId: EntityId; roleId: EntityId; startsAt: ISODateTime; endsAt?: ISODateTime | null; status: "active" | "expired" | "revoked"; }
 export interface AdminPolicySetSummary { id: EntityId; platform: AdminPlatformContext; name: string; version: number; effectiveFrom: ISODateTime; effectiveTo?: ISODateTime | null; status: "draft" | "active" | "inactive" | "archived"; documentReference: RedactedReference; }
 
-export interface AdminOverview { platform: AdminPlatformContext; pendingPaymentReviewsCount: number; pendingRefundsCount: number; suspiciousSecurityEventsCount: number; activeSubscriptionsCount: number; expiredSubscriptionsCount: number; activeGrantsCount: number; revokedGrantsCount: number; contentAwaitingReleaseCount: number; assessmentsAwaitingReviewCount: number; recentAuditLogs: readonly AdminAuditLogItem[]; recentAdminActions: readonly AdminAdminActionItem[]; recentSecurityEvents: readonly AdminSecurityEventItem[]; }
+export type AdminOverviewTone = "success" | "warning" | "danger" | "neutral";
+export type AdminOverviewMetricId = "students" | "courses" | "instructors" | "revenue";
+export interface AdminOverviewMetric { id: AdminOverviewMetricId; label: string; value: number; format: "integer" | "currency"; currency?: CurrencyCode; trendDirection: "up" | "down"; trendPercentage: number; comparisonLabel: string; sparkline: readonly number[]; accessibleTrend: string; }
+export interface AdminEnrollmentPoint { label: string; current: number; previous: number; }
+export interface AdminOverviewBreakdownItem { id: string; label: string; value: number; percentage: number; tone: AdminOverviewTone; }
+export interface AdminOverviewActivity { id: string; kind: "student" | "course" | "instructor" | "payment" | "content"; title: string; detail: string; relativeTime: string; }
+export interface AdminPendingReview { id: string; title: string; detail: string; typeLabel: string; tone: AdminOverviewTone; relativeTime: string; }
+export interface AdminOverviewDashboard {
+  metrics: readonly AdminOverviewMetric[];
+  enrollment: { total: number; trendPercentage: number; points: readonly AdminEnrollmentPoint[] };
+  traffic: { total: number; trendPercentage: number; sparkline: readonly number[]; sources: readonly AdminOverviewBreakdownItem[] };
+  orders: { total: number; trendPercentage: number; statuses: readonly AdminOverviewBreakdownItem[] };
+  recentActivity: readonly AdminOverviewActivity[];
+  pendingReviews: readonly AdminPendingReview[];
+  paymentStatus: { totalRevenue: number; currency: CurrencyCode; segments: readonly AdminOverviewBreakdownItem[] };
+}
+export interface AdminOverview { platform: AdminPlatformContext; dashboard?: AdminOverviewDashboard; pendingPaymentReviewsCount: number; pendingRefundsCount: number; suspiciousSecurityEventsCount: number; activeSubscriptionsCount: number; expiredSubscriptionsCount: number; activeGrantsCount: number; revokedGrantsCount: number; contentAwaitingReleaseCount: number; assessmentsAwaitingReviewCount: number; recentAuditLogs: readonly AdminAuditLogItem[]; recentAdminActions: readonly AdminAdminActionItem[]; recentSecurityEvents: readonly AdminSecurityEventItem[]; }
 
 export type AdminReadRequest = AdminListRequestBase;
 export type GetByIdRequest = { platform: AdminPlatformContext; id: EntityId; correlationId: CorrelationId };

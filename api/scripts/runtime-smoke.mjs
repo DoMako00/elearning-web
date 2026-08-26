@@ -66,7 +66,11 @@ async function request(method, pathname, headers = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 2_000);
   try {
-    const response = await fetch(`${baseUrl}${pathname}`, { method, headers, signal: controller.signal });
+    const requestedBrand = new URL(pathname, baseUrl).searchParams.get("brand");
+    const effectiveHeaders = method === "GET" && pathname.startsWith("/v1/admin/") && !Object.hasOwn(headers, "authorization")
+      ? { authorization: `Bearer mock-auth-${requestedBrand === "elite" ? "elite" : "medway"}-admin-001`, ...headers }
+      : headers;
+    const response = await fetch(`${baseUrl}${pathname}`, { method, headers: effectiveHeaders, signal: controller.signal });
     const text = await response.text();
     let body;
     try {

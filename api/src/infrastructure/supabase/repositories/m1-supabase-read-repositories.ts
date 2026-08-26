@@ -256,6 +256,13 @@ export class SupabaseM1AdminProfileReadRepository extends SupabaseM1ReadReposito
       values: [input.authUserId, input.brand.brandId],
     }, input.correlationId), mapAdminAuthorizationSnapshot, input.correlationId);
   }
+  async listAdminAuthorizationsByAuthUserId(input: { readonly authUserId: string; readonly correlationId?: string }): Promise<RepositoryResult<readonly M1AdminAuthorizationSnapshot[]>> {
+    return mapListResult(await this.many({
+      label: "m1.admin-authorization.list-by-auth-user",
+      text: "select au.id as app_user_id, au.auth_user_id, au.primary_email, au.primary_phone, au.status as app_user_status, au.created_at as app_user_created_at, au.updated_at as app_user_updated_at, ap.id as admin_profile_id, ap.brand_id, ap.display_name, ap.status as admin_profile_status, ap.created_at as admin_profile_created_at, ap.updated_at as admin_profile_updated_at, coalesce(array_agg(distinct ar.code) filter (where ara.status = 'active' and ar.status = 'active'), array[]::text[]) as role_codes, coalesce(array_agg(distinct perm.code) filter (where ara.status = 'active' and ar.status = 'active' and perm.status = 'active'), array[]::text[]) as permission_codes from app.app_users au inner join app.admin_profiles ap on ap.app_user_id = au.id left join app.admin_role_assignments ara on ara.admin_profile_id = ap.id and ara.brand_id = ap.brand_id left join app.admin_roles ar on ar.id = ara.role_id and ar.brand_id = ap.brand_id left join app.admin_role_permissions arp on arp.role_id = ar.id left join app.admin_permissions perm on perm.id = arp.permission_id where au.auth_user_id = $1 group by au.id, au.auth_user_id, au.primary_email, au.primary_phone, au.status, au.created_at, au.updated_at, ap.id, ap.brand_id, ap.display_name, ap.status, ap.created_at, ap.updated_at order by ap.id asc",
+      values: [input.authUserId],
+    }, input.correlationId), mapAdminAuthorizationSnapshot, input.correlationId);
+  }
 }
 
 export class SupabaseM1AdminRoleReadRepository extends SupabaseM1ReadRepositoryBase implements M1AdminRoleReadRepository {

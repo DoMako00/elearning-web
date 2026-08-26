@@ -2,6 +2,8 @@ import type { AdminPlatformCode } from "./platform";
 import type { EntityId, ISODateTime, MaskedEmail } from "./common";
 
 export type AdminPermissionCode =
+  | "admin.overview.read" | "admin.curriculum.read" | "admin.instructors.read"
+  | "admin.brand_instructors.read" | "admin.brand_courses.read" | "admin.course_instructors.read"
   | "admin.students.read" | "admin.students.suspend" | "admin.students.restore"
   | "admin.sessions.revoke" | "admin.devices.revoke" | "admin.payments.read"
   | "admin.payments.review" | "admin.refunds.read" | "admin.refunds.decide"

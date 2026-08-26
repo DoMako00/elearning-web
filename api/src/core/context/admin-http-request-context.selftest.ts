@@ -30,6 +30,13 @@ class Profiles implements M1AdminProfileReadRepository {
   async findAdminProfileById() { return repositoryErr({ code: "not_found", message: "unused" }); }
   async findAdminProfileByUserId() { return repositoryErr({ code: "not_found", message: "unused" }); }
   async resolveAdminAuthorizationByAuthUserId(input: { readonly authUserId: string; readonly correlationId?: string }) { this.lastAuthUserId = input.authUserId; return this.record ? repositoryOk(this.record) : repositoryErr({ code: "not_found", message: "not found", correlationId: input.correlationId }); }
+  async listAdminAuthorizationsByAuthUserId(input: { readonly authUserId: string; readonly correlationId?: string }) { this.lastAuthUserId = input.authUserId; return this.record ? repositoryOk([this.record]) : repositoryOk([]); }
+}
+class AmbiguousProfiles extends Profiles {
+  async listAdminAuthorizationsByAuthUserId(input: { readonly authUserId: string; readonly correlationId?: string }) {
+    this.lastAuthUserId = input.authUserId;
+    return repositoryOk([snapshot(), snapshot({ adminProfile: { ...snapshot().adminProfile, id: "10000000-0000-4000-8000-000000000012", brandId: "10000000-0000-4000-8000-000000000003" } })]);
+  }
 }
 
 export async function runAdminHttpRequestContextSelfTest(): Promise<void> {
@@ -62,6 +69,14 @@ export async function runAdminHttpRequestContextSelfTest(): Promise<void> {
   assert(!malformedBrand.ok && malformedBrand.error.code === "invalid_input", "malformed route brand must fail before reads");
   const noProfile = await new DefaultAdminHttpRequestContextResolver({ authIdentityAdapter: new InMemoryAuthIdentityAdapter(), educationalBrands: new Brands(), adminProfiles: new Profiles(null) }).resolve(base);
   assert(!noProfile.ok && noProfile.error.code === "permission_denied", "missing admin profile must be forbidden");
+  const inactiveAppUser = await new DefaultAdminHttpRequestContextResolver({ authIdentityAdapter: new InMemoryAuthIdentityAdapter(), educationalBrands: new Brands(), adminProfiles: new Profiles(snapshot({ appUser: { ...snapshot().appUser, status: "disabled" } })) }).resolve(base);
+  assert(!inactiveAppUser.ok && inactiveAppUser.error.code === "permission_denied", "inactive application user must be forbidden");
+  const inactiveProfile = await new DefaultAdminHttpRequestContextResolver({ authIdentityAdapter: new InMemoryAuthIdentityAdapter(), educationalBrands: new Brands(), adminProfiles: new Profiles(snapshot({ adminProfile: { ...snapshot().adminProfile, status: "suspended" } })) }).resolve(base);
+  assert(!inactiveProfile.ok && inactiveProfile.error.code === "permission_denied", "inactive admin profile must be forbidden");
+  const noRole = await new DefaultAdminHttpRequestContextResolver({ authIdentityAdapter: new InMemoryAuthIdentityAdapter(), educationalBrands: new Brands(), adminProfiles: new Profiles(snapshot({ roleCodes: [] })) }).resolve(base);
+  assert(!noRole.ok && noRole.error.code === "permission_denied", "missing active role assignment must be forbidden");
+  const ambiguous = await new DefaultAdminHttpRequestContextResolver({ authIdentityAdapter: new InMemoryAuthIdentityAdapter(), educationalBrands: new Brands(), adminProfiles: new AmbiguousProfiles() }).resolve({ ...base, requestedBrandId: undefined });
+  assert(!ambiguous.ok && ambiguous.error.code === "permission_denied", "unscoped multi-brand authority must fail closed");
   const inactiveBrand = await new DefaultAdminHttpRequestContextResolver({ authIdentityAdapter: new InMemoryAuthIdentityAdapter(), educationalBrands: new Brands({ ...brand, status: "inactive" }), adminProfiles: new Profiles() }).resolve(base);
   assert(!inactiveBrand.ok && inactiveBrand.error.code === "permission_denied", "inactive brand must be forbidden");
   const malformedPermissions = await new DefaultAdminHttpRequestContextResolver({ authIdentityAdapter: new InMemoryAuthIdentityAdapter(), educationalBrands: new Brands(), adminProfiles: new Profiles(snapshot({ permissionCodes: ["admin.unreviewed"] })) }).resolve(base);

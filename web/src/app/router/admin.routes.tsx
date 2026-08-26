@@ -4,7 +4,11 @@ import { AdminOverviewPage } from "../pages/admin/AdminOverviewPage";
 import { AdminPagePlaceholder } from "../pages/admin/AdminPagePlaceholder";
 
 const sections = [
+  ["curriculum", "Curriculum", "BUC academic levels, semesters, and modules."],
+  ["courses", "Courses", "Brand-scoped teaching courses and their delivery state."],
+  ["instructors", "Instructors", "Global instructor identities and independent Medway or Elite assignments."],
   ["students", "Students", "Read-only student identity, access, and risk summaries."],
+  ["payments", "Payments", "Payment, order, and review status for the active brand."],
   ["commercial", "Commercial", "Payment, refund, and order review read models."],
   ["subscriptions", "Subscriptions", "Subscription lifecycle, seats, and terms summaries."],
   ["access", "Access Grants", "Explicit grant, source, scope, and entitlement summaries."],

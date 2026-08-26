@@ -1,5 +1,6 @@
 import type { Server } from "node:http";
-import { startHttpServer } from "./server";
+import { installAdminReadVerifierDiagnosticsIpc } from "./modules/admin";
+import { startHttpServerWithApplication } from "./server";
 
 const defaultPort = 3000;
 const defaultHost = "0.0.0.0";
@@ -15,11 +16,12 @@ function logStartup(host: string, port: number, nodeEnv: string): void {
   console.log("[api] mock-backed HTTP skeleton");
 }
 
-function registerGracefulShutdown(server: Server): void {
+function registerGracefulShutdown(server: Server, disposeDiagnostics?: () => void): void {
   let closing = false;
   const shutdown = () => {
     if (closing) return;
     closing = true;
+    disposeDiagnostics?.();
     console.log("[api] shutdown requested");
     server.close((error) => {
       if (error) {
@@ -53,9 +55,11 @@ export function startApiRuntime(): void {
   }
 
   try {
-    const server = startHttpServer({ port, host, runtimeMode: "mock", serviceName: "api" });
+    const started = startHttpServerWithApplication({ port, host, runtimeMode: "mock", serviceName: "api" });
+    const diagnostics = started.application?.adminReadVerifierDiagnostics;
+    const disposeDiagnostics = diagnostics ? installAdminReadVerifierDiagnosticsIpc(process, diagnostics) : undefined;
     logStartup(host, port, nodeEnv);
-    registerGracefulShutdown(server);
+    registerGracefulShutdown(started.server, disposeDiagnostics);
   } catch {
     console.error("[api] startup failed");
     process.exitCode = 1;
