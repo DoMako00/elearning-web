@@ -343,17 +343,29 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   width: 100%;
-  margin-top: 10px;
+  margin-top: 6px;
+}
+
+.lesson-player-page .course-overview-materials--primary {
+  height: fit-content;
+  min-height: 0;
+  flex: 0 0 auto;
+  align-self: start;
+  padding: 8px 14px;
+}
+
+.lesson-player-page .course-overview-materials--primary > header {
+  margin-bottom: 6px;
 }
 
 .lesson-player-page .course-overview-material {
   display: grid;
   height: auto;
-  min-height: 50px;
+  min-height: 70px;
   grid-template-columns: 28px minmax(0, 1fr) 16px;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
+  padding: 5px 9px;
   border: 1px solid #e5ebe7;
   border-radius: 10px;
   background: #fff;
@@ -506,7 +518,7 @@
   font-weight: 750;
   line-height: 1.25;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .lesson-player-upnext__card small {
@@ -580,49 +592,48 @@
     gap: 6px;
     padding: 6px 12px 4px;
   }
-
+  
   .lesson-player-page .course-overview-heading {
     min-height: auto;
   }
-
+  
   .lesson-player-page .course-overview-heading h1 {
     font-size: 18px;
   }
-
+  
   .lesson-player-page .course-overview-heading__row {
     margin-top: 0;
   }
-
+  
   .lesson-player-page .course-overview-heading p {
     margin-top: 2px;
     font-size: 11px;
   }
-
+  
   .lesson-player-page .course-overview-primary {
-    grid-template-rows: clamp(140px, 22vh, 170px) 36px minmax(0, 1fr) auto;
-    gap: 5px;
+    grid-template-rows: minmax(320px, 52%) 44px minmax(0, 1fr) auto;
   }
-
+  
   .lesson-player-page .course-overview-primary.is-tab-expanded {
     grid-template-rows: 36px minmax(0, 1fr);
     gap: 5px;
   }
-
+  
   .lesson-player-page .course-overview-tabs button {
     min-height: 34px;
     font-size: 11.5px;
   }
-
+  
   .lesson-player-nav button {
     min-height: 32px;
     font-size: 11.5px;
   }
-
+  
   .lesson-player__play-center {
     width: 48px;
     height: 48px;
   }
-
+  
   .lesson-player-learn__body {
     grid-template-columns: minmax(0, 1fr) minmax(56px, 24%);
   }
@@ -632,13 +643,16 @@
   .lesson-player-page .course-overview-primary {
     display: flex;
   }
-
+  .lesson-player-page .course-overview-material {
+    min-height: 50px;
+  }
+  
   .lesson-player {
     width: 100%;
-    min-height: clamp(220px, 30vh, 300px);
-    height: clamp(220px, 30vh, 300px);
+    min-height: clamp(280px, 40vh, 440px);
+    height: clamp(280px, 40vh, 440px);
   }
-
+  
   .lesson-player-heading__more {
     width: 40px;
     height: 40px;
@@ -655,8 +669,8 @@
 
 @media (max-width: 900px) {
   .lesson-player {
-    min-height: clamp(200px, 26vh, 270px);
-    height: clamp(200px, 26vh, 270px);
+    min-height: clamp(240px, 34vh, 360px);
+    height: clamp(240px, 34vh, 360px);
   }
 
   .lesson-player-learn__body {
@@ -683,8 +697,8 @@
 @media (max-width: 820px) {
   .lesson-player {
     border-radius: 13px;
-    min-height: clamp(190px, 24vh, 250px);
-    height: clamp(190px, 24vh, 250px);
+    min-height: clamp(240px, 34vh, 360px);
+    height: clamp(240px, 34vh, 360px);
   }
 
   .lesson-player-heading__more {
@@ -731,10 +745,9 @@
 
   .lesson-player {
     width: 100%;
-    height: clamp(240px, 28vh, 320px);
-    min-height: clamp(240px, 28vh, 320px);
-    max-height: 320px;
-    border-radius: 14px;
+    height: clamp(440px, 50vh, 620px);
+    min-height: clamp(440px, 50vh, 620px);
+    max-height: 620px;
   }
 
   .lesson-player-page .course-overview-tabs {
@@ -879,8 +892,8 @@
   }
 
   .lesson-player {
-    height: clamp(220px, 38vh, 280px);
-    min-height: clamp(220px, 38vh, 280px);
+    height: clamp(260px, 44vh, 340px);
+    min-height: clamp(260px, 44vh, 340px);
   }
 
   .lesson-player__overlay {

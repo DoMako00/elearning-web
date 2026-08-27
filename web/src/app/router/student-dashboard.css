@@ -237,11 +237,10 @@ main[data-main-workspace] {
     width: var(--sidebar-width);
     height: 100dvh;
   }
-
   .student-dashboard__header--home {
     display: flex !important;
   }
-
+  
   .student-dashboard__header--home .student-dashboard__search {
     position: static !important;
     transform: none !important;
@@ -249,7 +248,7 @@ main[data-main-workspace] {
     width: auto !important;
     max-width: none !important;
   }
-
+  
   [data-app-shell] {
     display: grid !important;
     grid-template-columns: var(--sidebar-width) minmax(0, 1fr) !important;
@@ -260,7 +259,7 @@ main[data-main-workspace] {
     overflow: hidden !important;
     padding-left: 0 !important;
   }
-
+  
   main[data-main-workspace] {
     display: flex !important;
     flex-direction: column !important;
@@ -281,7 +280,7 @@ main[data-main-workspace] {
     box-sizing: border-box !important;
     overflow: hidden !important;
   }
-
+  
   .student-dashboard__header {
     position: sticky !important;
     top: 0 !important;
@@ -296,20 +295,20 @@ main[data-main-workspace] {
     box-shadow: 0 1px 0 rgb(0 0 0 / 6%) !important;
     overflow: visible !important;
   }
-
+  
   .student-dashboard__search {
     flex: 1 1 0 !important;
     min-width: 0 !important;
     max-width: none !important;
   }
-
+  
   .student-dashboard__search .search-bar {
     height: 48px !important;
     border-radius: 12px !important;
     padding-left: 16px !important;
     padding-right: 10px !important;
   }
-
+  
   .student-dashboard__actions {
     flex: 0 0 auto !important;
     display: flex !important;
@@ -318,7 +317,7 @@ main[data-main-workspace] {
     overflow: visible !important;
     margin-left: auto !important;
   }
-
+  
   .student-dashboard__content {
     flex: 1 1 auto !important;
     width: 100% !important;
@@ -329,6 +328,7 @@ main[data-main-workspace] {
     overflow-x: hidden !important;
     padding: 0 12px 24px 12px !important;
     margin-top: 10px !important;
+    padding: 0px 20px !important;
   }
 }
 

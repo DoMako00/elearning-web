@@ -2903,7 +2903,7 @@
   }
 
   .course-overview-primary {
-    grid-template-rows: clamp(270px, 36vh, 292px) 42px minmax(0, 1fr);
+    grid-template-rows: clamp(270px, 36vh, 292px) 48px minmax(0, 1fr);
     gap: 10px;
   }
 

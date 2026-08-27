@@ -365,7 +365,7 @@
   font-weight: 750;
   line-height: 1.25;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .learning-file__copy small {
