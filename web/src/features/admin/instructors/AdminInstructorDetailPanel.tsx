@@ -57,6 +57,8 @@ export function AdminInstructorDetailPanel({
 
   useEffect(() => {
     if (!drawer) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     closeRef.current?.focus();
     const onDocumentKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key === "Escape") onClose();
@@ -69,7 +71,10 @@ export function AdminInstructorDetailPanel({
       if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     };
     document.addEventListener("keydown", onDocumentKeyDown);
-    return () => document.removeEventListener("keydown", onDocumentKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onDocumentKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
   }, [drawer]);
 
   const onTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {

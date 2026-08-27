@@ -26,8 +26,6 @@ type StatusFilter = "all" | "active" | "inactive";
 type PreviewDialogMode = "add" | "edit" | "assign-brand" | "assign-course" | null;
 
 const brandLabel = (brandCode: AdminBrandCode) => brandCode === "medway" ? "Medway" : "Elite";
-const formatDate = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-
 function useMediaQuery(query: string) {
   const [matches, setMatches] = useState(() => typeof window !== "undefined" && window.matchMedia(query).matches);
   useEffect(() => {
@@ -119,14 +117,15 @@ export function AdminInstructorsPage() {
 
   const changeFilter = (update: () => void) => { update(); setPage(1); };
 
-  const selectInstructor = (id: string) => {
+  const selectInstructor = (id: string, trigger?: HTMLElement) => {
+    lastTriggerRef.current = trigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     setSelectedId(id);
     setDetailOpen(true);
     setMenuId(undefined);
   };
 
   const openDialog = (mode: Exclude<PreviewDialogMode, null>, trigger?: HTMLElement) => {
-    if (trigger) lastTriggerRef.current = trigger;
+    lastTriggerRef.current = trigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     setDialogError("");
     setDialogMode(mode);
     if (mode === "add") {
@@ -232,7 +231,7 @@ export function AdminInstructorsPage() {
               const isSelected = instructor.id === selectedId && detailOpen;
               return <tr key={instructor.id} className={isSelected ? "is-selected" : ""} aria-selected={isSelected} onDoubleClick={() => selectInstructor(instructor.id)}>
                 <td className="is-check"><input type="checkbox" aria-label={`Select ${instructor.displayName}`} checked={selectedRows.has(instructor.id)} onChange={() => setSelectedRows((current) => { const next = new Set(current); next.has(instructor.id) ? next.delete(instructor.id) : next.add(instructor.id); return next; })} /></td>
-                <td><button className="admin-instructor-person" type="button" aria-label={`View ${instructor.displayName}${isSelected ? ", selected" : ""}`} onClick={() => selectInstructor(instructor.id)}><span className="admin-instructor-avatar" aria-hidden="true">{instructor.initials}<i className={`is-${instructor.presence}`} /></span><span><strong>{instructor.displayName}</strong><small>{instructor.email}</small>{isSelected && <em>Selected</em>}</span></button></td>
+                <td><button className="admin-instructor-person" type="button" aria-label={`View ${instructor.displayName}${isSelected ? ", selected" : ""}`} onClick={(event) => selectInstructor(instructor.id, event.currentTarget)}><span className="admin-instructor-avatar" aria-hidden="true">{instructor.initials}<i className={`is-${instructor.presence}`} /></span><span><strong>{instructor.displayName}</strong><small>{instructor.email}</small>{isSelected && <em>Selected</em>}</span></button></td>
                 <td className="is-specialty"><span className="admin-instructor-specialty" title={instructor.specialties.join(", ")}>{instructor.specialties[0]}{instructor.specialties.length > 1 && <small aria-label={`${instructor.specialties.length - 1} additional specialty`}>+{instructor.specialties.length - 1}</small>}</span></td>
                 <td><div className="admin-instructor-brands" aria-label={activeBrands.length ? `Active brands: ${activeBrands.map(brandLabel).join(" and ")}` : "No active brand assignment"}>{activeBrands.includes("medway") && <span className="is-medway">M</span>}{activeBrands.includes("elite") && <span className="is-elite">E</span>}<small>{activeBrands.length === 2 ? "Both brands" : activeBrands.length === 1 ? brandLabel(activeBrands[0]) : "Unassigned"}</small></div></td>
                 <td><span className="admin-instructor-course-count" aria-label={`${activeCourses.length} active courses. Medway ${medwayCourses}, Elite ${eliteCourses}.`}>{activeCourses.length}<small>{brandFilter === "all" || brandFilter === "both" ? `M ${medwayCourses} · E ${eliteCourses}` : brandFilter === "unassigned" ? "No brand" : brandLabel(brandFilter)}</small></span></td>
@@ -272,6 +271,8 @@ function PreviewDialog({ mode, instructor, error, draftName, draftTitle, draftEm
   const dialogRef = useRef<HTMLDivElement>(null);
   const title = mode === "add" ? "Add Instructor Preview" : mode === "edit" ? "Edit Global Identity" : mode === "assign-brand" ? "Assign to Brand" : "Assign to Course";
   useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     const firstInput = dialogRef.current?.querySelector<HTMLElement>("input, select");
     (firstInput ?? closeRef.current)?.focus();
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
@@ -284,7 +285,10 @@ function PreviewDialog({ mode, instructor, error, draftName, draftTitle, draftEm
       if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     };
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
   }, []);
   return <div className="admin-instructor-dialog-layer">
     <button className="admin-instructor-dialog-backdrop" type="button" aria-label={`Close ${title}`} onClick={onClose} />
@@ -304,8 +308,4 @@ function PreviewDialog({ mode, instructor, error, draftName, draftTitle, draftEm
       <footer><button type="button" onClick={onClose}>Cancel</button><button className="is-primary" type="button" onClick={onSubmit}>{mode === "assign-course" ? "Validate & Assign" : mode === "assign-brand" ? "Assign Brand" : "Save Preview"}</button></footer>
     </div>
   </div>;
-}
-
-export function formatInstructorUpdatedAt(value: string) {
-  return formatDate.format(new Date(`${value}T00:00:00`));
 }
