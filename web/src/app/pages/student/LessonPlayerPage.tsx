@@ -594,17 +594,19 @@ export function LessonPlayerPage() {
             <CourseDiscussionPanel />
           </div>
 
-          <nav className="lesson-player-nav" aria-label="Lesson navigation">
-            <button type="button" className="lesson-player-nav__ghost" disabled={!previous} onClick={() => previous && openLesson(previous.id)}>
-              <ChevronLeft aria-hidden="true" /> Previous lesson
-            </button>
-            <button type="button" className={`lesson-player-nav__complete${isComplete ? " is-done" : ""}`} onClick={() => setIsComplete((currentValue) => !currentValue)}>
-              <CheckCircle2 aria-hidden="true" /> {isComplete ? "Completed" : "Mark as complete"}
-            </button>
-            <button type="button" className="lesson-player-nav__ghost" disabled={!next} onClick={() => next && openLesson(next.id)}>
-              Next lesson <ChevronRight aria-hidden="true" />
-            </button>
-          </nav>
+          {activeTab === "overview" ? (
+            <nav className="lesson-player-nav" aria-label="Lesson navigation">
+              <button type="button" className="lesson-player-nav__ghost" disabled={!previous} onClick={() => previous && openLesson(previous.id)}>
+                <ChevronLeft aria-hidden="true" /> Previous lesson
+              </button>
+              <button type="button" className={`lesson-player-nav__complete${isComplete ? " is-done" : ""}`} onClick={() => setIsComplete((currentValue) => !currentValue)}>
+                <CheckCircle2 aria-hidden="true" /> {isComplete ? "Completed" : "Mark as complete"}
+              </button>
+              <button type="button" className="lesson-player-nav__ghost" disabled={!next} onClick={() => next && openLesson(next.id)}>
+                Next lesson <ChevronRight aria-hidden="true" />
+              </button>
+            </nav>
+          ) : null}
         </div>
 
         <aside className="course-overview-rail" aria-label="Course support information">

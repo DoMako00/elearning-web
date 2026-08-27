@@ -912,11 +912,13 @@
   cursor: pointer;
   font-size: 11.5px;
   font-weight: 700;
+  padding: 8px;
 }
 
 .workspace-rail-link:hover {
   border-color: #bde5cc;
   color: var(--color-brand-hover);
+  
 }
 
 .workspace-key-terms dl {
@@ -971,6 +973,7 @@
   cursor: pointer;
   font-size: 11.5px;
   font-weight: 750;
+  padding: 8px;
 }
 
 .workspace-rail-action:hover {
