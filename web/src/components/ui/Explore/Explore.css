@@ -375,22 +375,22 @@
 .explore-hero__cta {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  height: clamp(34px, 2.4vw, 44px);
-  padding: 0 clamp(14px, 1.2vw, 22px);
-  border: 0;
-  border-radius: 999px;
-  background: #20a862;
-  color: #ffffff;
-  font-size: clamp(12.5px, 0.85vw, 14.5px);
+  gap: 9px;
+  height: clamp(34px, 2.4vw, 48px);
+  padding: 0 clamp(14px, 1.2vw, 18px);
+  border: 1px solid rgb(255 255 255 / 70%);
+  border-radius: 10px;
+  background: #fff;
+  color: #1a2630;
+  font-size: clamp(12.5px, 0.85vw, 14px);
   font-weight: 750;
   cursor: pointer;
   transition: all 160ms ease;
-  box-shadow: 0 3px 12px rgba(32, 168, 98, 0.35);
+  box-shadow: none;
 }
 
 .explore-hero__cta:hover {
-  background: #188a50;
+  background: #f0f0f0;
   transform: translateY(-1px);
 }
 
