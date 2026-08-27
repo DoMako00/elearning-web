@@ -127,6 +127,10 @@
   overflow: hidden;
 }
 
+.course-overview-primary.is-tab-expanded {
+  grid-template-rows: 50px minmax(0, 1fr);
+}
+
 .course-overview-card {
   border: 1px solid #e0e8e3;
   border-radius: 15px;
@@ -1098,6 +1102,11 @@
 
   .course-overview-primary {
     grid-template-rows: minmax(200px, 34%) 44px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .course-overview-primary.is-tab-expanded {
+    grid-template-rows: 44px minmax(0, 1fr);
     gap: 8px;
   }
 
