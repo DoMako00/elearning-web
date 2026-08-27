@@ -18,7 +18,7 @@ export function AdminTopbar({ brand, brandCode, availableBrands, setBrandCode }:
     return () => window.removeEventListener("keydown", focusSearch);
   }, []);
 
-  return <header className="admin-topbar">
+  return <header className={`admin-topbar${pathname === "/admin/instructors" ? " is-instructors" : ""}`}>
     <div className="admin-topbar__route"><h1>{metadata.label}</h1><p>{metadata.description}</p></div>
     <label className="admin-search"><span className="admin-sr-only">Search the Admin Console preview</span><Search aria-hidden="true" /><input ref={searchRef} type="search" placeholder="Search students, courses, instructors..." /><kbd>⌘ K</kbd></label>
     <div className="admin-topbar__controls">
