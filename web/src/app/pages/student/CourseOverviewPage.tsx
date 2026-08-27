@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   Sparkles,
   StickyNote,
+  FolderOpen,
 } from "lucide-react";
 import { useState, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
@@ -164,10 +165,19 @@ function AnatomyHeroArt() {
   );
 }
 
-function MaterialsGrid() {
+function MaterialsGrid({ materials = COURSE_MATERIALS }: { materials?: CourseMaterial[] }) {
+  if (!materials || materials.length === 0) {
+    return (
+      <div className="course-overview-materials__empty">
+        <FolderOpen aria-hidden="true" />
+        <p>No materials attached to this lesson yet.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="course-overview-materials__grid">
-      {COURSE_MATERIALS.map((material) => {
+      {materials.map((material) => {
         const MaterialIcon = material.extension === "pptx" ? Presentation : FileText;
 
         return (
@@ -196,9 +206,10 @@ function MaterialsGrid() {
 interface MaterialsCardProps {
   className?: string;
   hidden?: boolean;
+  materials?: CourseMaterial[];
 }
 
-function MaterialsCard({ className = "", hidden = false }: MaterialsCardProps) {
+function MaterialsCard({ className = "", hidden = false, materials = COURSE_MATERIALS }: MaterialsCardProps) {
   return (
     <article
       className={`course-overview-card course-overview-materials${className ? ` ${className}` : ""}`}
@@ -208,7 +219,7 @@ function MaterialsCard({ className = "", hidden = false }: MaterialsCardProps) {
         <h2>Recent materials</h2>
         <button type="button">View all resources <ArrowRight aria-hidden="true" /></button>
       </header>
-      <MaterialsGrid />
+      <MaterialsGrid materials={materials} />
     </article>
   );
 }

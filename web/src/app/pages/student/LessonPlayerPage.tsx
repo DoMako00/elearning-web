@@ -25,10 +25,11 @@ import {
   UsersRound,
   Volume2,
   VolumeX,
-  Paperclip
+  Paperclip,
+  FolderOpen
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import anatomyArt from "../../../Assets/image copy.webp";
 import { CourseDiscussionPanel } from "../../../components/learning-space/CourseDiscussionPanel";
 import { CourseResourcesPanel } from "../../../components/learning-space/CourseResourcesPanel";
@@ -280,6 +281,19 @@ function LessonVideoPlayer() {
     setIsMuted(value === 0);
   };
 
+  const lastTapRef = useRef<number>(0);
+
+  const handleTouchEnd = useCallback((event: React.TouchEvent) => {
+    // Only detect on the video itself or background, not on interactive buttons
+    if ((event.target as HTMLElement).closest("button, input, .lesson-player__timeline")) return;
+    const now = Date.now();
+    if (now - lastTapRef.current < 320) {
+      event.preventDefault();
+      void toggleFullscreen();
+    }
+    lastTapRef.current = now;
+  }, [toggleFullscreen]);
+
   const progress = duration ? (currentTime / duration) * 100 : 0;
   const controlsVisible = showControls || !isPlaying;
 
@@ -290,6 +304,11 @@ function LessonVideoPlayer() {
       tabIndex={0}
       onMouseMove={revealControls}
       onMouseLeave={() => isPlaying && setShowControls(false)}
+      onDoubleClick={(event) => {
+        if ((event.target as HTMLElement).closest("button, input, .lesson-player__timeline")) return;
+        void toggleFullscreen();
+      }}
+      onTouchEnd={handleTouchEnd}
     >
       <video
         ref={videoRef}
@@ -377,10 +396,19 @@ function LessonVideoPlayer() {
   );
 }
 
-function MaterialsGrid() {
+function MaterialsGrid({ materials = LESSON_MATERIALS }: { materials?: LessonMaterial[] }) {
+  if (!materials || materials.length === 0) {
+    return (
+      <div className="course-overview-materials__empty">
+        <FolderOpen aria-hidden="true" />
+        <p>No materials attached to this lesson yet.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="course-overview-materials__grid lesson-player-materials__grid">
-      {LESSON_MATERIALS.map((material) => {
+      {materials.map((material) => {
         const MaterialIcon = material.extension === "pptx" ? Presentation : FileText;
         return (
           <button
@@ -408,9 +436,10 @@ function MaterialsGrid() {
 interface MaterialsCardProps {
   className?: string;
   hidden?: boolean;
+  materials?: LessonMaterial[];
 }
 
-function MaterialsCard({ className = "", hidden = false }: MaterialsCardProps) {
+function MaterialsCard({ className = "", hidden = false, materials = LESSON_MATERIALS }: MaterialsCardProps) {
   return (
     <article
       className={`course-overview-card course-overview-materials${className ? ` ${className}` : ""}`}
@@ -420,7 +449,7 @@ function MaterialsCard({ className = "", hidden = false }: MaterialsCardProps) {
         <h2>Lesson materials</h2>
         <button type="button">View all materials <ArrowRight aria-hidden="true" /></button>
       </header>
-      <MaterialsGrid />
+      <MaterialsGrid materials={materials} />
     </article>
   );
 }
@@ -458,13 +487,13 @@ export function LessonPlayerPage() {
   return (
     <section className="course-overview-page lesson-player-page" aria-labelledby="lesson-player-title">
       <header className="course-overview-heading">
-        <nav className="course-overview-breadcrumb" aria-label="Breadcrumb">
+        {/* <nav className="course-overview-breadcrumb" aria-label="Breadcrumb">
           <Link to="/my-courses">My Courses</Link>
           <ChevronRight aria-hidden="true" />
           <Link to={COURSE_PATH}>Human Anatomy I</Link>
           <ChevronRight aria-hidden="true" />
           <span aria-current="page">Lesson {current.number}</span>
-        </nav>
+        </nav> */}
         <div className="course-overview-heading__row">
           <div>
             <h1 id="lesson-player-title">{current.title}</h1>
@@ -565,19 +594,17 @@ export function LessonPlayerPage() {
             <CourseDiscussionPanel />
           </div>
 
-          {activeTab === "overview" ? (
-            <nav className="lesson-player-nav" aria-label="Lesson navigation">
-              <button type="button" className="lesson-player-nav__ghost" disabled={!previous} onClick={() => previous && openLesson(previous.id)}>
-                <ChevronLeft aria-hidden="true" /> Previous lesson
-              </button>
-              <button type="button" className={`lesson-player-nav__complete${isComplete ? " is-done" : ""}`} onClick={() => setIsComplete((currentValue) => !currentValue)}>
-                <CheckCircle2 aria-hidden="true" /> {isComplete ? "Completed" : "Mark as complete"}
-              </button>
-              <button type="button" className="lesson-player-nav__ghost" disabled={!next} onClick={() => next && openLesson(next.id)}>
-                Next lesson <ChevronRight aria-hidden="true" />
-              </button>
-            </nav>
-          ) : null}
+          <nav className="lesson-player-nav" aria-label="Lesson navigation">
+            <button type="button" className="lesson-player-nav__ghost" disabled={!previous} onClick={() => previous && openLesson(previous.id)}>
+              <ChevronLeft aria-hidden="true" /> Previous lesson
+            </button>
+            <button type="button" className={`lesson-player-nav__complete${isComplete ? " is-done" : ""}`} onClick={() => setIsComplete((currentValue) => !currentValue)}>
+              <CheckCircle2 aria-hidden="true" /> {isComplete ? "Completed" : "Mark as complete"}
+            </button>
+            <button type="button" className="lesson-player-nav__ghost" disabled={!next} onClick={() => next && openLesson(next.id)}>
+              Next lesson <ChevronRight aria-hidden="true" />
+            </button>
+          </nav>
         </div>
 
         <aside className="course-overview-rail" aria-label="Course support information">
@@ -663,11 +690,6 @@ export function LessonPlayerPage() {
             </>
           )}
         </aside>
-
-        <MaterialsCard
-          className="course-overview-materials--full"
-          hidden={activeTab !== "overview"}
-        />
       </div>
     </section>
   );
