@@ -12,6 +12,8 @@ export function StudentLayout() {
   const isCourseOverview = pathname === "/my-courses/human-anatomy-i";
   const isLessonPlayer = pathname.startsWith("/my-courses/human-anatomy-i/lessons");
   const isExplore = pathname === "/explore";
+  const isAssignments = pathname === "/assignments";
+  const showCenteredSearch = isHome || isAssignments;
 
   const renderBreadcrumb = () => {
     if (isMyCourses) {
@@ -58,6 +60,16 @@ export function StudentLayout() {
       );
     }
 
+    if (isAssignments) {
+      return (
+        <div className="student-dashboard__page-title">
+          <span className="student-dashboard__page-title-label">Learning space</span>
+          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
+          <h1 id="assignments-header-title">Assignments</h1>
+        </div>
+      );
+    }
+
     const segments = pathname.split("/").filter(Boolean);
     const lastSegment = segments[segments.length - 1] || "Dashboard";
     const formattedTitle = lastSegment
@@ -79,15 +91,17 @@ export function StudentLayout() {
       <div
         className={`student-dashboard${isHome ? " student-dashboard--home" : ""}${
           isMyCourses ? " student-dashboard--my-courses" : ""
-        }${isCourseOverview ? " student-dashboard--course-overview" : ""}`}
+        }${isCourseOverview ? " student-dashboard--course-overview" : ""}${
+          isAssignments ? " student-dashboard--assignments" : ""
+        }`}
       >
         <header
-          className={`student-dashboard__header${isHome ? " student-dashboard__header--home" : ""}`}
+          className={`student-dashboard__header${showCenteredSearch ? " student-dashboard__header--home" : ""}`}
           aria-label="Student dashboard header"
         >
-          {isHome ? (
+          {showCenteredSearch ? (
             <div className="student-dashboard__search">
-              <SearchBar />
+              <SearchBar placeholder="Search topics, subjects or skills..." />
             </div>
           ) : (
             renderBreadcrumb()

@@ -189,7 +189,8 @@ main[data-main-workspace] {
 
   .my-courses-workspace,
   .explore-workspace,
-  .course-overview-page {
+  .course-overview-page,
+  .assignments-workspace {
     margin-inline: auto;
   }
 }
@@ -642,7 +643,8 @@ main[data-main-workspace] {
     overflow: visible;
   }
 
-  .student-page--courses {
+  .student-page--courses,
+  .student-page--assignments {
     display: flex;
     flex-direction: column;
   }
@@ -1494,7 +1496,8 @@ main[data-main-workspace] {
 }
 
 @media (max-width: 1199px) {
-  .student-page--courses {
+  .student-page--courses,
+  .student-page--assignments {
     overflow-y: auto;
     overflow-x: hidden;
     height: 100%;

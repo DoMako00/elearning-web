@@ -35,7 +35,7 @@ export const primarySidebarItems: SidebarItem[] = [
     label: "Assignments",
     icon: ClipboardCheck,
     href: "/assignments",
-    enabled: false,
+    enabled: true,
   },
   {
     label: "Certificates",
