@@ -1,0 +1,530 @@
+
+:root {
+  --xp-gold: #fbbf24;
+  --xp-gold-dark: #f59e0b;
+  --xp-gold-light: #fef3c7;
+  --xp-emerald: #22c55e;
+  --xp-emerald-dark: #16a34a;
+  --xp-blue: #3b82f6;
+  --xp-purple: #a855f7;
+  --xp-white: #ffffff;
+  --xp-dark: #0f172a;
+  --xp-dark-secondary: #1e293b;
+  --xp-gray: #64748b;
+  --xp-gray-light: #94a3b8;
+  --xp-border: #334155;
+}
+
+.xp-reward-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+}
+
+.xp-reward-particle-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.xp-reward-modal {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+  border: 1px solid var(--xp-border);
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(251, 191, 36, 0.1),
+    inset 0 1px 0 rgba(251, 191, 36, 0.05);
+  overflow: hidden;
+}
+
+.xp-reward-modal.level-up {
+  border-color: var(--xp-gold);
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(251, 191, 36, 0.3),
+    0 0 40px rgba(251, 191, 36, 0.15),
+    inset 0 1px 0 rgba(251, 191, 36, 0.1);
+}
+
+.xp-reward-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--xp-gold), var(--xp-emerald), var(--xp-blue), var(--xp-purple), var(--xp-gold));
+  background-size: 200% 100%;
+  animation: xp-gradient-shift 3s ease infinite;
+}
+
+@keyframes xp-gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.xp-reward-modal.level-up::before {
+  height: 4px;
+}
+
+.xp-reward-modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.xp-reward-icon-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(34, 197, 94, 0.15) 100%);
+  border: 2px solid rgba(251, 191, 36, 0.3);
+  margin-bottom: 0.75rem;
+}
+
+.xp-reward-modal.level-up .xp-reward-icon-container {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.25) 0%, rgba(245, 158, 11, 0.25) 100%);
+  border-color: var(--xp-gold);
+  box-shadow: 0 0 30px rgba(251, 191, 36, 0.3);
+}
+
+.xp-reward-icon {
+  flex-shrink: 0;
+}
+
+.xp-reward-icon.trophy {
+  color: var(--xp-gold);
+  filter: drop-shadow(0 4px 8px rgba(251, 191, 36, 0.4));
+}
+
+.xp-reward-icon.star {
+  color: var(--xp-blue);
+  filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.4));
+}
+
+.xp-reward-glow {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--xp-gold) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.xp-reward-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, var(--xp-gold) 0%, var(--xp-white) 50%, var(--xp-emerald) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 30px rgba(251, 191, 36, 0.3);
+}
+
+.xp-reward-modal.level-up .xp-reward-title {
+  background: linear-gradient(135deg, var(--xp-gold) 0%, #fef3c7 50%, var(--xp-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: xp-title-pulse 2s ease-in-out infinite;
+}
+
+@keyframes xp-title-pulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.2); }
+}
+
+.xp-reward-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.xp-reward-xp-display {
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.xp-reward-xp-amount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  font-size: 3.5rem;
+  font-weight: 900;
+  line-height: 1;
+  font-family: 'WDXL Lubrifont SC', ui-sans-serif, system-ui, sans-serif;
+  background: linear-gradient(135deg, var(--xp-gold) 0%, #fef3c7 30%, var(--xp-white) 60%, var(--xp-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% 100%;
+  animation: xp-number-shine 2s ease-in-out infinite;
+  filter: drop-shadow(0 4px 12px rgba(251, 191, 36, 0.3));
+}
+
+@keyframes xp-number-shine {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.xp-reward-plus {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.xp-reward-number {
+  line-height: 1;
+}
+
+.xp-reward-xp-label {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-left: 0.25rem;
+}
+
+.xp-reward-reason {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--xp-gray-light);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.xp-reward-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.5rem 0;
+}
+
+.xp-reward-divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--xp-border), transparent);
+  transform-origin: center;
+}
+
+.xp-reward-level-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 0.5rem;
+}
+
+.xp-reward-level-badge {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 2px solid var(--xp-border);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.xp-reward-level-badge.is-new {
+  border-color: var(--xp-gold);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, #1e293b 100%);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    0 0 30px rgba(251, 191, 36, 0.2),
+    inset 0 1px 0 rgba(251, 191, 36, 0.1);
+}
+
+.xp-reward-level-badge.pulse {
+  animation: xp-badge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes xp-badge-pulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 30px rgba(251, 191, 36, 0.2), inset 0 1px 0 rgba(251, 191, 36, 0.1); }
+  50% { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 50px rgba(251, 191, 36, 0.4), inset 0 1px 0 rgba(251, 191, 36, 0.15); }
+}
+
+.xp-reward-level-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--xp-gray);
+}
+
+.xp-reward-level-number {
+  font-size: 2.5rem;
+  font-weight: 900;
+  line-height: 1;
+  font-family: 'WDXL Lubrifont SC', ui-sans-serif, system-ui, sans-serif;
+  background: linear-gradient(135deg, var(--xp-gold) 0%, var(--xp-white) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.xp-reward-level-up-label {
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--xp-gold);
+  white-space: nowrap;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.xp-reward-progress-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.xp-reward-progress-labels-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--xp-gray-light);
+}
+
+.xp-reward-progress-section strong {
+  color: var(--xp-white);
+}
+
+.xp-reward-progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.xp-reward-progress-track {
+  position: relative;
+  width: 100%;
+  height: 12px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--xp-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.xp-reward-progress-fill {
+  position: relative;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--xp-blue), var(--xp-emerald), var(--xp-gold));
+  background-size: 200% 100%;
+  animation: xp-progress-flow 2s linear infinite;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 4px;
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+}
+
+@keyframes xp-progress-flow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.xp-reward-progress-shine {
+  width: 20px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  border-radius: 999px;
+  animation: xp-shine-sweep 1.5s ease-in-out infinite;
+}
+
+@keyframes xp-shine-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(500%); }
+}
+
+.xp-reward-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--xp-gray);
+}
+
+.xp-reward-xp-breakdown {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--xp-gray);
+}
+
+.xp-reward-xp-breakdown strong {
+  color: var(--xp-gray-light);
+}
+
+.xp-reward-actions {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.xp-reward-btn-primary,
+.xp-reward-btn-secondary {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.xp-reward-btn-primary {
+  background: linear-gradient(135deg, var(--xp-gold) 0%, var(--xp-gold-dark) 100%);
+  color: var(--xp-dark);
+  box-shadow:
+    0 4px 14px rgba(251, 191, 36, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.xp-reward-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 24px rgba(251, 191, 36, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.xp-reward-btn-primary:active {
+  transform: translateY(0);
+}
+
+.xp-reward-btn-primary:focus-visible {
+  outline: 2px solid var(--xp-gold);
+  outline-offset: 2px;
+}
+
+.xp-reward-btn-secondary {
+  background: rgba(30, 41, 59, 0.8);
+  color: var(--xp-gray-light);
+  border: 1px solid var(--xp-border);
+  backdrop-filter: blur(8px);
+}
+
+.xp-reward-btn-secondary:hover {
+  background: rgba(30, 41, 59, 1);
+  color: var(--xp-white);
+  border-color: var(--xp-gray);
+}
+
+.xp-reward-btn-secondary:focus-visible {
+  outline: 2px solid var(--xp-blue);
+  outline-offset: 2px;
+}
+
+.xp-reward-btn-icon {
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xp-reward-modal,
+  .xp-reward-icon-container,
+  .xp-reward-title,
+  .xp-reward-xp-amount,
+  .xp-reward-level-badge,
+  .xp-reward-progress-fill,
+  .xp-reward-progress-shine,
+  .xp-reward-glow,
+  .xp-reward-divider-line,
+  .xp-reward-actions button {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .xp-reward-progress-fill {
+    animation: none;
+  }
+
+  .xp-reward-progress-shine {
+    animation: none;
+  }
+
+  .xp-reward-badge.pulse {
+    animation: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .xp-reward-modal {
+    padding: 1.25rem;
+    margin: 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+
+  .xp-reward-xp-amount {
+    font-size: 2.75rem;
+  }
+
+  .xp-reward-icon-container {
+    width: 70px;
+    height: 70px;
+  }
+
+  .xp-reward-title {
+    font-size: 1.25rem;
+  }
+
+  .xp-reward-level-number {
+    font-size: 2rem;
+  }
+
+  .xp-reward-actions {
+    flex-direction: column;
+  }
+
+  .xp-reward-btn-primary,
+  .xp-reward-btn-secondary {
+    width: 100%;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .xp-reward-modal {
+    border-width: 2px;
+  }
+
+  .xp-reward-progress-track {
+    border-width: 2px;
+  }
+
+  .xp-reward-btn-secondary {
+    border-width: 2px;
+  }
+}
