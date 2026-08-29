@@ -15,8 +15,10 @@ export function StudentLayout() {
   const isAssignments = pathname === "/assignments";
   const showCenteredSearch = isHome || isAssignments;
 
-  const renderBreadcrumb = () => {
-    if (isMyCourses) {
+const isTestXP = pathname === "/test-xp";
+
+    const renderBreadcrumb = () => {
+      if (isMyCourses) {
       return (
         <div className="student-dashboard__page-title">
           <span className="student-dashboard__page-title-label">Learning space</span>
@@ -60,15 +62,25 @@ export function StudentLayout() {
       );
     }
 
-    if (isAssignments) {
-      return (
-        <div className="student-dashboard__page-title">
-          <span className="student-dashboard__page-title-label">Learning space</span>
-          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-          <h1 id="assignments-header-title">Assignments</h1>
-        </div>
-      );
-    }
+if (isAssignments) {
+        return (
+          <div className="student-dashboard__page-title">
+            <span className="student-dashboard__page-title-label">Learning space</span>
+            <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
+            <h1 id="assignments-header-title">Assignments</h1>
+          </div>
+        );
+      }
+
+      if (isTestXP) {
+        return (
+          <div className="student-dashboard__page-title">
+            <span className="student-dashboard__page-title-label">Learning space</span>
+            <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
+            <h1 id="test-xp-header-title">XP Reward Test</h1>
+          </div>
+        );
+      }
 
     const segments = pathname.split("/").filter(Boolean);
     const lastSegment = segments[segments.length - 1] || "Dashboard";

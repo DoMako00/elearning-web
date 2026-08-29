@@ -30,6 +30,8 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useXPRewards, XPRewardModal } from "../../../components/ui/XPRewards";
+import type { XPRewardData } from "../../../components/ui/XPRewards";
 import anatomyArt from "../../../Assets/image copy.webp";
 import { CourseDiscussionPanel } from "../../../components/learning-space/CourseDiscussionPanel";
 import { CourseResourcesPanel } from "../../../components/learning-space/CourseResourcesPanel";
@@ -462,6 +464,58 @@ export function LessonPlayerPage() {
   const [activeTab, setActiveTab] = useState<LessonTabId>("overview");
   const [expandedModuleId, setExpandedModuleId] = useState<string | null>("module-1");
 
+  // Initialize completed lessons from localStorage synchronously
+  const getInitialCompletedLessons = (): Set<string> => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const stored = localStorage.getItem('greenlearn-completed-lessons');
+      if (stored) {
+        return new Set(JSON.parse(stored));
+      }
+    } catch {
+      // ignore parse errors
+    }
+    return new Set();
+  };
+
+  const [completedLessons, setCompletedLessons] = useState<Set<string>>(getInitialCompletedLessons);
+  const isAlreadyCompleted = completedLessons.has(lessonId);
+
+  // Save completed lessons to localStorage
+  useEffect(() => {
+    localStorage.setItem('greenlearn-completed-lessons', JSON.stringify([...completedLessons]));
+  }, [completedLessons]);
+
+  // Initialize isComplete based on whether this lesson is already completed
+  useEffect(() => {
+    setIsComplete(completedLessons.has(lessonId));
+  }, [lessonId, completedLessons]);
+
+  const {
+    earnXP,
+    isModalOpen,
+    rewardData,
+    closeRewardModal,
+  } = useXPRewards({
+    initialXP: 1250,
+    onLevelUp: (level: number, reward: XPRewardData) => {
+      console.log('🎉 Level Up!', { level, reward });
+    },
+    onXPEarned: (reward: XPRewardData) => {
+      console.log('✨ XP Earned:', reward);
+    },
+  });
+
+  const handleMarkComplete = () => {
+    // Prevent marking complete if already completed (permanent completion)
+    if (isAlreadyCompleted) return;
+    
+    // Mark as complete permanently
+    setIsComplete(true);
+    setCompletedLessons(prev => new Set(prev).add(lessonId));
+    earnXP(50, 'lesson_complete');
+  };
+
   const lessonIndex = Math.max(0, ALL_LESSONS.findIndex((lesson) => lesson.id === lessonId));
   const current = ALL_LESSONS[lessonIndex] ?? ALL_LESSONS[0];
   const previous = ALL_LESSONS[lessonIndex - 1];
@@ -599,8 +653,14 @@ export function LessonPlayerPage() {
               <button type="button" className="lesson-player-nav__ghost" disabled={!previous} onClick={() => previous && openLesson(previous.id)}>
                 <ChevronLeft aria-hidden="true" /> Previous lesson
               </button>
-              <button type="button" className={`lesson-player-nav__complete${isComplete ? " is-done" : ""}`} onClick={() => setIsComplete((currentValue) => !currentValue)}>
-                <CheckCircle2 aria-hidden="true" /> {isComplete ? "Completed" : "Mark as complete"}
+              <button
+                type="button"
+                className={`lesson-player-nav__complete${isAlreadyCompleted ? " is-done" : ""}`}
+                onClick={handleMarkComplete}
+                disabled={isAlreadyCompleted}
+                aria-disabled={isAlreadyCompleted}
+              >
+                <CheckCircle2 aria-hidden="true" /> {isAlreadyCompleted ? "Completed" : "Mark as complete"}
               </button>
               <button type="button" className="lesson-player-nav__ghost" disabled={!next} onClick={() => next && openLesson(next.id)}>
                 Next lesson <ChevronRight aria-hidden="true" />
@@ -693,6 +753,13 @@ export function LessonPlayerPage() {
           )}
         </aside>
       </div>
+
+      <XPRewardModal
+        isOpen={isModalOpen}
+        onClose={closeRewardModal}
+        rewardData={rewardData}
+        onKeepLearning={() => console.log('Keep learning clicked')}
+      />
     </section>
   );
 }

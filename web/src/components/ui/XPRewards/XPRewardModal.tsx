@@ -1,8 +1,12 @@
+/**
+ * XPRewardModal - Animated XP Reward & Level Up Notification
+ * Light theme matching GreenLearn design system
+ */
 
 import { useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { Star, Trophy, X, CheckCircle2 } from 'lucide-react';
+import { Star, Trophy, CheckCircle2, X } from 'lucide-react';
 import type { XPRewardModalProps, XPRewardData } from './types';
 import './XPRewardModal.css';
 
@@ -20,7 +24,7 @@ function playToneSequence(frequencies: number[], baseDuration = 120): void {
 
       oscillator.type = 'sine';
       oscillator.frequency.value = freq;
-      gainNode.gain.value = 0.08;
+      gainNode.gain.value = 0.06;
 
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
@@ -29,7 +33,7 @@ function playToneSequence(frequencies: number[], baseDuration = 120): void {
       oscillator.start(startTime);
       oscillator.stop(startTime + baseDuration / 1000);
 
-      gainNode.gain.setValueAtTime(0.08, startTime);
+      gainNode.gain.setValueAtTime(0.06, startTime);
       gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + baseDuration / 1000);
     });
   } catch {
@@ -56,7 +60,7 @@ function launchConfetti(colors?: string[], particleCount = 80): void {
     particleCount,
     spread: 70,
     origin: { y: 0.4 },
-    colors: colors || ['#fbbf24', '#f59e0b', '#d97706', '#ffffff', '#22c55e'],
+    colors: colors || ['#20a862', '#16a34a', '#fbbf24', '#ffffff', '#60a5fa'],
     shapes: ['circle', 'square'],
     scalar: 1.2,
     zIndex: 9999,
@@ -68,13 +72,13 @@ function launchConfetti(colors?: string[], particleCount = 80): void {
 }
 
 function launchLevelUpConfetti(): void {
-  launchConfetti(['#fbbf24', '#f59e0b', '#d97706', '#ffffff', '#22c55e', '#a855f7'], 120);
-  setTimeout(() => launchConfetti(['#fbbf24', '#ffffff'], 60), 200);
-  setTimeout(() => launchConfetti(['#22c55e', '#16a34a'], 60), 400);
+  launchConfetti(['#20a862', '#16a34a', '#fbbf24', '#ffffff', '#60a5fa'], 120);
+  setTimeout(() => launchConfetti(['#20a862', '#ffffff'], 60), 200);
+  setTimeout(() => launchConfetti(['#16a34a', '#22c55e'], 60), 400);
 }
 
 function launchXPConfetti(): void {
-  launchConfetti(['#3b82f6', '#60a5fa', '#ffffff', '#fbbf24'], 60);
+  launchConfetti(['#20a862', '#60a5fa', '#ffffff', '#fbbf24'], 60);
 }
 
 interface ProgressBarProps {
@@ -84,20 +88,22 @@ interface ProgressBarProps {
 }
 
 function ProgressBar({ percentage, animated = true, delay = 0 }: ProgressBarProps) {
+  const clampedPercentage = Math.min(100, Math.max(0, percentage));
+  
   return (
     <div className="xp-reward-progress-container">
       <div
         className="xp-reward-progress-track"
         role="progressbar"
-        aria-valuenow={Math.round(percentage)}
+        aria-valuenow={Math.round(clampedPercentage)}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label={`Level progress: ${Math.round(percentage)}%`}
+        aria-label={`Level progress: ${Math.round(clampedPercentage)}%`}
       >
         <motion.div
           className="xp-reward-progress-fill"
           initial={{ width: '0%' }}
-          animate={{ width: `${Math.min(100, Math.max(0, percentage))}%` }}
+          animate={{ width: `${clampedPercentage}%` }}
           transition={
             animated
               ? { duration: 1.2, delay, ease: [0.25, 0.46, 0.45, 0.94] }
@@ -109,8 +115,8 @@ function ProgressBar({ percentage, animated = true, delay = 0 }: ProgressBarProp
         </motion.div>
       </div>
       <div className="xp-reward-progress-labels">
-        <span>{Math.round(percentage)}%</span>
-        <span>to Level {percentage >= 100 ? 'MAX' : 'Next'}</span>
+        <span>{Math.round(clampedPercentage)}%</span>
+        <span>to Level {clampedPercentage >= 100 ? 'MAX' : 'Next'}</span>
       </div>
     </div>
   );
@@ -129,7 +135,7 @@ function LevelBadge({ level, isNew, pulse = false }: LevelBadgeProps) {
       initial={{ scale: 0, rotate: -180 }}
       animate={{ scale: 1, rotate: 0 }}
       transition={{ duration: 0.6, ease: [0.34, 1.56, 0.64, 1], delay: 0.2 }}
-      whileHover={{ scale: 1.1 }}
+      whileHover={{ scale: 1.05 }}
     >
       <span className="xp-reward-level-label">LEVEL</span>
       <span className="xp-reward-level-number">{level}</span>
@@ -221,13 +227,13 @@ function ParticleBurst({ isActive }: ParticleBurstProps) {
 
     initCanvas();
 
-    particlesRef.current = Array.from({ length: 30 }, () => ({
+    particlesRef.current = Array.from({ length: 25 }, () => ({
       x: canvas.width / 2,
       y: canvas.height / 2,
-      vx: (Math.random() - 0.5) * 8,
-      vy: (Math.random() - 0.5) * 8 - 2,
-      size: Math.random() * 4 + 2,
-      color: ['#fbbf24', '#f59e0b', '#22c55e', '#3b82f6', '#a855f7', '#ffffff'][
+      vx: (Math.random() - 0.5) * 6,
+      vy: (Math.random() - 0.5) * 6 - 1.5,
+      size: Math.random() * 3 + 1.5,
+      color: ['#20a862', '#16a34a', '#fbbf24', '#60a5fa', '#a855f7', '#ffffff'][
         Math.floor(Math.random() * 6)
       ],
       life: 1,
@@ -240,7 +246,7 @@ function ParticleBurst({ isActive }: ParticleBurstProps) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       particlesRef.current.forEach((p, index) => {
-        p.life -= 0.015;
+        p.life -= 0.012;
         if (p.life <= 0) {
           particlesRef.current.splice(index, 1);
           return;
@@ -248,7 +254,7 @@ function ParticleBurst({ isActive }: ParticleBurstProps) {
 
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.08;
+        p.vy += 0.06;
 
         ctx.globalAlpha = p.life;
         ctx.beginPath();
@@ -295,7 +301,8 @@ export function XPRewardModal({
       hasLaunchedConfetti.current = false;
 
       const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape' || e.key === 'Enter') {
+        if (e.key === 'Escape') {
+          e.preventDefault();
           onClose();
         }
       };
@@ -362,14 +369,14 @@ export function XPRewardModal({
         <motion.div
           ref={modalRef}
           className={`xp-reward-modal ${isLevelUp ? 'level-up' : ''}`}
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          initial={{ opacity: 0, scale: 0.92, y: 16 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: -10 }}
+          exit={{ opacity: 0, scale: 0.95, y: -8 }}
           transition={{
             type: 'spring',
-            damping: 25,
-            stiffness: 300,
-            duration: 0.4,
+            damping: 28,
+            stiffness: 320,
+            duration: 0.35,
           }}
           onClick={(e) => e.stopPropagation()}
           role="document"
@@ -382,24 +389,24 @@ export function XPRewardModal({
               transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1], delay: 0.1 }}
             >
               {isLevelUp ? (
-                <Trophy className="xp-reward-icon trophy" size={48} />
+                <Trophy className="xp-reward-icon trophy" size={44} aria-hidden="true" />
               ) : (
-                <Star className="xp-reward-icon star" size={48} />
+                <Star className="xp-reward-icon star" size={44} aria-hidden="true" />
               )}
               <motion.div
                 className="xp-reward-glow"
                 initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: [0, 1.2, 1], opacity: [0, 0.3, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut' }}
+                animate={{ scale: [0, 1.15, 1], opacity: [0, 0.25, 0] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: 'easeOut' }}
               />
             </motion.div>
 
             <motion.h2
               id="xp-reward-title"
               className="xp-reward-title"
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.2 }}
+              transition={{ duration: 0.25, delay: 0.15 }}
             >
               {isLevelUp ? 'LEVEL UP!' : 'XP EARNED!'}
             </motion.h2>
@@ -413,7 +420,7 @@ export function XPRewardModal({
                 className="xp-reward-divider-line"
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
+                transition={{ duration: 0.4, delay: 0.25 }}
               />
             </div>
 
@@ -426,9 +433,9 @@ export function XPRewardModal({
 
               <motion.div
                 className="xp-reward-progress-section"
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.5 }}
+                transition={{ duration: 0.35, delay: 0.4 }}
               >
                 <div className="xp-reward-progress-labels-top">
                   <span>Level {rewardData.newLevel}</span>
@@ -440,7 +447,7 @@ export function XPRewardModal({
                 <ProgressBar
                   percentage={currentLevelInfo.progressPercentage}
                   animated={true}
-                  delay={0.6}
+                  delay={0.5}
                 />
                 <div className="xp-reward-xp-breakdown">
                   <span>Current XP: <strong>{rewardData.totalXP.toLocaleString()}</strong></span>
@@ -452,9 +459,9 @@ export function XPRewardModal({
 
           <motion.div
             className="xp-reward-actions"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.7 }}
+            transition={{ duration: 0.3, delay: 0.6 }}
           >
             <button
               className="xp-reward-btn-primary"
@@ -464,7 +471,7 @@ export function XPRewardModal({
               }}
               autoFocus
             >
-              <CheckCircle2 className="xp-reward-btn-icon" size={18} />
+              <CheckCircle2 className="xp-reward-btn-icon" size={18} aria-hidden="true" />
               Keep Learning
             </button>
             <motion.button
@@ -473,7 +480,7 @@ export function XPRewardModal({
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <X className="xp-reward-btn-icon" size={18} />
+              <X className="xp-reward-btn-icon" size={18} aria-hidden="true" />
               Dismiss
             </motion.button>
           </motion.div>
