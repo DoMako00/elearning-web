@@ -21,6 +21,8 @@ export type RedactedJsonObject = Record<string, unknown>;
 
 // Compatibility note: Medway and Elite are brands inside one application platform. New admin code should use AdminBrand* terminology.
 export type AdminBrandCode = "medway" | "elite";
+/** Frontend display context only. It is deliberately not valid for any brand-owned entity. */
+export type AdminBrandView = "all" | AdminBrandCode;
 export interface AdminBrandContext { brandId: EntityId; brandCode: AdminBrandCode; brandDisplayName: string; platformId?: EntityId; platformCode?: AdminBrandCode; }
 export interface AdminBrandScoped { brandId: EntityId; brandCode: AdminBrandCode; }
 export interface AdminBrandScopedEntity extends AdminBrandScoped { id: EntityId; }

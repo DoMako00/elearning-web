@@ -3,10 +3,10 @@ import { AdminLayout } from "../pages/admin/AdminLayout";
 import { AdminOverviewPage } from "../pages/admin/AdminOverviewPage";
 import { AdminPagePlaceholder } from "../pages/admin/AdminPagePlaceholder";
 import { AdminInstructorsPage } from "../pages/admin/AdminInstructorsPage";
+import { AdminCoursesPage } from "../pages/admin/AdminCoursesPage";
+import { AdminCurriculumPage } from "../pages/admin/AdminCurriculumPage";
 
 const sections = [
-  ["curriculum", "Curriculum", "BUC academic levels, semesters, and modules."],
-  ["courses", "Courses", "Brand-scoped teaching courses and their delivery state."],
   ["students", "Students", "Read-only student identity, access, and risk summaries."],
   ["payments", "Payments", "Payment, order, and review status for the active brand."],
   ["commercial", "Commercial", "Payment, refund, and order review read models."],
@@ -25,7 +25,9 @@ export const adminRoutes: RouteObject[] = [{
   element: <AdminLayout />,
   children: [
     { index: true, element: <AdminOverviewPage /> },
+    { path: "courses", element: <AdminCoursesPage /> },
     { path: "instructors", element: <AdminInstructorsPage /> },
+    { path: "curriculum", element: <AdminCurriculumPage /> },
     ...sections.map(([path, title, description]) => ({ path, element: <AdminPagePlaceholder title={title} description={description} /> })),
   ],
 }];
