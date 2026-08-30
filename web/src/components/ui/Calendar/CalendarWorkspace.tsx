@@ -13,7 +13,6 @@ import {
   CalendarCheck,
   X,
   Trash2,
-  Edit2,
   Calendar as CalendarIcon,
   CheckCircle2,
 } from "lucide-react";
@@ -59,12 +58,12 @@ function parseTimeToMinutes(timeStr: string): number {
 
 export function CalendarWorkspace() {
   const [events, setEvents] = useState<CalendarEvent[]>(INITIAL_CALENDAR_EVENTS);
-  const [agendaItems, setAgendaItems] = useState<AgendaItem[]>(INITIAL_AGENDA_ITEMS);
+  const [agendaItems] = useState<AgendaItem[]>(INITIAL_AGENDA_ITEMS);
   const [reminders, setReminders] = useState<ReminderItem[]>(INITIAL_REMINDERS);
   const [studyGoal, setStudyGoal] = useState<StudyGoalProgress>(INITIAL_STUDY_GOAL);
 
   const [viewMode, setViewMode] = useState<CalendarViewMode>("week");
-  const [activeDate, setActiveDate] = useState<Date>(new Date(2025, 4, 14)); 
+  const [activeDate, setActiveDate] = useState<Date>(new Date(2026, 7, 30)); // Aug 30, 2026
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filterTypes, setFilterTypes] = useState<Record<EventType, boolean>>({
     quiz: true,
@@ -80,7 +79,7 @@ export function CalendarWorkspace() {
     type: "quiz",
     startTime: "10:00",
     endTime: "11:00",
-    date: "2025-05-14",
+    date: "2026-08-30",
   });
 
   const [isEditGoalModalOpen, setIsEditGoalModalOpen] = useState(false);
@@ -94,7 +93,15 @@ export function CalendarWorkspace() {
   const [draggedEventId, setDraggedEventId] = useState<string | null>(null);
   const [dragOverTarget, setDragOverTarget] = useState<string | null>(null);
 
+  // Live current time (updates every minute)
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
+
   const filterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const tick = setInterval(() => setCurrentTime(new Date()), 60_000);
+    return () => clearInterval(tick);
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -271,11 +278,15 @@ export function CalendarWorkspace() {
     }
 
     // 2. Current month days
+    const today = new Date();
+    const todayYear = today.getFullYear();
+    const todayMonth = today.getMonth();
+    const todayDay = today.getDate();
+
     for (let day = 1; day <= totalDaysInMonth; day++) {
       const d = new Date(year, month, day);
       const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-      // Highlight May 14, 2025 as today
-      const isToday = year === 2025 && month === 4 && day === 14;
+      const isToday = year === todayYear && month === todayMonth && day === todayDay;
       cells.push({
         date: d,
         dateStr,
@@ -342,7 +353,7 @@ export function CalendarWorkspace() {
   };
 
   const handleToday = () => {
-    setActiveDate(new Date(2025, 4, 14));
+    setActiveDate(new Date());
   };
 
   const filteredEvents = useMemo(() => {
@@ -572,8 +583,13 @@ export function CalendarWorkspace() {
                         return evtHour === hour;
                       });
 
-                      const isWed = dayIdx === 2;
-                      const showCurrentTimeLine = isWed && hour === 12;
+                      // Real current-time line: check if this cell is today's date AND this hour
+                      const nowDateStr = currentTime.toISOString().split("T")[0];
+                      const nowHour = currentTime.getHours();
+                      const nowMinute = currentTime.getMinutes();
+                      const showCurrentTimeLine = dateStr === nowDateStr && hour === nowHour;
+                      // % offset within the 50px slot (CSS variable)
+                      const timeLineTopPct = (nowMinute / 60) * 100;
 
                       const cellKey = `week-${dateStr}-${hour}`;
                       const isDragOver = dragOverTarget === cellKey;
@@ -604,8 +620,8 @@ export function CalendarWorkspace() {
                           {showCurrentTimeLine && (
                             <div
                               className="calendar-current-time-line"
-                              style={{ top: "35%" }}
-                              title="Current time (12:20 PM)"
+                              style={{ top: `${timeLineTopPct}%` }}
+                              title={`Current time: ${String(nowHour).padStart(2,"0")}:${String(nowMinute).padStart(2,"0")}`}
                             />
                           )}
 
