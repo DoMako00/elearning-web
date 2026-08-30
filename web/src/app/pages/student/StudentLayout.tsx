@@ -72,6 +72,18 @@ if (isAssignments) {
         );
       }
 
+      const isTestInactivity = pathname === "/test-inactivity";
+
+      if (isTestInactivity) {
+        return (
+          <div className="student-dashboard__page-title">
+            <span className="student-dashboard__page-title-label">Learning space</span>
+            <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
+            <h1 id="test-inactivity-header-title">Inactivity Prompt Test</h1>
+          </div>
+        );
+      }
+
       if (isTestXP) {
         return (
           <div className="student-dashboard__page-title">
