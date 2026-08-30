@@ -6,7 +6,8 @@ import { useAdminOverview } from "../../../features/admin/hooks/useAdminOverview
 import { brandToPlatform } from "../../../features/admin/hooks/useAdminBrand";
 import { AdminStatCard, AdminTrendSparkline } from "../../../features/admin/components/AdminStatCard";
 import { AdminEnrollmentChart, AdminPaymentDonut } from "../../../features/admin/components/AdminOverviewCharts";
-import type { AdminBrandContext, AdminOverviewActivity, AdminOverviewDashboard, AdminOverviewMetricId } from "../../../features/admin/api";
+import { getAdminOverviewDashboard } from "../../../features/admin/api/adminOverview.aggregate";
+import type { AdminBrandContext, AdminBrandView, AdminOverviewActivity, AdminOverviewDashboard, AdminOverviewMetricId } from "../../../features/admin/api";
 
 const number = new Intl.NumberFormat("en-EG");
 const metricIcons: Record<AdminOverviewMetricId, LucideIcon> = { students: UsersRound, courses: BookOpen, instructors: UserRound, revenue: CreditCard };
@@ -46,13 +47,15 @@ function OverviewContent({ dashboard }: { dashboard: AdminOverviewDashboard }) {
 }
 
 export function AdminOverviewPage() {
-  const { brand } = useOutletContext<{ brand: AdminBrandContext }>();
-  const platform = useMemo(() => brandToPlatform(brand), [brand]);
+  const { brand, brandView } = useOutletContext<{ brand?: AdminBrandContext; brandView: AdminBrandView }>();
+  const platform = useMemo(() => brand ? brandToPlatform(brand) : undefined, [brand]);
   const { data, error, loading, retry, correlationId } = useAdminOverview(platform);
-  return <section className="admin-page admin-overview" aria-label={`${brand.brandDisplayName} overview`}>
-    {loading && <div className="admin-overview-loading" aria-live="polite" aria-busy="true"><LoaderCircle aria-hidden="true" /> Loading {brand.brandDisplayName} overview…</div>}
+  const dashboard = brandView === "all" ? getAdminOverviewDashboard("all") : data?.dashboard;
+  const label = brand?.brandDisplayName ?? "All Brands";
+  return <section className="admin-page admin-overview" aria-label={`${label} overview`}>
+    {loading && <div className="admin-overview-loading" aria-live="polite" aria-busy="true"><LoaderCircle aria-hidden="true" /> Loading {label} overview…</div>}
     {error && <div className="admin-feedback admin-feedback--error" role="alert"><div><strong>{error.message}</strong><span>Correlation ID: {error.correlationId}</span></div><button type="button" onClick={retry}>Retry</button></div>}
-    {data && !loading && !error && data.dashboard && <OverviewContent dashboard={data.dashboard} />}
-    {data && !loading && !error && !data.dashboard && <div className="admin-feedback admin-feedback--error" role="status"><div><strong>Dashboard preview data is unavailable.</strong><span>Correlation ID: {correlationId}</span></div><button type="button" onClick={retry}>Retry</button></div>}
+    {dashboard && !loading && !error && <OverviewContent dashboard={dashboard} />}
+    {!dashboard && !loading && !error && <div className="admin-feedback admin-feedback--error" role="status"><div><strong>Dashboard preview data is unavailable.</strong><span>Correlation ID: {correlationId}</span></div><button type="button" onClick={retry}>Retry</button></div>}
   </section>;
 }

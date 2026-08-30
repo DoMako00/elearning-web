@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import type { AdminBrandCode, AdminBrandContext } from "../../../features/admin/api";
+import type { AdminBrandCode, AdminBrandView } from "../../../features/admin/api";
 import { AdminInstructorDetailPanel } from "../../../features/admin/instructors/AdminInstructorDetailPanel";
 import {
   adminInstructorFixtures,
@@ -39,10 +39,10 @@ function useMediaQuery(query: string) {
 }
 
 export function AdminInstructorsPage() {
-  const { brand } = useOutletContext<{ brand: AdminBrandContext }>();
+  const { brandView } = useOutletContext<{ brandView: AdminBrandView }>();
   const [instructors, setInstructors] = useState<readonly AdminInstructorFixture[]>(adminInstructorFixtures);
   const [search, setSearch] = useState("");
-  const [brandFilter, setBrandFilter] = useState<BrandFilter>(brand.brandCode);
+  const [brandFilter, setBrandFilter] = useState<BrandFilter>(brandView);
   const [specialtyFilter, setSpecialtyFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [page, setPage] = useState(1);
@@ -57,18 +57,19 @@ export function AdminInstructorsPage() {
   const [draftName, setDraftName] = useState("");
   const [draftTitle, setDraftTitle] = useState("");
   const [draftEmail, setDraftEmail] = useState("");
-  const [draftBrand, setDraftBrand] = useState<AdminBrandCode>(brand.brandCode);
-  const [draftCourseId, setDraftCourseId] = useState<string>(instructorCourseCatalog.find((course) => course.brandCode === brand.brandCode)?.id ?? instructorCourseCatalog[0].id);
+  const [draftBrand, setDraftBrand] = useState<AdminBrandCode>(brandView === "elite" ? "elite" : "medway");
+  const [draftCourseId, setDraftCourseId] = useState<string>(instructorCourseCatalog.find((course) => course.brandCode === (brandView === "elite" ? "elite" : "medway"))?.id ?? instructorCourseCatalog[0].id);
   const lastTriggerRef = useRef<HTMLElement | null>(null);
   const selectAllRef = useRef<HTMLInputElement>(null);
   const drawer = useMediaQuery("(max-width: 1499px)");
 
   useEffect(() => {
-    setBrandFilter(brand.brandCode);
-    setDraftBrand(brand.brandCode);
-    setDraftCourseId(instructorCourseCatalog.find((course) => course.brandCode === brand.brandCode)?.id ?? instructorCourseCatalog[0].id);
+    const concrete = brandView === "elite" ? "elite" : "medway";
+    setBrandFilter(brandView);
+    setDraftBrand(concrete);
+    setDraftCourseId(instructorCourseCatalog.find((course) => course.brandCode === concrete)?.id ?? instructorCourseCatalog[0].id);
     setPage(1);
-  }, [brand.brandCode]);
+  }, [brandView]);
 
   const filteredInstructors = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase();
@@ -91,7 +92,7 @@ export function AdminInstructorsPage() {
   const selectedInstructor = instructors.find((instructor) => instructor.id === selectedId) ?? instructors[0];
   const allVisibleSelected = visibleInstructors.length > 0 && visibleInstructors.every((instructor) => selectedRows.has(instructor.id));
   const someVisibleSelected = visibleInstructors.some((instructor) => selectedRows.has(instructor.id)) && !allVisibleSelected;
-  const filtersActive = search.trim() !== "" || brandFilter !== brand.brandCode || specialtyFilter !== "all" || statusFilter !== "all";
+  const filtersActive = search.trim() !== "" || brandFilter !== brandView || specialtyFilter !== "all" || statusFilter !== "all";
 
   useEffect(() => { if (page > totalPages) setPage(totalPages); }, [page, totalPages]);
   useEffect(() => { if (selectAllRef.current) selectAllRef.current.indeterminate = someVisibleSelected; }, [someVisibleSelected]);
@@ -108,11 +109,11 @@ export function AdminInstructorsPage() {
 
   const resetFilters = () => {
     setSearch("");
-    setBrandFilter(brand.brandCode);
+    setBrandFilter(brandView);
     setSpecialtyFilter("all");
     setStatusFilter("all");
     setPage(1);
-    announce(`Directory filters reset to the ${brand.brandDisplayName} context.`);
+    announce(`Directory filters reset to the ${brandView === "all" ? "All Brands" : brandLabel(brandView)} context.`);
   };
 
   const changeFilter = (update: () => void) => { update(); setPage(1); };
@@ -252,7 +253,7 @@ export function AdminInstructorsPage() {
 
       {detailOpen && selectedInstructor && <>
         {drawer && <button className="admin-instructor-drawer-backdrop" type="button" aria-label="Close instructor detail drawer" onClick={() => { setDetailOpen(false); lastTriggerRef.current?.focus(); }} />}
-        <AdminInstructorDetailPanel instructor={selectedInstructor} drawer={drawer} onClose={() => { setDetailOpen(false); lastTriggerRef.current?.focus(); }} onFeedback={announce} onToggleBrand={toggleBrand} onOpenAssignBrand={() => openDialog("assign-brand")} onOpenAssignCourse={() => openDialog("assign-course")} />
+        <AdminInstructorDetailPanel instructor={selectedInstructor} drawer={drawer} onClose={() => { setDetailOpen(false); lastTriggerRef.current?.focus(); }} onFeedback={announce} onOpenAssignBrand={() => openDialog("assign-brand")} onOpenAssignCourse={() => openDialog("assign-course")} />
       </>}
     </div>
 
@@ -269,7 +270,7 @@ function PreviewDialog({ mode, instructor, error, draftName, draftTitle, draftEm
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
-  const title = mode === "add" ? "Add Instructor Preview" : mode === "edit" ? "Edit Global Identity" : mode === "assign-brand" ? "Assign to Brand" : "Assign to Course";
+  const title = mode === "add" ? "Add Instructor Preview" : mode === "edit" ? "Edit Global Identity" : mode === "assign-brand" ? "Manage Brand Assignments" : "Assign to Course";
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -300,12 +301,12 @@ function PreviewDialog({ mode, instructor, error, draftName, draftTitle, draftEm
           <label>Academic title<input value={draftTitle} onChange={(event) => onTitle(event.target.value)} placeholder="Lecturer in Clinical Medicine" /></label>
           <label>Fixture email<input type="email" value={draftEmail} onChange={(event) => onEmail(event.target.value)} placeholder="instructor@example.edu" /></label>
         </>}
-        {mode === "assign-brand" && <><p><strong>{instructor.displayName}</strong> keeps one global identity. This affiliation is independent from the other brand.</p><label>Teaching brand<select value={draftBrand} onChange={(event) => onBrand(event.target.value as AdminBrandCode)}><option value="medway">Medway</option><option value="elite">Elite</option></select></label></>}
+        {mode === "assign-brand" && <><p><strong>{instructor.displayName}</strong> keeps one global identity. Manage Medway and Elite independently; this preview never creates an All Brands affiliation.</p><ul className="admin-instructor-brand-manager">{(["medway", "elite"] as const).map((brandCode) => { const assignment = instructor.brandAssignments.find((item) => item.brandCode === brandCode); return <li key={brandCode}><strong>{brandLabel(brandCode)}</strong><span>{assignment ? assignment.status === "active" ? "Active" : "Inactive / Historical" : "Not assigned"}</span><small>{assignment?.teachingRole ?? "No teaching role"}</small></li>; })}</ul><label>Teaching brand<select value={draftBrand} onChange={(event) => onBrand(event.target.value as AdminBrandCode)}><option value="medway">Medway</option><option value="elite">Elite</option></select></label></>}
         {mode === "assign-course" && <><p>Course assignments require an active affiliation in the same brand. Invalid cross-brand assignments are blocked locally.</p><label>Brand-scoped course<select value={draftCourseId} onChange={(event) => onCourse(event.target.value)}>{instructorCourseCatalog.map((course) => <option key={course.id} value={course.id}>{brandLabel(course.brandCode)} · {course.courseCode} · {course.courseName}</option>)}</select></label></>}
         {error && <div className="admin-instructor-dialog__error" role="alert">{error}</div>}
         <div className="admin-instructor-dialog__note">Changes remain in this browser session. No backend record, invitation, email, or message is created.</div>
       </div>
-      <footer><button type="button" onClick={onClose}>Cancel</button><button className="is-primary" type="button" onClick={onSubmit}>{mode === "assign-course" ? "Validate & Assign" : mode === "assign-brand" ? "Assign Brand" : "Save Preview"}</button></footer>
+      <footer><button type="button" onClick={onClose}>Cancel</button><button className="is-primary" type="button" onClick={onSubmit}>{mode === "assign-course" ? "Validate & Assign" : mode === "assign-brand" ? (instructor.brandAssignments.find((item) => item.brandCode === draftBrand)?.status === "active" ? "Deactivate Brand" : "Activate / Assign Brand") : "Save Preview"}</button></footer>
     </div>
   </div>;
 }

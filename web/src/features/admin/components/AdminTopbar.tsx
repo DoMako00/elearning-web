@@ -1,12 +1,13 @@
-import { Bell, ChevronDown, Crown, Search, ShieldCheck } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Bell, BookOpen, ChevronDown, Crown, Layers3, Search, ShieldCheck } from "lucide-react";
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useLocation } from "react-router-dom";
 import { getAdminRouteMetadata } from "../../../app/pages/admin/adminNavigation";
-import type { AdminBrandCode, AdminBrandContext } from "../api";
+import type { AdminBrandContext, AdminBrandView } from "../api";
 
-export function AdminTopbar({ brand, brandCode, availableBrands, setBrandCode }: { brand: AdminBrandContext; brandCode: AdminBrandCode; availableBrands: readonly AdminBrandContext[]; setBrandCode: (code: AdminBrandCode) => void }) {
+export function AdminTopbar({ brand, brandView, availableBrands, setBrandView }: { brand?: AdminBrandContext; brandView: AdminBrandView; availableBrands: readonly AdminBrandContext[]; setBrandView: (view: AdminBrandView) => void }) {
   const { pathname } = useLocation();
   const metadata = getAdminRouteMetadata(pathname);
+  const isCurriculum = pathname === "/admin/curriculum";
   const searchRef = useRef<HTMLInputElement>(null);
   const [notice, setNotice] = useState<string>();
 
@@ -18,13 +19,15 @@ export function AdminTopbar({ brand, brandCode, availableBrands, setBrandCode }:
     return () => window.removeEventListener("keydown", focusSearch);
   }, []);
 
+  const views: readonly { code: AdminBrandView; label: string; shortLabel?: string }[] = [{ code: "all", label: "All Brands", shortLabel: "All" }, ...availableBrands.map((item) => ({ code: item.brandCode, label: item.brandDisplayName }))];
+  const moveView = (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => { const last = views.length - 1; const next = event.key === "ArrowLeft" ? Math.max(0, index - 1) : event.key === "ArrowRight" ? Math.min(last, index + 1) : event.key === "Home" ? 0 : event.key === "End" ? last : index; if (next !== index) { event.preventDefault(); setBrandView(views[next].code); (event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>("button")[next])?.focus(); } };
   return <header className={`admin-topbar${pathname === "/admin/instructors" ? " is-instructors" : ""}`}>
     <div className="admin-topbar__route"><h1>{metadata.label}</h1><p>{metadata.description}</p></div>
     <label className="admin-search"><span className="admin-sr-only">Search the Admin Console preview</span><Search aria-hidden="true" /><input ref={searchRef} type="search" placeholder="Search students, courses, instructors..." /><kbd>⌘ K</kbd></label>
     <div className="admin-topbar__controls">
-      <div className="admin-brand-selector" aria-label="Active teaching brand">{availableBrands.map((item) => <button key={item.brandId} type="button" aria-pressed={brandCode === item.brandCode} className={item.brandCode === "elite" ? "is-elite" : "is-medway"} onClick={() => setBrandCode(item.brandCode)}>{item.brandCode === "elite" ? <Crown aria-hidden="true" /> : <ShieldCheck aria-hidden="true" />}<span>{item.brandDisplayName}</span></button>)}</div>
+      {isCurriculum ? <div className="admin-curriculum-scope" aria-label="BUC Shared Curriculum scope"><BookOpen aria-hidden="true" /><span>BUC Shared Curriculum</span></div> : <div className="admin-brand-selector" aria-label="Admin brand viewing context">{views.map((item, index) => <button key={item.code} type="button" aria-label={item.code === "all" ? "View all brands" : `View ${item.label}`} aria-pressed={brandView === item.code} className={item.code === "all" ? "is-all" : item.code === "elite" ? "is-elite" : "is-medway"} onKeyDown={(event) => moveView(event, index)} onClick={() => setBrandView(item.code)}>{item.code === "all" ? <Layers3 aria-hidden="true" /> : item.code === "elite" ? <Crown aria-hidden="true" /> : <ShieldCheck aria-hidden="true" />}<span data-short={item.shortLabel}>{item.label}</span></button>)}</div>}
       <button className="admin-icon-button" type="button" aria-label="Open notifications preview" onClick={() => setNotice("Notifications are preview-only in this milestone.")}><Bell aria-hidden="true" /><span className="admin-notification-badge">12</span></button>
-      <button className="admin-profile" type="button" aria-label="Open Admin profile preview" onClick={() => setNotice("Profile controls are preview-only in this milestone.")}><span className="admin-profile__avatar">AU</span><span className="admin-profile__copy"><strong>Admin User</strong><small>Frontend preview · {brand.brandDisplayName}</small></span><ChevronDown aria-hidden="true" /></button>
+      <button className="admin-profile" type="button" aria-label="Open Admin profile preview" onClick={() => setNotice("Profile controls are preview-only in this milestone.")}><span className="admin-profile__avatar">AU</span><span className="admin-profile__copy"><strong>Admin User</strong><small>Frontend preview · {brand?.brandDisplayName ?? "All Brands"}</small></span><ChevronDown aria-hidden="true" /></button>
     </div>
     <span className="admin-sr-only" role="status" aria-live="polite">{notice}</span>
   </header>;

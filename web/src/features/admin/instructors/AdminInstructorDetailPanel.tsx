@@ -2,12 +2,8 @@ import {
   BarChart3,
   BookOpen,
   CalendarDays,
-  Check,
   Crown,
-  Info,
   Mail,
-  Minus,
-  Plus,
   ShieldCheck,
   UserRoundCog,
   X,
@@ -27,12 +23,21 @@ const tabs: readonly { id: DetailTab; label: string }[] = [
 
 const brandLabel = (brandCode: AdminBrandCode) => brandCode === "medway" ? "Medway" : "Elite";
 
+/** Detail status always comes from the global instructor record, never from the shell viewing context. */
+export function getInstructorDetailState(instructor: AdminInstructorFixture) {
+  const affiliationByBrand = new Map(instructor.brandAssignments.map((assignment) => [assignment.brandCode, assignment]));
+  return {
+    affiliationByBrand,
+    activeAffiliationCount: [...affiliationByBrand.values()].filter((assignment) => assignment.status === "active").length,
+    courseIsActive: (brandCode: AdminBrandCode, assignmentActive: boolean) => assignmentActive && affiliationByBrand.get(brandCode)?.status === "active",
+  };
+}
+
 export function AdminInstructorDetailPanel({
   instructor,
   drawer,
   onClose,
   onFeedback,
-  onToggleBrand,
   onOpenAssignBrand,
   onOpenAssignCourse,
 }: {
@@ -40,7 +45,6 @@ export function AdminInstructorDetailPanel({
   drawer: boolean;
   onClose: () => void;
   onFeedback: (message: string) => void;
-  onToggleBrand: (brandCode: AdminBrandCode) => void;
   onOpenAssignBrand: () => void;
   onOpenAssignCourse: () => void;
 }) {
@@ -89,8 +93,9 @@ export function AdminInstructorDetailPanel({
     tabRefs.current[nextIndex]?.focus();
   };
 
-  const activeAssignments = instructor.brandAssignments.filter((assignment) => assignment.status === "active");
+  const detailState = getInstructorDetailState(instructor);
   const visibleCourses = showAllCourses ? instructor.courseAssignments : instructor.courseAssignments.slice(0, 4);
+  const activeBrands = (["medway", "elite"] as const).filter((brandCode) => detailState.affiliationByBrand.get(brandCode)?.status === "active");
 
   return <aside
     ref={panelRef}
@@ -106,6 +111,10 @@ export function AdminInstructorDetailPanel({
         <p>{instructor.academicTitle}</p>
         <a href={`mailto:${instructor.email}`} onClick={(event) => { event.preventDefault(); onFeedback("Email is unavailable in the frontend preview."); }}>{instructor.email}</a>
         <small>Instructor ID: {instructor.reference}</small>
+        <div className="admin-instructor-membership" aria-label={activeBrands.length ? `Active affiliations: ${activeBrands.map(brandLabel).join(" and ")}` : "No active brand assignments"}>
+          <span>{activeBrands.length ? "Works with" : "No active brand assignments"}</span>
+          {activeBrands.map((brandCode) => { const Icon = brandCode === "medway" ? ShieldCheck : Crown; return <em key={brandCode} className={`is-${brandCode}`} aria-label={`Active ${brandLabel(brandCode)} affiliation`}><Icon aria-hidden="true" />{brandLabel(brandCode)}</em>; })}
+        </div>
       </div>
       <button ref={closeRef} className="admin-instructor-detail__close" type="button" aria-label="Close instructor details" onClick={onClose}><X aria-hidden="true" /></button>
     </header>
@@ -127,28 +136,19 @@ export function AdminInstructorDetailPanel({
 
     <div className="admin-instructor-detail__body">
       {activeTab === "overview" && <section id="instructor-panel-overview" role="tabpanel" aria-labelledby="instructor-tab-overview" tabIndex={0}>
-        <div className="admin-instructor-section-heading"><div><h3>Brand Affiliations</h3><p>Independent teaching relationships</p></div><span>{activeAssignments.length}/2 active</span></div>
-        <div className="admin-affiliation-grid">
-          {(["medway", "elite"] as const).map((brandCode) => {
-            const current = instructor.brandAssignments.find((assignment) => assignment.brandCode === brandCode);
-            const isActive = current?.status === "active";
-            const Icon = brandCode === "medway" ? ShieldCheck : Crown;
-            return <article key={brandCode} className={`admin-affiliation-card is-${brandCode}${isActive ? " is-active" : ""}`}>
-              <span><Icon aria-hidden="true" /></span>
-              <div><strong>{brandLabel(brandCode)}</strong><small>{current ? `${current.teachingRole} · ${current.status}` : "Not assigned"}</small></div>
-              <button type="button" aria-label={`${isActive ? "Deactivate" : "Assign"} ${brandLabel(brandCode)} affiliation preview`} onClick={() => onToggleBrand(brandCode)}>{isActive ? <Minus aria-hidden="true" /> : <Plus aria-hidden="true" />}</button>
-              {isActive && <Check className="admin-affiliation-card__check" aria-label="Active affiliation" />}
-            </article>;
-          })}
-        </div>
-        <div className="admin-instructor-scope-note"><Info aria-hidden="true" /><p><strong>Global identity, independent teaching scope</strong><span>This identity is shared globally. Each brand affiliation is independent; courses and teaching activity remain scoped to their respective brand.</span></p></div>
+        <section className="admin-instructor-promoted-actions" aria-label="Instructor actions"><h3>Instructor Actions</h3><div>
+          <button type="button" aria-label={`Manage brand affiliations for ${instructor.displayName}`} onClick={onOpenAssignBrand}><ShieldCheck aria-hidden="true" /><span><strong>{instructor.brandAssignments.length ? "Manage Brands" : "Assign to Brand"}</strong><small>Affiliations and roles</small></span></button>
+          <button type="button" aria-label={`Assign ${instructor.displayName} to a course`} onClick={onOpenAssignCourse}><BookOpen aria-hidden="true" /><span><strong>Assign to Course</strong><small>Allocate teaching</small></span></button>
+          <button type="button" aria-label={`View teaching schedule for ${instructor.displayName}`} onClick={() => setActiveTab("schedule")}><CalendarDays aria-hidden="true" /><span><strong>View Schedule</strong><small>Teaching calendar</small></span></button>
+          <button type="button" aria-label={`Open contact preview for ${instructor.displayName}`} onClick={() => onFeedback("Messaging is unavailable in the frontend preview.")}><Mail aria-hidden="true" /><span><strong>Contact Preview</strong><small>Compose preview</small></span></button>
+        </div></section>
 
         <div className="admin-instructor-section-heading admin-instructor-section-heading--courses"><div><h3>Current Course Assignments</h3><p>Every course retains its brand owner</p></div>{instructor.courseAssignments.length > 4 && <button type="button" onClick={() => setShowAllCourses((value) => !value)}>{showAllCourses ? "Show less" : "View all"}</button>}</div>
         {visibleCourses.length > 0 ? <ul className="admin-instructor-course-list">{visibleCourses.map((item) => <li key={item.id}>
           <span className={`is-${item.brandCode}`}><BookOpen aria-hidden="true" /></span>
           <div><strong>{item.courseName}</strong><small>{item.courseCode} · {item.teachingRole}</small></div>
           <em className={`is-${item.brandCode}`}>{brandLabel(item.brandCode)}</em>
-          <span className={`admin-course-state is-${item.active ? "active" : "inactive"}`}>{item.active ? "Active" : "Inactive"}</span>
+          {(() => { const isActive = detailState.courseIsActive(item.brandCode, item.active); return <span className={`admin-course-state is-${isActive ? "active" : "inactive"}`}>{isActive ? "Active" : "Inactive"}</span>; })()}
         </li>)}</ul> : <div className="admin-instructor-empty"><BookOpen aria-hidden="true" /><strong>No course assignments</strong><span>Assign an active brand affiliation before adding a course.</span></div>}
       </section>}
 
@@ -168,12 +168,6 @@ export function AdminInstructorDetailPanel({
       </section>}
     </div>
 
-    <footer className="admin-instructor-actions">
-      <button type="button" onClick={onOpenAssignBrand}><ShieldCheck aria-hidden="true" /><span>Assign to Brand</span></button>
-      <button type="button" onClick={onOpenAssignCourse}><BookOpen aria-hidden="true" /><span>Assign to Course</span></button>
-      <button type="button" onClick={() => setActiveTab("schedule")}><CalendarDays aria-hidden="true" /><span>View Schedule</span></button>
-      <button type="button" onClick={() => onFeedback("Messaging is unavailable in the frontend preview.")}><Mail aria-hidden="true" /><span>Contact Preview</span></button>
-    </footer>
   </aside>;
 }
 

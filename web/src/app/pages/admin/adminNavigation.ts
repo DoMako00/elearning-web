@@ -6,8 +6,8 @@ export interface AdminNavigationItem { label: string; path: string; icon: Lucide
 // Navigation visibility is presentation only; the backend remains authoritative for permissions.
 export const adminNavigation: readonly AdminNavigationItem[] = [
   { label: "Overview", path: "/admin", icon: LayoutDashboard, description: "Welcome back, Admin. Here's what's happening with your platform today." },
-  { label: "Curriculum", path: "/admin/curriculum", icon: BookOpen, description: "BUC academic levels, semesters, and modules." },
-  { label: "Courses", path: "/admin/courses", icon: LibraryBig, description: "Brand-scoped teaching courses and their delivery state." },
+  { label: "Curriculum", path: "/admin/curriculum", icon: BookOpen, description: "Manage BUC academic levels, semesters, and shared module references." },
+  { label: "Courses", path: "/admin/courses", icon: LibraryBig, description: "Manage brand-owned courses, map them to curriculum modules, and manage teaching assignments." },
   { label: "Instructors", path: "/admin/instructors", icon: UserRound, description: "Manage your global instructor directory, brand assignments, and course allocations." },
   { label: "Students", path: "/admin/students", icon: GraduationCap, permission: "admin.students.read", description: "Student identity, enrollment, and access summaries." },
   { label: "Payments", path: "/admin/payments", icon: CreditCard, permission: "admin.payments.read", description: "Payments, orders, and review status." },
