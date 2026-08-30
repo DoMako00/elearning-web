@@ -180,11 +180,35 @@ main[data-main-workspace] {
     clamp(6px, 0.6vw, 12px) clamp(12px, 1.46vw, 28px) clamp(8px, 0.8vw, 14px) clamp(12px, 1.67vw, 32px);
 }
 
+.student-dashboard--calendar {
+  max-height: none;
+  height: 100dvh;
+}
+
+.student-dashboard--calendar .student-dashboard__content {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-height: 820px) {
+  .student-dashboard--calendar .student-dashboard__header {
+    height: 56px;
+    min-height: 56px;
+  }
+}
+
 @media (min-width: 1200px) {
   .student-dashboard__content {
     width: min(100%, 2200px);
     margin-inline: auto;
     padding: clamp(10px, 1vw, 18px) clamp(18px, 1.7vw, 36px) clamp(12px, 1.2vw, 22px);
+  }
+
+  .student-dashboard--calendar .student-dashboard__content {
+    padding: 0 !important;
+    width: 100%;
   }
 
   .my-courses-workspace,

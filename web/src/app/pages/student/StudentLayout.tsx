@@ -13,12 +13,13 @@ export function StudentLayout() {
   const isLessonPlayer = pathname.startsWith("/my-courses/human-anatomy-i/lessons");
   const isExplore = pathname === "/explore";
   const isAssignments = pathname === "/assignments";
-  const showCenteredSearch = isHome || isAssignments;
+  const isCalendar = pathname === "/calendar";
+  const showCenteredSearch = isHome || isAssignments || isCalendar;
 
-const isTestXP = pathname === "/test-xp";
+  const isTestXP = pathname === "/test-xp";
 
-    const renderBreadcrumb = () => {
-      if (isMyCourses) {
+  const renderBreadcrumb = () => {
+    if (isMyCourses) {
       return (
         <div className="student-dashboard__page-title">
           <span className="student-dashboard__page-title-label">Learning space</span>
@@ -62,37 +63,37 @@ const isTestXP = pathname === "/test-xp";
       );
     }
 
-if (isAssignments) {
-        return (
-          <div className="student-dashboard__page-title">
-            <span className="student-dashboard__page-title-label">Learning space</span>
-            <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-            <h1 id="assignments-header-title">Assignments</h1>
-          </div>
-        );
-      }
+    if (isAssignments) {
+      return (
+        <div className="student-dashboard__page-title">
+          <span className="student-dashboard__page-title-label">Learning space</span>
+          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
+          <h1 id="assignments-header-title">Assignments</h1>
+        </div>
+      );
+    }
 
-      const isTestInactivity = pathname === "/test-inactivity";
+    const isTestInactivity = pathname === "/test-inactivity";
 
-      if (isTestInactivity) {
-        return (
-          <div className="student-dashboard__page-title">
-            <span className="student-dashboard__page-title-label">Learning space</span>
-            <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-            <h1 id="test-inactivity-header-title">Inactivity Prompt Test</h1>
-          </div>
-        );
-      }
+    if (isTestInactivity) {
+      return (
+        <div className="student-dashboard__page-title">
+          <span className="student-dashboard__page-title-label">Learning space</span>
+          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
+          <h1 id="test-inactivity-header-title">Inactivity Prompt Test</h1>
+        </div>
+      );
+    }
 
-      if (isTestXP) {
-        return (
-          <div className="student-dashboard__page-title">
-            <span className="student-dashboard__page-title-label">Learning space</span>
-            <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-            <h1 id="test-xp-header-title">XP Reward Test</h1>
-          </div>
-        );
-      }
+    if (isTestXP) {
+      return (
+        <div className="student-dashboard__page-title">
+          <span className="student-dashboard__page-title-label">Learning space</span>
+          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
+          <h1 id="test-xp-header-title">XP Reward Test</h1>
+        </div>
+      );
+    }
 
     const segments = pathname.split("/").filter(Boolean);
     const lastSegment = segments[segments.length - 1] || "Dashboard";
@@ -117,7 +118,7 @@ if (isAssignments) {
           isMyCourses ? " student-dashboard--my-courses" : ""
         }${isCourseOverview ? " student-dashboard--course-overview" : ""}${
           isAssignments ? " student-dashboard--assignments" : ""
-        }`}
+        }${isCalendar ? " student-dashboard--calendar" : ""}`}
       >
         <header
           className={`student-dashboard__header${showCenteredSearch ? " student-dashboard__header--home" : ""}`}
@@ -125,7 +126,7 @@ if (isAssignments) {
         >
           {showCenteredSearch ? (
             <div className="student-dashboard__search">
-              <SearchBar placeholder="Search topics, subjects or skills..." />
+              <SearchBar placeholder="Search courses, topics or skills..." />
             </div>
           ) : (
             renderBreadcrumb()
@@ -141,4 +142,3 @@ if (isAssignments) {
     </AppShell>
   );
 }
-

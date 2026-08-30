@@ -1,5 +1,6 @@
 import type { RouteObject } from "react-router-dom";
 import { AssignmentsPage } from "../pages/student/AssignmentsPage";
+import { CalendarPage } from "../pages/student/CalendarPage";
 import { CourseOverviewPage } from "../pages/student/CourseOverviewPage";
 import { ExplorePage } from "../pages/student/ExplorePage";
 import { HomePage } from "../pages/student/HomePage";
@@ -19,6 +20,7 @@ export const studentRoutes: RouteObject[] = [
       { path: "my-courses/human-anatomy-i", element: <CourseOverviewPage /> },
       { path: "my-courses/human-anatomy-i/lessons/:lessonId", element: <LessonPlayerPage /> },
       { path: "explore", element: <ExplorePage /> },
+      { path: "calendar", element: <CalendarPage /> },
       { path: "assignments", element: <AssignmentsPage /> },
       { path: "test-inactivity", element: <TestInactivityPromptPage /> },
     ],
