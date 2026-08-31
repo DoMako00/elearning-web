@@ -134,8 +134,9 @@
   }
 
   .calendar-goal-card {
-    gap: 16px;
-    padding: 2px 0;
+    gap: 20px;
+    padding: 4px 0;
+    align-items: center;
   }
 
   .calendar-goal-donut {
@@ -149,23 +150,27 @@
   }
 
   .calendar-goal-donut__pct {
-    font-size: 15px;
+    font-size: 16.5px;
   }
 
   .calendar-goal-donut__label {
-    font-size: 7.5px;
+    font-size: 8.5px;
+  }
+
+  .calendar-goal-stats {
+    gap: 5px;
   }
 
   .calendar-goal-stats__hours {
-    font-size: 14px;
+    font-size: 16px;
   }
 
   .calendar-goal-stats__sub {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .calendar-streak-row {
-    padding-top: 4px;
+    padding-top: 6px;
   }
 
   .calendar-streak-day {
@@ -173,12 +178,12 @@
   }
 
   .calendar-streak-day__dot {
-    width: 9px;
-    height: 9px;
+    width: 9.5px;
+    height: 9.5px;
   }
 
   .calendar-streak-day__label {
-    font-size: 10px;
+    font-size: 11px;
   }
 
   .calendar-reminder-list {
@@ -335,14 +340,14 @@
   }
 
   .calendar-goal-card {
-    gap: 12px;
-    padding: 0;
+    gap: 16px;
+    padding: 2px 0;
     align-items: center;
   }
 
   .calendar-goal-donut {
-    width: 54px;
-    height: 54px;
+    width: 88px;
+    height: 88px;
   }
 
   .calendar-goal-donut svg {
@@ -351,27 +356,31 @@
   }
 
   .calendar-goal-donut__pct {
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 800;
   }
 
   .calendar-goal-donut__label {
-    font-size: 6.5px;
+    font-size: 8.5px;
+  }
+
+  .calendar-goal-stats {
+    gap: 4px;
   }
 
   .calendar-goal-stats__hours {
-    font-size: 13px;
+    font-size: 14.5px;
     font-weight: 800;
     line-height: 1.2;
   }
 
   .calendar-goal-stats__sub {
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.2;
   }
 
   .calendar-streak-row {
-    padding-top: 2px;
+    padding-top: 4px;
   }
 
   .calendar-streak-day {
@@ -379,12 +388,12 @@
   }
 
   .calendar-streak-day__label {
-    font-size: 9.5px;
+    font-size: 10px;
   }
 
   .calendar-streak-day__dot {
-    width: 8px;
-    height: 8px;
+    width: 8.5px;
+    height: 8.5px;
   }
 
   .calendar-reminder-list {
@@ -1396,16 +1405,17 @@
 .calendar-goal-card {
   display: flex;
   align-items: center;
-  gap: clamp(10px, 1.2vw, 18px);
-  padding: clamp(2px, 0.4vh, 4px) 0;
+  justify-content: flex-start;
+  gap: clamp(16px, 1.8vw, 24px);
+  padding: clamp(4px, 0.8vh, 8px) 0;
   flex: 1 1 auto;
   min-height: 0;
 }
 
 .calendar-goal-donut {
   position: relative;
-  width: clamp(56px, 6.5vh, 72px);
-  height: clamp(56px, 6.5vh, 72px);
+  width: clamp(82px, 9.5vh, 98px);
+  height: clamp(82px, 9.5vh, 98px);
   flex-shrink: 0;
 }
 
@@ -1427,7 +1437,7 @@
 }
 
 .calendar-goal-donut__pct {
-  font-size: clamp(13px, 1.5vh, 16px);
+  font-size: clamp(18px, 2.2vh, 22px);
   font-weight: 800;
   color: #111827;
   line-height: 1;
@@ -1435,50 +1445,54 @@
 }
 
 .calendar-goal-donut__label {
-  font-size: clamp(6.5px, 0.8vh, 7.5px);
+  font-size: clamp(8.5px, 1vh, 10px);
   font-weight: 600;
   color: #6b7280;
   text-align: center;
   line-height: 1.1;
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
 .calendar-goal-stats {
   display: flex;
   flex-direction: column;
-  gap: clamp(2px, 0.4vh, 4px);
+  gap: clamp(3px, 0.6vh, 6px);
+  justify-content: center;
   min-width: 0;
 }
 
 .calendar-goal-stats__hours {
-  font-size: clamp(12.5px, 1.3vh, 14.5px);
+  font-size: clamp(15px, 1.8vh, 17px);
   font-weight: 800;
-  color: #1e293b;
+  color: #111827;
   margin: 0;
   line-height: 1.2;
 }
 
 .calendar-goal-stats__sub {
-  font-size: clamp(10.5px, 1.1vh, 12.5px);
-  color: #087f55;
+  font-size: clamp(12px, 1.4vh, 13.5px);
+  color: #4b5563;
   font-weight: 600;
   margin: 0;
   line-height: 1.2;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
-.calendar-goal-stats__fire {
+.calendar-goal-fire,
+.weekly-goal-fire {
+  width: 15px;
+  height: 15px;
+  object-fit: contain;
   display: inline-block;
-  font-size: 13px;
 }
 
 .calendar-streak-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: clamp(3px, 0.5vh, 6px);
+  padding-top: clamp(6px, 0.8vh, 10px);
   width: 100%;
   flex-shrink: 0;
 }
@@ -1487,12 +1501,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(2px, 0.4vh, 5px);
+  gap: clamp(4px, 0.5vh, 6px);
 }
 
 .calendar-streak-day__dot {
-  width: clamp(7px, 0.9vh, 9px);
-  height: clamp(7px, 0.9vh, 9px);
+  width: clamp(9px, 1vh, 11px);
+  height: clamp(9px, 1vh, 11px);
   border-radius: 50%;
   background: #ffffff;
   border: 1.5px solid #94a3af;
@@ -1506,7 +1520,7 @@
 }
 
 .calendar-streak-day__label {
-  font-size: clamp(9.5px, 1vh, 11px);
+  font-size: clamp(10.5px, 1.2vh, 12px);
   font-weight: 700;
   color: #6b7280;
 }
@@ -1721,33 +1735,38 @@
   }
 
   .calendar-goal-card {
-    gap: 10px;
-    padding: 0;
+    gap: 18px;
+    padding: 4px 0;
+    align-items: center;
   }
 
   .calendar-goal-donut {
-    width: 52px;
-    height: 52px;
+    width: 80px;
+    height: 80px;
   }
 
   .calendar-goal-donut__pct {
-    font-size: 12.5px;
+    font-size: 18px;
   }
 
   .calendar-goal-donut__label {
-    font-size: 6.5px;
+    font-size: 8.5px;
+  }
+
+  .calendar-goal-stats {
+    gap: 4px;
   }
 
   .calendar-goal-stats__hours {
-    font-size: 12.5px;
+    font-size: 15px;
   }
 
   .calendar-goal-stats__sub {
-    font-size: 10.5px;
+    font-size: 12.5px;
   }
 
   .calendar-streak-row {
-    padding-top: 2px;
+    padding-top: 4px;
   }
 
   .calendar-streak-day {
@@ -1755,12 +1774,12 @@
   }
 
   .calendar-streak-day__dot {
-    width: 7.5px;
-    height: 7.5px;
+    width: 8.5px;
+    height: 8.5px;
   }
 
   .calendar-streak-day__label {
-    font-size: 9.5px;
+    font-size: 10.5px;
   }
 
   .calendar-reminder-list {
@@ -1894,43 +1913,43 @@
   .calendar-goal-card {
     display: flex !important;
     align-items: center !important;
-    gap: 18px !important;
-    padding: 6px 0 !important;
+    gap: 24px !important;
+    padding: 8px 0 !important;
     flex: unset !important;
     min-height: auto !important;
   }
 
   .calendar-goal-donut {
-    width: 72px !important;
-    height: 72px !important;
+    width: 96px !important;
+    height: 96px !important;
     flex-shrink: 0 !important;
   }
 
   .calendar-goal-donut__pct {
-    font-size: 16px !important;
+    font-size: 21px !important;
   }
 
   .calendar-goal-donut__label {
-    font-size: 8px !important;
+    font-size: 10px !important;
   }
 
   .calendar-goal-stats {
-    gap: 4px !important;
+    gap: 6px !important;
   }
 
   .calendar-goal-stats__hours {
-    font-size: 14.5px !important;
+    font-size: 17px !important;
   }
 
   .calendar-goal-stats__sub {
-    font-size: 12.5px !important;
+    font-size: 13.5px !important;
   }
 
   .calendar-streak-row {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding-top: 10px !important;
+    padding-top: 12px !important;
     width: 100% !important;
     flex-shrink: 0 !important;
   }
@@ -1940,12 +1959,12 @@
   }
 
   .calendar-streak-day__dot {
-    width: 9.5px !important;
-    height: 9.5px !important;
+    width: 10.5px !important;
+    height: 10.5px !important;
   }
 
   .calendar-streak-day__label {
-    font-size: 11px !important;
+    font-size: 12px !important;
   }
 
   .calendar-reminder-list {

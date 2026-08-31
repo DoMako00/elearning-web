@@ -22,6 +22,7 @@ import {
   INITIAL_STUDY_GOAL,
   INITIAL_REMINDERS,
 } from "./calendar.data";
+import fireAsset from "../../../Assets/fire.webp";
 import type {
   CalendarEvent,
   EventType,
@@ -632,10 +633,10 @@ export function CalendarWorkspace() {
                           {cellEvents.map((evt) => {
                             const [sH, sM] = evt.startTime.split(":").map(Number);
                             const [eH, eM] = evt.endTime.split(":").map(Number);
-                            const durationMinutes = (eH * 50 + eM) - (sH * 50 + sM);
-                            // 64px per hour
-                            const heightPx = Math.max(52, Math.round((durationMinutes / 60) * 62) - 4);
-                            const topPx = Math.round((sM / 60) * 62);
+                            const durationMinutes = (eH * 60 + eM) - (sH * 60 + sM);
+                            // 54px standard grid slot height
+                            const heightPx = Math.max(48, Math.round((durationMinutes / 60) * 54) - 4);
+                            const topPx = Math.round((sM / 60) * 54);
                             const IconComponent = EVENT_TYPE_CONFIG[evt.type]?.icon || FileText;
                             const isBeingDragged = draggedEventId === evt.id;
 
@@ -922,7 +923,13 @@ export function CalendarWorkspace() {
                   {studyGoal.completedHours} / {studyGoal.targetHours} hours
                 </h3>
                 <p className="calendar-goal-stats__sub">
-                  Keep it up! <span className="calendar-goal-stats__fire" aria-hidden="true">🔥</span>
+                  Keep it up!
+                  <img
+                    className="weekly-goal-fire"
+                    alt=""
+                    aria-hidden="true"
+                    src={fireAsset}
+                  />
                 </p>
               </div>
             </div>
