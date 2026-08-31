@@ -33,7 +33,7 @@ import type {
 } from "./calendar.types";
 import "./Calendar.css";
 
-const HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+const HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 1, 2, 3, 4, 5, 6, 7];
 
 const EVENT_TYPE_CONFIG: Record<
   EventType,
@@ -47,6 +47,7 @@ const EVENT_TYPE_CONFIG: Record<
 };
 
 function formatHour(h: number): string {
+  if (h === 0 || h === 24) return "12 AM";
   if (h === 12) return "12 PM";
   if (h > 12) return `${h - 12} PM`;
   return `${h} AM`;
@@ -57,6 +58,41 @@ function parseTimeToMinutes(timeStr: string): number {
   return h * 60 + m;
 }
 
+// Helper to format a Date into YYYY-MM-DD using local calendar date parts
+function formatLocalDate(d: Date): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+// Get current date string (YYYY-MM-DD) and 24h time in Egypt timezone (Africa/Cairo)
+function getEgyptNow(): { dateStr: string; hour: number; minute: number } {
+  const now = new Date();
+  const dateStr = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Cairo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Africa/Cairo",
+    hour: "numeric",
+    minute: "numeric",
+    hour12: false,
+  }).formatToParts(now);
+
+  const hourPart = parts.find((p) => p.type === "hour")?.value || "0";
+  const minutePart = parts.find((p) => p.type === "minute")?.value || "0";
+
+  return {
+    dateStr,
+    hour: parseInt(hourPart, 10) % 24,
+    minute: parseInt(minutePart, 10),
+  };
+}
+
 export function CalendarWorkspace() {
   const [events, setEvents] = useState<CalendarEvent[]>(INITIAL_CALENDAR_EVENTS);
   const [agendaItems] = useState<AgendaItem[]>(INITIAL_AGENDA_ITEMS);
@@ -64,7 +100,7 @@ export function CalendarWorkspace() {
   const [studyGoal, setStudyGoal] = useState<StudyGoalProgress>(INITIAL_STUDY_GOAL);
 
   const [viewMode, setViewMode] = useState<CalendarViewMode>("week");
-  const [activeDate, setActiveDate] = useState<Date>(new Date(2026, 7, 30)); // Aug 30, 2026
+  const [activeDate, setActiveDate] = useState<Date>(new Date(2026, 7, 31)); // Aug 31, 2026
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filterTypes, setFilterTypes] = useState<Record<EventType, boolean>>({
     quiz: true,
@@ -95,6 +131,7 @@ export function CalendarWorkspace() {
 
 
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  const egyptNow = useMemo(() => getEgyptNow(), [currentTime]);
 
   const filterRef = useRef<HTMLDivElement>(null);
 
@@ -149,41 +186,45 @@ export function CalendarWorkspace() {
   // Move event to a new date and hour in Week View (with conflict prevention)
   const handleDropWeekCell = (e: React.DragEvent, targetDate: string, targetHour: number) => {
     e.preventDefault();
-    e.stopPropagation();
     const eventId = e.dataTransfer.getData("text/plain") || draggedEventId;
     if (!eventId) return;
 
-    const targetEvent = events.find((evt) => evt.id === eventId);
-    if (!targetEvent) return;
+    const existing = events.find((evt) => evt.id === eventId);
+    if (!existing) return;
 
-    const [sH, sM] = targetEvent.startTime.split(":").map(Number);
-    const [eH, eM] = targetEvent.endTime.split(":").map(Number);
-    const durationMinutes = (eH * 60 + eM) - (sH * 60 + sM);
+    const [startH, startM] = existing.startTime.split(":").map(Number);
+    const [endH, endM] = existing.endTime.split(":").map(Number);
+    const durationMinutes = (endH * 60 + endM) - (startH * 60 + startM);
 
-    const newStartMinutes = targetHour * 60 + sM;
-    const newEndMinutes = newStartMinutes + durationMinutes;
+    const newStartH = targetHour;
+    const newStartM = startM;
+    const newEndMinutes = newStartH * 60 + newStartM + durationMinutes;
 
-    // Check for overlap conflict
-    if (hasTimeConflict(targetDate, newStartMinutes, newEndMinutes, eventId)) {
-      alert("⚠️ Time conflict: An event is already scheduled during this time slot.");
+    const newStartStr = `${String(newStartH).padStart(2, "0")}:${String(newStartM).padStart(2, "0")}`;
+    const endHH = Math.floor(newEndMinutes / 60);
+    const endMM = newEndMinutes % 60;
+    const newEndStr = `${String(endHH).padStart(2, "0")}:${String(endMM).padStart(2, "0")}`;
+
+    if (hasTimeConflict(targetDate, newStartH * 60 + newStartM, newEndMinutes, eventId)) {
+      alert("⚠️ Time conflict: An event is already scheduled at this time on that date.");
       setDraggedEventId(null);
       setDragOverTarget(null);
       return;
     }
 
-    const newSH = Math.floor(newStartMinutes / 60);
-    const newSM = newStartMinutes % 60;
-    const newEH = Math.floor(newEndMinutes / 60);
-    const newEM = newEndMinutes % 60;
-
-    const startTime = `${String(newSH).padStart(2, "0")}:${String(newSM).padStart(2, "0")}`;
-    const endTime = `${String(newEH).padStart(2, "0")}:${String(newEM).padStart(2, "0")}`;
-    const displayTime = `${formatHour(newSH)} - ${formatHour(newEH)}`;
+    const displayStart = formatHour(newStartH);
+    const displayEnd = formatHour(endHH);
 
     setEvents((prev) =>
       prev.map((evt) =>
         evt.id === eventId
-          ? { ...evt, date: targetDate, startTime, endTime, displayTime }
+          ? {
+              ...evt,
+              date: targetDate,
+              startTime: newStartStr,
+              endTime: newEndStr,
+              displayTime: `${displayStart} - ${displayEnd}`,
+            }
           : evt
       )
     );
@@ -195,17 +236,14 @@ export function CalendarWorkspace() {
   // Move event to a new date in Month View (with conflict prevention)
   const handleDropMonthCell = (e: React.DragEvent, targetDate: string) => {
     e.preventDefault();
-    e.stopPropagation();
     const eventId = e.dataTransfer.getData("text/plain") || draggedEventId;
     if (!eventId) return;
 
-    const targetEvent = events.find((evt) => evt.id === eventId);
-    if (!targetEvent) return;
+    const existing = events.find((evt) => evt.id === eventId);
+    if (!existing) return;
 
-    const [sH, sM] = targetEvent.startTime.split(":").map(Number);
-    const [eH, eM] = targetEvent.endTime.split(":").map(Number);
-    const startMinutes = sH * 60 + sM;
-    const endMinutes = eH * 60 + eM;
+    const startMinutes = parseTimeToMinutes(existing.startTime);
+    const endMinutes = parseTimeToMinutes(existing.endTime);
 
     if (hasTimeConflict(targetDate, startMinutes, endMinutes, eventId)) {
       alert("⚠️ Time conflict: An event is already scheduled at this time on that date.");
@@ -267,26 +305,21 @@ export function CalendarWorkspace() {
     for (let i = firstDayOfWeek - 1; i >= 0; i--) {
       const dayNum = prevMonthLastDay - i;
       const d = new Date(year, month - 1, dayNum);
-      const dateStr = d.toISOString().split("T")[0];
+      const dateStr = formatLocalDate(d);
       cells.push({
         date: d,
         dateStr,
         dayNumber: dayNum,
         isCurrentMonth: false,
-        isToday: false,
+        isToday: dateStr === egyptNow.dateStr,
       });
     }
 
     // 2. Current month days
-    const today = new Date();
-    const todayYear = today.getFullYear();
-    const todayMonth = today.getMonth();
-    const todayDay = today.getDate();
-
     for (let day = 1; day <= totalDaysInMonth; day++) {
       const d = new Date(year, month, day);
-      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-      const isToday = year === todayYear && month === todayMonth && day === todayDay;
+      const dateStr = formatLocalDate(d);
+      const isToday = dateStr === egyptNow.dateStr;
       cells.push({
         date: d,
         dateStr,
@@ -301,19 +334,19 @@ export function CalendarWorkspace() {
     let nextMonthDay = 1;
     while (cells.length < targetCellCount) {
       const d = new Date(year, month + 1, nextMonthDay);
-      const dateStr = d.toISOString().split("T")[0];
+      const dateStr = formatLocalDate(d);
       cells.push({
         date: d,
         dateStr,
         dayNumber: nextMonthDay,
         isCurrentMonth: false,
-        isToday: false,
+        isToday: dateStr === egyptNow.dateStr,
       });
       nextMonthDay++;
     }
 
     return cells;
-  }, [activeDate]);
+  }, [activeDate, egyptNow.dateStr]);
 
   const dateRangeLabel = useMemo(() => {
     const start = weekDays[0];
@@ -552,18 +585,19 @@ export function CalendarWorkspace() {
             <div className="calendar-grid-wrapper">
               <div className="calendar-grid">
                 {/* Header corner cell */}
-                <div className="calendar-grid__cell-header-corner">GMT-5</div>
+                <div className="calendar-grid__cell-header-corner">GMT+3</div>
 
                 {/* Day Header Cells */}
                 {weekDays.map((d, index) => {
                   const dayName = d.toLocaleDateString("en-US", { weekday: "short" });
                   const dayNum = d.getDate();
-                  const isWednesdayToday = index === 2; // Wed May 14 highlighted
+                  const dDateStr = formatLocalDate(d);
+                  const isToday = dDateStr === egyptNow.dateStr;
                   return (
                     <div
                       key={index}
                       className={`calendar-grid__day-header ${
-                        isWednesdayToday ? "calendar-grid__day-header--today" : ""
+                        isToday ? "calendar-grid__day-header--today" : ""
                       }`}
                     >
                       <span className="calendar-grid__day-name">{dayName}</span>
@@ -580,7 +614,7 @@ export function CalendarWorkspace() {
 
                     {/* 7 Columns for each day */}
                     {weekDays.map((dayDate, dayIdx) => {
-                      const dateStr = dayDate.toISOString().split("T")[0];
+                      const dateStr = formatLocalDate(dayDate);
                       // Find events starting in this hour on this day
                       const cellEvents = filteredEvents.filter((evt) => {
                         if (evt.date !== dateStr) return false;
@@ -588,13 +622,10 @@ export function CalendarWorkspace() {
                         return evtHour === hour;
                       });
 
-                      // Real current-time line: check if this cell is today's date AND this hour
-                      const nowDateStr = currentTime.toISOString().split("T")[0];
-                      const nowHour = currentTime.getHours();
-                      const nowMinute = currentTime.getMinutes();
-                      const showCurrentTimeLine = dateStr === nowDateStr && hour === nowHour;
-                      // % offset within the 50px slot (CSS variable)
-                      const timeLineTopPct = (nowMinute / 60) * 100;
+                      // Real current-time line: check if this cell is today's Egypt date AND this Egypt hour
+                      const showCurrentTimeLine = dateStr === egyptNow.dateStr && hour === egyptNow.hour;
+                      // % offset within the slot (CSS variable)
+                      const timeLineTopPct = (egyptNow.minute / 60) * 100;
 
                       const cellKey = `week-${dateStr}-${hour}`;
                       const isDragOver = dragOverTarget === cellKey;
@@ -614,7 +645,7 @@ export function CalendarWorkspace() {
                           onDrop={(e) => handleDropWeekCell(e, dateStr, hour)}
                           onClick={() => {
                             setNewEventDraft({
-                              date: dateStr,
+                              date: dateStr ,
                               startTime: `${hour < 10 ? `0${hour}` : hour}:00`,
                               endTime: `${hour + 1 < 10 ? `0${hour + 1}` : hour + 1}:00`,
                               type: "quiz",
@@ -626,7 +657,7 @@ export function CalendarWorkspace() {
                             <div
                               className="calendar-current-time-line"
                               style={{ top: `${timeLineTopPct}%` }}
-                              title={`Current time: ${String(nowHour).padStart(2,"0")}:${String(nowMinute).padStart(2,"0")}`}
+                              title={`Current time (Cairo): ${String(egyptNow.hour).padStart(2,"0")}:${String(egyptNow.minute).padStart(2,"0")}`}
                             />
                           )}
 
