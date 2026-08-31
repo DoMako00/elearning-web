@@ -89,11 +89,10 @@ export function CalendarWorkspace() {
   const [newReminderTitle, setNewReminderTitle] = useState("");
   const [newReminderType, setNewReminderType] = useState<"assignment" | "goal" | "quiz">("assignment");
 
-  // Drag and Drop state
   const [draggedEventId, setDraggedEventId] = useState<string | null>(null);
   const [dragOverTarget, setDragOverTarget] = useState<string | null>(null);
 
-  // Live current time (updates every minute)
+
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
 
   const filterRef = useRef<HTMLDivElement>(null);
@@ -394,7 +393,12 @@ export function CalendarWorkspace() {
 
     setEvents((prev) => [...prev, created]);
     setIsNewEventModalOpen(false);
-    setNewEventDraft({ type: "quiz", startTime: "10:00", endTime: "11:00", date: "2025-05-14" });
+    setNewEventDraft({
+      type: "quiz",
+      startTime: "10:00",
+      endTime: "11:00",
+      date: "2026-08-30",
+    });
   };
 
   const handleDeleteEvent = (id: string) => {
@@ -628,10 +632,10 @@ export function CalendarWorkspace() {
                           {cellEvents.map((evt) => {
                             const [sH, sM] = evt.startTime.split(":").map(Number);
                             const [eH, eM] = evt.endTime.split(":").map(Number);
-                            const durationMinutes = (eH * 60 + eM) - (sH * 60 + sM);
+                            const durationMinutes = (eH * 50 + eM) - (sH * 50 + sM);
                             // 64px per hour
-                            const heightPx = Math.max(48, Math.round((durationMinutes / 60) * 64) - 4);
-                            const topPx = Math.round((sM / 60) * 64);
+                            const heightPx = Math.max(52, Math.round((durationMinutes / 60) * 62) - 4);
+                            const topPx = Math.round((sM / 60) * 62);
                             const IconComponent = EVENT_TYPE_CONFIG[evt.type]?.icon || FileText;
                             const isBeingDragged = draggedEventId === evt.id;
 
@@ -653,13 +657,16 @@ export function CalendarWorkspace() {
                                   e.stopPropagation();
                                   setSelectedEvent(evt);
                                 }}
-                                title="Drag to reschedule date & time"
+                                title={`${evt.title} (${evt.displayTime})${evt.description ? `\n${evt.description}` : ""}`}
                               >
                                 <div className="calendar-event-card__header">
                                   <IconComponent size={12} className="calendar-event-card__icon" />
                                   <span className="calendar-event-card__title">{evt.title}</span>
                                 </div>
                                 <span className="calendar-event-card__time">{evt.displayTime}</span>
+                                {evt.description && (
+                                  <span className="calendar-event-card__desc">{evt.description}</span>
+                                )}
                               </button>
                             );
                           })}
@@ -731,7 +738,7 @@ export function CalendarWorkspace() {
                             e.stopPropagation();
                             setSelectedEvent(evt);
                           }}
-                          title="Drag to move to another day"
+                          title={`${evt.title}${evt.description ? ` - ${evt.description}` : ""}`}
                         >
                           <span>{evt.title}</span>
                         </div>
@@ -870,8 +877,7 @@ export function CalendarWorkspace() {
               </h2>
               <button
                 type="button"
-                className="calendar-widget__link"
-                style={{ padding: "2px 8px" }}
+                className="calendar-widget__btn-edit"
                 onClick={() => {
                   setTargetGoalInput(studyGoal.targetHours);
                   setIsEditGoalModalOpen(true);
@@ -890,7 +896,7 @@ export function CalendarWorkspace() {
                     cy="38"
                     r="30"
                     fill="none"
-                    stroke="#e5ebe7"
+                    stroke="#eef2ef"
                     strokeWidth="7"
                   />
                   <circle
@@ -915,7 +921,9 @@ export function CalendarWorkspace() {
                 <h3 className="calendar-goal-stats__hours">
                   {studyGoal.completedHours} / {studyGoal.targetHours} hours
                 </h3>
-                <p className="calendar-goal-stats__sub">Keep it up! 🔥</p>
+                <p className="calendar-goal-stats__sub">
+                  Keep it up! <span className="calendar-goal-stats__fire" aria-hidden="true">🔥</span>
+                </p>
               </div>
             </div>
 
@@ -923,12 +931,13 @@ export function CalendarWorkspace() {
             <div className="calendar-streak-row" aria-label="Daily study goal completion streak">
               {studyGoal.streakDays.map((st, i) => (
                 <div key={i} className="calendar-streak-day">
-                  <span className="calendar-streak-day__label">{st.day}</span>
                   <span
                     className={`calendar-streak-day__dot ${
                       st.completed ? "calendar-streak-day__dot--active" : ""
                     }`}
+                    aria-hidden="true"
                   />
+                  <span className="calendar-streak-day__label">{st.day}</span>
                 </div>
               ))}
             </div>
@@ -1125,17 +1134,19 @@ export function CalendarWorkspace() {
               </select>
             </div>
 
+            <div className="calendar-form-group">
+              <label htmlFor="evt-date">Date</label>
+              <input
+                id="evt-date"
+                type="date"
+                required
+                value={newEventDraft.date || "2026-08-30"}
+                onChange={(e) => setNewEventDraft((p) => ({ ...p, date: e.target.value }))}
+              />
+            </div>
+
+            {/* Time Range: Start Time & End Time */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-              <div className="calendar-form-group">
-                <label htmlFor="evt-date">Date</label>
-                <input
-                  id="evt-date"
-                  type="date"
-                  required
-                  value={newEventDraft.date || "2025-05-14"}
-                  onChange={(e) => setNewEventDraft((p) => ({ ...p, date: e.target.value }))}
-                />
-              </div>
               <div className="calendar-form-group">
                 <label htmlFor="evt-start">Start Time</label>
                 <input
@@ -1144,6 +1155,16 @@ export function CalendarWorkspace() {
                   required
                   value={newEventDraft.startTime || "10:00"}
                   onChange={(e) => setNewEventDraft((p) => ({ ...p, startTime: e.target.value }))}
+                />
+              </div>
+              <div className="calendar-form-group">
+                <label htmlFor="evt-end">End Time</label>
+                <input
+                  id="evt-end"
+                  type="time"
+                  required
+                  value={newEventDraft.endTime || "11:00"}
+                  onChange={(e) => setNewEventDraft((p) => ({ ...p, endTime: e.target.value }))}
                 />
               </div>
             </div>

@@ -7,6 +7,7 @@ export interface CalendarEvent {
   title: string;
   type: EventType;
   date: string; // YYYY-MM-DD
+  endDate?: string; // YYYY-MM-DD
   startTime: string; // e.g. "09:00" (24h format)
   endTime: string; // e.g. "10:30"
   displayTime: string; // e.g. "9:00 - 10:30 AM"
