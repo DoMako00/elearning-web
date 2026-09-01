@@ -14,21 +14,14 @@ export function StudentLayout() {
   const isExplore = pathname === "/explore";
   const isAssignments = pathname === "/assignments";
   const isCalendar = pathname === "/calendar";
-  const showCenteredSearch = isHome || isAssignments || isCalendar;
-
   const isTestXP = pathname === "/test-xp";
+  const isTestInactivity = pathname === "/test-inactivity";
+  const isTestStreak = pathname === "/test-streak";
+
+  // Search bar in the topbar is exclusively for Home; all other pages display the breadcrumb
+  const showCenteredSearch = isHome;
 
   const renderBreadcrumb = () => {
-    if (isMyCourses) {
-      return (
-        <div className="student-dashboard__page-title">
-          <span className="student-dashboard__page-title-label">Learning space</span>
-          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-          <h1 id="my-courses-title">My Courses</h1>
-        </div>
-      );
-    }
-
     if (isCourseOverview) {
       return (
         <nav className="student-dashboard__course-breadcrumb" aria-label="Lesson breadcrumb">
@@ -53,66 +46,33 @@ export function StudentLayout() {
       );
     }
 
-    if (isExplore) {
-      return (
-        <div className="student-dashboard__page-title">
-          <span className="student-dashboard__page-title-label">Learning space</span>
-          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-          <h1 id="explore-header-title">Explore</h1>
-        </div>
-      );
+    let title = "Dashboard";
+    if (isMyCourses) title = "My Courses";
+    else if (isExplore) title = "Explore";
+    else if (isAssignments) title = "Assignments";
+    else if (isCalendar) title = "Calendar";
+    else if (isTestInactivity) title = "Inactivity Prompt Test";
+    else if (isTestXP) title = "XP Reward Test";
+    else if (isTestStreak) title = "Streak Analytics Test";
+    else {
+      const segments = pathname.split("/").filter(Boolean);
+      const lastSegment = segments[segments.length - 1] || "Dashboard";
+      title = lastSegment
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
     }
-
-    if (isAssignments) {
-      return (
-        <div className="student-dashboard__page-title">
-          <span className="student-dashboard__page-title-label">Learning space</span>
-          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-          <h1 id="assignments-header-title">Assignments</h1>
-        </div>
-      );
-    }
-
-    const isTestInactivity = pathname === "/test-inactivity";
-
-    if (isTestInactivity) {
-      return (
-        <div className="student-dashboard__page-title">
-          <span className="student-dashboard__page-title-label">Learning space</span>
-          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-          <h1 id="test-inactivity-header-title">Inactivity Prompt Test</h1>
-        </div>
-      );
-    }
-
-    if (isTestXP) {
-      return (
-        <div className="student-dashboard__page-title">
-          <span className="student-dashboard__page-title-label">Learning space</span>
-          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-          <h1 id="test-xp-header-title">XP Reward Test</h1>
-        </div>
-      );
-    }
-
-    const segments = pathname.split("/").filter(Boolean);
-    const lastSegment = segments[segments.length - 1] || "Dashboard";
-    const formattedTitle = lastSegment
-      .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
 
     return (
       <div className="student-dashboard__page-title">
         <span className="student-dashboard__page-title-label">Learning space</span>
         <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-        <h1>{formattedTitle}</h1>
+        <h1>{title}</h1>
       </div>
     );
   };
 
-  const isTestStreak = pathname === "/test-streak";
-  const isScrollablePage = isTestXP || isTestStreak || pathname === "/test-inactivity";
+  const isScrollablePage = isTestXP || isTestStreak || isTestInactivity;
 
   return (
     <AppShell>
