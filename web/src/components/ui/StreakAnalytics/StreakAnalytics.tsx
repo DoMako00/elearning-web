@@ -3,52 +3,14 @@
  * Combines heatmap, metrics, and milestones into a cohesive dashboard
  */
 
-import { useMemo } from 'react';
 import { ActivityHeatmap } from './ActivityHeatmap';
 import { MetricCards } from './MetricCards';
 import { MilestoneBadges } from './MilestoneBadges';
-import type { StreakAnalyticsData } from '../../shared/utils/streakEngine';
+import type { StreakAnalyticsData } from '../../../shared/utils/streakEngine';
 import './StreakAnalytics.css';
 
 interface StreakAnalyticsProps {
-  data: {
-    streak: {
-      currentStreak: number;
-      longestStreak: number;
-      totalActiveDays: number;
-      freezePassesRemaining: number;
-      streakPreservedByFreeze: boolean;
-      isActiveToday: boolean;
-    };
-    milestones: Array<{
-      milestone: {
-        id: string;
-        label: string;
-        description: string;
-        requiredDays: number;
-        icon: string;
-        color: 'bronze' | 'silver' | 'gold';
-      };
-      isUnlocked: boolean;
-      progress: number;
-      daysRemaining: number;
-    }>;
-    heatmap: Array<{
-      date: Date;
-      dateStr: string;
-      dayNumber: number;
-      isCurrentMonth: boolean;
-      isToday: boolean;
-      activityLevel: 0 | 1 | 2 | 3 | 4;
-      minutes: number;
-    }>;
-    weeklyActivity: { day: string; minutes: number }[];
-    monthlyStats: {
-      activeDays: number;
-      totalMinutes: number;
-      averageMinutesPerActiveDay: number;
-    };
-  };
+  data: StreakAnalyticsData;
 }
 
 export function StreakAnalytics({ data }: StreakAnalyticsProps) {
@@ -104,7 +66,7 @@ function WeeklyActivityChart({ weeklyActivity }: { weeklyActivity: { day: string
             <div className="weekly-activity-bar-container">
               <div
                 className="weekly-activity-bar"
-                style={{ height: `${(week.minutes / Math.max(1, Math.max(...weeklyActivity.map(w => w.minutes)))) * 100}%` }}
+                style={{ height: `${(week.minutes / maxMinutes) * 100}%` }}
                 role="img"
                 aria-label={`${week.day}: ${week.minutes} minutes`}
               />
@@ -153,7 +115,7 @@ function MonthlyStatsCard({ stats }: { stats: { activeDays: number; totalMinutes
           </svg>
         </div>
         <div>
-          <p className="monthly-stat-value">{formatMinutes(totalMinutes)}</p>
+          <p className="monthly-stat-value">{formatMinutes(stats.totalMinutes)}</p>
           <p className="monthly-stat-label">Total Minutes</p>
         </div>
       </div>
@@ -166,7 +128,7 @@ function MonthlyStatsCard({ stats }: { stats: { activeDays: number; totalMinutes
           </svg>
         </div>
         <div>
-          <p className="monthly-stat-value">{averageMinutesPerActiveDay} min</p>
+          <p className="monthly-stat-value">{stats.averageMinutesPerActiveDay} min</p>
           <p className="monthly-stat-label">Avg/Active Day</p>
         </div>
       </div>

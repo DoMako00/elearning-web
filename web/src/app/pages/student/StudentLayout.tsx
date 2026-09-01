@@ -111,6 +111,9 @@ export function StudentLayout() {
     );
   };
 
+  const isTestStreak = pathname === "/test-streak";
+  const isScrollablePage = isTestXP || isTestStreak || pathname === "/test-inactivity";
+
   return (
     <AppShell>
       <div
@@ -118,7 +121,9 @@ export function StudentLayout() {
           isMyCourses ? " student-dashboard--my-courses" : ""
         }${isCourseOverview ? " student-dashboard--course-overview" : ""}${
           isAssignments ? " student-dashboard--assignments" : ""
-        }${isCalendar ? " student-dashboard--calendar" : ""}`}
+        }${isCalendar ? " student-dashboard--calendar" : ""}${
+          isScrollablePage ? " student-dashboard--scrollable" : ""
+        }`}
       >
         <header
           className={`student-dashboard__header${showCenteredSearch ? " student-dashboard__header--home" : ""}`}

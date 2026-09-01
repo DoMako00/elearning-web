@@ -3,8 +3,6 @@
  * Matches GreenLearn design system
  */
 
-import { Flame, Trophy, CalendarDays, Award } from 'lucide-react';
-import type { StreakResult } from '../../shared/utils/streakEngine';
 import './MetricCards.css';
 
 interface MetricCardsProps {
@@ -31,7 +29,7 @@ export function MetricCards({ streak }: MetricCardsProps) {
         <div className="metric-content">
           <p className="metric-value">{streak.currentStreak}</p>
           <p className="metric-label">Current Streak</p>
-          <p className="metric-subtext">{isActiveToday ? 'Active today' : 'Keep it up!'}</p>
+          <p className="metric-subtext">{streak.isActiveToday ? 'Active today' : 'Keep it up!'}</p>
         </div>
       </div>
 

@@ -180,6 +180,17 @@ main[data-main-workspace] {
     clamp(6px, 0.6vw, 12px) clamp(12px, 1.46vw, 28px) clamp(8px, 0.8vw, 14px) clamp(12px, 1.67vw, 32px);
 }
 
+.student-dashboard--scrollable {
+  max-height: none;
+  height: 100dvh;
+}
+
+.student-dashboard--scrollable .student-dashboard__content {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+}
+
 .student-dashboard--calendar {
   max-height: none;
   height: 100dvh;

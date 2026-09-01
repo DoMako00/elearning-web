@@ -1,10 +1,14 @@
-import { useXPRewards, XPRewardModal } from '../../../../components/ui/XPRewards';
+import { useState } from 'react';
+import { useXPRewards, XPRewardModal, LevelUpModal } from '../../../../components/ui/XPRewards';
 import type { XPRewardData } from '../../../../components/ui/XPRewards';
-import { Award, Zap, Trophy, Star, ChevronLeft, X } from 'lucide-react';
+import { Award, Zap, Trophy, Star, ChevronLeft, X, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import './TestXPRewardsPage.css';
 
 export function TestXPRewardsPage() {
+  const [isLevelUpModalOpen, setIsLevelUpModalOpen] = useState(false);
+  const [levelUpData, setLevelUpData] = useState({ prevLevel: 2, newLevel: 3, totalXP: 3250 });
+
   const {
     currentXP,
     currentLevel,
@@ -18,11 +22,26 @@ export function TestXPRewardsPage() {
     initialXP: 1250,
     onLevelUp: (level: number, reward: XPRewardData) => {
       console.log('🎉 Level Up!', { level, reward });
+      setLevelUpData({
+        prevLevel: reward.previousLevel,
+        newLevel: reward.newLevel,
+        totalXP: reward.totalXP,
+      });
+      setIsLevelUpModalOpen(true);
     },
     onXPEarned: (reward: XPRewardData) => {
       console.log('✨ XP Earned:', reward);
     },
   });
+
+  const handleTriggerLevelUpOnly = () => {
+    setLevelUpData({
+      prevLevel: currentLevel,
+      newLevel: currentLevel + 1,
+      totalXP: currentXP + 500,
+    });
+    setIsLevelUpModalOpen(true);
+  };
 
   const handleLessonComplete = () => earnXP(50, 'lesson_complete');
   const handleModuleComplete = () => earnXP(200, 'module_complete');
@@ -162,6 +181,22 @@ export function TestXPRewardsPage() {
               </button>
 
               <button
+                onClick={handleTriggerLevelUpOnly}
+                className="test-xp-action-btn levelup-only-btn"
+                aria-label="Show Level Upgrade popup only"
+                style={{ background: 'linear-gradient(135deg, #eff9f2 0%, #ffffff 100%)', borderColor: '#20a862' }}
+              >
+                <div className="test-xp-btn-icon" style={{ background: '#eff9f2', color: '#20a862' }}>
+                  <Sparkles size={20} aria-hidden="true" />
+                </div>
+                <div className="test-xp-btn-content">
+                  <span className="test-xp-btn-label">Level Upgrade Only</span>
+                  <span className="test-xp-btn-xp" style={{ color: '#20a862' }}>Popup Preview</span>
+                </div>
+                <span className="test-xp-btn-reason">level_up_modal</span>
+              </button>
+
+              <button
                 onClick={handleMassiveXP}
                 className="test-xp-action-btn massive-btn"
                 aria-label="Earn 1500 XP to trigger multiple level ups"
@@ -195,11 +230,10 @@ export function TestXPRewardsPage() {
             <div className="test-xp-queue-info">
               <h4>How it works:</h4>
               <ul>
+                <li>Click <strong>Level Upgrade Only</strong> to preview the dedicated level upgrade window</li>
                 <li>Click any action button to earn XP and trigger the reward modal</li>
                 <li>Multiple rapid clicks queue rewards sequentially</li>
-                <li>Modal auto-dismisses after 4 seconds or click "Keep Learning"</li>
                 <li>Level up triggers trophy animation + sound + confetti</li>
-                <li>Progress bar animates smoothly with flowing gradient</li>
               </ul>
             </div>
           </section>
@@ -211,6 +245,15 @@ export function TestXPRewardsPage() {
         onClose={closeRewardModal}
         rewardData={rewardData}
         onKeepLearning={() => console.log('Keep learning clicked')}
+      />
+
+      <LevelUpModal
+        isOpen={isLevelUpModalOpen}
+        onClose={() => setIsLevelUpModalOpen(false)}
+        previousLevel={levelUpData.prevLevel}
+        newLevel={levelUpData.newLevel}
+        totalXP={levelUpData.totalXP}
+        onKeepLearning={() => setIsLevelUpModalOpen(false)}
       />
     </section>
   );
