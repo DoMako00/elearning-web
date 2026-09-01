@@ -6,9 +6,9 @@ import { ExplorePage } from "../pages/student/ExplorePage";
 import { HomePage } from "../pages/student/HomePage";
 import { LessonPlayerPage } from "../pages/student/LessonPlayerPage";
 import { MyCoursesPage } from "../pages/student/MyCoursesPage";
-import { TestInactivityPromptPage } from "../pages/student/test-inactivity/TestInactivityPromptPage";
-import { TestStreakPage } from "../pages/student/test-streak/TestStreakPage";
-import { TestXPRewardsPage } from "../pages/student/test-xp/TestXPRewardsPage";
+// import { TestInactivityPromptPage } from "../pages/student/test-inactivity/TestInactivityPromptPage";
+// import { TestStreakPage } from "../pages/student/test-streak/TestStreakPage";
+// import { TestXPRewardsPage } from "../pages/student/test-xp/TestXPRewardsPage";
 import { StudentLayout } from "../pages/student/StudentLayout";
 import "./student-dashboard.css";
 
@@ -24,9 +24,9 @@ export const studentRoutes: RouteObject[] = [
       { path: "explore", element: <ExplorePage /> },
       { path: "calendar", element: <CalendarPage /> },
       { path: "assignments", element: <AssignmentsPage /> },
-      { path: "test-inactivity", element: <TestInactivityPromptPage /> },
-      { path: "test-streak", element: <TestStreakPage /> },
-      { path: "test-xp", element: <TestXPRewardsPage /> },
+      // { path: "test-inactivity", element: <TestInactivityPromptPage /> },
+      // { path: "test-streak", element: <TestStreakPage /> },
+      // { path: "test-xp", element: <TestXPRewardsPage /> },
     ],
   },
 ];
