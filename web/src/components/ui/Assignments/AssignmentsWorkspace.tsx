@@ -170,18 +170,20 @@ function AssignmentCard({
           </button>
         </div>
 
-        <span className="assignment-card__points">{item.points} points</span>
-
-        <div className="assignment-card__progress" aria-hidden={item.status !== "in-progress" || typeof item.progress !== "number"}>
-          {item.status === "in-progress" && typeof item.progress === "number" ? (
-            <>
-              <i><b style={{ width: `${item.progress}%` }} /></i>
-              <strong>{item.progress}%</strong>
-            </>
-          ) : (
-            <i className="assignment-card__progress-placeholder" />
-          )}
-        </div>
+<div style={{ display: "flex", flexDirection:"column", gap: "4px" }}>
+  
+          <span className="assignment-card__points">{item.points} points</span>
+          <div className="assignment-card__progress" aria-hidden={item.status !== "in-progress" || typeof item.progress !== "number"}>
+            {item.status === "in-progress" && typeof item.progress === "number" ? (
+              <>
+                <i><b style={{ width: `${item.progress}%` }} /></i>
+                <strong>{item.progress}%</strong>
+              </>
+            ) : (
+              <i className="assignment-card__progress-placeholder" />
+            )}
+          </div>
+</div>
 
         <button type="button" className={`assignment-card__action assignment-card__action--${item.status}`}>
           {actionLabel(item.status)}
@@ -259,12 +261,12 @@ export function AssignmentsWorkspace() {
   return (
     <div className="assignments-workspace">
       <div className="assignments-main">
-        <header className="assignments-heading">
+        {/* <header className="assignments-heading">
           <div>
             <h1 id="assignments-title">Assignments</h1>
             <p>Stay on track, complete your tasks, and master medicine.</p>
           </div>
-        </header>
+        </header> */}
 
         <div className="assignments-toolbar">
           <div className="assignments-filters" role="tablist" aria-label="Assignment status">

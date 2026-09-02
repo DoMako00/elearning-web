@@ -470,13 +470,13 @@ export function CalendarWorkspace() {
 
   return (
     <div className="calendar-container">
-      <header className="calendar-page-header">
+      {/* <header className="calendar-page-header">
         <span className="calendar-page-header__kicker">YOUR SCHEDULE</span>
         <h1 className="calendar-page-header__title">Calendar</h1>
         <p className="calendar-page-header__subtitle">
           Plan your week, stay consistent, and reach your goals.
         </p>
-      </header>
+      </header> */}
 
       {/* Main Layout: Left Calendar Grid + Right Widgets */}
       <div className="calendar-layout">

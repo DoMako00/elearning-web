@@ -680,9 +680,27 @@
   max-height: calc(100vh - 280px);
 }
 
+.calendar-grid-wrapper::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.calendar-grid-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.calendar-grid-wrapper::-webkit-scrollbar-thumb {
+  background: #e1e3e5;
+  border-radius: 2px;
+}
+
+.calendar-grid-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 @media (min-height: 900px) {
   .calendar-grid-wrapper {
-    max-height: calc(100vh - 270px);
+    max-height: calc(100vh);
   }
 }
 
@@ -1670,7 +1688,7 @@
   }
 
   .calendar-grid-wrapper {
-    max-height: calc(100vh - 290px);
+    max-height: calc(100vh);
     flex: 1 1 auto;
   }
 
