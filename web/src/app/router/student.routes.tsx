@@ -27,6 +27,7 @@ export const studentRoutes: RouteObject[] = [
       // { path: "test-inactivity", element: <TestInactivityPromptPage /> },
       // { path: "test-streak", element: <TestStreakPage /> },
       // { path: "test-xp", element: <TestXPRewardsPage /> },
+      
     ],
   },
 ];
