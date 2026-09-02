@@ -1,5 +1,6 @@
 import type { RouteObject } from "react-router-dom";
 import { AssignmentsPage } from "../pages/student/AssignmentsPage";
+import { AssignmentDetailPage } from "../../components/ui/Assignments/AssignmentDetailPage";
 import { CalendarPage } from "../pages/student/CalendarPage";
 import { CourseOverviewPage } from "../pages/student/CourseOverviewPage";
 import { ExplorePage } from "../pages/student/ExplorePage";
@@ -24,6 +25,7 @@ export const studentRoutes: RouteObject[] = [
       { path: "explore", element: <ExplorePage /> },
       { path: "calendar", element: <CalendarPage /> },
       { path: "assignments", element: <AssignmentsPage /> },
+      { path: "assignments/:assignmentId", element: <AssignmentDetailPage /> },
       // { path: "test-inactivity", element: <TestInactivityPromptPage /> },
       // { path: "test-streak", element: <TestStreakPage /> },
       // { path: "test-xp", element: <TestXPRewardsPage /> },

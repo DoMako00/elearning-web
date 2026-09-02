@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   Bookmark,
@@ -123,13 +124,15 @@ function AssignmentCard({
   item,
   bookmarked,
   onToggleBookmark,
+  onOpenDetail,
 }: {
   item: AssignmentItem;
   bookmarked: boolean;
   onToggleBookmark: () => void;
+  onOpenDetail: () => void;
 }) {
   return (
-    <article className="assignment-card">
+    <article className="assignment-card" onClick={onOpenDetail} style={{ cursor: "pointer" }}>
       <div className="assignment-card__left">
         <span className={`assignment-card__category assignment-card__category--${item.categoryTone}`}>
           {item.category}
@@ -164,14 +167,16 @@ function AssignmentCard({
             className={`assignment-card__bookmark${bookmarked ? " is-saved" : ""}`}
             aria-label={bookmarked ? `Remove bookmark from ${item.title}` : `Bookmark ${item.title}`}
             aria-pressed={bookmarked}
-            onClick={onToggleBookmark}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleBookmark();
+            }}
           >
             <Bookmark aria-hidden="true" className={bookmarked ? "fill-current" : ""} />
           </button>
         </div>
 
-<div style={{ display: "flex", flexDirection:"column", gap: "4px" }}>
-  
+        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
           <span className="assignment-card__points">{item.points} points</span>
           <div className="assignment-card__progress" aria-hidden={item.status !== "in-progress" || typeof item.progress !== "number"}>
             {item.status === "in-progress" && typeof item.progress === "number" ? (
@@ -183,9 +188,16 @@ function AssignmentCard({
               <i className="assignment-card__progress-placeholder" />
             )}
           </div>
-</div>
+        </div>
 
-        <button type="button" className={`assignment-card__action assignment-card__action--${item.status}`}>
+        <button 
+          type="button" 
+          className={`assignment-card__action assignment-card__action--${item.status}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenDetail();
+          }}
+        >
           {actionLabel(item.status)}
         </button>
       </div>
@@ -194,6 +206,7 @@ function AssignmentCard({
 }
 
 export function AssignmentsWorkspace() {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<AssignmentFilter>("all");
   const [sortBy, setSortBy] = useState<AssignmentSort>("due");
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -203,6 +216,11 @@ export function AssignmentsWorkspace() {
     "asg-4": true,
   });
   const sortRef = useRef<HTMLDivElement>(null);
+
+  const handleOpenDetail = (item: AssignmentItem) => {
+    // If it's asg-1 or matches, navigate to detail
+    navigate(`/assignments/${item.id === "asg-1" ? "upper-limb-clinical-case-review" : item.id}`);
+  };
 
   const counts = useMemo(() => {
     const inProgress = ASSIGNMENT_ITEMS.filter((item) => item.status === "in-progress").length;
@@ -331,6 +349,7 @@ export function AssignmentsWorkspace() {
               item={item}
               bookmarked={Boolean(bookmarked[item.id])}
               onToggleBookmark={() => toggleBookmark(item.id)}
+              onOpenDetail={() => handleOpenDetail(item)}
             />
           ))}
         </div>

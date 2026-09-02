@@ -7,6 +7,7 @@ import type {
   AssignmentDeadline,
   AssignmentFeedback,
   AssignmentItem,
+  AssignmentDetailItem,
 } from "./assignments.types";
 
 export const ASSIGNMENT_ITEMS: AssignmentItem[] = [
@@ -235,3 +236,150 @@ export const ASSIGNMENT_FEEDBACK: AssignmentFeedback[] = [
     timeAgo: "5 days ago",
   },
 ];
+
+export const ASSIGNMENT_DETAILS: Record<string, AssignmentDetailItem> = {
+  "upper-limb-clinical-case-review": {
+    id: "upper-limb-clinical-case-review",
+    category: "Anatomy",
+    categoryTone: "green",
+    title: "Upper Limb Clinical Case Review",
+    courseName: "Human Anatomy I",
+    courseSlug: "human-anatomy-i",
+    moduleName: "Module 2: Upper Limb",
+    instructor: "Dr. Ahmed Hassan",
+    description: "Analyze a complex upper limb injury, identify anatomical structures involved, and construct a clinical management proposal.",
+    dueLabel: "Aug 29, 11:59 PM",
+    dueFullDate: "Aug 29, 2026 at 11:59 PM",
+    relativeLabel: "Due soon",
+    urgency: "soon",
+    status: "not-started",
+    points: 100,
+    estimatedTime: "4-6 hours",
+    attemptsUsed: 1,
+    attemptsAllowed: 2,
+    submissionType: "File upload",
+    acceptedFormats: ["PDF", "DOCX", "PPTX"],
+    maxFileSizeMb: 20,
+    image: boneImg,
+    dueAt: "2026-08-29T23:59:00",
+    brief: {
+      description: "In this case-based assignment, you will analyze the clinical presentation of a patient with an upper limb injury and apply your knowledge of anatomy to identify the structures involved, explain functional outcomes, and propose appropriate clinical considerations.",
+      instructions: [
+        "Review the provided case scenario and imaging.",
+        "Identify and label key anatomical structures.",
+        "Answer the clinical reasoning questions.",
+        "Discuss potential complications and management approaches.",
+        "Cite your references in APA format."
+      ]
+    },
+    whatToSubmit: {
+      requirements: [
+        "Completed case analysis (DOCX or PDF)",
+        "Annotated diagrams or labeled images",
+        "Answers to all questions",
+        "References list (APA format)"
+      ],
+      tip: "Use the provided templates to ensure your submission meets all requirements."
+    },
+    resources: [
+      {
+        id: "res-1",
+        name: "Upper Limb Case Scenario.pdf",
+        fileType: "pdf",
+        size: "1.2 MB"
+      },
+      {
+        id: "res-2",
+        name: "Upper Limb Anatomy Guide.pptx",
+        fileType: "pptx",
+        size: "5.8 MB"
+      },
+      {
+        id: "res-3",
+        name: "Case Analysis Template.docx",
+        fileType: "docx",
+        size: "62 KB"
+      },
+      {
+        id: "res-4",
+        name: "Grading Rubric.pdf",
+        fileType: "pdf",
+        size: "214 KB"
+      }
+    ],
+    rubric: {
+      items: [
+        { criterion: "Anatomical identification", points: 30 },
+        { criterion: "Clinical reasoning", points: 25 },
+        { criterion: "Application & analysis", points: 25 },
+        { criterion: "References & presentation", points: 20 }
+      ],
+      totalPoints: 100
+    },
+    timeline: {
+      assignedDate: "Aug 22, 2026 \u2022 10:00 AM",
+      dueDate: "Aug 29, 2026 \u2022 11:59 PM",
+      gradesReleasedDate: "Sep 2, 2026 \u2022 By 5:00 PM"
+    }
+  },
+  "asg-1": {
+    id: "asg-1",
+    category: "Cardiology",
+    categoryTone: "green",
+    title: "ECG Interpretation Case Study",
+    courseName: "Clinical Cardiology",
+    courseSlug: "clinical-cardiology",
+    moduleName: "Module 1: ECG Diagnostics",
+    instructor: "Dr. Sarah Jenkins",
+    description: "Analyze a 12-lead ECG and identify the rhythm, intervals, and likely diagnosis.",
+    dueLabel: "May 24, 11:59 PM",
+    dueFullDate: "May 24, 2026 at 11:59 PM",
+    relativeLabel: "2 days left",
+    urgency: "soon",
+    status: "in-progress",
+    points: 75,
+    progress: 60,
+    estimatedTime: "3-4 hours",
+    attemptsUsed: 1,
+    attemptsAllowed: 3,
+    submissionType: "File upload",
+    acceptedFormats: ["PDF", "DOCX"],
+    maxFileSizeMb: 20,
+    image: heartImg,
+    dueAt: "2026-05-24T23:59:00",
+    brief: {
+      description: "Analyze the 12-lead ECG traces provided in the case packet. Identify the rate, axis, PR interval, QRS duration, ST-T segment abnormalities, and correlate with the patient presentation.",
+      instructions: [
+        "Calculate the heart rate and electrical axis.",
+        "Evaluate standard intervals (PR, QRS, QTc).",
+        "State the primary electrophysiological diagnosis.",
+        "List immediate pharmaceutical or interventional next steps."
+      ]
+    },
+    whatToSubmit: {
+      requirements: [
+        "Structured ECG report (PDF or DOCX)",
+        "Annotated lead diagrams with measurement callouts",
+        "Differential diagnosis summary"
+      ],
+      tip: "Double check your QTc calculation with Bazett's formula."
+    },
+    resources: [
+      { id: "res-101", name: "12_Lead_ECG_Case_Trace.pdf", fileType: "pdf", size: "2.4 MB" },
+      { id: "res-102", name: "ECG_Interpretation_Guide.pdf", fileType: "pdf", size: "1.1 MB" }
+    ],
+    rubric: {
+      items: [
+        { criterion: "Interval measurements", points: 25 },
+        { criterion: "Rhythm identification", points: 25 },
+        { criterion: "Clinical management plan", points: 25 }
+      ],
+      totalPoints: 75
+    },
+    timeline: {
+      assignedDate: "May 17, 2026 \u2022 09:00 AM",
+      dueDate: "May 24, 2026 \u2022 11:59 PM",
+      gradesReleasedDate: "May 27, 2026 \u2022 By 5:00 PM"
+    }
+  }
+};

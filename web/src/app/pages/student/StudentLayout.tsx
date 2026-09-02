@@ -13,6 +13,7 @@ export function StudentLayout() {
   const isLessonPlayer = pathname.startsWith("/my-courses/human-anatomy-i/lessons");
   const isExplore = pathname === "/explore";
   const isAssignments = pathname === "/assignments";
+  const isAssignmentDetail = pathname.startsWith("/assignments/");
   const isCalendar = pathname === "/calendar";
   const isTestXP = pathname === "/test-xp";
   const isTestInactivity = pathname === "/test-inactivity";
@@ -43,6 +44,20 @@ export function StudentLayout() {
           <span aria-hidden="true">›</span>
           <strong aria-current="page">Lesson Player</strong>
         </nav>
+      );
+    }
+
+    if (isAssignmentDetail) {
+      return (
+        <div className="student-dashboard__page-title">
+          <span className="student-dashboard__page-title-label">Learning space</span>
+          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
+          <Link to="/assignments" style={{ color: "inherit", textDecoration: "none" }}>
+            <span style={{ color: "#64748b", fontWeight: 600 }}>Assignments</span>
+          </Link>
+          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
+          <h1>Clinical Case Review</h1>
+        </div>
       );
     }
 
@@ -81,9 +96,9 @@ export function StudentLayout() {
           isMyCourses ? " student-dashboard--my-courses" : ""
         }${isCourseOverview ? " student-dashboard--course-overview" : ""}${
           isAssignments ? " student-dashboard--assignments" : ""
-        }${isCalendar ? " student-dashboard--calendar" : ""}${
-          isScrollablePage ? " student-dashboard--scrollable" : ""
-        }`}
+        }${isAssignmentDetail ? " student-dashboard--assignment-detail" : ""}${
+          isCalendar ? " student-dashboard--calendar" : ""
+        }${isScrollablePage ? " student-dashboard--scrollable" : ""}`}
       >
         <header
           className={`student-dashboard__header${showCenteredSearch ? " student-dashboard__header--home" : ""}`}
