@@ -1,5 +1,5 @@
 import {
-  BadgeCheck,
+  // BadgeCheck,
   LibraryBig,
   CalendarDays,
   CircleHelp,
@@ -37,12 +37,12 @@ export const primarySidebarItems: SidebarItem[] = [
     href: "/assignments",
     enabled: true,
   },
-  {
-    label: "Certificates",
-    icon: BadgeCheck,
-    href: "/certificates",
-    enabled: false,
-  },
+  // {
+  //   label: "Certificates",
+  //   icon: BadgeCheck,
+  //   href: "/certificates",
+  //   enabled: false,
+  // },
   {
     label: "Messages",
     icon: MessageSquare,

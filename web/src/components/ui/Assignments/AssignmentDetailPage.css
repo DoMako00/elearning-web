@@ -59,7 +59,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 16px 22px;
+  padding: 16px 16px;
   background: #ffffff;
   border: 1px solid #e2ebe6;
   border-radius: 18px;
@@ -307,7 +307,7 @@
 
 .assignment-detail-section-sub {
   margin: 0;
-  font-size: 13px;
+  font-size: 15px;
   color: #64748b;
   flex-shrink: 0;
 }
@@ -380,7 +380,7 @@
   display: flex;
   align-items: flex-start;
   gap: 9px;
-  padding: 10px 14px;
+  padding: 20px 15px;
   background: #f0fdf4;
   border: 1px solid #bbf7d0;
   border-radius: 12px;
@@ -390,9 +390,9 @@
 
 .assignment-detail-tip-banner p {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 14px;
   color: #166534;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 /* Resources Grid */
@@ -426,12 +426,13 @@
 .assignment-resource-badge {
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
+  width: 70px;
+  height: 70px;
   border-radius: 10px;
-  font-size: 10.5px;
-  font-weight: 800;
+  font-size: 15.5px;
+  font-weight: 900;
   flex-shrink: 0;
+
 }
 
 .assignment-resource-badge--pdf { background: #fee2e2; color: #dc2626; }
@@ -446,12 +447,12 @@
 }
 
 .assignment-resource-name {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 700;
   color: #1e293b;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: wrap;
 }
 
 .assignment-resource-size {
@@ -765,91 +766,253 @@
   box-shadow: 0 0 0 1px #ea580c;
 }
 
-.assignment-timeline-step-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.assignment-timeline-date {
-  font-size: 11px;
-  color: #94a3b8;
-}
-
-.assignment-timeline-name {
-  font-size: 12.5px;
-  color: #334155;
-  font-weight: 700;
-}
-
 /* ═════════════════════════════════════════════════════════════════
-   RESPONSIVENESS (Desktops, 980x822, iPads & Tablets)
+   RESPONSIVENESS (Desktops, iPad Air Landscape/Portrait, Tablets & Mobile)
    ═════════════════════════════════════════════════════════════════ */
 
-@media (max-width: 1280px) {
-  .assignment-detail-resources-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 1024px) {
+/* ── 1. iPad Air Landscape & Medium Laptops (<= 1180px) ── */
+@media (max-width: 1180px) {
   .assignment-detail-page {
     overflow-y: auto !important;
+    overflow-x: hidden !important;
+    height: auto !important;
+    min-height: 100%;
   }
 
   .assignment-detail-container {
-    height: auto;
-    overflow: visible;
+    height: auto !important;
+    min-height: 100%;
+    overflow: visible !important;
+    padding-bottom: 24px;
+    gap: 14px;
+  }
+
+  .assignment-detail-header-card {
+    padding: 16px 18px;
+    flex-shrink: 0;
+  }
+
+  .assignment-detail-title {
+    font-size: clamp(22px, 2.6vw, 28px);
+  }
+
+  .assignment-detail-metrics-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
   }
 
   .assignment-detail-body-layout {
-    grid-template-columns: 1fr;
-    height: auto;
-    overflow: visible;
+    grid-template-columns: minmax(0, 1fr) clamp(280px, 30vw, 330px);
+    height: auto !important;
+    overflow: visible !important;
+    gap: 14px;
   }
 
   .assignment-detail-main-column {
     grid-template-rows: auto auto;
-    height: auto;
-    overflow: visible;
+    height: auto !important;
+    overflow: visible !important;
+    gap: 14px;
   }
 
   .assignment-detail-brief-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    height: auto;
-    overflow: visible;
+    grid-template-columns: 1fr;
+    height: auto !important;
+    overflow: visible !important;
+    gap: 14px;
+  }
+
+  .assignment-detail-section-card {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  .assignment-detail-todo-block {
+    overflow: visible !important;
+  }
+
+  .assignment-detail-todo-list,
+  .assignment-detail-req-list {
+    overflow: visible !important;
+  }
+
+  .assignment-detail-sidebar-column {
+    grid-template-rows: auto auto auto;
+    height: auto !important;
+    overflow: visible !important;
+    gap: 14px;
+  }
+
+  .assignment-detail-sidebar-card {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  .assignment-detail-resources-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    height: auto !important;
+    overflow: visible !important;
+    gap: 12px;
+  }
+
+  .assignment-resource-card {
+    height: auto !important;
+    min-height: 72px;
+  }
+
+  .assignment-resource-badge {
+    width: 52px !important;
+    height: 52px !important;
+    font-size: 13px;
+  }
+
+  .assignment-rubric-list {
+    overflow: visible !important;
+  }
+
+  .assignment-timeline-steps {
+    gap: 14px;
+    padding-bottom: 4px;
+  }
+}
+
+/* ── 2. Standard Tablets / iPad 10th / iPad Air Portrait (<= 1024px) ── */
+@media (max-width: 1024px) {
+  .assignment-detail-body-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .assignment-detail-sidebar-column {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-template-rows: auto;
-    height: auto;
-    overflow: visible;
-    margin-top: 8px;
+    gap: 14px;
+    margin-top: 2px;
+  }
+
+  .assignment-detail-sidebar-card {
+    min-height: 220px;
   }
 
   .assignment-detail-resources-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
 
-@media (max-width: 768px) {
+/* ── 3. iPad Mini & Compact Tablets (<= 820px) ── */
+@media (max-width: 820px) {
   .assignment-detail-header-top {
     flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .assignment-detail-header-actions {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   .assignment-detail-metrics-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .assignment-detail-brief-row {
-    grid-template-columns: 1fr;
+    gap: 10px;
   }
 
   .assignment-detail-sidebar-column {
     grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .assignment-detail-sidebar-card {
+    min-height: auto;
   }
 
   .assignment-detail-resources-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+}
+
+/* ── 4. Mobile Devices (<= 640px) ── */
+@media (max-width: 640px) {
+  .assignment-detail-header-card {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .assignment-detail-title {
+    font-size: 20px;
+    line-height: 1.25;
+  }
+
+  .assignment-detail-course-tags {
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  .assignment-detail-due-pill {
+    padding: 5px 10px;
+    font-size: 11.5px;
+  }
+
+  .assignment-detail-save-btn {
+    height: 32px;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+
+  .assignment-detail-metrics-row {
     grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .assignment-detail-metric-card {
+    padding: 10px 12px;
+    gap: 12px;
+  }
+
+  .assignment-detail-metric-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .assignment-detail-metric-value {
+    font-size: 14px;
+  }
+
+  .assignment-detail-section-card {
+    padding: 14px 16px;
+    border-radius: 14px;
+  }
+
+  .assignment-detail-section-title h2 {
+    font-size: 17px;
+  }
+
+  .assignment-detail-todo-list li,
+  .assignment-detail-req-list li {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .assignment-resource-badge {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 12px;
+  }
+
+  .assignment-resource-name {
+    font-size: 12.5px;
+  }
+
+  .assignment-resource-size {
+    font-size: 10.5px;
+  }
+
+  .assignment-btn-submit-main {
+    height: 42px;
+    font-size: 13.5px;
   }
 }

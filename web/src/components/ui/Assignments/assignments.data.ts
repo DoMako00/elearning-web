@@ -277,7 +277,8 @@ export const ASSIGNMENT_DETAILS: Record<string, AssignmentDetailItem> = {
         "Completed case analysis (DOCX or PDF)",
         "Annotated diagrams or labeled images",
         "Answers to all questions",
-        "References list (APA format)"
+        "References list (APA format)",
+        "Short video presentation (5-7 minutes)",
       ],
       tip: "Use the provided templates to ensure your submission meets all requirements."
     },

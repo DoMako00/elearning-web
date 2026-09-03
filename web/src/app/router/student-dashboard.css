@@ -1815,7 +1815,43 @@ main[data-main-workspace] {
   .course-focus-card__footer {
     flex-direction: column;
     align-items: flex-start;
-  
+  }
+}
+
+/* ── Assignment Detail Responsive Container Support ── */
+@media (max-width: 1180px) {
+  .student-dashboard--assignment-detail {
+    height: 100dvh;
+    max-height: none;
   }
 
+  .student-dashboard--assignment-detail .student-dashboard__content {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    height: 100%;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 24px;
+  }
 }
+
+@media (max-width: 768px) {
+  .student-dashboard--assignment-detail .student-dashboard__header {
+    height: auto;
+    min-height: 56px;
+    padding: 8px 16px;
+    gap: 12px;
+  }
+
+  .student-dashboard--assignment-detail .student-dashboard__page-title {
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+
+  .student-dashboard--assignment-detail .student-dashboard__page-title h1 {
+    font-size: 16px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
