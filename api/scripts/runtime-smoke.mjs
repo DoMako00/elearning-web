@@ -154,7 +154,7 @@ async function run() {
         assertEqual(response.status, 200, "Health status");
         assertEqual(response.body.status, "ok", "Health body status");
         assertEqual(response.body.service, "api", "Health service");
-        assertEqual(response.body.runtime, "http-skeleton", "Health runtime");
+        assertEqual(response.body.runtime, "http-api", "Health runtime");
         assertTruthy(response.headers.get("x-correlation-id"), "Health correlation header");
       }],
       ["ready", async () => {
@@ -162,9 +162,9 @@ async function run() {
         assertEqual(response.status, 200, "Readiness status");
         assertEqual(response.body.status, "ready", "Readiness body status");
         assertEqual(response.body.checks?.adminModule, "ok", "Admin module readiness");
-        assertEqual(response.body.checks?.providers, "not_configured", "Provider readiness");
+        assertEqual(response.body.checks?.providers, "configured", "Provider readiness");
         assertEqual(response.body.checks?.database, "not_configured", "Database readiness");
-        assertEqual(response.body.checks?.auth, "not_configured", "Auth readiness");
+        assertEqual(response.body.checks?.auth, "mock", "Auth readiness");
       }],
       ["OpenAPI contract", async () => {
         const response = await request("GET", "/openapi.json");
