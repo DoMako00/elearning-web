@@ -17,6 +17,7 @@ export function startHttpServerWithApplication(config: HttpRuntimeConfig = defau
       auth: process.env.AUTH_PROVIDER?.trim() === "supabase" ? "supabase" : "mock",
       adminOverviewSource: ownedApplication!.adminOverviewSource,
       adminM2Source: ownedApplication!.adminM2Source,
+      adminCommandSource: ownedApplication!.adminCommandSource,
     },
   };
   const server = createServer(createHttpApp(application));

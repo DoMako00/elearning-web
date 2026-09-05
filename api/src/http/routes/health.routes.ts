@@ -12,6 +12,7 @@ export function handleHealth(_request: HttpRequestContext, runtimeStatus?: HttpR
       auth: runtimeStatus.auth,
       adminOverviewSource: runtimeStatus.adminOverviewSource,
       adminM2Source: runtimeStatus.adminM2Source,
+      adminCommandSource: runtimeStatus.adminCommandSource,
     } : undefined,
     timestamp: new Date().toISOString(),
   });

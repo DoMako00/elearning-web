@@ -155,6 +155,10 @@ async function run() {
         assertEqual(response.body.status, "ok", "Health body status");
         assertEqual(response.body.service, "api", "Health service");
         assertEqual(response.body.runtime, "http-api", "Health runtime");
+        assertEqual(response.body.mode, "mock", "Health runtime mode");
+        assertEqual(response.body.providers?.persistence, "mock", "Health persistence provider");
+        assertEqual(response.body.providers?.auth, "mock", "Health auth provider");
+        assertEqual(response.body.providers?.adminCommandSource, "mock", "Health command provider");
         assertTruthy(response.headers.get("x-correlation-id"), "Health correlation header");
       }],
       ["ready", async () => {

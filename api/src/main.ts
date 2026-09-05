@@ -11,6 +11,15 @@ function parsePort(value: string | undefined): number | undefined {
   return Number.isInteger(port) && port >= 1 && port <= 65535 ? port : undefined;
 }
 
+function hasProductionSupabaseRuntime(environment: NodeJS.ProcessEnv): boolean {
+  return environment.ADMIN_RUNTIME_MODE?.trim() === "supabase"
+    && environment.PERSISTENCE_PROVIDER?.trim() === "supabase"
+    && environment.AUTH_PROVIDER?.trim() === "supabase"
+    && environment.ADMIN_READ_MODEL_SOURCE?.trim() === "postgres"
+    && environment.ADMIN_M2_READ_MODEL_SOURCE?.trim() === "postgres"
+    && environment.ADMIN_COMMAND_SOURCE?.trim() === "postgres";
+}
+
 function logStartup(host: string, port: number, nodeEnv: string, runtimeMode: "mock" | "supabase"): void {
   console.log(`[api] service=api host=${host} port=${port} runtime=${runtimeMode} node_env=${nodeEnv}`);
   console.log(runtimeMode === "mock" ? "[api] mock-backed HTTP skeleton" : "[api] private Postgres-backed administrative API");
@@ -50,6 +59,11 @@ export function startApiRuntime(): void {
   }
   if (runtimeMode !== "mock" && runtimeMode !== "supabase") {
     console.error("[api] startup aborted: ADMIN_RUNTIME_MODE must be mock or supabase.");
+    process.exitCode = 1;
+    return;
+  }
+  if (nodeEnv === "production" && !hasProductionSupabaseRuntime(process.env)) {
+    console.error("[api] startup aborted: production requires the Supabase/Postgres runtime providers.");
     process.exitCode = 1;
     return;
   }

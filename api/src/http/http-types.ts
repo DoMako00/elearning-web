@@ -14,5 +14,6 @@ export interface HttpRuntimeStatus {
   readonly auth: "mock" | "supabase";
   readonly adminOverviewSource: "mock" | "postgres";
   readonly adminM2Source: "mock" | "postgres";
+  readonly adminCommandSource: "mock" | "postgres";
 }
 export interface HttpAppDependencies { readonly admin: AdminModule; readonly adminHttpContextResolver?: AdminHttpRequestContextResolver; readonly config?: HttpRuntimeConfig; readonly runtimeStatus?: HttpRuntimeStatus; }
