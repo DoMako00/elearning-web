@@ -36,6 +36,12 @@ export async function runPostgresReadTransportSelfTest(): Promise<void> {
   const pool = createFakePool();
   const configured = createPostgresReadTransportFromEnvironment({ PERSISTENCE_PROVIDER: "supabase", SUPABASE_DB_URL: connectionString }, () => pool);
   if (configured.kind !== "supabase-configured-not-wired") throw new Error("supabase transport was not constructed");
+  try {
+    createPostgresReadTransportFromEnvironment({ PERSISTENCE_PROVIDER: "supabase", SUPABASE_DB_URL: connectionString, PGSSLROOTCERT: "not-a-certificate" }, () => pool);
+    throw new Error("invalid root certificate was accepted");
+  } catch (error) {
+    if (!(error instanceof PostgresReadTransportError) || error.code !== "invalid_configuration" || error.message.includes("not-a-certificate")) throw error;
+  }
   const result = await configured.transport.query<{ id: string }>({ label: "selftest", text: "SELECT id FROM app.example WHERE id = $1", values: ["safe-id"] });
   if (result.rows[0]?.id !== "row-1" || pool.queryCalls.length !== 1 || pool.queryCalls[0].values[0] !== "safe-id") throw new Error("parameterized query failed");
 

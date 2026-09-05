@@ -27,6 +27,7 @@ SUPABASE_PROJECT_REF=<project reference>
 SUPABASE_URL=https://<project reference>.supabase.co
 SUPABASE_PUBLISHABLE_KEY=<publishable key>
 SUPABASE_DB_URL=<server-only PostgreSQL connection URL with sslmode=verify-full>
+PGSSLROOTCERT=<optional PEM root certificate from Supabase Connect>
 
 VITE_ADMIN_DATA_SOURCE=api
 VITE_API_BASE_URL=/api
@@ -34,7 +35,7 @@ VITE_SUPABASE_URL=https://<project reference>.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=<publishable key>
 ```
 
-`SUPABASE_DB_URL` is server-only. Never create a `VITE_SUPABASE_DB_URL`, never put a service-role/secret key in a `VITE_*` setting, and never paste real values into `.env.example`.
+`SUPABASE_DB_URL` is server-only. `PGSSLROOTCERT` is an optional trusted TLS certificate used with `rejectUnauthorized: true`. Never create a `VITE_SUPABASE_DB_URL`, never put a service-role/secret key in a `VITE_*` setting, and never paste real values into `.env.example`.
 
 ## Configure and run locally
 

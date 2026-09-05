@@ -24,6 +24,9 @@ export function createPostgresReadTransportFromEnvironment(
       max: configuration.max,
       idleTimeoutMillis: configuration.idleTimeoutMillis,
       connectionTimeoutMillis: configuration.connectionTimeoutMillis,
+      ...(configuration.trustedRootCertificate ? {
+        ssl: { ca: configuration.trustedRootCertificate, rejectUnauthorized: true },
+      } : {}),
     });
   } catch {
     throw new PostgresReadTransportError("provider_unavailable", "The Postgres provider could not be initialized.");
