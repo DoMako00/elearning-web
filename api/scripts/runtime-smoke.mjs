@@ -181,7 +181,9 @@ async function run() {
         assertTruthy(response.headers.get("content-type")?.includes("text/html"), "Documentation content type");
         assertTruthy(page.includes("BUC E-Learning API"), "Documentation title");
         assertTruthy(page.includes("/openapi.json"), "Documentation contract link");
-        assertTruthy(!page.includes("localStorage"), "Documentation must not persist bearer tokens");
+        assertTruthy(page.includes("readDashboardSession"), "Documentation must use the active dashboard session");
+        assertTruthy(!page.includes("supabaseUrl"), "Documentation must not request Supabase environment values");
+        assertTruthy(!page.includes("Use mock admin"), "Documentation must not promote mock authentication");
       }],
       ["M2 curriculum levels are mock-empty", async () => {
         const response = await request("GET", "/v1/admin/curriculum/levels");
