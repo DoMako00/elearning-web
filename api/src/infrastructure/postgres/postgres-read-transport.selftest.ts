@@ -1,4 +1,4 @@
-import { createPostgresReadTransportFromEnvironment } from "./postgres-read-transport.factory";
+import { createPostgresReadTransportFromEnvironment, type PostgresPoolFactory } from "./postgres-read-transport.factory";
 import { PostgresReadTransportError } from "./postgres-errors";
 
 interface FakePool {
@@ -34,8 +34,23 @@ export async function runPostgresReadTransportSelfTest(): Promise<void> {
   if (mock.kind !== "mock-disabled") throw new Error("mock provider was not disabled");
 
   const pool = createFakePool();
-  const configured = createPostgresReadTransportFromEnvironment({ PERSISTENCE_PROVIDER: "supabase", SUPABASE_DB_URL: connectionString }, () => pool);
+  let poolConfiguration: Parameters<PostgresPoolFactory>[0] | undefined;
+  const configured = createPostgresReadTransportFromEnvironment({ PERSISTENCE_PROVIDER: "supabase", SUPABASE_DB_URL: connectionString }, (configuration) => { poolConfiguration = configuration; return pool; });
   if (configured.kind !== "supabase-configured-not-wired") throw new Error("supabase transport was not constructed");
+  const configuredSsl = poolConfiguration?.ssl;
+  if (!poolConfiguration || "connectionString" in poolConfiguration || poolConfiguration.host !== "example.test" || !configuredSsl || typeof configuredSsl !== "object" || configuredSsl.rejectUnauthorized !== true) throw new Error("secure pool configuration was not constructed");
+  try {
+    createPostgresReadTransportFromEnvironment({ PERSISTENCE_PROVIDER: "supabase", SUPABASE_DB_URL: connectionString, PGSSLROOTCERT: "not-a-certificate" }, () => pool);
+    throw new Error("invalid root certificate was accepted");
+  } catch (error) {
+    if (!(error instanceof PostgresReadTransportError) || error.code !== "invalid_configuration" || error.message.includes("not-a-certificate")) throw error;
+  }
+  try {
+    createPostgresReadTransportFromEnvironment({ PERSISTENCE_PROVIDER: "supabase", SUPABASE_DB_URL: connectionString, PGSSLROOTCERT_BASE64: "not base64!" }, () => pool);
+    throw new Error("invalid encoded root certificate was accepted");
+  } catch (error) {
+    if (!(error instanceof PostgresReadTransportError) || error.code !== "invalid_configuration" || error.message.includes("not base64")) throw error;
+  }
   const result = await configured.transport.query<{ id: string }>({ label: "selftest", text: "SELECT id FROM app.example WHERE id = $1", values: ["safe-id"] });
   if (result.rows[0]?.id !== "row-1" || pool.queryCalls.length !== 1 || pool.queryCalls[0].values[0] !== "safe-id") throw new Error("parameterized query failed");
 
