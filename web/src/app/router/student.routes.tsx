@@ -6,6 +6,7 @@ import { CourseOverviewPage } from "../pages/student/CourseOverviewPage";
 import { ExplorePage } from "../pages/student/ExplorePage";
 import { HomePage } from "../pages/student/HomePage";
 import { LessonPlayerPage } from "../pages/student/LessonPlayerPage";
+import { MessagesPage } from "../pages/student/MessagesPage";
 import { MyCoursesPage } from "../pages/student/MyCoursesPage";
 // import { TestInactivityPromptPage } from "../pages/student/test-inactivity/TestInactivityPromptPage";
 // import { TestStreakPage } from "../pages/student/test-streak/TestStreakPage";
@@ -26,6 +27,7 @@ export const studentRoutes: RouteObject[] = [
       { path: "calendar", element: <CalendarPage /> },
       { path: "assignments", element: <AssignmentsPage /> },
       { path: "assignments/:assignmentId", element: <AssignmentDetailPage /> },
+      { path: "messages", element: <MessagesPage /> },
       // { path: "test-inactivity", element: <TestInactivityPromptPage /> },
       // { path: "test-streak", element: <TestStreakPage /> },
       // { path: "test-xp", element: <TestXPRewardsPage /> },

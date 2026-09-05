@@ -191,20 +191,25 @@ main[data-main-workspace] {
   height: 100%;
 }
 
-.student-dashboard--calendar {
+.student-dashboard--calendar,
+.student-dashboard--messages {
   max-height: none;
   height: 100dvh;
 }
 
-.student-dashboard--calendar .student-dashboard__content {
+.student-dashboard--calendar .student-dashboard__content,
+.student-dashboard--messages .student-dashboard__content {
   padding: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 0;
 }
 
 @media (max-height: 820px) {
-  .student-dashboard--calendar .student-dashboard__header {
+  .student-dashboard--calendar .student-dashboard__header,
+  .student-dashboard--messages .student-dashboard__header {
     height: 56px;
     min-height: 56px;
   }
@@ -217,7 +222,8 @@ main[data-main-workspace] {
     padding: clamp(10px, 1vw, 18px) clamp(18px, 1.7vw, 36px) clamp(12px, 1.2vw, 22px);
   }
 
-  .student-dashboard--calendar .student-dashboard__content {
+  .student-dashboard--calendar .student-dashboard__content,
+  .student-dashboard--messages .student-dashboard__content {
     padding: 0 !important;
     width: 100%;
   }

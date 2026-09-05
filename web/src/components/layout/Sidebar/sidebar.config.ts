@@ -48,7 +48,7 @@ export const primarySidebarItems: SidebarItem[] = [
     icon: MessageSquare,
     href: "/messages",
     badge: 3,
-    enabled: false,
+    enabled: true,
   },
   { label: "Community", icon: UsersRound, href: "/community", enabled: false },
 ];

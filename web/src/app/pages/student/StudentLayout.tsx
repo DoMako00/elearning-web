@@ -15,6 +15,7 @@ export function StudentLayout() {
   const isAssignments = pathname === "/assignments";
   const isAssignmentDetail = pathname.startsWith("/assignments/");
   const isCalendar = pathname === "/calendar";
+  const isMessages = pathname === "/messages";
   const isTestXP = pathname === "/test-xp";
   const isTestInactivity = pathname === "/test-inactivity";
   const isTestStreak = pathname === "/test-streak";
@@ -66,6 +67,7 @@ export function StudentLayout() {
     else if (isExplore) title = "Explore";
     else if (isAssignments) title = "Assignments";
     else if (isCalendar) title = "Calendar";
+    else if (isMessages) title = "Messages";
     else if (isTestInactivity) title = "Inactivity Prompt Test";
     else if (isTestXP) title = "XP Reward Test";
     else if (isTestStreak) title = "Streak Analytics Test";
@@ -98,7 +100,9 @@ export function StudentLayout() {
           isAssignments ? " student-dashboard--assignments" : ""
         }${isAssignmentDetail ? " student-dashboard--assignment-detail" : ""}${
           isCalendar ? " student-dashboard--calendar" : ""
-        }${isScrollablePage ? " student-dashboard--scrollable" : ""}`}
+        }${isMessages ? " student-dashboard--messages" : ""}${
+          isScrollablePage ? " student-dashboard--scrollable" : ""
+        }`}
       >
         <header
           className={`student-dashboard__header${showCenteredSearch ? " student-dashboard__header--home" : ""}`}
