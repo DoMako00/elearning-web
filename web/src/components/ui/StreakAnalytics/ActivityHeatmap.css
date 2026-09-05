@@ -1,0 +1,601 @@
+/* ActivityHeatmap.css - GreenLearn Activity Heatmap Styles */
+
+.activity-heatmap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.activity-heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 4px;
+  font-size: 11px;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.activity-heatmap-legend-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.activity-heatmap-legend-cell {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid var(--color-border-subtle, #e8ecef);
+}
+
+.activity-heatmap-months {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.activity-heatmap-month {
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border-subtle, #e8ecef);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.16s ease;
+}
+
+.activity-heatmap-month:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.activity-heatmap-month-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border-subtle, #e8ecef);
+}
+
+.activity-heatmap-month-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary, #111827);
+  font-family: var(--font-heading, 'Montserrat', ui-sans-serif, system-ui, sans-serif);
+}
+
+.activity-heatmap-weekdays-mini {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 6px;
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--color-text-tertiary, #9ca3af);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.activity-heatmap-week-cells {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+/* Main grid view */
+.activity-heatmap-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.activity-heatmap-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-tertiary, #9ca3af);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.activity-heatmap-weeks {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.activity-heatmap-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.activity-heatmap-cell {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  border: 1px solid var(--color-border-subtle, #e8ecef);
+  background: var(--heatmap-0, #eef2ef);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 1px;
+  position: relative;
+}
+
+.activity-heatmap-cell:hover {
+  transform: scale(1.15);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.activity-heatmap-cell:focus-visible {
+  outline: 2px solid var(--color-focus-ring, #20a862);
+  outline-offset: 2px;
+}
+
+.activity-heatmap-cell--other-month {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.activity-heatmap-cell--today {
+  box-shadow: 0 0 0 2px var(--color-brand, #20a862);
+}
+
+.activity-heatmap-day-number {
+  font-size: 7px;
+  font-weight: 700;
+  color: var(--color-text-secondary, #667085);
+  line-height: 1;
+  margin-bottom: 1px;
+  margin-right: 1px;
+}
+
+.activity-heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  font-size: 11px;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.activity-heatmap-legend-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.activity-heatmap-legend-cell {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid var(--color-border-subtle, #e8ecef);
+}
+
+.activity-heatmap-months {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.activity-heatmap-month {
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border-subtle, #e8ecef);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.activity-heatmap-month:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  border-color: var(--color-brand-soft-strong, #c9f0d7);
+}
+
+.activity-heatmap-month-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border-subtle, #e8ecef);
+}
+
+.activity-heatmap-month-name {
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--color-text-primary, #111827);
+  font-family: var(--font-heading, 'Montserrat', ui-sans-serif, system-ui, sans-serif);
+}
+
+.activity-heatmap-weekdays-mini {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 6px;
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--color-text-tertiary, #9ca3af);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.activity-heatmap-week-cells {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.activity-heatmap-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.activity-heatmap-cell {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  border: 1px solid var(--color-border-subtle, #e8ecef);
+  background: var(--heatmap-0, #eef2ef);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 1px;
+  position: relative;
+}
+
+.activity-heatmap-cell:hover {
+  transform: scale(1.15);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.activity-heatmap-cell:focus-visible {
+  outline: 2px solid var(--color-focus-ring, #20a862);
+  outline-offset: 2px;
+}
+
+.activity-heatmap-cell--other-month {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.activity-heatmap-cell--today {
+  box-shadow: 0 0 0 2px var(--color-brand, #20a862);
+}
+
+.activity-heatmap-day-number {
+  font-size: 7px;
+  font-weight: 700;
+  color: var(--color-text-secondary, #667085);
+  line-height: 1;
+  margin-bottom: 1px;
+  margin-right: 1px;
+}
+
+.activity-heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  font-size: 11px;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.activity-heatmap-legend-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.activity-heatmap-legend-cell {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid var(--color-border-subtle, #e8ecef);
+}
+
+.activity-heatmap-months {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.activity-heatmap-month {
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border-subtle, #e8ecef);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.activity-heatmap-month:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  border-color: var(--color-brand-soft-strong, #c9f0d7);
+}
+
+.activity-heatmap-month-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border-subtle, #e8ecef);
+}
+
+.activity-heatmap-month-name {
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--color-text-primary, #111827);
+  font-family: var(--font-heading, 'Montserrat', ui-sans-serif, system-ui, sans-serif);
+}
+
+.activity-heatmap-weekdays-mini {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 6px;
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--color-text-tertiary, #9ca3af);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.activity-heatmap-week-cells {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.activity-heatmap-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.activity-heatmap-cell {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  border: 1px solid var(--color-border-subtle, #e8ecef);
+  background: var(--heatmap-0, #eef2ef);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 1px;
+  position: relative;
+}
+
+.activity-heatmap-cell:hover {
+  transform: scale(1.15);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.activity-heatmap-cell:focus-visible {
+  outline: 2px solid var(--color-focus-ring, #20a862);
+  outline-offset: 2px;
+}
+
+.activity-heatmap-cell--other-month {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.activity-heatmap-cell--today {
+  box-shadow: 0 0 0 2px var(--color-brand, #20a862);
+}
+
+.activity-heatmap-day-number {
+  font-size: 7px;
+  font-weight: 700;
+  color: var(--color-text-secondary, #667085);
+  line-height: 1;
+  margin-bottom: 1px;
+  margin-right: 1px;
+}
+
+.activity-heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  font-size: 11px;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.activity-heatmap-legend-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.activity-heatmap-legend-cell {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid var(--color-border-subtle, #e8ecef);
+}
+
+.activity-heatmap-months {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.activity-heatmap-month {
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border-subtle, #e8ecef);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.activity-heatmap-month:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  border-color: var(--color-brand-soft-strong, #c9f0d7);
+}
+
+.activity-heatmap-month-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border-subtle, #e8ecef);
+}
+
+.activity-heatmap-month-name {
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--color-text-primary, #111827);
+  font-family: var(--font-heading, 'Montserrat', ui-sans-serif, system-ui, sans-serif);
+}
+
+.activity-heatmap-weekdays-mini {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 6px;
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--color-text-tertiary, #9ca3af);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.activity-heatmap-week-cells {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.activity-heatmap-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.activity-heatmap-cell {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  border: 1px solid var(--color-border-subtle, #e8ecef);
+  background: var(--heatmap-0, #eef2ef);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 1px;
+  position: relative;
+}
+
+.activity-heatmap-cell:hover {
+  transform: scale(1.15);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.activity-heatmap-cell:focus-visible {
+  outline: 2px solid var(--color-focus-ring, #20a862);
+  outline-offset: 2px;
+}
+
+.activity-heatmap-cell--other-month {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.activity-heatmap-cell--today {
+  box-shadow: 0 0 0 2px var(--color-brand, #20a862);
+}
+
+.activity-heatmap-day-number {
+  font-size: 7px;
+  font-weight: 700;
+  color: var(--color-text-secondary, #667085);
+  line-height: 1;
+  margin-bottom: 1px;
+  margin-right: 1px;
+}
+
+.activity-heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  font-size: 11px;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.activity-heatmap-legend-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.activity-heatmap-legend-cell {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid var(--color-border-subtle, #e8ecef);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .activity-heatmap-months {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .activity-heatmap-months {
+    grid-template-columns: 1fr;
+  }
+  
+  .activity-heatmap-legend {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .activity-heatmap-cell,
+  .activity-heatmap-cell--today {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* High Contrast */
+@media (prefers-contrast: high) {
+  .activity-heatmap-cell {
+    border-width: 2px;
+  }
+  
+  .activity-heatmap-legend-cell {
+    border-width: 2px;
+  }
+}

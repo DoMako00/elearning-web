@@ -35,3 +35,57 @@ export interface AssignmentFeedback {
   score: string;
   timeAgo: string;
 }
+
+export interface AssignmentRubricItem {
+  criterion: string;
+  points: number;
+}
+
+export interface AssignmentResource {
+  id: string;
+  name: string;
+  fileType: "pdf" | "pptx" | "docx";
+  size: string;
+  downloadUrl?: string;
+}
+
+export interface AssignmentDetailItem extends AssignmentItem {
+  courseName: string;
+  courseSlug: string;
+  moduleName: string;
+  instructor: string;
+  dueFullDate: string;
+  estimatedTime: string;
+  attemptsUsed: number;
+  attemptsAllowed: number;
+  submissionType: string;
+  acceptedFormats: string[];
+  maxFileSizeMb: number;
+  brief: {
+    description: string;
+    instructions: string[];
+  };
+  whatToSubmit: {
+    requirements: string[];
+    tip: string;
+  };
+  resources: AssignmentResource[];
+  rubric: {
+    items: AssignmentRubricItem[];
+    totalPoints: number;
+  };
+  timeline: {
+    assignedDate: string;
+    dueDate: string;
+    gradesReleasedDate: string;
+  };
+  submission?: {
+    status: "not-submitted" | "draft" | "submitted" | "graded";
+    submittedAt?: string;
+    fileName?: string;
+    fileSize?: string;
+    fileType?: string;
+    note?: string;
+    score?: number;
+  };
+}

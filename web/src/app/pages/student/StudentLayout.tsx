@@ -13,21 +13,16 @@ export function StudentLayout() {
   const isLessonPlayer = pathname.startsWith("/my-courses/human-anatomy-i/lessons");
   const isExplore = pathname === "/explore";
   const isAssignments = pathname === "/assignments";
-  const showCenteredSearch = isHome || isAssignments;
+  const isAssignmentDetail = pathname.startsWith("/assignments/");
+  const isCalendar = pathname === "/calendar";
+  const isTestXP = pathname === "/test-xp";
+  const isTestInactivity = pathname === "/test-inactivity";
+  const isTestStreak = pathname === "/test-streak";
 
-const isTestXP = pathname === "/test-xp";
+  // Search bar in the topbar is exclusively for Home; all other pages display the breadcrumb
+  const showCenteredSearch = isHome;
 
-    const renderBreadcrumb = () => {
-      if (isMyCourses) {
-      return (
-        <div className="student-dashboard__page-title">
-          <span className="student-dashboard__page-title-label">Learning space</span>
-          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-          <h1 id="my-courses-title">My Courses</h1>
-        </div>
-      );
-    }
-
+  const renderBreadcrumb = () => {
     if (isCourseOverview) {
       return (
         <nav className="student-dashboard__course-breadcrumb" aria-label="Lesson breadcrumb">
@@ -52,51 +47,47 @@ const isTestXP = pathname === "/test-xp";
       );
     }
 
-    if (isExplore) {
+    if (isAssignmentDetail) {
       return (
         <div className="student-dashboard__page-title">
           <span className="student-dashboard__page-title-label">Learning space</span>
           <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-          <h1 id="explore-header-title">Explore</h1>
+          <Link to="/assignments" style={{ color: "inherit", textDecoration: "none" }}>
+            <span style={{ color: "#64748b", fontWeight: 600 }}>Assignments</span>
+          </Link>
+          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
+          <h1>Clinical Case Review</h1>
         </div>
       );
     }
 
-if (isAssignments) {
-        return (
-          <div className="student-dashboard__page-title">
-            <span className="student-dashboard__page-title-label">Learning space</span>
-            <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-            <h1 id="assignments-header-title">Assignments</h1>
-          </div>
-        );
-      }
-
-      if (isTestXP) {
-        return (
-          <div className="student-dashboard__page-title">
-            <span className="student-dashboard__page-title-label">Learning space</span>
-            <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-            <h1 id="test-xp-header-title">XP Reward Test</h1>
-          </div>
-        );
-      }
-
-    const segments = pathname.split("/").filter(Boolean);
-    const lastSegment = segments[segments.length - 1] || "Dashboard";
-    const formattedTitle = lastSegment
-      .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
+    let title = "Dashboard";
+    if (isMyCourses) title = "My Courses";
+    else if (isExplore) title = "Explore";
+    else if (isAssignments) title = "Assignments";
+    else if (isCalendar) title = "Calendar";
+    else if (isTestInactivity) title = "Inactivity Prompt Test";
+    else if (isTestXP) title = "XP Reward Test";
+    else if (isTestStreak) title = "Streak Analytics Test";
+    else {
+      const segments = pathname.split("/").filter(Boolean);
+      const lastSegment = segments[segments.length - 1] || "Dashboard";
+      title = lastSegment
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+    }
 
     return (
       <div className="student-dashboard__page-title">
         <span className="student-dashboard__page-title-label">Learning space</span>
         <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-        <h1>{formattedTitle}</h1>
+        <h1>{title}</h1>
       </div>
     );
   };
+
+  const isScrollablePage = isTestXP || isTestStreak || isTestInactivity;
 
   return (
     <AppShell>
@@ -105,7 +96,9 @@ if (isAssignments) {
           isMyCourses ? " student-dashboard--my-courses" : ""
         }${isCourseOverview ? " student-dashboard--course-overview" : ""}${
           isAssignments ? " student-dashboard--assignments" : ""
-        }`}
+        }${isAssignmentDetail ? " student-dashboard--assignment-detail" : ""}${
+          isCalendar ? " student-dashboard--calendar" : ""
+        }${isScrollablePage ? " student-dashboard--scrollable" : ""}`}
       >
         <header
           className={`student-dashboard__header${showCenteredSearch ? " student-dashboard__header--home" : ""}`}
@@ -113,7 +106,7 @@ if (isAssignments) {
         >
           {showCenteredSearch ? (
             <div className="student-dashboard__search">
-              <SearchBar placeholder="Search topics, subjects or skills..." />
+              <SearchBar placeholder="Search courses, topics or skills..." />
             </div>
           ) : (
             renderBreadcrumb()
@@ -129,4 +122,3 @@ if (isAssignments) {
     </AppShell>
   );
 }
-
