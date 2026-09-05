@@ -279,4 +279,117 @@
   }
 }
 
+/* ── Coming Soon Modal ── */
+.coming-soon-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  animation: csOverlayIn 220ms ease both;
+}
 
+@keyframes csOverlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.coming-soon-modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: min(380px, calc(100vw - 40px));
+  padding: 36px 32px 28px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(15, 23, 42, 0.08);
+  text-align: center;
+  animation: csModalIn 260ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes csModalIn {
+  from { opacity: 0; transform: scale(0.88) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.coming-soon-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: pointer;
+  transition: background 150ms, color 150ms;
+}
+
+.coming-soon-close:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.coming-soon-icon-wrap {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e8f8ef 0%, #d1f5e2 100%);
+  margin-bottom: 4px;
+}
+
+.coming-soon-icon {
+  width: 30px;
+  height: 30px;
+  color: #16a34a;
+  stroke-width: 1.7;
+}
+
+.coming-soon-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 750;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.coming-soon-body {
+  margin: 0;
+  font-size: 13.5px;
+  color: #64748b;
+  line-height: 1.55;
+  max-width: 280px;
+}
+
+.coming-soon-cta {
+  margin-top: 8px;
+  padding: 10px 28px;
+  border: none;
+  border-radius: 999px;
+  background: #20a862;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms, transform 120ms;
+}
+
+.coming-soon-cta:hover {
+  background: #15803d;
+  transform: translateY(-1px);
+}
+
+.coming-soon-cta:active {
+  transform: scale(0.97);
+}

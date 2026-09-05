@@ -1,7 +1,9 @@
 import { Bell, ChevronDown, Sparkles } from "lucide-react";
 import { useRef, useState } from "react";
+import toast from "react-hot-toast";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { XpDropdown } from "./XpDropdown";
+import { NotificationsDropdown } from "./NotificationsDropdown";
 import type { UserHeaderActionsProps } from "./user-header-actions.types";
 import "./UserHeaderActions.css";
 
@@ -25,22 +27,39 @@ export function UserHeaderActions({
 }: UserHeaderActionsProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isXpOpen, setIsXpOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   const profileTriggerRef = useRef<HTMLButtonElement>(null);
   const xpTriggerRef = useRef<HTMLButtonElement>(null);
+  const notifTriggerRef = useRef<HTMLButtonElement>(null);
 
   const formattedXp = `${numberFormatter.format(xp)} XP`;
 
   const toggleDropdown = () => {
     setIsDropdownOpen((prev) => !prev);
     setIsXpOpen(false);
+    setIsNotifOpen(false);
     onAvatarClick?.();
   };
 
   const toggleXp = () => {
     setIsXpOpen((prev) => !prev);
     setIsDropdownOpen(false);
+    setIsNotifOpen(false);
     onXpClick?.();
+  };
+
+  const toggleNotif = () => {
+    const opening = !isNotifOpen;
+    setIsNotifOpen(opening);
+    setIsDropdownOpen(false);
+    setIsXpOpen(false);
+    if (opening) {
+      toast(`🔔 You have ${unreadNotificationsCount} unread notification${unreadNotificationsCount !== 1 ? 's' : ''}`, {
+        duration: 2500,
+      });
+    }
+    onNotificationClick?.();
   };
 
   return (
@@ -48,20 +67,32 @@ export function UserHeaderActions({
       className={`user-header-actions relative flex items-center ${className}`}
       aria-label="User header actions"
     >
-      <button
-        type="button"
-        className="user-header-actions__notifications relative grid shrink-0 place-items-center rounded-full text-(--color-text-primary) transition-opacity duration-150 hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-focus-ring) focus-visible:ring-offset-2"
-        aria-label="Notifications"
-        onClick={onNotificationClick}
-      >
-        <Bell className="size-6" strokeWidth={1.8} aria-hidden="true" />
-        {hasNotification ? (
-          <span
-            className="absolute right-0 top-0 size-2.25 rounded-full border-2 border-(--color-surface) bg-(--color-brand)"
-            aria-label="Unread notifications"
-          />
-        ) : null}
-      </button>
+      {/* Bell / Notifications */}
+      <div className="relative flex items-center">
+        <button
+          ref={notifTriggerRef}
+          type="button"
+          className="user-header-actions__notifications relative grid shrink-0 place-items-center rounded-full text-(--color-text-primary) transition-opacity duration-150 hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-focus-ring) focus-visible:ring-offset-2"
+          aria-label="Notifications"
+          aria-haspopup="true"
+          aria-expanded={isNotifOpen}
+          onClick={toggleNotif}
+        >
+          <Bell className="size-6" strokeWidth={1.8} aria-hidden="true" />
+          {hasNotification ? (
+            <span
+              className="absolute right-0 top-0 size-2.25 rounded-full border-2 border-(--color-surface) bg-(--color-brand)"
+              aria-label="Unread notifications"
+            />
+          ) : null}
+        </button>
+
+        <NotificationsDropdown
+          isOpen={isNotifOpen}
+          onClose={() => setIsNotifOpen(false)}
+          triggerRef={notifTriggerRef}
+        />
+      </div>
 
       <div className="relative flex items-center user-header-actions__xp-wrap">
         <button
@@ -151,3 +182,4 @@ export function UserHeaderActions({
     </div>
   );
 }
+

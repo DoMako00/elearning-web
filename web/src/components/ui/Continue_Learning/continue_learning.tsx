@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
 import { MoreHorizontal, Bookmark, Play } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import courseImage from '../../../Assets/dashboard/human-anatomy.webp';
 import './index.css';
 
@@ -27,7 +29,17 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
   imageSrc = courseImage,
   onContinue,
 }) => {
+  const navigate = useNavigate();
   const [isBookmarked, setIsBookmarked] = useState(false);
+
+  const handleContinue = () => {
+    if (onContinue) {
+      onContinue();
+    } else {
+      toast.success('Resuming Human Anatomy I — Lesson 1');
+      navigate("/my-courses/human-anatomy-i/lessons/human-anatomy-i-lesson-1");
+    }
+  };
 
   const renderCourseName = (name: string) => {
     if (name.includes('\n')) {
@@ -107,7 +119,7 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
         <div className="continue-learning-footer flex items-center gap-(--button-gap)">
           <button
             type="button"
-            onClick={onContinue}
+            onClick={handleContinue}
             className="continue-learning-cta relative group overflow-hidden flex-1 h-(--cta-height) max-w-(--cta-width) px-6 bg-(--primary-color) hover:shadow-md text-white font-semibold text-cta rounded-(--border-radius-cta) transition-all duration-300 active:scale-[0.99] cursor-pointer flex items-center justify-center text-center"
           >
             <div className="absolute inset-0 w-1/2 h-full bg-linear-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-[350%] transition-transform duration-800 ease-in-out pointer-events-none" />

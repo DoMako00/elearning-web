@@ -12,6 +12,8 @@ import physiologyImage from "../../../Assets/dashboard/medical-physiology.webp";
 import biochemistryImage from "../../../Assets/dashboard/biochemistry-essentials.webp";
 import embryologyImage from "../../../Assets/dashboard/embryology-foundations.webp";
 import "./RecommendedCourses.css";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const courses = [
   {
@@ -62,6 +64,7 @@ const courses = [
 ] as const;
 
 export function RecommendedCourses() {
+  const navigate = useNavigate();
   const [bookmarkedCourses, setBookmarkedCourses] = useState<Record<string, boolean>>({});
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -82,10 +85,16 @@ export function RecommendedCourses() {
   }, []);
 
   const toggleBookmark = (title: string) => {
+    const isCurrentlyBookmarked = !!bookmarkedCourses[title];
     setBookmarkedCourses((prev) => ({
       ...prev,
       [title]: !prev[title],
     }));
+    if (isCurrentlyBookmarked) {
+      toast(`Removed "${title}" from saved courses`, { icon: '🔖' });
+    } else {
+      toast.success(`"${title}" saved to your courses`);
+    }
   };
 
   const handleScrollPrev = () => {
@@ -110,7 +119,7 @@ export function RecommendedCourses() {
     <section className="recommended-card" aria-labelledby="recommended-title">
       <header className="recommended-header">
         <h2 id="recommended-title">Recommended Medical Modules For You</h2>
-        <button type="button" className="recommended-view-all">
+        <button type="button" className="recommended-view-all" onClick={() => navigate('/my-courses')}>
           <span>View all</span>
           <ArrowRight aria-hidden="true" />
         </button>

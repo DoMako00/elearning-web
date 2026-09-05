@@ -9,6 +9,8 @@ import {
   NotebookPen,
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import type { UpcomingItem, UpcomingProps } from './upcoming.types';
 import './index.css';
 
@@ -101,6 +103,7 @@ export function Upcoming({
   items = DEFAULT_ITEMS,
   onViewCalendar,
 }: UpcomingProps) {
+  const navigate = useNavigate();
   const displayCount = count ?? items.length;
   const trackRef = useRef<HTMLDivElement>(null);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
@@ -195,7 +198,10 @@ export function Upcoming({
       <div className="upcoming-footer">
         <button
           type="button"
-          onClick={onViewCalendar}
+          onClick={onViewCalendar ?? (() => {
+            toast.success('Opening your calendar');
+            navigate('/calendar');
+          })}
           className="upcoming-cta"
         >
           View Calendar
