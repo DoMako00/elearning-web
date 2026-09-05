@@ -42,6 +42,12 @@ export async function runPostgresReadTransportSelfTest(): Promise<void> {
   } catch (error) {
     if (!(error instanceof PostgresReadTransportError) || error.code !== "invalid_configuration" || error.message.includes("not-a-certificate")) throw error;
   }
+  try {
+    createPostgresReadTransportFromEnvironment({ PERSISTENCE_PROVIDER: "supabase", SUPABASE_DB_URL: connectionString, PGSSLROOTCERT_BASE64: "not base64!" }, () => pool);
+    throw new Error("invalid encoded root certificate was accepted");
+  } catch (error) {
+    if (!(error instanceof PostgresReadTransportError) || error.code !== "invalid_configuration" || error.message.includes("not base64")) throw error;
+  }
   const result = await configured.transport.query<{ id: string }>({ label: "selftest", text: "SELECT id FROM app.example WHERE id = $1", values: ["safe-id"] });
   if (result.rows[0]?.id !== "row-1" || pool.queryCalls.length !== 1 || pool.queryCalls[0].values[0] !== "safe-id") throw new Error("parameterized query failed");
 

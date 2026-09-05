@@ -12,12 +12,24 @@ export interface PostgresPoolConfiguration {
 
 function trustedRootCertificate(environment: SupabaseBoundaryEnvironment): string | undefined {
   const configured = nonEmpty(environment.PGSSLROOTCERT);
-  if (!configured) return undefined;
-  const certificate = configured.includes("\\n") ? configured.replace(/\\n/g, "\n") : configured;
+  const encoded = nonEmpty(environment.PGSSLROOTCERT_BASE64);
+  if (configured && encoded) {
+    throw new PostgresReadTransportError("invalid_configuration", "Configure either PGSSLROOTCERT or PGSSLROOTCERT_BASE64, not both.");
+  }
+  if (!configured && !encoded) return undefined;
+  let certificate: string;
+  if (encoded) {
+    if (!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) {
+      throw new PostgresReadTransportError("invalid_configuration", "PGSSLROOTCERT_BASE64 must be base64-encoded PEM data.");
+    }
+    certificate = Buffer.from(encoded, "base64").toString("utf8");
+  } else {
+    certificate = configured!.includes("\\n") ? configured!.replace(/\\n/g, "\n") : configured!;
+  }
   try {
     new X509Certificate(certificate);
   } catch {
-    throw new PostgresReadTransportError("invalid_configuration", "PGSSLROOTCERT must contain one valid PEM X.509 certificate.");
+    throw new PostgresReadTransportError("invalid_configuration", "The configured Postgres root certificate must contain one valid PEM X.509 certificate.");
   }
   return certificate;
 }
