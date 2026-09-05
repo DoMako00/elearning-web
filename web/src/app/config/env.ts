@@ -1,5 +1,7 @@
 export interface EnvConfig {
   apiBaseUrl: string;
+  supabaseUrl: string;
+  supabasePublishableKey: string;
   adminDataSource: AdminDataSource;
   dashboardEnrollmentState?: DashboardEnrollmentState;
 }
@@ -37,6 +39,8 @@ function normalizeDashboardEnrollmentState(value: string | undefined) {
 
 export const env: Readonly<EnvConfig> = Object.freeze({
   apiBaseUrl: normalizeUrl(import.meta.env.VITE_API_BASE_URL),
+  supabaseUrl: normalizeUrl(import.meta.env.VITE_SUPABASE_URL),
+  supabasePublishableKey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim() ?? "",
   adminDataSource: normalizeAdminDataSource(import.meta.env.VITE_ADMIN_DATA_SOURCE),
   dashboardEnrollmentState: normalizeDashboardEnrollmentState(
     import.meta.env.VITE_DASHBOARD_ENROLLMENT_STATE,

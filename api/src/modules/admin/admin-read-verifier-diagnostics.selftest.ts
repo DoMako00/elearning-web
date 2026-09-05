@@ -15,6 +15,7 @@ function readModel(calls: string[]): AdminM2ReadModel {
     findAcademicModule: async () => { calls.push("module-detail"); return missing; },
     listInstructors: async () => { calls.push("instructors"); return empty; },
     findInstructor: async () => { calls.push("instructor-detail"); return missing; },
+    listInstructorBrandAssignments: async () => { calls.push("instructor-brand-assignments"); return empty; },
     listBrandInstructors: async () => { calls.push("brand-instructors"); return empty; },
     findBrandInstructor: async () => { calls.push("brand-instructor-detail"); return missing; },
     listInstructorCourseAssignments: async () => { calls.push("brand-instructor-courses"); return empty; },

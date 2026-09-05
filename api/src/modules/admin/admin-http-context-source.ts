@@ -54,12 +54,12 @@ class MockAdminProfiles implements M1AdminProfileReadRepository {
       // The mock principal is intentionally permitted to reach the disabled
       // command-source boundary in deterministic HTTP tests. It cannot mutate:
       // mock command composition never supplies an executor.
-      permissionCodes: ["admin.overview.read", "admin.curriculum.read", "admin.instructors.read", "admin.brand_instructors.read", "admin.brand_courses.read", "admin.course_instructors.read", "admin.students.read", "admin.audit.read", "admin.security.read", "admin.instructors.create", "admin.instructors.update", "admin.brand_instructors.assign", "admin.brand_instructors.update", "admin.brand_courses.create", "admin.brand_courses.update", "admin.course_instructors.assign", "admin.course_instructors.update"],
+      permissionCodes: ["admin.overview.read", "admin.brand.read", "admin.platform.admin.read", "admin.platform.admin.write", "admin.audit.read", "admin.curriculum.read", "admin.instructors.read", "admin.brand_instructors.read", "admin.brand_courses.read", "admin.course_instructors.read", "admin.students.read", "admin.security.read"],
     };
     return repositoryOk(snapshot);
   }
   async listAdminAuthorizationsByAuthUserId(input: { readonly authUserId: string; readonly correlationId?: string }) {
-    const records = mockBrands.map((brand) => this.profile({ appUserId: input.authUserId, brandId: brand.id })).filter((profile): profile is M1AdminProfile => Boolean(profile)).map((profile) => ({ appUser: { id: profile.appUserId, authUserId: input.authUserId, primaryEmail: null, primaryPhone: null, status: "active" as const, createdAt: now, updatedAt: now }, adminProfile: profile, roleCodes: ["admin.support"], permissionCodes: ["admin.overview.read", "admin.curriculum.read", "admin.instructors.read", "admin.brand_instructors.read", "admin.brand_courses.read", "admin.course_instructors.read"] }));
+    const records = mockBrands.map((brand) => this.profile({ appUserId: input.authUserId, brandId: brand.id })).filter((profile): profile is M1AdminProfile => Boolean(profile)).map((profile) => ({ appUser: { id: profile.appUserId, authUserId: input.authUserId, primaryEmail: null, primaryPhone: null, status: "active" as const, createdAt: now, updatedAt: now }, adminProfile: profile, roleCodes: ["admin.support"], permissionCodes: ["admin.overview.read", "admin.brand.read", "admin.platform.admin.read", "admin.platform.admin.write", "admin.audit.read"] }));
     return repositoryOk(records);
   }
 }

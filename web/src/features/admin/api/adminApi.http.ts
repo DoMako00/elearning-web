@@ -1,4 +1,5 @@
 import { createAdminError, createNotImplementedError } from "./adminApi.errors";
+import { getSupabaseAccessToken } from "../../auth/api/supabaseAuth";
 import type { AdminApi, AdminReadDetail, AdminReadList } from "./adminApi";
 import type {
   AdminAccessDecisionSummary, AdminAccessGrantDetail, AdminAccessGrantListItem, AdminAdminActionItem, AdminAssessmentDetail,
@@ -48,7 +49,10 @@ export function createHttpAdminApi(config: HttpAdminApiConfig): AdminApi {
       const fetchImpl = config.fetchImpl ?? globalThis.fetch;
       if (!fetchImpl) return failure(correlationId, "The HTTP client is unavailable.");
       try {
-        const response = await fetchImpl(`${baseUrl}/v1/admin/overview?brand=${encodeURIComponent(platform.platformCode)}`, { method: "GET", headers: { "x-correlation-id": correlationId } });
+        const accessToken = await getSupabaseAccessToken();
+        const headers: Record<string, string> = { "x-correlation-id": correlationId };
+        if (accessToken) headers.authorization = `Bearer ${accessToken}`;
+        const response = await fetchImpl(`${baseUrl}/v1/admin/overview?brand=${encodeURIComponent(platform.platformCode)}`, { method: "GET", headers });
         let body: BackendOverviewResponse;
         try { body = await response.json() as BackendOverviewResponse; }
         catch { return failure(correlationId, "The admin overview response was not valid JSON.", "validation_failed"); }

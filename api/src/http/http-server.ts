@@ -7,7 +7,18 @@ export const defaultHttpRuntimeConfig: HttpRuntimeConfig = { port: 3000, host: "
 export interface StartedHttpServer { readonly server: Server; readonly application?: BackendApplication; }
 export function startHttpServerWithApplication(config: HttpRuntimeConfig = defaultHttpRuntimeConfig, dependencies?: HttpAppDependencies): StartedHttpServer {
   const ownedApplication = dependencies ? undefined : createApplication();
-  const application = dependencies ?? { admin: ownedApplication!.admin, adminHttpContextResolver: ownedApplication!.adminHttpContextResolver, config };
+  const application = dependencies ?? {
+    admin: ownedApplication!.admin,
+    adminHttpContextResolver: ownedApplication!.adminHttpContextResolver,
+    config,
+    runtimeStatus: {
+      mode: config.runtimeMode,
+      persistence: ownedApplication!.persistence.provider,
+      auth: process.env.AUTH_PROVIDER?.trim() === "supabase" ? "supabase" : "mock",
+      adminOverviewSource: ownedApplication!.adminOverviewSource,
+      adminM2Source: ownedApplication!.adminM2Source,
+    },
+  };
   const server = createServer(createHttpApp(application));
   if (ownedApplication) server.once("close", () => { void ownedApplication.close(); });
   server.listen(config.port, config.host);

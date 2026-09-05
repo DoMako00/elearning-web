@@ -20,7 +20,7 @@ async function invoke(handler: ReturnType<typeof createHttpApp>, path: string, h
 export async function runAdminReadAuthorizationSelfTest(): Promise<void> {
   let reads = 0;
   const admin = { queries: { getAdminOverview: async () => { reads += 1; return repositoryOk({}); }, m2: { listAcademicLevels: async () => { reads += 1; return repositoryOk([]); } } } } as unknown as AdminModule;
-  const allowed = createTestAdminRequestContext({ brandId: medwayBrandId, brandCode: "medway", permissions: ["admin.curriculum.read", "admin.brand_courses.read"] });
+  const allowed = createTestAdminRequestContext({ brandId: medwayBrandId, brandCode: "medway", permissions: ["admin.platform.admin.read"] });
   let resolverResult: ReturnType<typeof repositoryOk<typeof allowed>> | ReturnType<typeof repositoryErr> = repositoryOk(allowed);
   const resolver = { async resolve(input: { readonly requestedBrandCode?: "medway" | "elite" }) { return input.requestedBrandCode === "elite" ? repositoryErr({ code: "permission_denied", message: "denied" }) : resolverResult; } };
   const handler = createHttpApp({ admin, adminHttpContextResolver: resolver });
@@ -40,7 +40,7 @@ export async function runAdminReadAuthorizationSelfTest(): Promise<void> {
   assert(await invoke(handler, "/v1/admin/curriculum/levels", valid) === 403, "denied resolver must map safely");
   assert(Number(reads) === 0, "denied resolver reached protected read");
 
-  const withoutCurriculumPermission = createTestAdminRequestContext({ brandId: medwayBrandId, brandCode: "medway", permissions: ["admin.brand_courses.read"] });
+  const withoutCurriculumPermission = createTestAdminRequestContext({ brandId: medwayBrandId, brandCode: "medway", permissions: ["admin.audit.read"] });
   resolverResult = repositoryOk(withoutCurriculumPermission);
   assert(await invoke(handler, "/v1/admin/curriculum/levels", valid) === 403, "missing read permission must be denied");
   assert(Number(reads) === 0, "missing read permission reached protected read");

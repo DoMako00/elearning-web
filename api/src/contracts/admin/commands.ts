@@ -7,7 +7,7 @@ export interface AdminCommandMetadata {
   correlationId: CorrelationId;
   idempotencyKey?: IdempotencyKey;
   policySetId?: PolicySetId;
-  expectedVersion?: string | number;
+  expectedVersion?: number;
 }
 
 export interface AdminSensitiveCommandMetadata extends AdminCommandMetadata {
