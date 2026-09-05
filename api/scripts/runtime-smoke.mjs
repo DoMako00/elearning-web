@@ -191,6 +191,9 @@ async function run() {
         assertTruthy(page.includes("return '/api'+path"), "Documentation must send live requests through the public API proxy");
         assertTruthy(page.includes('data-response-view="json"'), "Documentation must default to a JSON response view");
         assertTruthy(!page.includes('id="tryButton"'), "Documentation must not render a manual try-it button");
+        const inlineScript = page.match(/<script>\s*([\s\S]*?)\s*<\/script>/);
+        assertTruthy(inlineScript?.[1], "Documentation inline script");
+        new Function(inlineScript[1]);
       }],
       ["M2 curriculum levels are mock-empty", async () => {
         const response = await request("GET", "/v1/admin/curriculum/levels");
