@@ -19,6 +19,11 @@ export function startHttpServerWithApplication(config: HttpRuntimeConfig = defau
       adminM2Source: ownedApplication!.adminM2Source,
       adminCommandSource: ownedApplication!.adminCommandSource,
     },
+    ...(ownedApplication!.persistence.readTransport ? {
+      databaseReadinessProbe: async () => {
+        await ownedApplication!.persistence.readTransport!.query({ label: "database_readiness", text: "SELECT 1 AS ready", values: [] });
+      },
+    } : {}),
   };
   const server = createServer(createHttpApp(application));
   if (ownedApplication) server.once("close", () => { void ownedApplication.close(); });
