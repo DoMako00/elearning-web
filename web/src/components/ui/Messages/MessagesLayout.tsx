@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import type {
-  Conversation,
+  // Conversation,
   ConversationFilter,
   Message,
   Attachment,
@@ -8,25 +8,53 @@ import type {
 } from "../../../types/chat";
 import {
   CURRENT_USER,
-  INITIAL_CONVERSATIONS,
   INITIAL_MESSAGES_MAP,
 } from "./messages.data";
 import { ConversationList } from "./ConversationList";
 import { ChatWindow } from "./ChatWindow";
 import { ChatContextSidebar } from "./ChatContextSidebar";
 import { useChatSocket } from "../../../hooks/useChatSocket";
+import { useMessages } from "../../../app/providers/MessagesProvider";
 import "./Messages.css";
 
 export const MessagesLayout: React.FC = () => {
-  const [conversations, setConversations] = useState<Conversation[]>(INITIAL_CONVERSATIONS);
-  const [activeConversationId, setActiveConversationId] = useState<string>("c1");
+  const { conversations, setConversations } = useMessages();
+  
+  // Track screen width <= 820px dynamically
+  const [isSmallScreen, setIsSmallScreen] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth <= 820 || window.matchMedia("(max-width: 820px)").matches;
+    }
+    return false;
+  });
+
+  // On screens <= 820px (iPad Air portrait / tablet / mobile), start with no selected chat
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(() => {
+    if (typeof window !== "undefined" && (window.innerWidth <= 820 || window.matchMedia("(max-width: 820px)").matches)) {
+      return null;
+    }
+    return "c1";
+  });
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 820px)");
+    const handler = (e: MediaQueryListEvent) => {
+      setIsSmallScreen(e.matches);
+    };
+
+    setIsSmallScreen(mediaQuery.matches);
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
+  }, []);
+
   const [messagesMap, setMessagesMap] = useState<Record<string, Message[]>>(INITIAL_MESSAGES_MAP);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentFilter, setCurrentFilter] = useState<ConversationFilter>("all");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const activeConversation =
-    conversations.find((c) => c.id === activeConversationId) || conversations[0];
+  const activeConversation = activeConversationId
+    ? conversations.find((c) => c.id === activeConversationId) || null
+    : null;
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -40,7 +68,7 @@ export const MessagesLayout: React.FC = () => {
     sendMessage: socketSendMessage,
     markConversationAsRead,
   } = useChatSocket({
-    conversationId: activeConversationId,
+    conversationId: activeConversationId || "",
     currentUserId: CURRENT_USER.id,
     currentUserName: CURRENT_USER.name,
     onNewMessage: useCallback(
@@ -91,15 +119,19 @@ export const MessagesLayout: React.FC = () => {
 
   // When active conversation changes, mark as read
   useEffect(() => {
-    markConversationAsRead();
-    setConversations((prev) =>
-      prev.map((c) => (c.id === activeConversationId ? { ...c, unreadCount: 0 } : c))
-    );
+    if (activeConversationId) {
+      markConversationAsRead();
+      setConversations((prev) =>
+        prev.map((c) => (c.id === activeConversationId ? { ...c, unreadCount: 0 } : c))
+      );
+    }
   }, [activeConversationId, markConversationAsRead]);
 
   // Handle Send with Optimistic UI updates
   const handleSendMessage = useCallback(
     (text: string, attachments?: Attachment[]) => {
+      if (!activeConversationId) return;
+
       socketSendMessage(
         text,
         attachments,
@@ -151,6 +183,7 @@ export const MessagesLayout: React.FC = () => {
   );
 
   const handleRetryMessage = (messageId: string) => {
+    if (!activeConversationId) return;
     const targetMsg = (messagesMap[activeConversationId] || []).find((m) => m.id === messageId);
     if (!targetMsg) return;
 
@@ -167,6 +200,12 @@ export const MessagesLayout: React.FC = () => {
     showToast("Starting a new message composition...");
   };
 
+  const handleBackToConversations = () => {
+    setActiveConversationId(null);
+  };
+
+  const hasSelectedChat = Boolean(activeConversation);
+
   return (
     <div className="messages-module h-full w-full flex overflow-hidden bg-white relative">
       {/* Toast Notification */}
@@ -176,8 +215,16 @@ export const MessagesLayout: React.FC = () => {
         </div>
       )}
 
-      {/* Column 1: Conversations Sidebar (~320px) */}
-      <div className="w-[320px] shrink-0 h-full flex flex-col">
+      {/* Column 1: Conversations Sidebar (~320px on desktop, full-width on <=820px when no chat is selected) */}
+      <div
+        className={`messages-sidebar-column ${
+          isSmallScreen
+            ? hasSelectedChat
+              ? "hidden"
+              : "flex w-full h-full"
+            : "w-[320px] shrink-0 h-full flex flex-col"
+        }`}
+      >
         <ConversationList
           conversations={conversations}
           activeId={activeConversationId}
@@ -190,12 +237,20 @@ export const MessagesLayout: React.FC = () => {
         />
       </div>
 
-      {/* Column 2: Active Chat Window (Flex-1) */}
-      <div className="flex-1 min-w-0 h-full flex flex-col">
+      {/* Column 2: Active Chat Window (Flex-1 on desktop, full-width on <=820px when a chat is selected) */}
+      <div
+        className={`messages-chat-column ${
+          isSmallScreen
+            ? !hasSelectedChat
+              ? "hidden"
+              : "flex w-full h-full"
+            : "flex-1 min-w-0 h-full flex flex-col"
+        }`}
+      >
         {activeConversation ? (
           <ChatWindow
             conversation={activeConversation}
-            messages={messagesMap[activeConversationId] || []}
+            messages={(activeConversationId && messagesMap[activeConversationId]) || []}
             currentUserId={CURRENT_USER.id}
             onSendMessage={handleSendMessage}
             onUserTyping={handleUserTyping}
@@ -204,6 +259,7 @@ export const MessagesLayout: React.FC = () => {
             onVideoCall={() => showToast(`Initiating video call with ${activeConversation.title}...`)}
             onAudioCall={() => showToast(`Calling ${activeConversation.title}...`)}
             onMoreActions={() => showToast("Conversation settings & options")}
+            onBack={isSmallScreen ? handleBackToConversations : undefined}
           />
         ) : (
           <div className="flex items-center justify-center h-full text-slate-400 text-sm">

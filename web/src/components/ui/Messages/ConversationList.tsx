@@ -4,7 +4,7 @@ import type { Conversation, ConversationFilter } from "../../../types/chat";
 
 interface ConversationListProps {
   conversations: Conversation[];
-  activeId: string;
+  activeId?: string | null;
   onSelect: (conversation: Conversation) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
@@ -24,8 +24,9 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   onNewMessageClick,
 }) => {
   // Compute counts
-  const unreadTotal = useMemo(() => {
-    return conversations.reduce((sum, c) => sum + (c.unreadCount > 0 ? c.unreadCount : 0), 0);
+  // Count how many *chats* have unread messages (not total unread message count)
+  const unreadChatsCount = useMemo(() => {
+    return conversations.filter((c) => c.unreadCount > 0).length;
   }, [conversations]);
 
   // Filter list
@@ -97,7 +98,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
             }`}
           >
             <span>Unread</span>
-            {unreadTotal > 0 && (
+            {unreadChatsCount > 0 && (
               <span
                 className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                   currentFilter === "unread"
@@ -105,7 +106,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                     : "bg-[#e2e8f0] text-slate-700"
                 }`}
               >
-                {unreadTotal}
+                {unreadChatsCount}
               </span>
             )}
           </button>

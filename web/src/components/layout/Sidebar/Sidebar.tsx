@@ -1,6 +1,7 @@
 import { ChevronLeft, Leaf } from "lucide-react";
 import { useRef, useState } from "react";
 import { useBrand } from "../../../app/providers/BrandProvider";
+import { useMessages } from "../../../app/providers/MessagesProvider";
 import { SidebarNavItem } from "./SidebarNavItem";
 import { SidebarProfileDropdown } from "./SidebarProfileDropdown";
 import {
@@ -14,6 +15,14 @@ export function Sidebar() {
   const { brand } = useBrand();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const { unreadChatsCount } = useMessages();
+
+  // Inject live unread-chats badge into the Messages nav item
+  const liveNavItems = primarySidebarItems.map((item) =>
+    item.label === "Messages"
+      ? { ...item, badge: unreadChatsCount || undefined }
+      : item
+  );
 
   return (
     <aside
@@ -34,7 +43,7 @@ export function Sidebar() {
 
       <nav className="sidebar-primary-nav mt-4" aria-label="Primary navigation">
         <ul className="space-y-(--sidebar-nav-gap)">
-          {primarySidebarItems.map((item) => (
+          {liveNavItems.map((item) => (
             <li key={item.label}>
               <SidebarNavItem item={item} />
             </li>

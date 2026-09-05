@@ -8,6 +8,7 @@ import {
   Send,
   X,
   FileText,
+  ChevronLeft,
 } from "lucide-react";
 import type { Conversation, Message, Attachment } from "../../../types/chat";
 import { MessageBubble } from "./MessageBubble";
@@ -23,6 +24,7 @@ interface ChatWindowProps {
   onVideoCall?: () => void;
   onAudioCall?: () => void;
   onMoreActions?: () => void;
+  onBack?: () => void;
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
@@ -36,6 +38,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   onVideoCall,
   onAudioCall,
   onMoreActions,
+  onBack,
 }) => {
   const [inputText, setInputText] = useState("");
   const [pendingAttachments, setPendingAttachments] = useState<Attachment[]>([]);
@@ -105,8 +108,21 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   return (
     <div className="flex flex-col h-full bg-[#fdfdfd] min-w-0 flex-1 relative select-none">
       {/* 1. Header Bar */}
-      <div className="h-16 border-b border-[#e8ecef] px-5 flex items-center justify-between bg-white shrink-0">
-        <div className="flex items-center gap-3 min-w-0">
+      <div className="h-16 border-b border-[#e8ecef] px-3.5 sm:px-5 flex items-center justify-between bg-white shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          {/* Back button for responsive tablet/mobile view */}
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="chat-back-btn mr-0.5 p-1.5 -ml-1 rounded-xl text-[#64748b] hover:text-[#20a862] hover:bg-[#f1f5f3] transition-colors shrink-0 flex items-center justify-center"
+              title="Back to conversations"
+              aria-label="Back to conversations"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          )}
+
           <div className="relative shrink-0">
             {conversation.avatarUrl ? (
               <img
