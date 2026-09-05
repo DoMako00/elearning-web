@@ -11,9 +11,9 @@ function parsePort(value: string | undefined): number | undefined {
   return Number.isInteger(port) && port >= 1 && port <= 65535 ? port : undefined;
 }
 
-function logStartup(host: string, port: number, nodeEnv: string): void {
-  console.log(`[api] service=api host=${host} port=${port} runtime=mock node_env=${nodeEnv}`);
-  console.log("[api] mock-backed HTTP skeleton");
+function logStartup(host: string, port: number, nodeEnv: string, runtimeMode: "mock" | "supabase"): void {
+  console.log(`[api] service=api host=${host} port=${port} runtime=${runtimeMode} node_env=${nodeEnv}`);
+  console.log(runtimeMode === "mock" ? "[api] mock-backed HTTP skeleton" : "[api] private Postgres-backed administrative API");
 }
 
 function registerGracefulShutdown(server: Server, disposeDiagnostics?: () => void): void {
@@ -48,17 +48,17 @@ export function startApiRuntime(): void {
     process.exitCode = 1;
     return;
   }
-  if (runtimeMode !== "mock") {
-    console.error("[api] startup aborted: ADMIN_RUNTIME_MODE must be mock for the current runtime.");
+  if (runtimeMode !== "mock" && runtimeMode !== "supabase") {
+    console.error("[api] startup aborted: ADMIN_RUNTIME_MODE must be mock or supabase.");
     process.exitCode = 1;
     return;
   }
 
   try {
-    const started = startHttpServerWithApplication({ port, host, runtimeMode: "mock", serviceName: "api" });
+    const started = startHttpServerWithApplication({ port, host, runtimeMode, serviceName: "api" });
     const diagnostics = started.application?.adminReadVerifierDiagnostics;
     const disposeDiagnostics = diagnostics ? installAdminReadVerifierDiagnosticsIpc(process, diagnostics) : undefined;
-    logStartup(host, port, nodeEnv);
+    logStartup(host, port, nodeEnv, runtimeMode);
     registerGracefulShutdown(started.server, disposeDiagnostics);
   } catch {
     console.error("[api] startup failed");

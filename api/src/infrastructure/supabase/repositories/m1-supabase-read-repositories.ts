@@ -1,296 +1,46 @@
 import type { BrandScope } from "../../../core/brand-scope";
 import { repositoryErr, repositoryOk, type RepositoryResult } from "../../../core/persistence";
-import type {
-  M1AdminPermission,
-  M1AdminPermissionReadRepository,
-  M1AdminAuthorizationSnapshot,
-  M1AdminProfile,
-  M1AdminProfileReadRepository,
-  M1AdminRole,
-  M1AdminRoleAssignment,
-  M1AdminRoleAssignmentReadRepository,
-  M1AdminRolePermission,
-  M1AdminRolePermissionReadRepository,
-  M1AdminRoleReadRepository,
-  M1AppUser,
-  M1AppUserReadRepository,
-  M1BrandMembership,
-  M1BrandMembershipReadRepository,
-  M1EducationalBrand,
-  M1EducationalBrandReadRepository,
-  M1StudentProfile,
-  M1StudentProfileReadRepository,
-} from "../../../core/repositories";
+import type * as M1 from "../../../core/repositories/m1-read-repositories";
 import type { ReadQueryRequest, ReadQueryTransport } from "../read-query-transport";
 import { nullablePersistenceTimestamp, requiredPersistenceTimestamp } from "./persistence-timestamp";
 
-type Row = Readonly<Record<string, unknown>>;
+type Row=Readonly<Record<string,unknown>>;
+const str=(r:Row,k:string)=>{const v=r[k];if(typeof v!=="string"||!v)throw new Error(k);return v};
+const nullable=(r:Row,k:string)=>{const v=r[k];if(v==null)return null;if(typeof v!=="string")throw new Error(k);return v};
+const integer=(r:Row,k:string)=>{const v=r[k];const n=typeof v==="string"?Number(v):v;if(typeof n!=="number"||!Number.isSafeInteger(n))throw new Error(k);return n};
+const one=<T extends string>(r:Row,k:string,a:readonly T[])=>{const v=str(r,k);if(!a.includes(v as T))throw new Error(k);return v as T};
+const strings=(r:Row,k:string)=>{const v=r[k];if(!Array.isArray(v)||v.some(x=>typeof x!=="string"))throw new Error(k);return Object.freeze([...new Set(v as string[])].sort())};
+const versioned=(r:Row)=>({id:str(r,"id"),createdAt:requiredPersistenceTimestamp(r.created_at),updatedAt:requiredPersistenceTimestamp(r.updated_at),version:integer(r,"version")});
+const brand=(r:Row):M1.M1EducationalBrand=>({...versioned(r),code:one(r,"code",["medway","elite"]),name:str(r,"name"),slug:str(r,"slug"),status:one(r,"status",["active","inactive"])});
+const user=(r:Row):M1.M1AppUser=>({...versioned(r),authUserId:str(r,"auth_user_id"),primaryEmail:null,primaryPhone:null,status:one(r,"status",["pending","active","suspended","disabled"])});
+const membership=(r:Row):M1.M1BrandMembership=>({...versioned(r),appUserId:str(r,"app_user_id"),brandId:str(r,"brand_id"),status:one(r,"status",["pending","active","suspended","ended","revoked"]),validFrom:requiredPersistenceTimestamp(r.valid_from),validUntil:nullablePersistenceTimestamp(r.valid_until)});
+const student=(r:Row):M1.M1StudentProfile=>({...versioned(r),brandMembershipId:str(r,"brand_membership_id"),appUserId:str(r,"app_user_id"),brandId:str(r,"brand_id"),status:one(r,"status",["active","inactive","archived"])});
+const profile=(r:Row):M1.M1AdminProfile=>({...versioned(r),appUserId:str(r,"app_user_id"),status:one(r,"status",["active","suspended","disabled"])});
+const permission=(r:Row):M1.M1AdminPermission=>({...versioned(r),code:str(r,"code"),description:str(r,"description"),status:one(r,"status",["active","retired"])});
+const role=(r:Row):M1.M1AdminRole=>({...versioned(r),code:str(r,"code"),name:str(r,"name"),assignmentScope:one(r,"assignment_scope",["platform"] as const),status:one(r,"status",["active","retired"])});
+const rolePermission=(r:Row):M1.M1AdminRolePermission=>({roleId:str(r,"admin_role_id"),permissionId:str(r,"admin_permission_id"),createdAt:requiredPersistenceTimestamp(r.created_at)});
+const assignment=(r:Row):M1.M1AdminRoleAssignment=>({...versioned(r),adminProfileId:str(r,"admin_profile_id"),roleId:str(r,"admin_role_id"),assignedByAdminProfileId:nullable(r,"assigned_by_admin_profile_id"),validFrom:requiredPersistenceTimestamp(r.valid_from),validUntil:nullablePersistenceTimestamp(r.valid_until),status:one(r,"status",["active","inactive","expired","revoked"])});
+const authorization=(r:Row):M1.M1AdminAuthorizationSnapshot=>({appUser:{id:str(r,"app_user_id"),authUserId:str(r,"auth_user_id"),primaryEmail:null,primaryPhone:null,status:one(r,"app_user_status",["pending","active","suspended","disabled"]),createdAt:requiredPersistenceTimestamp(r.app_user_created_at),updatedAt:requiredPersistenceTimestamp(r.app_user_updated_at),version:integer(r,"app_user_version")},adminProfile:{id:str(r,"admin_profile_id"),appUserId:str(r,"app_user_id"),status:one(r,"admin_profile_status",["active","suspended","disabled"]),createdAt:requiredPersistenceTimestamp(r.admin_profile_created_at),updatedAt:requiredPersistenceTimestamp(r.admin_profile_updated_at),version:integer(r,"admin_profile_version")},roleCodes:strings(r,"role_codes"),permissionCodes:strings(r,"permission_codes")});
 
-function requiredString(row: Row, column: string): string {
-  const value = row[column];
-  if (typeof value !== "string" || !value) throw new Error(`Required persistence column is malformed: ${column}.`);
-  return value;
-}
+abstract class Base{constructor(protected readonly transport:ReadQueryTransport){}protected async one(q:ReadQueryRequest,c?:string):Promise<RepositoryResult<Row>>{try{const r=(await this.transport.query<Row>(q)).rows[0];return r?repositoryOk(r):repositoryErr({code:"not_found",message:"Requested record was not found.",correlationId:c})}catch{return repositoryErr({code:"query_failed",message:"Persistence read failed.",correlationId:c})}}protected async many(q:ReadQueryRequest,c?:string):Promise<RepositoryResult<readonly Row[]>>{try{return repositoryOk((await this.transport.query<Row>(q)).rows)}catch{return repositoryErr({code:"query_failed",message:"Persistence read failed.",correlationId:c})}}}
+const mapOne=<T>(r:RepositoryResult<Row>,f:(x:Row)=>T,c?:string):RepositoryResult<T>=>{if(!r.ok)return r;try{return repositoryOk(f(r.value))}catch{return repositoryErr({code:"persistence_data_invalid",message:"Persisted data is malformed.",correlationId:c})}};
+const mapMany=<T>(r:RepositoryResult<readonly Row[]>,f:(x:Row)=>T,c?:string):RepositoryResult<readonly T[]>=>{if(!r.ok)return r;try{return repositoryOk(r.value.map(f))}catch{return repositoryErr({code:"persistence_data_invalid",message:"Persisted data is malformed.",correlationId:c})}};
+const BRANDS="id, code, name, slug, status, created_at, updated_at, version";
+const USERS="id, auth_user_id, status, created_at, updated_at, version";
+const MEMBERSHIPS="id, app_user_id, brand_id, status, valid_from, valid_until, created_at, updated_at, version";
+const STUDENTS="id, brand_membership_id, app_user_id, brand_id, status, created_at, updated_at, version";
+const PROFILES="id, app_user_id, status, created_at, updated_at, version";
+const PERMISSIONS="id, code, description, status, created_at, updated_at, version";
+const ROLES="id, code, name, assignment_scope, status, created_at, updated_at, version";
+const ASSIGNMENTS="id, admin_profile_id, admin_role_id, assigned_by_admin_profile_id, valid_from, valid_until, status, created_at, updated_at, version";
+const AUTH_SQL="select au.id as app_user_id, au.auth_user_id, au.status as app_user_status, au.created_at as app_user_created_at, au.updated_at as app_user_updated_at, au.version as app_user_version, ap.id as admin_profile_id, ap.status as admin_profile_status, ap.created_at as admin_profile_created_at, ap.updated_at as admin_profile_updated_at, ap.version as admin_profile_version, coalesce(array_agg(distinct ar.code) filter (where para.status='active' and para.valid_from <= now() and (para.valid_until is null or para.valid_until > now()) and ar.status='active'),array[]::text[]) as role_codes, coalesce(array_agg(distinct perm.code) filter (where para.status='active' and para.valid_from <= now() and (para.valid_until is null or para.valid_until > now()) and ar.status='active' and perm.status='active'),array[]::text[]) as permission_codes from app.app_users au join app.admin_profiles ap on ap.app_user_id=au.id left join app.platform_admin_role_assignments para on para.admin_profile_id=ap.id left join app.admin_roles ar on ar.id=para.admin_role_id left join app.admin_role_permissions arp on arp.admin_role_id=ar.id left join app.admin_permissions perm on perm.id=arp.admin_permission_id where au.auth_user_id=$1 group by au.id,ap.id";
 
-function nullableString(row: Row, column: string): string | null {
-  const value = row[column];
-  if (value === null || value === undefined) return null;
-  if (typeof value !== "string") throw new Error(`Nullable persistence column is malformed: ${column}.`);
-  return value;
-}
-
-function stringArray(row: Row, column: string): readonly string[] {
-  const value = row[column];
-  if (!Array.isArray(value) || value.some((item) => typeof item !== "string" || !item)) {
-    throw new Error(`Persistence array column is malformed: ${column}.`);
-  }
-  return Object.freeze([...new Set(value)].sort((left, right) => left.localeCompare(right)));
-}
-
-function oneOf<T extends string>(row: Row, column: string, allowed: readonly T[]): T {
-  const value = requiredString(row, column);
-  if ((allowed as readonly string[]).includes(value)) return value as T;
-  throw new Error(`Persistence status is malformed: ${column}.`);
-}
-
-function mapResult<T>(
-  result: RepositoryResult<Row>,
-  mapper: (row: Row) => T,
-  correlationId?: string,
-): RepositoryResult<T> {
-  if (!result.ok) return result;
-  try {
-    return repositoryOk(mapper(result.value));
-  } catch {
-    return repositoryErr({ code: "persistence_data_invalid", message: "Persisted data is malformed.", correlationId });
-  }
-}
-
-function mapListResult<T>(
-  result: RepositoryResult<readonly Row[]>,
-  mapper: (row: Row) => T,
-  correlationId?: string,
-): RepositoryResult<readonly T[]> {
-  if (!result.ok) return result;
-  try {
-    return repositoryOk(result.value.map(mapper));
-  } catch {
-    return repositoryErr({ code: "persistence_data_invalid", message: "Persisted data is malformed.", correlationId });
-  }
-}
-
-class SupabaseM1ReadRepositoryBase {
-  constructor(protected readonly transport: ReadQueryTransport) {}
-
-  protected async one(request: ReadQueryRequest, correlationId?: string): Promise<RepositoryResult<Row>> {
-    try {
-      const result = await this.transport.query<Row>(request);
-      return result.rows[0]
-        ? repositoryOk(result.rows[0])
-        : repositoryErr({ code: "not_found", message: "Requested record was not found.", correlationId });
-    } catch {
-      return repositoryErr({ code: "query_failed", message: "Persistence read failed.", correlationId });
-    }
-  }
-
-  protected async many(request: ReadQueryRequest, correlationId?: string): Promise<RepositoryResult<readonly Row[]>> {
-    try {
-      return repositoryOk((await this.transport.query<Row>(request)).rows);
-    } catch {
-      return repositoryErr({ code: "query_failed", message: "Persistence read failed.", correlationId });
-    }
-  }
-}
-
-function mapEducationalBrand(row: Row): M1EducationalBrand {
-  return {
-    id: requiredString(row, "id"), code: oneOf(row, "code", ["medway", "elite"]), name: requiredString(row, "name"),
-    slug: requiredString(row, "slug"), status: oneOf(row, "status", ["active", "inactive"]),
-    createdAt: requiredPersistenceTimestamp(row.created_at), updatedAt: requiredPersistenceTimestamp(row.updated_at),
-  };
-}
-
-function mapAppUser(row: Row): M1AppUser {
-  return {
-    id: requiredString(row, "id"), authUserId: requiredString(row, "auth_user_id"),
-    primaryEmail: nullableString(row, "primary_email"), primaryPhone: nullableString(row, "primary_phone"),
-    status: oneOf(row, "status", ["active", "disabled", "anonymized"]),
-    createdAt: requiredPersistenceTimestamp(row.created_at), updatedAt: requiredPersistenceTimestamp(row.updated_at),
-  };
-}
-
-function mapBrandMembership(row: Row): M1BrandMembership {
-  return {
-    id: requiredString(row, "id"), brandId: requiredString(row, "brand_id"), appUserId: requiredString(row, "app_user_id"),
-    membershipType: oneOf(row, "membership_type", ["student", "admin_candidate", "staff"]),
-    status: oneOf(row, "status", ["pending_payment", "pending_review", "active", "suspended", "expired", "cancelled", "rejected"]),
-    activatedAt: nullablePersistenceTimestamp(row.activated_at), suspendedAt: nullablePersistenceTimestamp(row.suspended_at),
-    expiredAt: nullablePersistenceTimestamp(row.expired_at), cancelledAt: nullablePersistenceTimestamp(row.cancelled_at), rejectedAt: nullablePersistenceTimestamp(row.rejected_at),
-    createdAt: requiredPersistenceTimestamp(row.created_at), updatedAt: requiredPersistenceTimestamp(row.updated_at),
-  };
-}
-
-function mapStudentProfile(row: Row): M1StudentProfile {
-  return {
-    id: requiredString(row, "id"), brandId: requiredString(row, "brand_id"), appUserId: requiredString(row, "app_user_id"),
-    brandMembershipId: requiredString(row, "brand_membership_id"), fullName: requiredString(row, "full_name"),
-    phone: nullableString(row, "phone"), email: nullableString(row, "email"), academicYear: nullableString(row, "academic_year"),
-    academicTerm: nullableString(row, "academic_term"), university: nullableString(row, "university"), studentId: nullableString(row, "student_id"),
-    status: oneOf(row, "status", ["pending", "active", "suspended", "archived"]),
-    createdAt: requiredPersistenceTimestamp(row.created_at), updatedAt: requiredPersistenceTimestamp(row.updated_at),
-  };
-}
-
-function mapAdminProfile(row: Row): M1AdminProfile {
-  return {
-    id: requiredString(row, "id"), brandId: requiredString(row, "brand_id"), appUserId: requiredString(row, "app_user_id"),
-    displayName: requiredString(row, "display_name"), status: oneOf(row, "status", ["active", "suspended", "revoked"]),
-    createdAt: requiredPersistenceTimestamp(row.created_at), updatedAt: requiredPersistenceTimestamp(row.updated_at),
-  };
-}
-
-function mapAdminAuthorizationSnapshot(row: Row): M1AdminAuthorizationSnapshot {
-  return {
-    appUser: {
-      id: requiredString(row, "app_user_id"), authUserId: requiredString(row, "auth_user_id"),
-      primaryEmail: nullableString(row, "primary_email"), primaryPhone: nullableString(row, "primary_phone"),
-      status: oneOf(row, "app_user_status", ["active", "disabled", "anonymized"]),
-      createdAt: requiredPersistenceTimestamp(row.app_user_created_at), updatedAt: requiredPersistenceTimestamp(row.app_user_updated_at),
-    },
-    adminProfile: {
-      id: requiredString(row, "admin_profile_id"), brandId: requiredString(row, "brand_id"), appUserId: requiredString(row, "app_user_id"),
-      displayName: requiredString(row, "display_name"), status: oneOf(row, "admin_profile_status", ["active", "suspended", "revoked"]),
-      createdAt: requiredPersistenceTimestamp(row.admin_profile_created_at), updatedAt: requiredPersistenceTimestamp(row.admin_profile_updated_at),
-    },
-    roleCodes: stringArray(row, "role_codes"),
-    permissionCodes: stringArray(row, "permission_codes"),
-  };
-}
-
-function mapAdminPermission(row: Row): M1AdminPermission {
-  return {
-    id: requiredString(row, "id"), code: requiredString(row, "code"), category: requiredString(row, "category"),
-    description: nullableString(row, "description"), status: oneOf(row, "status", ["active", "deprecated", "disabled"]),
-    createdAt: requiredPersistenceTimestamp(row.created_at), updatedAt: requiredPersistenceTimestamp(row.updated_at),
-  };
-}
-
-function mapAdminRole(row: Row): M1AdminRole {
-  return {
-    id: requiredString(row, "id"), brandId: requiredString(row, "brand_id"), code: requiredString(row, "code"),
-    name: requiredString(row, "name"), description: nullableString(row, "description"),
-    status: oneOf(row, "status", ["active", "disabled", "archived"]),
-    createdAt: requiredPersistenceTimestamp(row.created_at), updatedAt: requiredPersistenceTimestamp(row.updated_at),
-  };
-}
-
-function mapAdminRolePermission(row: Row): M1AdminRolePermission {
-  return { roleId: requiredString(row, "role_id"), permissionId: requiredString(row, "permission_id"), createdAt: requiredPersistenceTimestamp(row.created_at) };
-}
-
-function mapAdminRoleAssignment(row: Row): M1AdminRoleAssignment {
-  return {
-    id: requiredString(row, "id"), brandId: requiredString(row, "brand_id"), adminProfileId: requiredString(row, "admin_profile_id"),
-    roleId: requiredString(row, "role_id"), assignedByAdminProfileId: nullableString(row, "assigned_by_admin_profile_id"),
-    assignedAt: requiredPersistenceTimestamp(row.assigned_at), revokedAt: nullablePersistenceTimestamp(row.revoked_at),
-    status: oneOf(row, "status", ["active", "revoked"]), createdAt: requiredPersistenceTimestamp(row.created_at), updatedAt: requiredPersistenceTimestamp(row.updated_at),
-  };
-}
-
-const educationalBrandColumns = "id, code, name, slug, status, created_at, updated_at";
-const appUserColumns = "id, auth_user_id, primary_email, primary_phone, status, created_at, updated_at";
-const membershipColumns = "id, brand_id, app_user_id, membership_type, status, activated_at, suspended_at, expired_at, cancelled_at, rejected_at, created_at, updated_at";
-const studentProfileColumns = "id, brand_id, app_user_id, brand_membership_id, full_name, phone, email, academic_year, academic_term, university, student_id, status, created_at, updated_at";
-const adminProfileColumns = "id, brand_id, app_user_id, display_name, status, created_at, updated_at";
-const adminPermissionColumns = "id, code, category, description, status, created_at, updated_at";
-const adminRoleColumns = "id, brand_id, code, name, description, status, created_at, updated_at";
-const adminRoleAssignmentColumns = "id, brand_id, admin_profile_id, role_id, assigned_by_admin_profile_id, assigned_at, revoked_at, status, created_at, updated_at";
-
-export class SupabaseM1EducationalBrandReadRepository extends SupabaseM1ReadRepositoryBase implements M1EducationalBrandReadRepository {
-  async findEducationalBrandById(input: { readonly id: string; readonly correlationId?: string }): Promise<RepositoryResult<M1EducationalBrand>> {
-    return mapResult(await this.one({ label: "m1.educational-brand.by-id", text: `select ${educationalBrandColumns} from app.educational_brands where id = $1 limit 1`, values: [input.id] }, input.correlationId), mapEducationalBrand, input.correlationId);
-  }
-  async findEducationalBrandByCode(input: { readonly code: "medway" | "elite"; readonly correlationId?: string }): Promise<RepositoryResult<M1EducationalBrand>> {
-    return mapResult(await this.one({ label: "m1.educational-brand.by-code", text: `select ${educationalBrandColumns} from app.educational_brands where code = $1 limit 1`, values: [input.code] }, input.correlationId), mapEducationalBrand, input.correlationId);
-  }
-}
-
-export class SupabaseM1AppUserReadRepository extends SupabaseM1ReadRepositoryBase implements M1AppUserReadRepository {
-  async findAppUserById(input: { readonly id: string; readonly correlationId?: string }): Promise<RepositoryResult<M1AppUser>> {
-    return mapResult(await this.one({ label: "m1.app-user.by-id", text: `select ${appUserColumns} from app.app_users where id = $1 limit 1`, values: [input.id] }, input.correlationId), mapAppUser, input.correlationId);
-  }
-  async findAppUserByAuthUserId(input: { readonly authUserId: string; readonly correlationId?: string }): Promise<RepositoryResult<M1AppUser>> {
-    return mapResult(await this.one({ label: "m1.app-user.by-auth-user-id", text: `select ${appUserColumns} from app.app_users where auth_user_id = $1 limit 1`, values: [input.authUserId] }, input.correlationId), mapAppUser, input.correlationId);
-  }
-}
-
-export class SupabaseM1BrandMembershipReadRepository extends SupabaseM1ReadRepositoryBase implements M1BrandMembershipReadRepository {
-  async findBrandMembershipByUserId(input: { readonly appUserId: string; readonly brand: BrandScope; readonly correlationId?: string }): Promise<RepositoryResult<M1BrandMembership>> {
-    return mapResult(await this.one({ label: "m1.brand-membership.by-user-brand", text: `select ${membershipColumns} from app.brand_memberships where app_user_id = $1 and brand_id = $2 limit 1`, values: [input.appUserId, input.brand.brandId] }, input.correlationId), mapBrandMembership, input.correlationId);
-  }
-}
-
-export class SupabaseM1StudentProfileReadRepository extends SupabaseM1ReadRepositoryBase implements M1StudentProfileReadRepository {
-  async findStudentProfileById(input: { readonly id: string; readonly brand: BrandScope; readonly correlationId?: string }): Promise<RepositoryResult<M1StudentProfile>> {
-    return mapResult(await this.one({ label: "m1.student-profile.by-id-brand", text: `select ${studentProfileColumns} from app.student_profiles where id = $1 and brand_id = $2 limit 1`, values: [input.id, input.brand.brandId] }, input.correlationId), mapStudentProfile, input.correlationId);
-  }
-  async findStudentProfileByUserId(input: { readonly appUserId: string; readonly brand: BrandScope; readonly correlationId?: string }): Promise<RepositoryResult<M1StudentProfile>> {
-    return mapResult(await this.one({ label: "m1.student-profile.by-user-brand", text: `select ${studentProfileColumns} from app.student_profiles where app_user_id = $1 and brand_id = $2 limit 1`, values: [input.appUserId, input.brand.brandId] }, input.correlationId), mapStudentProfile, input.correlationId);
-  }
-  async listStudentProfilesByBrand(input: { readonly brand: BrandScope; readonly correlationId?: string }): Promise<RepositoryResult<readonly M1StudentProfile[]>> {
-    return mapListResult(await this.many({ label: "m1.student-profile.list-brand", text: `select ${studentProfileColumns} from app.student_profiles where brand_id = $1 order by created_at asc`, values: [input.brand.brandId] }, input.correlationId), mapStudentProfile, input.correlationId);
-  }
-}
-
-export class SupabaseM1AdminProfileReadRepository extends SupabaseM1ReadRepositoryBase implements M1AdminProfileReadRepository {
-  async findAdminProfileById(input: { readonly id: string; readonly brand: BrandScope; readonly correlationId?: string }): Promise<RepositoryResult<M1AdminProfile>> {
-    return mapResult(await this.one({ label: "m1.admin-profile.by-id-brand", text: `select ${adminProfileColumns} from app.admin_profiles where id = $1 and brand_id = $2 limit 1`, values: [input.id, input.brand.brandId] }, input.correlationId), mapAdminProfile, input.correlationId);
-  }
-  async findAdminProfileByUserId(input: { readonly appUserId: string; readonly brand: BrandScope; readonly correlationId?: string }): Promise<RepositoryResult<M1AdminProfile>> {
-    return mapResult(await this.one({ label: "m1.admin-profile.by-user-brand", text: `select ${adminProfileColumns} from app.admin_profiles where app_user_id = $1 and brand_id = $2 limit 1`, values: [input.appUserId, input.brand.brandId] }, input.correlationId), mapAdminProfile, input.correlationId);
-  }
-  async resolveAdminAuthorizationByAuthUserId(input: { readonly authUserId: string; readonly brand: BrandScope; readonly correlationId?: string }): Promise<RepositoryResult<M1AdminAuthorizationSnapshot>> {
-    return mapResult(await this.one({
-      label: "m1.admin-authorization.by-auth-user-brand",
-      text: "select au.id as app_user_id, au.auth_user_id, au.primary_email, au.primary_phone, au.status as app_user_status, au.created_at as app_user_created_at, au.updated_at as app_user_updated_at, ap.id as admin_profile_id, ap.brand_id, ap.display_name, ap.status as admin_profile_status, ap.created_at as admin_profile_created_at, ap.updated_at as admin_profile_updated_at, coalesce(array_agg(distinct ar.code) filter (where ara.status = 'active' and ar.status = 'active'), array[]::text[]) as role_codes, coalesce(array_agg(distinct perm.code) filter (where ara.status = 'active' and ar.status = 'active' and perm.status = 'active'), array[]::text[]) as permission_codes from app.app_users au inner join app.admin_profiles ap on ap.app_user_id = au.id left join app.admin_role_assignments ara on ara.admin_profile_id = ap.id and ara.brand_id = ap.brand_id left join app.admin_roles ar on ar.id = ara.role_id and ar.brand_id = ap.brand_id left join app.admin_role_permissions arp on arp.role_id = ar.id left join app.admin_permissions perm on perm.id = arp.permission_id where au.auth_user_id = $1 and ap.brand_id = $2 group by au.id, au.auth_user_id, au.primary_email, au.primary_phone, au.status, au.created_at, au.updated_at, ap.id, ap.brand_id, ap.display_name, ap.status, ap.created_at, ap.updated_at limit 1",
-      values: [input.authUserId, input.brand.brandId],
-    }, input.correlationId), mapAdminAuthorizationSnapshot, input.correlationId);
-  }
-  async listAdminAuthorizationsByAuthUserId(input: { readonly authUserId: string; readonly correlationId?: string }): Promise<RepositoryResult<readonly M1AdminAuthorizationSnapshot[]>> {
-    return mapListResult(await this.many({
-      label: "m1.admin-authorization.list-by-auth-user",
-      text: "select au.id as app_user_id, au.auth_user_id, au.primary_email, au.primary_phone, au.status as app_user_status, au.created_at as app_user_created_at, au.updated_at as app_user_updated_at, ap.id as admin_profile_id, ap.brand_id, ap.display_name, ap.status as admin_profile_status, ap.created_at as admin_profile_created_at, ap.updated_at as admin_profile_updated_at, coalesce(array_agg(distinct ar.code) filter (where ara.status = 'active' and ar.status = 'active'), array[]::text[]) as role_codes, coalesce(array_agg(distinct perm.code) filter (where ara.status = 'active' and ar.status = 'active' and perm.status = 'active'), array[]::text[]) as permission_codes from app.app_users au inner join app.admin_profiles ap on ap.app_user_id = au.id left join app.admin_role_assignments ara on ara.admin_profile_id = ap.id and ara.brand_id = ap.brand_id left join app.admin_roles ar on ar.id = ara.role_id and ar.brand_id = ap.brand_id left join app.admin_role_permissions arp on arp.role_id = ar.id left join app.admin_permissions perm on perm.id = arp.permission_id where au.auth_user_id = $1 group by au.id, au.auth_user_id, au.primary_email, au.primary_phone, au.status, au.created_at, au.updated_at, ap.id, ap.brand_id, ap.display_name, ap.status, ap.created_at, ap.updated_at order by ap.id asc",
-      values: [input.authUserId],
-    }, input.correlationId), mapAdminAuthorizationSnapshot, input.correlationId);
-  }
-}
-
-export class SupabaseM1AdminRoleReadRepository extends SupabaseM1ReadRepositoryBase implements M1AdminRoleReadRepository {
-  async findAdminRoleById(input: { readonly id: string; readonly brand: BrandScope; readonly correlationId?: string }): Promise<RepositoryResult<M1AdminRole>> {
-    return mapResult(await this.one({ label: "m1.admin-role.by-id-brand", text: `select ${adminRoleColumns} from app.admin_roles where id = $1 and brand_id = $2 limit 1`, values: [input.id, input.brand.brandId] }, input.correlationId), mapAdminRole, input.correlationId);
-  }
-  async listAdminRolesByBrand(input: { readonly brand: BrandScope; readonly correlationId?: string }): Promise<RepositoryResult<readonly M1AdminRole[]>> {
-    return mapListResult(await this.many({ label: "m1.admin-role.list-brand", text: `select ${adminRoleColumns} from app.admin_roles where brand_id = $1 order by code asc`, values: [input.brand.brandId] }, input.correlationId), mapAdminRole, input.correlationId);
-  }
-}
-
-export class SupabaseM1AdminPermissionReadRepository extends SupabaseM1ReadRepositoryBase implements M1AdminPermissionReadRepository {
-  async findAdminPermissionById(input: { readonly id: string; readonly correlationId?: string }): Promise<RepositoryResult<M1AdminPermission>> {
-    return mapResult(await this.one({ label: "m1.admin-permission.by-id", text: `select ${adminPermissionColumns} from app.admin_permissions where id = $1 limit 1`, values: [input.id] }, input.correlationId), mapAdminPermission, input.correlationId);
-  }
-  async findAdminPermissionByCode(input: { readonly code: string; readonly correlationId?: string }): Promise<RepositoryResult<M1AdminPermission>> {
-    return mapResult(await this.one({ label: "m1.admin-permission.by-code", text: `select ${adminPermissionColumns} from app.admin_permissions where code = $1 limit 1`, values: [input.code] }, input.correlationId), mapAdminPermission, input.correlationId);
-  }
-}
-
-export class SupabaseM1AdminRolePermissionReadRepository extends SupabaseM1ReadRepositoryBase implements M1AdminRolePermissionReadRepository {
-  async listAdminRolePermissions(input: { readonly roleId: string; readonly brand: BrandScope; readonly correlationId?: string }): Promise<RepositoryResult<readonly M1AdminRolePermission[]>> {
-    return mapListResult(await this.many({ label: "m1.admin-role-permission.list-role-brand", text: "select rp.role_id, rp.permission_id, rp.created_at from app.admin_role_permissions rp inner join app.admin_roles r on r.id = rp.role_id where rp.role_id = $1 and r.brand_id = $2 order by rp.permission_id asc", values: [input.roleId, input.brand.brandId] }, input.correlationId), mapAdminRolePermission, input.correlationId);
-  }
-}
-
-export class SupabaseM1AdminRoleAssignmentReadRepository extends SupabaseM1ReadRepositoryBase implements M1AdminRoleAssignmentReadRepository {
-  async listAdminRoleAssignmentsForProfile(input: { readonly adminProfileId: string; readonly brand: BrandScope; readonly correlationId?: string }): Promise<RepositoryResult<readonly M1AdminRoleAssignment[]>> {
-    return mapListResult(await this.many({ label: "m1.admin-role-assignment.list-profile-brand", text: `select ${adminRoleAssignmentColumns} from app.admin_role_assignments where admin_profile_id = $1 and brand_id = $2 order by assigned_at asc`, values: [input.adminProfileId, input.brand.brandId] }, input.correlationId), mapAdminRoleAssignment, input.correlationId);
-  }
-}
+export class SupabaseM1EducationalBrandReadRepository extends Base implements M1.M1EducationalBrandReadRepository{async findEducationalBrandById(i:{id:string;correlationId?:string}){return mapOne(await this.one({label:"m1.brand.by-id",text:`select ${BRANDS} from app.educational_brands where id=$1`,values:[i.id]},i.correlationId),brand,i.correlationId)}async findEducationalBrandByCode(i:{code:"medway"|"elite";correlationId?:string}){return mapOne(await this.one({label:"m1.brand.by-code",text:`select ${BRANDS} from app.educational_brands where code=$1`,values:[i.code]},i.correlationId),brand,i.correlationId)}}
+export class SupabaseM1AppUserReadRepository extends Base implements M1.M1AppUserReadRepository{async findAppUserById(i:{id:string;correlationId?:string}){return mapOne(await this.one({label:"m1.user.by-id",text:`select ${USERS} from app.app_users where id=$1`,values:[i.id]},i.correlationId),user,i.correlationId)}async findAppUserByAuthUserId(i:{authUserId:string;correlationId?:string}){return mapOne(await this.one({label:"m1.user.by-auth",text:`select ${USERS} from app.app_users where auth_user_id=$1`,values:[i.authUserId]},i.correlationId),user,i.correlationId)}}
+export class SupabaseM1BrandMembershipReadRepository extends Base implements M1.M1BrandMembershipReadRepository{async findBrandMembershipByUserId(i:{appUserId:string;brand:BrandScope;correlationId?:string}){return mapOne(await this.one({label:"m1.membership.by-user-brand",text:`select ${MEMBERSHIPS} from app.brand_memberships where app_user_id=$1 and brand_id=$2 order by (status='active') desc, created_at desc limit 1`,values:[i.appUserId,i.brand.brandId]},i.correlationId),membership,i.correlationId)}}
+export class SupabaseM1StudentProfileReadRepository extends Base implements M1.M1StudentProfileReadRepository{async findStudentProfileById(i:{id:string;brand:BrandScope;correlationId?:string}){return mapOne(await this.one({label:"m1.student.by-id-brand",text:`select ${STUDENTS} from app.student_profiles where id=$1 and brand_id=$2`,values:[i.id,i.brand.brandId]},i.correlationId),student,i.correlationId)}async findStudentProfileByUserId(i:{appUserId:string;brand:BrandScope;correlationId?:string}){return mapOne(await this.one({label:"m1.student.by-user-brand",text:`select ${STUDENTS} from app.student_profiles where app_user_id=$1 and brand_id=$2`,values:[i.appUserId,i.brand.brandId]},i.correlationId),student,i.correlationId)}async listStudentProfilesByBrand(i:{brand:BrandScope;correlationId?:string}){return mapMany(await this.many({label:"m1.student.list-brand",text:`select ${STUDENTS} from app.student_profiles where brand_id=$1 order by created_at,id`,values:[i.brand.brandId]},i.correlationId),student,i.correlationId)}}
+export class SupabaseM1AdminProfileReadRepository extends Base implements M1.M1AdminProfileReadRepository{async findAdminProfileById(i:{id:string;brand:BrandScope;correlationId?:string}){return mapOne(await this.one({label:"m1.admin-profile.by-id",text:`select ${PROFILES} from app.admin_profiles where id=$1`,values:[i.id]},i.correlationId),profile,i.correlationId)}async findAdminProfileByUserId(i:{appUserId:string;brand:BrandScope;correlationId?:string}){return mapOne(await this.one({label:"m1.admin-profile.by-user",text:`select ${PROFILES} from app.admin_profiles where app_user_id=$1`,values:[i.appUserId]},i.correlationId),profile,i.correlationId)}async resolveAdminAuthorizationByAuthUserId(i:{authUserId:string;brand:BrandScope;correlationId?:string}){return mapOne(await this.one({label:"m1.admin-authorization.by-auth",text:AUTH_SQL,values:[i.authUserId]},i.correlationId),authorization,i.correlationId)}async listAdminAuthorizationsByAuthUserId(i:{authUserId:string;correlationId?:string}){return mapMany(await this.many({label:"m1.admin-authorization.list-by-auth",text:AUTH_SQL,values:[i.authUserId]},i.correlationId),authorization,i.correlationId)}}
+export class SupabaseM1AdminPermissionReadRepository extends Base implements M1.M1AdminPermissionReadRepository{async findAdminPermissionById(i:{id:string;correlationId?:string}){return mapOne(await this.one({label:"m1.permission.by-id",text:`select ${PERMISSIONS} from app.admin_permissions where id=$1`,values:[i.id]},i.correlationId),permission,i.correlationId)}async findAdminPermissionByCode(i:{code:string;correlationId?:string}){return mapOne(await this.one({label:"m1.permission.by-code",text:`select ${PERMISSIONS} from app.admin_permissions where code=$1`,values:[i.code]},i.correlationId),permission,i.correlationId)}}
+export class SupabaseM1AdminRoleReadRepository extends Base implements M1.M1AdminRoleReadRepository{async findAdminRoleById(i:{id:string;brand:BrandScope;correlationId?:string}){return mapOne(await this.one({label:"m1.role.by-id",text:`select ${ROLES} from app.admin_roles where id=$1`,values:[i.id]},i.correlationId),role,i.correlationId)}async listAdminRolesByBrand(i:{brand:BrandScope;correlationId?:string}){return mapMany(await this.many({label:"m1.role.list",text:`select ${ROLES} from app.admin_roles order by code,id`,values:[]},i.correlationId),role,i.correlationId)}}
+export class SupabaseM1AdminRolePermissionReadRepository extends Base implements M1.M1AdminRolePermissionReadRepository{async listAdminRolePermissions(i:{roleId:string;brand:BrandScope;correlationId?:string}){return mapMany(await this.many({label:"m1.role-permission.list",text:"select admin_role_id,admin_permission_id,created_at from app.admin_role_permissions where admin_role_id=$1 order by admin_permission_id",values:[i.roleId]},i.correlationId),rolePermission,i.correlationId)}}
+export class SupabaseM1AdminRoleAssignmentReadRepository extends Base implements M1.M1AdminRoleAssignmentReadRepository{async listAdminRoleAssignmentsForProfile(i:{adminProfileId:string;brand:BrandScope;correlationId?:string}){return mapMany(await this.many({label:"m1.role-assignment.list",text:`select ${ASSIGNMENTS} from app.platform_admin_role_assignments where admin_profile_id=$1 order by valid_from,id`,values:[i.adminProfileId]},i.correlationId),assignment,i.correlationId)}}

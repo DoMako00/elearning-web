@@ -166,6 +166,23 @@ async function run() {
         assertEqual(response.body.checks?.database, "not_configured", "Database readiness");
         assertEqual(response.body.checks?.auth, "not_configured", "Auth readiness");
       }],
+      ["OpenAPI contract", async () => {
+        const response = await request("GET", "/openapi.json");
+        assertEqual(response.status, 200, "OpenAPI status");
+        assertEqual(response.body.openapi, "3.1.0", "OpenAPI version");
+        assertTruthy(response.body.paths?.["/v1/admin/instructors"], "Instructor contract path");
+        assertTruthy(response.body.paths?.["/v1/admin/brands/{brandId}/courses/{courseId}/instructors"], "Course instructor contract path");
+        assertTruthy(response.headers.get("content-type")?.includes("application/json"), "OpenAPI content type");
+      }],
+      ["API documentation page", async () => {
+        const response = await fetch(`${baseUrl}/docs`);
+        const page = await response.text();
+        assertEqual(response.status, 200, "Documentation status");
+        assertTruthy(response.headers.get("content-type")?.includes("text/html"), "Documentation content type");
+        assertTruthy(page.includes("BUC E-Learning API"), "Documentation title");
+        assertTruthy(page.includes("/openapi.json"), "Documentation contract link");
+        assertTruthy(!page.includes("localStorage"), "Documentation must not persist bearer tokens");
+      }],
       ["M2 curriculum levels are mock-empty", async () => {
         const response = await request("GET", "/v1/admin/curriculum/levels");
         assertEqual(response.status, 200, "Curriculum levels status");

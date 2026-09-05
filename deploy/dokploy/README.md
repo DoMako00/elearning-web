@@ -1,11 +1,40 @@
 # Dokploy Staging Compose Draft
 
-This directory contains a mock-only staging Compose draft for a Dokploy-style VPS deployment. It runs the existing API and web images as two services inside one application deployment boundary:
+This directory contains a Dokploy-style VPS Compose deployment. It starts in mock mode by default and can be switched to the reviewed Supabase-backed administrative read runtime through the Dokploy Environment UI. It runs the existing API and web images as two services inside one application deployment boundary:
 
-- `api` — the mock-backed Node HTTP skeleton.
+- `api` — the Node HTTP API, mock-backed by default.
 - `web` — the static Vite build served by Nginx.
 
-Medway and Elite remain brand scopes inside one application platform. This draft does not add a database, Supabase, real authentication, payment provider, storage/CDN/media provider, worker, queue, or notification service.
+Medway and Elite remain brand scopes inside one application platform. Supabase remains external to this Compose deployment; its URL, database connection, and auth configuration are entered in Dokploy and are never committed. This draft does not add a database container, payment provider, storage/CDN/media provider, worker, queue, or notification service.
+
+## Same-origin API route
+
+The web Nginx container proxies `/api/*` to the private `api` Compose service. Use `VITE_API_BASE_URL=/api` for Dokploy. This keeps browser requests on the web domain and avoids exposing the API container port or configuring an open CORS policy.
+
+## Supabase-backed admin staging
+
+Only after the API and database release are approved, set these values in the **Dokploy Environment** tab, not in this repository:
+
+```text
+ADMIN_RUNTIME_MODE=supabase
+PERSISTENCE_PROVIDER=supabase
+AUTH_PROVIDER=supabase
+ADMIN_READ_MODEL_SOURCE=postgres
+ADMIN_M2_READ_MODEL_SOURCE=postgres
+ADMIN_COMMAND_SOURCE=mock
+
+SUPABASE_PROJECT_REF=<project reference>
+SUPABASE_URL=https://<project reference>.supabase.co
+SUPABASE_PUBLISHABLE_KEY=<publishable key>
+SUPABASE_DB_URL=<server-only PostgreSQL connection URL with sslmode=verify-full>
+
+VITE_ADMIN_DATA_SOURCE=api
+VITE_API_BASE_URL=/api
+VITE_SUPABASE_URL=https://<project reference>.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=<publishable key>
+```
+
+`SUPABASE_DB_URL` is server-only. Never create a `VITE_SUPABASE_DB_URL`, never put a service-role/secret key in a `VITE_*` setting, and never paste real values into `.env.example`.
 
 ## Configure and run locally
 

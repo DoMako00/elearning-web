@@ -89,6 +89,7 @@ export function createAdminReadVerifierDiagnostics(
       findAcademicModule: (input) => { increment("curriculumModuleDetailReads"); return readModel.findAcademicModule(input); },
       listInstructors: (input) => { increment("globalInstructorReads"); return readModel.listInstructors(input); },
       findInstructor: (input) => { increment("globalInstructorDetailReads"); return readModel.findInstructor(input); },
+      listInstructorBrandAssignments: (input) => { increment("brandInstructorReads"); return readModel.listInstructorBrandAssignments(input); },
       listBrandInstructors: (input) => { increment("brandInstructorReads"); return readModel.listBrandInstructors(input); },
       findBrandInstructor: (input) => { increment("brandInstructorReads"); return readModel.findBrandInstructor(input); },
       listInstructorCourseAssignments: (input) => { increment("brandInstructorCourseReads"); return readModel.listInstructorCourseAssignments(input); },
