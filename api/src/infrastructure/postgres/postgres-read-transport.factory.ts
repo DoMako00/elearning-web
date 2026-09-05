@@ -20,13 +20,15 @@ export function createPostgresReadTransportFromEnvironment(
   let pool: PgPoolLike;
   try {
     pool = poolFactory({
-      connectionString: configuration.connectionString,
+      host: configuration.host,
+      port: configuration.port,
+      ...(configuration.user ? { user: configuration.user } : {}),
+      ...(configuration.password ? { password: configuration.password } : {}),
+      database: configuration.database,
       max: configuration.max,
       idleTimeoutMillis: configuration.idleTimeoutMillis,
       connectionTimeoutMillis: configuration.connectionTimeoutMillis,
-      ...(configuration.trustedRootCertificate ? {
-        ssl: { ca: configuration.trustedRootCertificate, rejectUnauthorized: true },
-      } : {}),
+      ssl: { rejectUnauthorized: true, ...(configuration.trustedRootCertificate ? { ca: configuration.trustedRootCertificate } : {}) },
     });
   } catch {
     throw new PostgresReadTransportError("provider_unavailable", "The Postgres provider could not be initialized.");

@@ -3,7 +3,11 @@ import { PostgresReadTransportError } from "./postgres-errors";
 import { X509Certificate } from "node:crypto";
 
 export interface PostgresPoolConfiguration {
-  readonly connectionString: string;
+  readonly host: string;
+  readonly port: number;
+  readonly user?: string;
+  readonly password?: string;
+  readonly database: string;
   readonly trustedRootCertificate?: string;
   readonly max: number;
   readonly idleTimeoutMillis: number;
@@ -32,6 +36,14 @@ function trustedRootCertificate(environment: SupabaseBoundaryEnvironment): strin
     throw new PostgresReadTransportError("invalid_configuration", "The configured Postgres root certificate must contain one valid PEM X.509 certificate.");
   }
   return certificate;
+}
+
+function decodedUrlPart(value: string, variableName: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    throw new PostgresReadTransportError("invalid_configuration", `${variableName} contains invalid URL encoding.`);
+  }
 }
 
 const nonEmpty = (value: string | undefined): string | undefined => {
@@ -78,8 +90,21 @@ export function resolvePostgresPoolConfiguration(
     throw new PostgresReadTransportError("invalid_configuration", "SUPABASE_DB_URL must set sslmode=verify-full.");
   }
 
+  const host = parsed.hostname;
+  const port = parsed.port ? Number(parsed.port) : 5432;
+  const user = parsed.username ? decodedUrlPart(parsed.username, "SUPABASE_DB_URL user") : undefined;
+  const password = parsed.password ? decodedUrlPart(parsed.password, "SUPABASE_DB_URL password") : undefined;
+  const database = decodedUrlPart(parsed.pathname.replace(/^\//, ""), "SUPABASE_DB_URL database");
+  if (!host || !Number.isInteger(port) || port < 1 || port > 65535 || !database) {
+    throw new PostgresReadTransportError("invalid_configuration", "SUPABASE_DB_URL must include a host, port, and database.");
+  }
+
   return {
-    connectionString,
+    host,
+    port,
+    user,
+    password,
+    database,
     trustedRootCertificate: trustedRootCertificate(environment),
     max: boundedInteger("POSTGRES_POOL_MAX", environment.POSTGRES_POOL_MAX, 5, 1, 50),
     idleTimeoutMillis: boundedInteger("POSTGRES_IDLE_TIMEOUT_MS", environment.POSTGRES_IDLE_TIMEOUT_MS, 30_000, 0, 300_000),
