@@ -188,6 +188,9 @@ async function run() {
         assertTruthy(page.includes("readDashboardSession"), "Documentation must use the active dashboard session");
         assertTruthy(!page.includes("supabaseUrl"), "Documentation must not request Supabase environment values");
         assertTruthy(!page.includes("Use mock admin"), "Documentation must not promote mock authentication");
+        assertTruthy(page.includes("return '/api'+path"), "Documentation must send live requests through the public API proxy");
+        assertTruthy(page.includes('data-response-view="json"'), "Documentation must default to a JSON response view");
+        assertTruthy(!page.includes('id="tryButton"'), "Documentation must not render a manual try-it button");
       }],
       ["M2 curriculum levels are mock-empty", async () => {
         const response = await request("GET", "/v1/admin/curriculum/levels");
