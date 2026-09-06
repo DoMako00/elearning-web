@@ -134,6 +134,8 @@ src/
 
 ## 🧩 3. Features & Component Documentation Index (فهرس ملفات التوثيق المنفصلة)
 
+> 💡 **Tip:** For a complete screen-by-screen breakdown of all URLs, layouts, and page contents, see [PAGES_AND_SCREENS.md](file:///c:/Users/shehab/OneDrive/Desktop/E-learning%20stage/elearning-web/web/docs/PAGES_AND_SCREENS.md) (دليل الشاشات والصفحات بالكامل).
+
 Each individual feature has its own dedicated documentation file in the `docs/components/` directory:
 
 | Component / Feature | English Documentation | التوثيق بالعربي المصري |
@@ -145,6 +147,16 @@ Each individual feature has its own dedicated documentation file in the `docs/co
 | **Upcoming Schedule** | [docs/components/Upcoming.md](file:///c:/Users/shehab/OneDrive/Desktop/E-learning%20stage/elearning-web/web/docs/components/Upcoming.md) | جدول الحصص والمواعيد القادمة |
 | **My Progress & Streak** | [docs/components/ProgressAndStreak.md](file:///c:/Users/shehab/OneDrive/Desktop/E-learning%20stage/elearning-web/web/docs/components/ProgressAndStreak.md) | كروت تقدم الطالب والتفاعل اليومي |
 | **AI Learning Guide & Header**| [docs/components/AIAndHeader.md](file:///c:/Users/shehab/OneDrive/Desktop/E-learning%20stage/elearning-web/web/docs/components/AIAndHeader.md) | المساعد الذكي، شريط البحث والبروفايل |
+| **Student Profile & Settings** | [docs/components/ProfileAndSettings.md](file:///c:/Users/shehab/OneDrive/Desktop/E-learning%20stage/elearning-web/web/docs/components/ProfileAndSettings.md) | الملف الشخصي، الأوسمة، والمحفوظات |
+| **Assignments & Submissions** | [docs/components/Assignments.md](file:///c:/Users/shehab/OneDrive/Desktop/E-learning%20stage/elearning-web/web/docs/components/Assignments.md) | نظام الواجبات والتسليمات |
+| **Messages & Real-time Chat** | [docs/components/Messages.md](file:///c:/Users/shehab/OneDrive/Desktop/E-learning%20stage/elearning-web/web/docs/components/Messages.md) | المحادثات المباشرة والشات مع المدرسين |
+| **Calendar & Schedule** | [docs/components/Calendar.md](file:///c:/Users/shehab/OneDrive/Desktop/E-learning%20stage/elearning-web/web/docs/components/Calendar.md) | التقويم والجدول الدراسي التفاعلي |
+| **Explore & Course Discovery** | [docs/components/Explore.md](file:///c:/Users/shehab/OneDrive/Desktop/E-learning%20stage/elearning-web/web/docs/components/Explore.md) | استكشاف الكورسات والمسارات التعليمية |
+| **My Courses & Lesson Player** | [docs/components/MyCoursesAndLessonPlayer.md](file:///c:/Users/shehab/OneDrive/Desktop/E-learning%20stage/elearning-web/web/docs/components/MyCoursesAndLessonPlayer.md) | كورساتي ومُشغل الدروس والمحاضرات |
+| **Gamification (Streak & XP)** | [docs/components/GamificationAndRewards.md](file:///c:/Users/shehab/OneDrive/Desktop/E-learning%20stage/elearning-web/web/docs/components/GamificationAndRewards.md) | تحليلات الستريك ومكافآت نقاط الخبرة |
+| **Auth & Onboarding** | [docs/components/AuthenticationAndOnboarding.md](file:///c:/Users/shehab/OneDrive/Desktop/E-learning%20stage/elearning-web/web/docs/components/AuthenticationAndOnboarding.md) | تسجيل الدخول، التحقق، وتخصيص الجامعة |
+| **Admin & Course Builder** | [docs/components/AdminDashboardAndBuilder.md](file:///c:/Users/shehab/OneDrive/Desktop/E-learning%20stage/elearning-web/web/docs/components/AdminDashboardAndBuilder.md) | لوحة تحكم المشرفين ومنشئ الكورسات |
+| **Toast & Inactivity Monitor**| [docs/components/ToastAndInactivity.md](file:///c:/Users/shehab/OneDrive/Desktop/E-learning%20stage/elearning-web/web/docs/components/ToastAndInactivity.md) | نظام التنبيهات الموحد ومراقبة عدم النشاط |
 
 ---
 
