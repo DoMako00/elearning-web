@@ -207,6 +207,48 @@ main[data-main-workspace] {
   min-height: 0;
 }
 
+/* Profile responsive view adjustments */
+.student-dashboard--profile {
+  height: 100%;
+  min-height: 0;
+}
+
+.student-dashboard--profile .student-dashboard__content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  padding: clamp(8px, 1vw, 16px) clamp(12px, 1.5vw, 28px);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* iPad Mini / iPad Air Landscape & Portrait or any short-height displays */
+@media (max-width: 1200px), (max-height: 850px) {
+  .student-dashboard--profile {
+    max-height: none;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .student-dashboard--profile .student-dashboard__header {
+    height: 56px;
+    min-height: 56px;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .student-dashboard--profile .student-dashboard__content {
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    height: 100%;
+    min-height: 0;
+    padding: 8px 14px 24px;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 @media (max-height: 820px) {
   .student-dashboard--calendar .student-dashboard__header,
   .student-dashboard--messages .student-dashboard__header {

@@ -11,6 +11,7 @@ import { MyCoursesPage } from "../pages/student/MyCoursesPage";
 // import { TestInactivityPromptPage } from "../pages/student/test-inactivity/TestInactivityPromptPage";
 // import { TestStreakPage } from "../pages/student/test-streak/TestStreakPage";
 // import { TestXPRewardsPage } from "../pages/student/test-xp/TestXPRewardsPage";
+import { ProfilePage } from "../pages/student/ProfilePage";
 import { StudentLayout } from "../pages/student/StudentLayout";
 import "./student-dashboard.css";
 
@@ -20,6 +21,7 @@ export const studentRoutes: RouteObject[] = [
     element: <StudentLayout />,
     children: [
       { index: true, element: <HomePage /> },
+      { path: "profile", element: <ProfilePage /> },
       { path: "my-courses", element: <MyCoursesPage /> },
       { path: "my-courses/human-anatomy-i", element: <CourseOverviewPage /> },
       { path: "my-courses/human-anatomy-i/lessons/:lessonId", element: <LessonPlayerPage /> },

@@ -109,6 +109,12 @@ export function Sidebar() {
           name={`${sidebarProfile.name} Silva`}
           role={sidebarProfile.role}
           initials={sidebarProfile.initials}
+          onMenuItemClick={(key) => {
+            if (key === "profile") {
+              window.location.hash = "";
+              window.location.pathname = "/profile";
+            }
+          }}
         />
       </div>
     </aside>

@@ -1,13 +1,15 @@
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { AppShell } from "../../../components/layout/AppShell";
 import { SearchBar } from "../../../components/ui/SearchBar";
 import { UserHeaderActions } from "../../../components/ui/UserHeaderActions";
 
 export function StudentLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const pathname = location.pathname;
 
   const isHome = pathname === "/" || pathname === "";
+  const isProfile = pathname === "/profile";
   const isMyCourses = pathname === "/my-courses";
   const isCourseOverview = pathname === "/my-courses/human-anatomy-i";
   const isLessonPlayer = pathname.startsWith("/my-courses/human-anatomy-i/lessons");
@@ -20,10 +22,20 @@ export function StudentLayout() {
   const isTestInactivity = pathname === "/test-inactivity";
   const isTestStreak = pathname === "/test-streak";
 
-  // Search bar in the topbar is exclusively for Home; all other pages display the breadcrumb
-  const showCenteredSearch = isHome;
+  // Search bar in the topbar is exclusively for Home; explicitly removed on Profile and other pages
+  const showCenteredSearch = isHome && !isProfile;
 
   const renderBreadcrumb = () => {
+    if (isProfile) {
+      return (
+        <div className="student-dashboard__page-title">
+          <span className="student-dashboard__page-title-label">Student Account</span>
+          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
+          <h1>My Profile</h1>
+        </div>
+      );
+    }
+
     if (isCourseOverview) {
       return (
         <nav className="student-dashboard__course-breadcrumb" aria-label="Lesson breadcrumb">
@@ -95,14 +107,14 @@ export function StudentLayout() {
     <AppShell>
       <div
         className={`student-dashboard${isHome ? " student-dashboard--home" : ""}${
-          isMyCourses ? " student-dashboard--my-courses" : ""
-        }${isCourseOverview ? " student-dashboard--course-overview" : ""}${
-          isAssignments ? " student-dashboard--assignments" : ""
-        }${isAssignmentDetail ? " student-dashboard--assignment-detail" : ""}${
-          isCalendar ? " student-dashboard--calendar" : ""
-        }${isMessages ? " student-dashboard--messages" : ""}${
-          isScrollablePage ? " student-dashboard--scrollable" : ""
-        }`}
+          isProfile ? " student-dashboard--profile" : ""
+        }${isMyCourses ? " student-dashboard--my-courses" : ""}${
+          isCourseOverview ? " student-dashboard--course-overview" : ""
+        }${isAssignments ? " student-dashboard--assignments" : ""}${
+          isAssignmentDetail ? " student-dashboard--assignment-detail" : ""
+        }${isCalendar ? " student-dashboard--calendar" : ""}${
+          isMessages ? " student-dashboard--messages" : ""
+        }${isScrollablePage ? " student-dashboard--scrollable" : ""}`}
       >
         <header
           className={`student-dashboard__header${showCenteredSearch ? " student-dashboard__header--home" : ""}`}
@@ -116,7 +128,16 @@ export function StudentLayout() {
             renderBreadcrumb()
           )}
           <div className="student-dashboard__actions">
-            <UserHeaderActions avatarSrc="https://i.pravatar.cc/112?img=47" avatarAlt="Juliana" hasNotification />
+            <UserHeaderActions
+              avatarSrc="https://i.pravatar.cc/112?img=47"
+              avatarAlt="Juliana"
+              hasNotification
+              onViewProfile={() => navigate("/profile")}
+              onMenuItemClick={(itemKey) => {
+                if (itemKey === "profile") navigate("/profile");
+                else if (itemKey === "certificates") navigate("/profile");
+              }}
+            />
           </div>
         </header>
         <div className="student-dashboard__content">
