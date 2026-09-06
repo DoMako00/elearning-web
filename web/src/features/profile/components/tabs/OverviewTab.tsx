@@ -9,7 +9,6 @@ import {
   Video,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
 import type {
   UserProfileData,
   EnrolledCourseItem,
@@ -28,6 +27,7 @@ interface OverviewTabProps {
   recentActivities: RecentActivityItem[];
   onEditProfile: () => void;
   onEditGoals: () => void;
+  onShowToast?: (msg: string) => void;
 }
 
 export const OverviewTab: React.FC<OverviewTabProps> = ({
@@ -39,6 +39,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   recentActivities,
   onEditProfile,
   onEditGoals,
+  onShowToast,
 }) => {
   const navigate = useNavigate();
 
@@ -229,7 +230,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                     type="button"
                     onClick={() => {
                       if (evt.actionRoute) navigate(evt.actionRoute);
-                      else toast.success(`Action: ${evt.actionLabel}`);
+                      else (onShowToast ?? onEditGoals)(`Action: ${evt.actionLabel}`);
                     }}
                     className={`rounded-xl px-3.5 py-1.5 text-xs sm:text-sm font-bold transition-colors shrink-0 ${
                       evt.actionLabel === "Submit"

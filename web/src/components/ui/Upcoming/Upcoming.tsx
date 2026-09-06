@@ -10,7 +10,8 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import { useToast } from '../../../hooks/useToast';
+import { ToastNotification } from '../ToastNotification';
 import type { UpcomingItem, UpcomingProps } from './upcoming.types';
 import './index.css';
 
@@ -108,6 +109,7 @@ export function Upcoming({
   const trackRef = useRef<HTMLDivElement>(null);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(items.length > 2);
+  const { toastMessage, showToast } = useToast();
 
   const updateScrollState = useCallback(() => {
     const el = trackRef.current;
@@ -144,7 +146,9 @@ export function Upcoming({
       className="upcoming-card"
       aria-label={`${title}: ${displayCount} scheduled items`}
     >
+      <ToastNotification message={toastMessage} />
       {/* ── Header ── */}
+
       <div className="upcoming-header">
         <h2 className="upcoming-title">{title}</h2>
         <div className="upcoming-header-actions">
@@ -199,7 +203,7 @@ export function Upcoming({
         <button
           type="button"
           onClick={onViewCalendar ?? (() => {
-            toast.success('Opening your calendar');
+            showToast('Opening your calendar');
             navigate('/calendar');
           })}
           className="upcoming-cta"

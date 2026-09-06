@@ -13,7 +13,8 @@ import biochemistryImage from "../../../Assets/dashboard/biochemistry-essentials
 import embryologyImage from "../../../Assets/dashboard/embryology-foundations.webp";
 import "./RecommendedCourses.css";
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
+import { useToast } from "../../../hooks/useToast";
+import { ToastNotification } from "../ToastNotification";
 
 const courses = [
   {
@@ -69,6 +70,7 @@ export function RecommendedCourses() {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const rowRef = useRef<HTMLDivElement>(null);
+  const { toastMessage, showToast } = useToast();
 
   const checkScroll = () => {
     if (rowRef.current) {
@@ -91,9 +93,9 @@ export function RecommendedCourses() {
       [title]: !prev[title],
     }));
     if (isCurrentlyBookmarked) {
-      toast(`Removed "${title}" from saved courses`, { icon: '🔖' });
+      showToast(`Removed "${title}" from saved courses`);
     } else {
-      toast.success(`"${title}" saved to your courses`);
+      showToast(`"${title}" saved to your courses`);
     }
   };
 
@@ -117,6 +119,7 @@ export function RecommendedCourses() {
 
   return (
     <section className="recommended-card" aria-labelledby="recommended-title">
+      <ToastNotification message={toastMessage} />
       <header className="recommended-header">
         <h2 id="recommended-title">Recommended Medical Modules For You</h2>
         <button type="button" className="recommended-view-all" onClick={() => navigate('/my-courses')}>

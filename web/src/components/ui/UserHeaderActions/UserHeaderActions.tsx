@@ -1,6 +1,7 @@
 import { Bell, ChevronDown, Sparkles } from "lucide-react";
 import { useRef, useState } from "react";
-import toast from "react-hot-toast";
+import { useToast } from "../../../hooks/useToast";
+import { ToastNotification } from "../ToastNotification";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { XpDropdown } from "./XpDropdown";
 import { NotificationsDropdown } from "./NotificationsDropdown";
@@ -32,6 +33,7 @@ export function UserHeaderActions({
   const profileTriggerRef = useRef<HTMLButtonElement>(null);
   const xpTriggerRef = useRef<HTMLButtonElement>(null);
   const notifTriggerRef = useRef<HTMLButtonElement>(null);
+  const { toastMessage, showToast } = useToast();
 
   const formattedXp = `${numberFormatter.format(xp)} XP`;
 
@@ -54,10 +56,8 @@ export function UserHeaderActions({
     setIsNotifOpen(opening);
     setIsDropdownOpen(false);
     setIsXpOpen(false);
-    if (opening) {
-      toast(`🔔 You have ${unreadNotificationsCount} unread notification${unreadNotificationsCount !== 1 ? 's' : ''}`, {
-        duration: 2500,
-      });
+    if (opening && unreadNotificationsCount > 0) {
+      showToast(`You have ${unreadNotificationsCount} unread notification${unreadNotificationsCount !== 1 ? 's' : ''}`);
     }
     onNotificationClick?.();
   };
@@ -67,6 +67,7 @@ export function UserHeaderActions({
       className={`user-header-actions relative flex items-center ${className}`}
       aria-label="User header actions"
     >
+      <ToastNotification message={toastMessage} />
       {/* Bell / Notifications */}
       <div className="relative flex items-center">
         <button
@@ -91,6 +92,7 @@ export function UserHeaderActions({
           isOpen={isNotifOpen}
           onClose={() => setIsNotifOpen(false)}
           triggerRef={notifTriggerRef}
+          onMarkAllRead={() => showToast("All notifications marked as read")}
         />
       </div>
 

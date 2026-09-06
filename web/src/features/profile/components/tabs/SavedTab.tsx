@@ -11,7 +11,6 @@ import {
   Layers,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
 import type { SavedCategory, SavedItem } from "../../types/profile.types";
 
 interface SavedTabProps {
@@ -19,6 +18,7 @@ interface SavedTabProps {
   currentCategory: SavedCategory | "all";
   onCategoryChange: (cat: SavedCategory | "all") => void;
   onRemoveItem: (id: string) => void;
+  onShowToast?: (msg: string) => void;
 }
 
 const CATEGORIES: { id: SavedCategory | "all"; label: string; icon: React.FC<{ className?: string }> }[] = [
@@ -34,6 +34,7 @@ export const SavedTab: React.FC<SavedTabProps> = ({
   currentCategory,
   onCategoryChange,
   onRemoveItem,
+  onShowToast,
 }) => {
   const navigate = useNavigate();
 
@@ -41,14 +42,14 @@ export const SavedTab: React.FC<SavedTabProps> = ({
     if (item.route && item.route !== "#") {
       navigate(item.route);
     } else {
-      toast.success(`Opening saved resource: ${item.title}`);
+      onShowToast?.(`Opening saved resource: ${item.title}`);
     }
   };
 
   const handleRemove = (e: React.MouseEvent, item: SavedItem) => {
     e.stopPropagation();
     onRemoveItem(item.id);
-    toast.success(`Removed "${item.title}" from saved bookmarks`);
+    onShowToast?.(`Removed "${item.title}" from saved bookmarks`);
   };
 
   return (

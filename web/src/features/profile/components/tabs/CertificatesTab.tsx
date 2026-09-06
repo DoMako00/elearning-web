@@ -1,6 +1,7 @@
 import React from "react";
 import { Download, ExternalLink, Award, ShieldCheck } from "lucide-react";
-import toast from "react-hot-toast";
+import { useToast } from "../../../../hooks/useToast";
+import { ToastNotification } from "../../../../components/ui/ToastNotification";
 import type { CertificateItem } from "../../types/profile.types";
 
 interface CertificatesTabProps {
@@ -10,17 +11,20 @@ interface CertificatesTabProps {
 export const CertificatesTab: React.FC<CertificatesTabProps> = ({
   certificates,
 }) => {
+  const { toastMessage, showToast } = useToast();
+
   const handleDownload = (cert: CertificateItem) => {
-    toast.success(`Downloading PDF certificate for "${cert.courseTitle}"...`);
+    showToast(`Downloading PDF certificate for "${cert.courseTitle}"...`);
   };
 
   const handleVerify = (cert: CertificateItem) => {
-    toast.success(`Opening verification link: ${cert.credentialId}`);
+    showToast(`Opening verification link: ${cert.credentialId}`);
     window.open(cert.verifyUrl, "_blank");
   };
 
   return (
     <div className="space-y-6 pt-6">
+      <ToastNotification message={toastMessage} />
       {/* Header Info */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/50 p-5">
         <div className="flex items-start gap-3.5">

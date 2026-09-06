@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { BookOpen, BrainCircuit, Route, Sparkles, X, Clock } from "lucide-react";
-import toast from "react-hot-toast";
 import robotAsset from "../../../Assets/dashboard/doctor-robot.webp";
 import "./AILearningGuide.css";
 
@@ -37,7 +36,6 @@ export function AILearningGuide() {
                   key={label}
                   className="ai-guide-suggestion-btn"
                   onClick={() => {
-                    toast('🚀 AI Guide coming soon — stay tuned!', { icon: '✨' });
                     setShowComingSoon(true);
                   }}
                 >

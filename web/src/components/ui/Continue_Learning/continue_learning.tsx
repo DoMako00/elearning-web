@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { MoreHorizontal, Bookmark, Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import { useToast } from '../../../hooks/useToast';
+import { ToastNotification } from '../ToastNotification';
 import courseImage from '../../../Assets/dashboard/human-anatomy.webp';
 import './index.css';
 
@@ -31,12 +32,13 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
 }) => {
   const navigate = useNavigate();
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const { toastMessage, showToast } = useToast();
 
   const handleContinue = () => {
     if (onContinue) {
       onContinue();
     } else {
-      toast.success('Resuming Human Anatomy I — Lesson 1');
+      showToast('Resuming Human Anatomy I — Lesson 1');
       navigate("/my-courses/human-anatomy-i/lessons/human-anatomy-i-lesson-1");
     }
   };
@@ -52,6 +54,7 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
 
   return (
     <section className="continue-learning w-full max-w-(--card-max-width) font-sans">
+      <ToastNotification message={toastMessage} />
       <div className="continue-learning-card w-full bg-(--secondary-color) rounded-(--border-radius-card) border border-(--color-border-color) pt-(--card-padding-top) pb-(--card-padding-bottom) pl-(--card-padding-left) pr-(--card-padding-right) shadow-sm transition-all duration-300 hover:shadow-md">
         <div className="continue-learning-header flex items-center justify-between mb-6">
           <h2 className="continue-learning-title text-section-title font-bold text-(--text-color-black) tracking-tight">

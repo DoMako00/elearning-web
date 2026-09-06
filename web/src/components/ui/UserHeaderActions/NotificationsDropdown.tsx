@@ -1,6 +1,5 @@
 import { Bell, BookOpen, ClipboardCheck, MessageSquare, X } from "lucide-react";
 import { useEffect, useRef } from "react";
-import toast from "react-hot-toast";
 import "./NotificationsDropdown.css";
 
 export interface NotificationItem {
@@ -67,6 +66,7 @@ export interface NotificationsDropdownProps {
   onClose: () => void;
   triggerRef?: React.RefObject<HTMLElement | null>;
   notifications?: NotificationItem[];
+  onMarkAllRead?: () => void;
 }
 
 export function NotificationsDropdown({
@@ -74,6 +74,7 @@ export function NotificationsDropdown({
   onClose,
   triggerRef,
   notifications = MOCK_NOTIFICATIONS,
+  onMarkAllRead,
 }: NotificationsDropdownProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const unreadCount = notifications.filter((n) => n.isUnread).length;
@@ -162,7 +163,7 @@ export function NotificationsDropdown({
 
       <div className="notif-dropdown__footer">
         <button type="button" className="notif-dropdown__mark-all" onClick={() => {
-          toast.success('All notifications marked as read');
+          onMarkAllRead?.();
           onClose();
         }}>
           Mark all as read

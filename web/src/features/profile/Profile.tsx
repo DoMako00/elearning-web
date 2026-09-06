@@ -1,5 +1,6 @@
 import { useState } from "react";
-import toast from "react-hot-toast";
+import { useToast } from "../../hooks/useToast";
+import { ToastNotification } from "../../components/ui/ToastNotification";
 import { ProfileHeader } from "./components/ProfileHeader";
 import { OverviewTab } from "./components/tabs/OverviewTab";
 import { AchievementsTab } from "./components/tabs/AchievementsTab";
@@ -31,21 +32,20 @@ export function Profile() {
   } = useProfileTabs("overview");
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const { toastMessage, showToast } = useToast();
 
   const handleEditGoals = () => {
-    toast("Click any goal in the list to toggle its completion status!", {
-      icon: "🎯",
-      duration: 3000,
-    });
+    showToast("Click any goal in the list to toggle its completion status!");
   };
 
   const handleAvatarUpload = (newUrl: string) => {
     updateProfile({ avatarUrl: newUrl });
-    toast.success("Profile photo updated successfully!");
+    showToast("Profile photo updated successfully!");
   };
 
   return (
     <div className="profile-page flex flex-col h-full min-h-0 w-full max-w-550 mx-auto overflow-y-auto overflow-x-hidden">
+      <ToastNotification message={toastMessage} />
       {/* 1. Header & Navigation Structure */}
       <ProfileHeader
         profile={profile}
@@ -67,7 +67,9 @@ export function Profile() {
             recentActivities={recentActivities}
             onEditProfile={() => setIsEditModalOpen(true)}
             onEditGoals={handleEditGoals}
+            onShowToast={showToast}
           />
+
         )}
 
         {activeTab === "achievements" && (
@@ -84,8 +86,10 @@ export function Profile() {
             currentCategory={savedCategory}
             onCategoryChange={setSavedCategory}
             onRemoveItem={toggleSaveItem}
+            onShowToast={showToast}
           />
         )}
+
 
         {activeTab === "activity" && (
           <ActivityAnalyticsTab
@@ -105,7 +109,7 @@ export function Profile() {
         profile={profile}
         onSave={(updates) => {
           updateProfile(updates);
-          toast.success("Profile details updated!");
+          showToast("Profile details updated!");
         }}
       />
     </div>
