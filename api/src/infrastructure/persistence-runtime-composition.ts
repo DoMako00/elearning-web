@@ -11,7 +11,7 @@ import {
   SupabaseM1BrandMembershipReadRepository,
   SupabaseM1EducationalBrandReadRepository,
   SupabaseM1StudentProfileReadRepository,
-  SupabaseM2AcademicLevelReadRepository, SupabaseM2AcademicSemesterReadRepository, SupabaseM2AcademicModuleReadRepository, SupabaseM2AcademicModuleAliasReadRepository, SupabaseM2InstructorReadRepository, SupabaseM2BrandInstructorReadRepository, SupabaseM2BrandCourseReadRepository, SupabaseM2CourseInstructorReadRepository,
+  SupabaseM2AcademicLevelReadRepository, SupabaseM2AcademicSemesterReadRepository, SupabaseM2AcademicModuleReadRepository, SupabaseM2AcademicModuleAliasReadRepository, SupabaseM2InstructorReadRepository, SupabaseM2BrandInstructorReadRepository, SupabaseM2BrandCourseReadRepository, SupabaseM2CourseInstructorReadRepository, SupabaseM2CourseDeliveryReadRepository,
 } from "./supabase/repositories";
 import { createPostgresReadTransportFromEnvironment, type PostgresPoolFactory } from "./postgres";
 
@@ -19,7 +19,7 @@ export interface PersistenceRuntimeCompositionOptions {
   readonly environment?: SupabaseBoundaryEnvironment;
   readonly poolFactory?: PostgresPoolFactory;
 }
-function createM2ReadRepositories(transport: NonNullable<PersistenceRuntimeComposition["readTransport"]>): M2ReadRepositories { return { academicLevels:new SupabaseM2AcademicLevelReadRepository(transport), academicSemesters:new SupabaseM2AcademicSemesterReadRepository(transport), academicModules:new SupabaseM2AcademicModuleReadRepository(transport), academicModuleAliases:new SupabaseM2AcademicModuleAliasReadRepository(transport), instructors:new SupabaseM2InstructorReadRepository(transport), instructorBrandAssignments:new SupabaseM2BrandInstructorReadRepository(transport), brandCourses:new SupabaseM2BrandCourseReadRepository(transport), courseInstructorAssignments:new SupabaseM2CourseInstructorReadRepository(transport) }; }
+function createM2ReadRepositories(transport: NonNullable<PersistenceRuntimeComposition["readTransport"]>): M2ReadRepositories { return { academicLevels:new SupabaseM2AcademicLevelReadRepository(transport), academicSemesters:new SupabaseM2AcademicSemesterReadRepository(transport), academicModules:new SupabaseM2AcademicModuleReadRepository(transport), academicModuleAliases:new SupabaseM2AcademicModuleAliasReadRepository(transport), instructors:new SupabaseM2InstructorReadRepository(transport), instructorBrandAssignments:new SupabaseM2BrandInstructorReadRepository(transport), brandCourses:new SupabaseM2BrandCourseReadRepository(transport), courseInstructorAssignments:new SupabaseM2CourseInstructorReadRepository(transport), courseDelivery:new SupabaseM2CourseDeliveryReadRepository(transport) }; }
 
 function createMockComposition(): PersistenceRuntimeComposition {
   return { provider: "mock", status: "mock-disabled", close: async () => undefined };

@@ -5,6 +5,7 @@ import { AdminPagePlaceholder } from "../pages/admin/AdminPagePlaceholder";
 import { AdminInstructorsPage } from "../pages/admin/AdminInstructorsPage";
 import { AdminCoursesPage } from "../pages/admin/AdminCoursesPage";
 import { AdminCurriculumPage } from "../pages/admin/AdminCurriculumPage";
+import { AdminCourseBuilderPage } from "../pages/admin/AdminCourseBuilderPage";
 
 const sections = [
   ["students", "Students", "Read-only student identity, access, and risk summaries."],
@@ -26,6 +27,7 @@ export const adminRoutes: RouteObject[] = [{
   children: [
     { index: true, element: <AdminOverviewPage /> },
     { path: "courses", element: <AdminCoursesPage /> },
+    { path: "courses/:courseId/builder", element: <AdminCourseBuilderPage /> },
     { path: "instructors", element: <AdminInstructorsPage /> },
     { path: "curriculum", element: <AdminCurriculumPage /> },
     ...sections.map(([path, title, description]) => ({ path, element: <AdminPagePlaceholder title={title} description={description} /> })),

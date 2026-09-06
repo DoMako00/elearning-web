@@ -61,7 +61,8 @@ export function SignInPage() {
           <button className="auth-link-button" type="button" disabled>Forgot password?</button>
         </div>
         {errors.form && <p className="auth-field__error" role="alert">{errors.form}</p>}
-        <AuthButton type="submit" disabled={submitting || !auth.configured}>{submitting ? "Signing in…" : <>Continue <ArrowRight aria-hidden="true" /></>}</AuthButton>
+        <AuthButton type="submit" disabled={submitting}>{submitting ? "Signing in…" : <>Continue <ArrowRight aria-hidden="true" /></>}</AuthButton>
+        {!auth.configured && <p className="auth-field__error" role="status">Authentication is not configured in this deployment. Add VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY, then rebuild the web app.</p>}
         <p className="auth-switch-copy">Administrator accounts are provisioned by the platform owners.</p>
       </form>
     </AuthShell>
