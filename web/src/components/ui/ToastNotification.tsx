@@ -32,7 +32,7 @@ export function ToastNotification({
     <div
       role="status"
       aria-live="polite"
-      className={`${positionClass} z-[10000] flex items-center gap-2 px-4 py-3 rounded-xl bg-[#15803d] text-white text-sm font-bold shadow-[0_10px_25px_-5px_rgba(21,128,61,0.4)] border border-[#20a862]/30`}
+      className={`${positionClass} z-10000 flex items-center gap-2 px-4 py-3 rounded-xl bg-[#15803d] text-white text-sm font-bold shadow-[0_10px_25px_-5px_rgba(21,128,61,0.4)] border border-[#20a862]/30`}
       style={{
         animation: "toastPop 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
       }}
