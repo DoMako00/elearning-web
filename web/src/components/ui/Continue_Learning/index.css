@@ -1,0 +1,782 @@
+@import "tailwindcss";
+
+.continue-learning {
+  --primary-color: #28ad68;
+  --secondary-color: #ffffff;
+  --paragraphs: #667085;
+  --text-color-black: #111827;
+  --text-color-green: #149653;
+  --label-color-light-green: #e8f8ef;
+  --color-border-color: #e5eaee;
+  --border-radius: 9px;
+  --border-radius-card: 16px;
+  --border-radius-media: 13px;
+  --border-radius-cta: 11px;
+  --card-max-width: none;
+  --card-padding-left: clamp(12px, 3.5cqw, 20px);
+  --card-padding-right: clamp(12px, 3.5cqw, 20px);
+  --card-padding-top: clamp(10px, calc(14cqh - 26px), 20px);
+  --card-padding-bottom: clamp(10px, calc(14cqh - 26px), 20px);
+  --media-width: 100%;
+  --media-height: auto;
+  --media-column-width: clamp(110px, 35cqw, 150px);
+  --media-details-gap: clamp(10px, 3cqw, 16px);
+  --section-gap: clamp(8px, calc(7cqh - 8px), 16px);
+  --main-footer-gap: 0px;
+  --cta-width: none;
+  --cta-height: 48px;
+  --bookmark-width: 48px;
+  --bookmark-height: 48px;
+  --button-gap: 12px;
+  --font-size-section-title: 25x;
+  --font-size-course-title: 30px;
+  --font-size-status-badge: 12px;
+  --font-size-progress: 13px;
+  --font-size-lesson-meta: 13px;
+  --font-size-cta: 14px;
+
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+.continue-learning-card {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  row-gap: var(--section-gap);
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 1px solid var(--color-border-color);
+  border-radius: 16px;
+  background: var(--secondary-color);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 3%);
+}
+
+.continue-learning-card:hover {
+  box-shadow: 0 3px 10px rgb(15 23 42 / 5%);
+}
+
+.continue-learning-header {
+  display: flex;
+  min-height: 34px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+}
+
+.continue-learning-title {
+  margin: 0;
+  color: #111827;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.continue-learning-options {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border: 1px solid #e7ebef;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #667085;
+  box-shadow: none;
+}
+
+.continue-learning-options::before {
+  position: absolute;
+  inset: -6px;
+  content: "";
+}
+
+.continue-learning-options:hover {
+  background: #e8f8ef;
+  color: #111827;
+}
+
+.continue-learning-options svg {
+  width: 18px;
+  height: 18px;
+}
+
+.continue-learning-main {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: minmax(0, var(--media-column-width)) minmax(0, 1fr);
+  align-items: stretch;
+  gap: var(--media-details-gap);
+  margin: 0;
+}
+
+.continue-learning-media {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-width: 100%;
+  max-height: 191px;
+  align-self: start;
+  overflow: hidden;
+  border-radius: 13px;
+  box-shadow: none;
+}
+
+.continue-learning-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: cover;
+}
+
+.continue-learning-play-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #24a962;
+  box-shadow: 0 1px 4px rgb(15 23 42 / 8%);
+}
+
+.continue-learning-play-icon {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  color: #24a962;
+  stroke-width: 1.8;
+}
+
+.continue-learning-details {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  align-self: stretch;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 4px 0 0;
+}
+
+.continue-learning-status {
+  display: inline-flex;
+  width: max-content;
+  height: 24px;
+  align-items: center;
+  align-self: flex-start;
+  margin: 0;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #e8f8ef;
+  color: #149653;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.continue-learning-title-metrics-wrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.continue-learning-course-title {
+  max-width: 100%;
+  margin: clamp(4px, 2cqh, 8px) 0 0;
+  color: #0f172a;
+  font-size: clamp(16px, 4.2cqw, 20px);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+  overflow: hidden;
+  max-height: 1.3em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.continue-learning-course-subtitle {
+  overflow: hidden;
+  margin: clamp(3px, 1.4cqh, 6px) 0 0;
+  color: #667085;
+  font-size: clamp(11px, 3.1cqw, 13px);
+  font-weight: 400;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.continue-learning-metrics {
+  width: 100%;
+  margin: clamp(8px, 2.8cqh, 14px) 0 0;
+}
+
+.continue-learning-progress-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: clamp(8px, 2cqw, 12px);
+  margin: 0;
+}
+
+.continue-learning-progress-track {
+  height: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf0f2;
+}
+
+.continue-learning-progress-row > span {
+  min-width: 0;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.continue-learning-lesson {
+  margin: clamp(6px, 2cqh, 10px) 0 0;
+  color: #667085;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+.continue-learning-footer {
+  display: flex;
+  min-width: 0;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+}
+
+.continue-learning-cta {
+  width: auto;
+  max-width: none;
+  height: 48px;
+  flex: 1 1 auto;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 11px;
+  background: #28ad68;
+  box-shadow: none;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.continue-learning-cta:hover {
+  background: #239e5f;
+}
+
+.continue-learning-footer > button:last-child {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border: 1px solid #e5eaee;
+  border-radius: 11px;
+  background: #ffffff;
+  color: #1b8b45;
+}
+
+.continue-learning-footer > button:last-child:hover {
+  background: #e8f8ef;
+}
+
+.continue-learning-footer > button:last-child[data-bookmarked="true"] {
+  border-color: #1b8b45;
+  background: #e8f8ef;
+}
+
+.continue-learning-footer > button:last-child svg {
+  width: 20px;
+  height: 20px;
+}
+
+.continue-learning button:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+@container bento-slot (max-width: 370px) {
+  .continue-learning {
+    --media-column-width: clamp(120px, 42cqw, 150px);
+    --media-details-gap: 10px;
+    --cta-height: 44px;
+    --bookmark-width: 44px;
+    --bookmark-height: 44px;
+    --button-gap: 8px;
+  }
+
+  .continue-learning-main {
+    grid-template-columns: minmax(0, var(--media-column-width)) minmax(0, 1fr);
+  }
+
+  .continue-learning-details {
+    padding-top: 0;
+  }
+
+  .continue-learning-course-title {
+    margin-top: 8px;
+    font-size: clamp(18px, 5.8cqw, 20px);
+  }
+
+  .continue-learning-course-subtitle {
+    font-size: 11px;
+  }
+
+  .continue-learning-status {
+    height: 24px;
+    padding-inline: 10px;
+    font-size: 12px;
+  }
+
+  .continue-learning-metrics {
+    margin-top: 10px;
+  }
+
+  .continue-learning-progress-row {
+    gap: 7px;
+  }
+
+  .continue-learning-lesson {
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .continue-learning-play-button {
+    width: 42px;
+    height: 42px;
+  }
+
+  .continue-learning-cta,
+  .continue-learning-footer > button:last-child {
+    height: 44px;
+  }
+
+  .continue-learning-footer > button:last-child {
+    width: 44px;
+    flex-basis: 44px;
+  }
+}
+
+@container bento-slot (max-height: 300px) {
+  .continue-learning {
+    --media-column-width: clamp(118px, 38cqw, 168px);
+    --media-details-gap: 10px;
+    --section-gap: 8px;
+  }
+
+  .continue-learning-main {
+    gap: var(--media-details-gap);
+  }
+
+  .continue-learning-title {
+    font-size: 16px;
+  }
+
+  .continue-learning-course-title {
+    margin-top: 6px;
+    font-size: clamp(16px, 4.2cqw, 20px);
+    line-height: 1.2;
+    max-height: 1.2em;
+  }
+
+  .continue-learning-course-subtitle {
+    margin-top: 3px;
+    font-size: 10px;
+  }
+
+  .continue-learning-status {
+    height: 22px;
+    padding-inline: 9px;
+    font-size: 11px;
+  }
+
+  .continue-learning-metrics {
+    margin-top: 8px;
+  }
+
+  .continue-learning-progress-row {
+    gap: 6px;
+  }
+
+  .continue-learning-progress-track {
+    height: 5px;
+  }
+
+  .continue-learning-progress-row > span,
+  .continue-learning-lesson {
+    font-size: 12px;
+  }
+
+  .continue-learning-lesson {
+    margin-top: 6px;
+    line-height: 15px;
+  }
+
+  .continue-learning-cta,
+  .continue-learning-footer > button:last-child {
+    height: 44px;
+  }
+
+  .continue-learning-footer > button:last-child {
+    width: 44px;
+    flex-basis: 44px;
+  }
+}
+
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --color-primary: var(--primary-color);
+  --color-secondary: var(--secondary-color);
+  --color-paragraphs: var(--paragraphs);
+  --color-text-black: var(--text-color-black);
+  --color-text-green: var(--text-color-green);
+  --color-label-light-green: var(--label-color-light-green);
+  --radius-custom: var(--border-radius);
+  --radius-card: var(--border-radius-card);
+  --radius-media: var(--border-radius-media);
+  --radius-cta: var(--border-radius-cta);
+  --color-border-custom: var(--color-border-color);
+  --text-section-title: var(--font-size-section-title);
+  --text-course-title: var(--font-size-course-title);
+  --text-status-badge: var(--font-size-status-badge);
+  --text-progress: var(--font-size-progress);
+  --text-lesson-meta: var(--font-size-lesson-meta);
+  --text-cta: var(--font-size-cta);
+}
+
+/* Two-line heading: natural wrapping via constrained wrapper width.
+   max-height: 2.36em caps at two lines of 1.18 line-height. */
+
+@container bento-slot (max-width: 300px) {
+  .continue-learning {
+    --card-padding-left: 12px;
+    --card-padding-right: 12px;
+    --card-padding-top: 12px;
+    --card-padding-bottom: 12px;
+    --media-column-width: clamp(82px, 38cqw, 108px);
+    --media-details-gap: 8px;
+    --section-gap: 9px;
+  }
+
+  .continue-learning-title {
+    font-size: 15px;
+  }
+
+  .continue-learning-options {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+  }
+
+  .continue-learning-course-title {
+    margin-top: 6px;
+    font-size: clamp(17px, 7cqw, 22px);
+  }
+
+  .continue-learning-course-subtitle {
+    font-size: 10px;
+  }
+
+  .continue-learning-status {
+    height: 22px;
+    max-width: 100%;
+    padding-inline: 8px;
+    overflow: hidden;
+    font-size: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .continue-learning-metrics {
+    margin-top: 8px;
+  }
+
+  .continue-learning-progress-row {
+    gap: 5px;
+  }
+
+  .continue-learning-progress-row > span,
+  .continue-learning-lesson {
+    font-size: 10px;
+  }
+
+  .continue-learning-lesson {
+    margin-top: 5px;
+    line-height: 14px;
+  }
+
+  .continue-learning-play-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .continue-learning-play-icon {
+    width: 15px;
+    height: 15px;
+  }
+
+  .continue-learning-footer {
+    gap: 7px;
+  }
+
+  .continue-learning-cta {
+    height: 44px;
+    padding-inline: 8px;
+    font-size: 12px;
+  }
+
+  .continue-learning-footer > button:last-child {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+  }
+}
+
+@container bento-slot (max-width: 240px) {
+  .continue-learning {
+    --card-padding-left: 10px;
+    --card-padding-right: 10px;
+    --card-padding-top: 10px;
+    --card-padding-bottom: 10px;
+    --media-column-width: clamp(70px, 36cqw, 86px);
+    --media-details-gap: 7px;
+  }
+
+  .continue-learning-title {
+    font-size: 14px;
+  }
+
+  .continue-learning-course-title {
+    font-size: 17px;
+    line-height: 1.12;
+  }
+
+  .continue-learning-progress-track {
+    height: 4px;
+  }
+}
+
+/* Restrained expansion for the largest supported dashboard canvas. */
+@container bento-slot (min-width: 600px) and (min-height: 380px) {
+  .continue-learning {
+    --card-padding-left: 26px;
+    --card-padding-right: 24px;
+    --card-padding-top: 24px;
+    --card-padding-bottom: 24px;
+    --media-column-width: clamp(260px, 38cqw, 300px);
+    --media-details-gap: 24px;
+    --section-gap: 20px;
+  }
+
+  .continue-learning-title {
+    font-size: 19px;
+  }
+
+  .continue-learning-main {
+    align-items: center;
+  }
+
+  .continue-learning-media {
+    height: auto;
+    max-height: 270px;
+    align-self: center;
+    aspect-ratio: 0.96 / 1;
+  }
+
+  .continue-learning-details {
+    align-self: center;
+    padding-top: 0;
+  }
+
+  .continue-learning-status {
+    height: 28px;
+    padding-inline: 14px;
+    font-size: 13px;
+  }
+
+  .continue-learning-course-title {
+    margin-top: 12px;
+    font-size: 28px;
+  }
+
+  .continue-learning-course-subtitle {
+    margin-top: 6px;
+    font-size: 14px;
+  }
+
+  .continue-learning-metrics {
+    margin-top: 20px;
+  }
+
+  .continue-learning-lesson {
+    margin-top: 13px;
+    font-size: 14px;
+  }
+
+  .continue-learning-play-button {
+    width: 52px;
+    height: 52px;
+  }
+}
+
+/* Tablet: keep the card readable without letting it dominate the dashboard. */
+@media (max-width: 1199px) {
+  .continue-learning {
+    --card-padding-left: 24px;
+    --card-padding-right: 24px;
+    --card-padding-top: 20px;
+    --card-padding-bottom: 20px;
+    --media-column-width: clamp(160px, 22cqw, 210px);
+    --media-details-gap: 20px;
+    --section-gap: 14px;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .continue-learning-card {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: var(--card-padding-top) var(--card-padding-right) var(--card-padding-bottom) var(--card-padding-left);
+    box-sizing: border-box;
+  }
+
+  .continue-learning-header {
+    margin-bottom: 0 !important;
+    flex: 0 0 auto;
+  }
+
+  .continue-learning-title {
+    font-size: 16px;
+  }
+
+  .continue-learning-main {
+    display: flex;
+    align-items: center;
+    gap: var(--media-details-gap);
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 8px 0 !important;
+  }
+
+  .continue-learning-media {
+    width: var(--media-column-width);
+    height: 160px;
+    max-height: 160px;
+    flex: 0 0 var(--media-column-width);
+    border-radius: 18px;
+    align-self: center;
+  }
+
+  .continue-learning-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 160px;
+    padding: 2px 0;
+  }
+
+  .continue-learning-status {
+    height: 26px;
+    padding-inline: 12px;
+    font-size: 13px;
+    width: fit-content;
+    margin-bottom: 0 !important;
+  }
+
+  .continue-learning-course-title {
+    margin: 4px 0 0;
+    font-size: clamp(20px, 3.2cqw, 28px);
+    line-height: 1.15;
+    font-weight: 700;
+  }
+
+  .continue-learning-course-subtitle {
+    margin-top: 4px;
+    font-size: 13px;
+  }
+
+  .continue-learning-metrics {
+    margin-top: auto;
+  }
+
+  .continue-learning-progress-track {
+    height: 8px;
+  }
+
+  .continue-learning-progress-row {
+    margin-bottom: 4px !important;
+  }
+
+  .continue-learning-progress-row > span {
+    font-size: 13px;
+  }
+
+  .continue-learning-lesson {
+    margin: 0;
+    font-size: 13px;
+    line-height: 16px;
+  }
+
+  .continue-learning-footer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: auto;
+    flex: 0 0 auto;
+  }
+
+  .continue-learning-cta {
+    height: 48px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 12px;
+    flex: 1 1 auto;
+    max-width: none !important;
+  }
+
+  .continue-learning-footer > button:last-child {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    border-radius: 12px;
+  }
+
+  .continue-learning-play-button {
+    width: 48px;
+    height: 48px;
+  }
+
+  .continue-learning-play-icon {
+    width: 18px;
+    height: 18px;
+  }
+}

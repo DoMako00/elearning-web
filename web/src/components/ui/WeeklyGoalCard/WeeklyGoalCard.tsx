@@ -1,11 +1,13 @@
 import { SlidersHorizontal } from "lucide-react";
+import fireAsset from "../../../Assets/fire.webp";
 import type { WeeklyGoalCardProps } from "./weekly-goal-card.types";
+import "./WeeklyGoalCard.css";
 
 const WEEK_DAYS = ["S", "M", "T", "W", "T", "F", "S"] as const;
 const DEFAULT_COMPLETED_DAYS = [true, true, true, true, true, true, false];
 
-const RING_SIZE = 220;
-const RING_RADIUS = 92;
+const RING_SIZE = 120;
+const RING_RADIUS = 50;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 interface ProgressRingProps {
@@ -16,36 +18,36 @@ function ProgressRing({ percentage }: ProgressRingProps) {
   const progressOffset = RING_CIRCUMFERENCE * (1 - percentage / 100);
 
   return (
-    <div className="relative grid size-[180px] place-items-center" aria-hidden="true">
+    <div className="weekly-goal-ring relative size-39.5 shrink-0" aria-hidden="true">
       <svg
-        className="size-full -rotate-90"
+        className="size-full rotate-[-82deg]"
         viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
         fill="none"
       >
         <circle
-          cx="110"
-          cy="110"
+          cx="60"
+          cy="60"
           r={RING_RADIUS}
           stroke="var(--color-surface-hover)"
-          strokeWidth="12"
+          strokeWidth="8"
         />
         <circle
-          cx="110"
-          cy="110"
+          cx="60"
+          cy="60"
           r={RING_RADIUS}
           stroke="var(--color-brand)"
-          strokeWidth="12"
+          strokeWidth="8"
           strokeLinecap="round"
           strokeDasharray={RING_CIRCUMFERENCE}
           strokeDashoffset={progressOffset}
         />
       </svg>
 
-      <div className="absolute inset-0 grid place-content-center text-center">
-        <span className="text-[35px] font-bold leading-none text-[var(--color-text-primary)]">
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+        <span className="text-[30px] font-semibold leading-none text-(--color-text-primary)">
           {percentage}%
         </span>
-        <span className="mt-2 text-[13px] font-medium leading-none text-[var(--color-text-secondary)]">
+        <span className="mt-2 text-[13px] font-normal leading-none text-(--color-text-secondary)">
           of weekly goal
         </span>
       </div>
@@ -70,36 +72,34 @@ export function WeeklyGoalCard({
 
   return (
     <article
-      className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-[15px] border border-[var(--color-border-subtle)] bg-[var(--color-surface)] px-6 pb-[18px] pt-5"
+      className="weekly-goal-card flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-(--color-border-subtle) bg-(--color-surface) p-4 sm:p-5"
       aria-label={progressDescription}
     >
-      <header className="flex h-8 shrink-0 items-center justify-between">
-        <h2 className="text-base font-semibold leading-[22px] text-[var(--color-text-primary)]">
+      <header className="weekly-goal-header flex h-8 shrink-0 items-center justify-between">
+        <h2 className="text-base font-semibold leading-[1.2] text-(--color-text-primary)">
           Weekly Goal
         </h2>
         <button
           type="button"
-          className="grid size-8 place-items-center rounded-[10px] border border-[var(--color-border-subtle)] bg-[var(--color-surface)] text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] focus-visible:ring-offset-2"
+          className="weekly-goal-options grid size-8.5 place-items-center rounded-(--border-radius-media) border border-(--color-border-subtle) bg-(--color-surface) text-(--color-text-primary) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-focus-ring) focus-visible:ring-offset-2"
           aria-label="Weekly goal options"
         >
           <SlidersHorizontal size={16} strokeWidth={2} aria-hidden="true" />
         </button>
       </header>
 
-      <div className="mt-2.5 flex shrink-0 justify-center">
+      <div className="weekly-goal-body flex min-h-0 flex-1 flex-col items-center pt-3">
         <ProgressRing percentage={percentage} />
-      </div>
-
-      <div className="mt-3 shrink-0 text-center">
-        <p className="text-[15px] font-semibold leading-5 text-[var(--color-text-primary)]">
+        <p className="weekly-goal-hours mt-2.5 text-[14px] font-semibold leading-5 text-(--color-text-primary)">
           {safeCompletedHours} / {safeTargetHours} hours
         </p>
-        <p className="mt-1 text-[13px] font-medium leading-5 text-[var(--color-text-secondary)]">
-          Keep it up! <span aria-hidden="true">🔥</span>
+        <p className="weekly-goal-message mt-1 text-[13px] font-normal leading-4.5 text-(--color-text-secondary)">
+          Keep it up!
+          <img className="weekly-goal-fire" src={fireAsset} alt="" aria-hidden="true" />
         </p>
       </div>
 
-      <div className="mt-4 grid shrink-0 grid-cols-7">
+      <div className="weekly-goal-days mt-3 grid w-full shrink-0 grid-cols-7">
         {WEEK_DAYS.map((day, index) => {
           const isCompleted = completedDays[index] ?? false;
 
@@ -108,12 +108,12 @@ export function WeeklyGoalCard({
               <span
                 className={
                   isCompleted
-                    ? "size-3 rounded-full bg-[var(--color-brand)]"
-                    : "size-3 rounded-full border border-[var(--color-border-subtle)] bg-[var(--color-surface)]"
+                    ? "size-2.75 rounded-full bg-(--color-brand) shadow-[0_0_0_1.5px_#d1fae5]"
+                    : "size-2.75 rounded-full border-[1.5px] border-[#94a3b8] bg-(--color-surface)"
                 }
                 aria-hidden="true"
               />
-              <span className="mt-2 text-[12px] font-medium leading-4 text-[var(--color-text-secondary)]">
+              <span className="mt-1 text-12px font-semibold leading-4 text-[#374151]">
                 {day}
               </span>
             </div>

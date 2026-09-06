@@ -1,0 +1,6 @@
+import { validateCreateInstructorCommand,validateCreateBrandCourseCommand } from "../../../core/validation";
+import type { CreateInstructorCommand,CreateBrandCourseCommand } from "../../../contracts/admin";
+function assert(value:unknown,message:string):asserts value {if(!value)throw new Error(message);}
+const metadata={platform:{platformId:"p",platformCode:"medway" as const,platformDisplayName:"p",brandId:"b",brandCode:"medway" as const,brandDisplayName:"M",isActive:true},correlationId:"c",reason:"test",idempotencyKey:"key"};
+export function runAdminM2CommandContractsSelfTest(){const instructor:CreateInstructorCommand={metadata,code:"INS-TEST",displayName:"Test Instructor"};assert(validateCreateInstructorCommand(instructor).ok,"canonical instructor rejected");const course:CreateBrandCourseCommand={metadata,brandId:"123e4567-e89b-12d3-a456-426614174000",courseCode:"MED-001",title:"Test course",courseScope:"standalone",academicModuleId:null,status:"draft"};assert(validateCreateBrandCourseCommand(course).ok,"canonical course rejected");}
+if(process.argv[1]?.endsWith("admin-m2-command-contracts.selftest.js")){runAdminM2CommandContractsSelfTest();console.log("admin M2 command contracts selftest passed");}
