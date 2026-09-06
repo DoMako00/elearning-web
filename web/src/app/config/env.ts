@@ -26,7 +26,7 @@ function normalizeUrl(value: string | undefined) {
 }
 
 function normalizeAdminDataSource(value: string | undefined): AdminDataSource {
-  return value?.trim().toLowerCase() === "api" ? "api" : "mock";
+  return value?.trim().toLowerCase() === "mock" ? "mock" : "api";
 }
 
 function normalizeDashboardEnrollmentState(value: string | undefined) {
