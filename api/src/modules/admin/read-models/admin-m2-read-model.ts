@@ -1,5 +1,5 @@
 import type { RepositoryResult } from "../../../core/persistence";
-import type { M2AcademicLevel, M2AcademicSemester, M2AcademicModule, M2Instructor, M2InstructorBrandAssignment, M2BrandCourse, M2CourseInstructorAssignment } from "../../../core/repositories";
+import type { M2AcademicLevel, M2AcademicSemester, M2AcademicModule, M2Instructor, M2InstructorBrandAssignment, M2BrandCourse, M2CourseInstructorAssignment, M2bChapter, M2bLesson, M2bResource } from "../../../core/repositories";
 
 export type AcademicLevelAdminDto = M2AcademicLevel;
 export type AcademicSemesterAdminDto = M2AcademicSemester;
@@ -8,6 +8,9 @@ export type InstructorAdminDto = M2Instructor;
 export type InstructorBrandAssignmentAdminDto = M2InstructorBrandAssignment;
 export type BrandCourseAdminDto = M2BrandCourse;
 export type CourseInstructorAssignmentAdminDto = M2CourseInstructorAssignment;
+export type CourseChapterAdminDto = M2bChapter;
+export type CourseLessonAdminDto = M2bLesson;
+export type LessonResourceAdminDto = M2bResource;
 
 export interface AdminM2ReadModel {
   listAcademicLevels(input?: { readonly correlationId?: string }): Promise<RepositoryResult<readonly AcademicLevelAdminDto[]>>;
@@ -23,4 +26,7 @@ export interface AdminM2ReadModel {
   findBrandCourse(input: { readonly brandId: string; readonly courseId: string; readonly correlationId?: string }): Promise<RepositoryResult<BrandCourseAdminDto>>;
   listCourseInstructors(input: { readonly brandId: string; readonly courseId: string; readonly correlationId?: string }): Promise<RepositoryResult<readonly CourseInstructorAssignmentAdminDto[]>>;
   listInstructorCourseAssignments(input: { readonly brandId: string; readonly instructorId: string; readonly correlationId?: string }): Promise<RepositoryResult<readonly CourseInstructorAssignmentAdminDto[]>>;
+  listCourseChapters(input: { readonly brandId: string; readonly courseId: string; readonly correlationId?: string }): Promise<RepositoryResult<readonly CourseChapterAdminDto[]>>;
+  listCourseLessons(input: { readonly brandId: string; readonly courseId: string; readonly correlationId?: string }): Promise<RepositoryResult<readonly CourseLessonAdminDto[]>>;
+  listLessonResources(input: { readonly brandId: string; readonly courseId: string; readonly correlationId?: string }): Promise<RepositoryResult<readonly LessonResourceAdminDto[]>>;
 }

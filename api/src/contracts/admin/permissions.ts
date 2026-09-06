@@ -16,7 +16,8 @@ export type AdminPermissionCode =
   | "admin.instructors.create" | "admin.instructors.update"
   | "admin.brand_instructors.assign" | "admin.brand_instructors.update"
   | "admin.brand_courses.create" | "admin.brand_courses.update"
-  | "admin.course_instructors.assign" | "admin.course_instructors.update";
+  | "admin.course_instructors.assign" | "admin.course_instructors.update"
+  | "admin.delivery.read" | "admin.delivery.create" | "admin.delivery.update";
 
 /** UI permission gates are presentation only; backend validation is authoritative. */
 export interface AdminPrincipalSummary {

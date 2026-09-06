@@ -13,3 +13,4 @@ export * from "./media.contracts";
 export * from "./assessments.contracts";
 export * from "./operations.contracts";
 export * from "./m2-write-commands";
+export * from "./m2b-course-delivery";

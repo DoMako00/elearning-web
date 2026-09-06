@@ -22,6 +22,9 @@ function readModel(calls: string[]): AdminM2ReadModel {
     listBrandCourses: async () => { calls.push("brand-courses"); return empty; },
     findBrandCourse: async () => { calls.push("brand-course-detail"); return missing; },
     listCourseInstructors: async () => { calls.push("course-instructors"); return empty; },
+    listCourseChapters: async () => { calls.push("course-chapters"); return empty; },
+    listCourseLessons: async () => { calls.push("course-lessons"); return empty; },
+    listLessonResources: async () => { calls.push("lesson-resources"); return empty; },
   };
 }
 

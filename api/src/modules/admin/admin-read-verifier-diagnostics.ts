@@ -96,6 +96,9 @@ export function createAdminReadVerifierDiagnostics(
       listBrandCourses: (input) => { increment("brandCourseReads"); return readModel.listBrandCourses(input); },
       findBrandCourse: (input) => { increment("brandCourseDetailReads"); return readModel.findBrandCourse(input); },
       listCourseInstructors: (input) => { increment("courseInstructorReads"); return readModel.listCourseInstructors(input); },
+      listCourseChapters: (input) => readModel.listCourseChapters(input),
+      listCourseLessons: (input) => readModel.listCourseLessons(input),
+      listLessonResources: (input) => readModel.listLessonResources(input),
     }),
   };
 }
