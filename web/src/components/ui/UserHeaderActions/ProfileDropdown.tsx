@@ -1,5 +1,5 @@
 import {
-  BadgeCheck,
+  // BadgeCheck,
   Bell,
   ChevronRight,
   CircleHelp,
@@ -93,12 +93,12 @@ export function ProfileDropdown({
       badge: unreadNotificationsCount,
       hasArrow: false,
     },
-    {
-      key: "certificates",
-      label: "My Certificates",
-      icon: BadgeCheck,
-      hasArrow: true,
-    },
+    // {
+    //   key: "certificates",
+    //   label: "My Certificates",
+    //   icon: BadgeCheck,
+    //   hasArrow: true,
+    // },
     {
       key: "help",
       label: "Help Center",

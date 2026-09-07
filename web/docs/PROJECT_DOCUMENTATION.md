@@ -157,6 +157,7 @@ Each individual feature has its own dedicated documentation file in the `docs/co
 | **Auth & Onboarding** | [docs/components/AuthenticationAndOnboarding.md](file:///c:/Users/shehab/OneDrive/Desktop/E-learning%20stage/elearning-web/web/docs/components/AuthenticationAndOnboarding.md) | تسجيل الدخول، التحقق، وتخصيص الجامعة |
 | **Admin & Course Builder** | [docs/components/AdminDashboardAndBuilder.md](file:///c:/Users/shehab/OneDrive/Desktop/E-learning%20stage/elearning-web/web/docs/components/AdminDashboardAndBuilder.md) | لوحة تحكم المشرفين ومنشئ الكورسات |
 | **Toast & Inactivity Monitor**| [docs/components/ToastAndInactivity.md](file:///c:/Users/shehab/OneDrive/Desktop/E-learning%20stage/elearning-web/web/docs/components/ToastAndInactivity.md) | نظام التنبيهات الموحد ومراقبة عدم النشاط |
+| **Community Hub & Live Sync** | [docs/components/CommunityHub.md](file:///c:/Users/shehab/OneDrive/Desktop/E-learning%20stage/elearning-web/web/docs/components/CommunityHub.md) | مجتمع الطلاب، مجموعات المذاكرة، والتزامن الحي |
 
 ---
 

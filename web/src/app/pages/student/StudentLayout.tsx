@@ -18,12 +18,13 @@ export function StudentLayout() {
   const isAssignmentDetail = pathname.startsWith("/assignments/");
   const isCalendar = pathname === "/calendar";
   const isMessages = pathname === "/messages";
+  const isCommunity = pathname === "/community";
   const isTestXP = pathname === "/test-xp";
   const isTestInactivity = pathname === "/test-inactivity";
   const isTestStreak = pathname === "/test-streak";
 
-  // Search bar in the topbar is exclusively for Home; explicitly removed on Profile and other pages
-  const showCenteredSearch = isHome && !isProfile;
+  // Search bar in the topbar is shown for Home
+  const showCenteredSearch = isHome;
 
   const renderBreadcrumb = () => {
     if (isProfile) {
@@ -32,6 +33,16 @@ export function StudentLayout() {
           <span className="student-dashboard__page-title-label">Student Account</span>
           <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
           <h1>My Profile</h1>
+        </div>
+      );
+    }
+
+    if (isCommunity) {
+      return (
+        <div className="student-dashboard__page-title">
+          <span className="student-dashboard__page-title-label">Learning space</span>
+          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
+          <h1>Community</h1>
         </div>
       );
     }
@@ -114,7 +125,8 @@ export function StudentLayout() {
           isAssignmentDetail ? " student-dashboard--assignment-detail" : ""
         }${isCalendar ? " student-dashboard--calendar" : ""}${
           isMessages ? " student-dashboard--messages" : ""
-        }${isScrollablePage ? " student-dashboard--scrollable" : ""}`}
+        }${isCommunity ? " student-dashboard--community" : ""}${
+          isScrollablePage ? " student-dashboard--scrollable" : ""}`}
       >
         <header
           className={`student-dashboard__header${showCenteredSearch ? " student-dashboard__header--home" : ""}`}

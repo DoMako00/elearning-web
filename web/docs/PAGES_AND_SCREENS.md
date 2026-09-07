@@ -114,6 +114,20 @@ This document provides a breakdown of **every single page** in the application, 
   - `ChatWindow`: Live message bubbles, text input, audio voice recordings, image/PDF attachments.
   - `ChatContextSidebar`: Right sidebar showing shared media files, participants, and course affiliations.
 
+#### 11. Community Hub (`/community`)
+- **Route**: `/community`
+- **Page File**: `src/app/pages/student/CommunityPage.tsx`
+- **Component Root**: `src/features/community/Community.tsx`
+- **Key Content & Components**:
+  - `CommunityBreadcrumb`: Inline `Home / Community` navigation with live online member pulse indicator.
+  - `SearchAndFilterToolbar`: Forum search, "All topics" dropdown trigger, and pill filters (`All`, `Study Groups`, `Discussions`, `Q&A`, `Resources`, `Events`, plus `+` thread creator).
+  - `FeaturedGroupCard`: Dark emerald themed study group card with custom graduation cap SVG, tags, participant avatars, and "Join group" action.
+  - `TrendingTopicsWidget`: Hot discussions list with live reply counters and colored topic badges.
+  - `DiscussionFeed`: Real-time post cards with icons, author credentials, time stamps, view counts, and optimistic highlight animations.
+  - `MentorSpotlightCard`: Highlighted expert card with avatar, verified badge, bio, and profile link.
+  - `CommunitySidebar`: Right rail featuring Members online (with live presence dots), Upcoming events (with Join/Remind triggers), and Top contributors leaderboard.
+  - `useCommunitySocket`: Real-time WebSocket hook synchronizing presence, post creation, and engagement metrics.
+
 ---
 
 ### 🔐 2. Authentication & Onboarding Pages (`/auth/*`)

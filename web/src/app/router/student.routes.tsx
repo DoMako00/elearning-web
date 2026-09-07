@@ -11,6 +11,7 @@ import { MyCoursesPage } from "../pages/student/MyCoursesPage";
 // import { TestInactivityPromptPage } from "../pages/student/test-inactivity/TestInactivityPromptPage";
 // import { TestStreakPage } from "../pages/student/test-streak/TestStreakPage";
 // import { TestXPRewardsPage } from "../pages/student/test-xp/TestXPRewardsPage";
+import { CommunityPage } from "../pages/student/CommunityPage";
 import { ProfilePage } from "../pages/student/ProfilePage";
 import { StudentLayout } from "../pages/student/StudentLayout";
 import "./student-dashboard.css";
@@ -30,6 +31,7 @@ export const studentRoutes: RouteObject[] = [
       { path: "assignments", element: <AssignmentsPage /> },
       { path: "assignments/:assignmentId", element: <AssignmentDetailPage /> },
       { path: "messages", element: <MessagesPage /> },
+      { path: "community", element: <CommunityPage /> },
       // { path: "test-inactivity", element: <TestInactivityPromptPage /> },
       // { path: "test-streak", element: <TestStreakPage /> },
       // { path: "test-xp", element: <TestXPRewardsPage /> },

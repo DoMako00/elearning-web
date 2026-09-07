@@ -49,7 +49,7 @@ export const primarySidebarItems: SidebarItem[] = [
     href: "/messages",
     enabled: true,
   },
-  { label: "Community", icon: UsersRound, href: "/community", enabled: false },
+  { label: "Community", icon: UsersRound, href: "/community", enabled: true },
 ];
 
 export const secondarySidebarItems: SidebarItem[] = [
