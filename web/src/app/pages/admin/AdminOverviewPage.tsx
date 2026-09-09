@@ -7,6 +7,7 @@ import { brandToPlatform } from "../../../features/admin/hooks/useAdminBrand";
 import { AdminStatCard, AdminTrendSparkline } from "../../../features/admin/components/AdminStatCard";
 import { AdminEnrollmentChart, AdminPaymentDonut } from "../../../features/admin/components/AdminOverviewCharts";
 import type { AdminBrandContext, AdminBrandView, AdminOverviewActivity, AdminOverviewDashboard, AdminOverviewMetricId } from "../../../features/admin/api";
+import { liveOverviewToDashboard } from "../../../features/admin/api/adminOverview.live";
 
 const number = new Intl.NumberFormat("en-EG");
 const metricIcons: Record<AdminOverviewMetricId, LucideIcon> = { students: UsersRound, courses: BookOpen, instructors: UserRound, revenue: CreditCard };
@@ -31,13 +32,13 @@ function OverviewContent({ dashboard }: { dashboard: AdminOverviewDashboard }) {
   return <>
     <div className="admin-metric-grid">{dashboard.metrics.map((metric) => <AdminStatCard key={metric.id} metric={metric} icon={metricIcons[metric.id]} />)}</div>
     <div className="admin-overview-middle">
-      <article className="admin-dashboard-card admin-enrollment-card"><CardHeader title="Enrollment Overview" /><div className="admin-card-kpi"><div><strong>{number.format(dashboard.enrollment.total)}</strong><span>New Enrollments</span></div><span className="admin-trend is-up">↑ {dashboard.enrollment.trendPercentage}% <small>vs last month</small></span></div><AdminEnrollmentChart enrollment={dashboard.enrollment} /></article>
-      <article className="admin-dashboard-card admin-traffic-card"><CardHeader title="Platform Traffic" /><div className="admin-card-kpi admin-card-kpi--inline"><div><span>Total Visits</span><strong>{number.format(dashboard.traffic.total)}</strong></div><span className="admin-trend is-up">↑ {dashboard.traffic.trendPercentage}%</span><AdminTrendSparkline values={dashboard.traffic.sparkline} /></div><BreakdownList items={dashboard.traffic.sources} /><button className="admin-card-footer-link" type="button" onClick={() => setFeedback("Full analytics is a frontend preview action.")}>View full analytics <ArrowRight aria-hidden="true" /></button></article>
-      <article className="admin-dashboard-card admin-orders-card"><CardHeader title="Orders Summary" /><div className="admin-card-kpi admin-card-kpi--inline"><div><span>Total Orders</span><strong>{number.format(dashboard.orders.total)}</strong></div><span className="admin-trend is-up">↑ {dashboard.orders.trendPercentage}%</span><span className="admin-soft-icon"><ShoppingCart aria-hidden="true" /></span></div><BreakdownList items={dashboard.orders.statuses} /><button className="admin-card-footer-link" type="button" onClick={() => navigate("/admin/payments")}>View all orders <ArrowRight aria-hidden="true" /></button></article>
-      <article className="admin-dashboard-card admin-activity-card"><CardHeader title="Recent Activity" action="View all" /><ul className="admin-activity-list">{dashboard.recentActivity.map((activity) => { const Icon = activityIcons[activity.kind]; return <li key={activity.id}><span className="admin-list-icon"><Icon aria-hidden="true" /></span><span><strong>{activity.title}</strong><small>{activity.detail}</small></span><time>{activity.relativeTime}</time></li>; })}</ul></article>
+      <article className="admin-dashboard-card admin-enrollment-card"><CardHeader title="Access Overview" /><div className="admin-card-kpi"><div><strong>{number.format(dashboard.enrollment.total)}</strong><span>Active subscriptions and grants</span></div><span className="admin-trend is-up">↑ {dashboard.enrollment.trendPercentage}% <small>live records</small></span></div><AdminEnrollmentChart enrollment={dashboard.enrollment} /></article>
+      <article className="admin-dashboard-card admin-traffic-card"><CardHeader title="Operational Signals" /><div className="admin-card-kpi admin-card-kpi--inline"><div><span>Live signals</span><strong>{number.format(dashboard.traffic.total)}</strong></div><span className="admin-trend is-up">↑ {dashboard.traffic.trendPercentage}%</span><AdminTrendSparkline values={dashboard.traffic.sparkline} /></div><BreakdownList items={dashboard.traffic.sources} /><button className="admin-card-footer-link" type="button" onClick={() => setFeedback("Analytics details will connect as persisted event domains expand.")}>View full analytics <ArrowRight aria-hidden="true" /></button></article>
+      <article className="admin-dashboard-card admin-orders-card"><CardHeader title="Payment Queue" /><div className="admin-card-kpi admin-card-kpi--inline"><div><span>Pending actions</span><strong>{number.format(dashboard.orders.total)}</strong></div><span className="admin-trend is-up">↑ {dashboard.orders.trendPercentage}%</span><span className="admin-soft-icon"><ShoppingCart aria-hidden="true" /></span></div><BreakdownList items={dashboard.orders.statuses} /><button className="admin-card-footer-link" type="button" onClick={() => navigate("/admin/payments")}>View all orders <ArrowRight aria-hidden="true" /></button></article>
+      <article className="admin-dashboard-card admin-activity-card"><CardHeader title="Recent Activity" action="View all" />{dashboard.recentActivity.length ? <ul className="admin-activity-list">{dashboard.recentActivity.map((activity) => { const Icon = activityIcons[activity.kind]; return <li key={activity.id}><span className="admin-list-icon"><Icon aria-hidden="true" /></span><span><strong>{activity.title}</strong><small>{activity.detail}</small></span><time>{activity.relativeTime}</time></li>; })}</ul> : <div className="admin-card-empty"><FileText aria-hidden="true" /><strong>No recent activity yet</strong><span>Audit and admin action events will appear here once operational activity is recorded.</span></div>}</article>
     </div>
     <div className="admin-overview-bottom">
-      <article className="admin-dashboard-card admin-reviews-card"><CardHeader title="Pending Reviews" count={dashboard.pendingReviews.length} action="View all" /><ul className="admin-review-list">{dashboard.pendingReviews.map((review) => <li key={review.id}><span className="admin-list-icon"><BookOpen aria-hidden="true" /></span><span><strong>{review.title}</strong><small>{review.detail}</small></span><em className={`is-${review.tone}`}>{review.typeLabel}</em><time>{review.relativeTime}</time></li>)}</ul></article>
+      <article className="admin-dashboard-card admin-reviews-card"><CardHeader title="Pending Reviews" count={dashboard.pendingReviews.length} action="View all" />{dashboard.pendingReviews.length ? <ul className="admin-review-list">{dashboard.pendingReviews.map((review) => <li key={review.id}><span className="admin-list-icon"><BookOpen aria-hidden="true" /></span><span><strong>{review.title}</strong><small>{review.detail}</small></span><em className={`is-${review.tone}`}>{review.typeLabel}</em><time>{review.relativeTime}</time></li>)}</ul> : <div className="admin-card-empty"><BookOpen aria-hidden="true" /><strong>No pending reviews</strong><span>Course releases, resource approvals, and assessments that need attention will show up here.</span></div>}</article>
       <article className="admin-dashboard-card admin-payment-card"><CardHeader title="Payment Status" /><AdminPaymentDonut payment={dashboard.paymentStatus} /><button className="admin-card-footer-link" type="button" onClick={() => navigate("/admin/payments")}>View transactions <ArrowRight aria-hidden="true" /></button></article>
       <article className="admin-dashboard-card admin-quick-card"><CardHeader title="Quick Links" action="" /><div className="admin-quick-links">{quickLinks.map(({ label, icon: Icon, ...item }) => <button key={label} type="button" onClick={() => "path" in item ? navigate(item.path) : setFeedback(`${label} is a frontend preview action.`)}><Icon aria-hidden="true" /><span>{label}</span><Plus aria-hidden="true" /></button>)}</div></article>
     </div>
@@ -45,33 +46,16 @@ function OverviewContent({ dashboard }: { dashboard: AdminOverviewDashboard }) {
   </>;
 }
 
-function LiveOverviewSummary({ overview }: { overview: import("../../../features/admin/api").AdminOverview }) {
-  const cards = [
-    ["Pending payment reviews", overview.pendingPaymentReviewsCount],
-    ["Pending refunds", overview.pendingRefundsCount],
-    ["Active subscriptions", overview.activeSubscriptionsCount],
-    ["Active access grants", overview.activeGrantsCount],
-    ["Content awaiting release", overview.contentAwaitingReleaseCount],
-    ["Assessments awaiting review", overview.assessmentsAwaitingReviewCount],
-  ] as const;
-  return <div className="admin-live-overview" aria-label={`${overview.platform.platformDisplayName} live overview`}>
-    <div className="admin-live-overview__banner"><strong>Live API data</strong><span>Loaded from the Supabase-backed administrative API. Analytics not persisted yet are intentionally not fabricated.</span></div>
-    <div className="admin-metric-grid admin-live-overview__grid">{cards.map(([label, value]) => <article className="admin-stat-card admin-live-stat" key={label}><div className="admin-stat-card__content"><span className="admin-stat-card__label">{label}</span><strong>{number.format(value)}</strong><span className="admin-live-stat__source">Supabase / Postgres</span></div></article>)}</div>
-    <div className="admin-feedback" role="status"><div><strong>Detailed analytics will appear as commerce, access, content, and audit records are connected.</strong><span>{overview.platform.platformDisplayName} is connected and responding with the current persisted counts.</span></div></div>
-  </div>;
-}
-
 export function AdminOverviewPage() {
-  const { brand, brandView } = useOutletContext<{ brand?: AdminBrandContext; brandView: AdminBrandView }>();
-  const platform = useMemo(() => brand ? brandToPlatform(brand) : undefined, [brand]);
-  const { data, error, loading, retry, correlationId } = useAdminOverview(platform);
-  const dashboard = data?.dashboard;
+  const { brand, availableBrands } = useOutletContext<{ brand?: AdminBrandContext; brandView: AdminBrandView; availableBrands: readonly AdminBrandContext[] }>();
+  const platformTargets = useMemo(() => brand ? [brandToPlatform(brand)] : availableBrands.map(brandToPlatform), [brand, availableBrands]);
+  const { data, error, loading, retry, correlationId } = useAdminOverview(platformTargets);
+  const dashboard = useMemo(() => data?.dashboard ?? (data ? liveOverviewToDashboard(data) : undefined), [data]);
   const label = brand?.brandDisplayName ?? "All Brands";
   return <section className="admin-page admin-overview" aria-label={`${label} overview`}>
     {loading && <div className="admin-overview-loading" aria-live="polite" aria-busy="true"><LoaderCircle aria-hidden="true" /> Loading {label} overview…</div>}
     {error && <div className="admin-feedback admin-feedback--error" role="alert"><div><strong>{error.message}</strong><span>Correlation ID: {error.correlationId}</span></div><button type="button" onClick={retry}>Retry</button></div>}
     {dashboard && !loading && !error && <OverviewContent dashboard={dashboard} />}
-    {data && !dashboard && !loading && !error && <LiveOverviewSummary overview={data} />}
-    {!data && !dashboard && !loading && !error && <div className="admin-feedback admin-feedback--error" role="status"><div><strong>{brandView === "all" ? "Choose a brand to load live overview data." : "Live overview data is not available yet."}</strong><span>{brandView === "all" ? "The API exposes brand-scoped overviews; no all-brands fixture is shown." : `Correlation ID: ${correlationId}`}</span></div>{brandView !== "all" && <button type="button" onClick={retry}>Retry</button>}</div>}
+    {!data && !dashboard && !loading && !error && <div className="admin-feedback admin-feedback--error" role="status"><div><strong>Live overview data is not available yet.</strong><span>Correlation ID: {correlationId}</span></div><button type="button" onClick={retry}>Retry</button></div>}
   </section>;
 }
