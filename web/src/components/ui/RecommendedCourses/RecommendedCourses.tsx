@@ -25,6 +25,7 @@ const courses = [
     rating: "4.8",
     image: anatomyImage,
     imagePosition: "50% 28%",
+    route: "/my-courses/human-anatomy-i",
   },
   {
     title: "Histology Basics",
@@ -34,6 +35,7 @@ const courses = [
     rating: "4.7",
     image: histologyImage,
     imagePosition: "center",
+    route: "/explore",
   },
   {
     title: "Medical Physiology",
@@ -43,6 +45,7 @@ const courses = [
     rating: "4.8",
     image: physiologyImage,
     imagePosition: "center",
+    route: "/explore",
   },
   {
     title: "Biochemistry Essentials",
@@ -52,6 +55,7 @@ const courses = [
     rating: "4.6",
     image: biochemistryImage,
     imagePosition: "center",
+    route: "/explore",
   },
   {
     title: "Embryology Foundations",
@@ -61,6 +65,7 @@ const courses = [
     rating: "4.8",
     image: embryologyImage,
     imagePosition: "center",
+    route: "/explore",
   },
 ] as const;
 
@@ -86,16 +91,17 @@ export function RecommendedCourses() {
     return () => window.removeEventListener("resize", checkScroll);
   }, []);
 
-  const toggleBookmark = (title: string) => {
+  const toggleBookmark = (title: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     const isCurrentlyBookmarked = !!bookmarkedCourses[title];
     setBookmarkedCourses((prev) => ({
       ...prev,
       [title]: !prev[title],
     }));
     if (isCurrentlyBookmarked) {
-      showToast(`Removed "${title}" from saved courses`);
+      showToast(`Removed "${title}" from Profile > Saved`);
     } else {
-      showToast(`"${title}" saved to your courses`);
+      showToast(`"${title}" saved to Profile > Saved`);
     }
   };
 
@@ -122,7 +128,7 @@ export function RecommendedCourses() {
       <ToastNotification message={toastMessage} />
       <header className="recommended-header">
         <h2 id="recommended-title">Recommended Medical Modules For You</h2>
-        <button type="button" className="recommended-view-all" onClick={() => navigate('/my-courses')}>
+        <button type="button" className="recommended-view-all cursor-pointer" onClick={() => navigate('/explore')}>
           <span>View all</span>
           <ArrowRight aria-hidden="true" />
         </button>
@@ -144,7 +150,15 @@ export function RecommendedCourses() {
           {courses.map((course) => {
             const isBookmarked = !!bookmarkedCourses[course.title];
             return (
-              <article className="recommended-course" key={course.title}>
+              <article
+                className="recommended-course cursor-pointer transition-all hover:shadow-md"
+                key={course.title}
+                onClick={() => navigate(course.route)}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") navigate(course.route);
+                }}
+              >
                 <div className="recommended-course-media">
                   <img
                     src={course.image}
@@ -155,7 +169,7 @@ export function RecommendedCourses() {
                   />
                   <button
                     type="button"
-                    onClick={() => toggleBookmark(course.title)}
+                    onClick={(e) => toggleBookmark(course.title, e)}
                     className={`recommended-bookmark ${isBookmarked ? "recommended-bookmark--active" : ""}`}
                     aria-label={isBookmarked ? `Remove bookmark for ${course.title}` : `Bookmark ${course.title}`}
                     aria-pressed={isBookmarked}

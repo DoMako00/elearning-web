@@ -147,7 +147,13 @@ export function StudentLayout() {
               onViewProfile={() => navigate("/profile")}
               onMenuItemClick={(itemKey) => {
                 if (itemKey === "profile") navigate("/profile");
-                else if (itemKey === "certificates") navigate("/profile");
+                else if (itemKey === "settings") navigate("/profile?tab=settings");
+                else if (itemKey === "notifications") navigate("/profile?tab=activity");
+                else if (itemKey === "help") window.open("https://greenlearn.org/help", "_blank");
+                else if (itemKey === "certificates") navigate("/profile?tab=achievements");
+              }}
+              onLogOut={() => {
+                window.location.href = "/";
               }}
             />
           </div>

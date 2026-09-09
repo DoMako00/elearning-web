@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Area,
   AreaChart,
@@ -6,6 +7,9 @@ import {
   YAxis,
 } from 'recharts';
 import { RefreshCw, TrendingUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../../hooks/useToast';
+import { ToastNotification } from '../ToastNotification';
 import type { MyProgressProps } from './my-progress.types';
 import './index.css';
 
@@ -36,21 +40,50 @@ export function MyProgress({
   onViewProgress,
   chartData = DEFAULT_CHART_DATA,
 }: MyProgressProps) {
+  const navigate = useNavigate();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { toastMessage, showToast } = useToast();
   const points = buildChartPoints(chartData);
+
+  const handleRefresh = () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setIsRefreshing(false);
+      showToast("Progress calculation is up to date");
+    }, 1500);
+  };
+
+  const handleViewProgress = () => {
+    if (onViewProgress) {
+      onViewProgress();
+    } else {
+      navigate('/profile?tab=activity');
+    }
+  };
 
   return (
     <section
-      className="my-progress-card"
+      className="my-progress-card relative"
       aria-label={`My Progress: ${completionPercentage}% overall completion`}
     >
+      <ToastNotification message={toastMessage} />
+
       <div className="my-progress-header">
         <h2 className="my-progress-title">My Progress</h2>
         <button
           type="button"
           aria-label="Refresh progress"
-          className="my-progress-icon-btn"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="my-progress-icon-btn hover:bg-slate-50 transition-colors cursor-pointer"
         >
-          <RefreshCw className="my-progress-icon-btn-icon" aria-hidden="true" />
+          <RefreshCw
+            className={`my-progress-icon-btn-icon transition-transform ${
+              isRefreshing ? "animate-spin text-(--color-brand,#20a862)" : ""
+            }`}
+            aria-hidden="true"
+          />
         </button>
       </div>
 
@@ -115,8 +148,8 @@ export function MyProgress({
       <div className="my-progress-footer">
         <button
           type="button"
-          onClick={onViewProgress}
-          className="my-progress-cta"
+          onClick={handleViewProgress}
+          className="my-progress-cta cursor-pointer"
         >
           View Progress
         </button>

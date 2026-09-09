@@ -141,7 +141,16 @@ export function NotificationsDropdown({
             <button
               type="button"
               className={`notif-item${notif.isUnread ? " notif-item--unread" : ""}`}
-              onClick={onClose}
+              onClick={() => {
+                if (notif.type === "assignment") {
+                  window.location.href = "/assignments";
+                } else if (notif.type === "message") {
+                  window.location.href = "/messages";
+                } else if (notif.type === "course") {
+                  window.location.href = "/my-courses/human-anatomy-i";
+                }
+                onClose();
+              }}
             >
               <div className="notif-item__icon-box">
                 <NotifIcon type={notif.type} />

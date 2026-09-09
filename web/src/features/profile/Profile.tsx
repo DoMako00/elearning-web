@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useToast } from "../../hooks/useToast";
 import { ToastNotification } from "../../components/ui/ToastNotification";
 import { ProfileHeader } from "./components/ProfileHeader";
@@ -9,8 +10,12 @@ import { ActivityAnalyticsTab } from "./components/tabs/ActivityAnalyticsTab";
 import { SettingsTab } from "./components/tabs/SettingsTab";
 import { EditProfileModal } from "./components/modals/EditProfileModal";
 import { useProfileTabs } from "./hooks/useProfileTabs";
+import type { ProfileTabId } from "./types/profile.types";
 
 export function Profile() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab") as ProfileTabId | null;
+
   const {
     activeTab,
     setActiveTab,
@@ -29,7 +34,18 @@ export function Profile() {
     studyDistribution,
     learningTrends,
     analyticsStats,
-  } = useProfileTabs("overview");
+  } = useProfileTabs(tabParam && ["overview", "achievements", "saved", "activity", "settings"].includes(tabParam) ? tabParam : "overview");
+
+  useEffect(() => {
+    if (tabParam && ["overview", "achievements", "saved", "activity", "settings"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam, setActiveTab]);
+
+  const handleTabChange = (newTab: ProfileTabId) => {
+    setActiveTab(newTab);
+    setSearchParams({ tab: newTab });
+  };
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { toastMessage, showToast } = useToast();
@@ -50,7 +66,7 @@ export function Profile() {
       <ProfileHeader
         profile={profile}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         onEditClick={() => setIsEditModalOpen(true)}
         onAvatarUpload={handleAvatarUpload}
       />
