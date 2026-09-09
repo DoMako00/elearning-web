@@ -19,8 +19,8 @@ const emptyCounts: AdminOverviewSnapshot["counts"] = {
   assessmentsAwaitingReview: 0,
 };
 
-function isSupportedBrandCode(value: string): value is "medway" | "elite" {
-  return value === "medway" || value === "elite";
+function isSupportedBrandCode(value: string): value is "medway" | "elite" | "nexus" {
+  return value === "medway" || value === "elite" || value === "nexus";
 }
 
 /**

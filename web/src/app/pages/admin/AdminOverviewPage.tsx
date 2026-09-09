@@ -6,7 +6,6 @@ import { useAdminOverview } from "../../../features/admin/hooks/useAdminOverview
 import { brandToPlatform } from "../../../features/admin/hooks/useAdminBrand";
 import { AdminStatCard, AdminTrendSparkline } from "../../../features/admin/components/AdminStatCard";
 import { AdminEnrollmentChart, AdminPaymentDonut } from "../../../features/admin/components/AdminOverviewCharts";
-import { getAdminOverviewDashboard } from "../../../features/admin/api/adminOverview.aggregate";
 import type { AdminBrandContext, AdminBrandView, AdminOverviewActivity, AdminOverviewDashboard, AdminOverviewMetricId } from "../../../features/admin/api";
 
 const number = new Intl.NumberFormat("en-EG");
@@ -46,16 +45,33 @@ function OverviewContent({ dashboard }: { dashboard: AdminOverviewDashboard }) {
   </>;
 }
 
+function LiveOverviewSummary({ overview }: { overview: import("../../../features/admin/api").AdminOverview }) {
+  const cards = [
+    ["Pending payment reviews", overview.pendingPaymentReviewsCount],
+    ["Pending refunds", overview.pendingRefundsCount],
+    ["Active subscriptions", overview.activeSubscriptionsCount],
+    ["Active access grants", overview.activeGrantsCount],
+    ["Content awaiting release", overview.contentAwaitingReleaseCount],
+    ["Assessments awaiting review", overview.assessmentsAwaitingReviewCount],
+  ] as const;
+  return <div className="admin-live-overview" aria-label={`${overview.platform.platformDisplayName} live overview`}>
+    <div className="admin-live-overview__banner"><strong>Live API data</strong><span>Loaded from the Supabase-backed administrative API. Analytics not persisted yet are intentionally not fabricated.</span></div>
+    <div className="admin-metric-grid admin-live-overview__grid">{cards.map(([label, value]) => <article className="admin-stat-card admin-live-stat" key={label}><div className="admin-stat-card__content"><span className="admin-stat-card__label">{label}</span><strong>{number.format(value)}</strong><span className="admin-live-stat__source">Supabase / Postgres</span></div></article>)}</div>
+    <div className="admin-feedback" role="status"><div><strong>Detailed analytics will appear as commerce, access, content, and audit records are connected.</strong><span>{overview.platform.platformDisplayName} is connected and responding with the current persisted counts.</span></div></div>
+  </div>;
+}
+
 export function AdminOverviewPage() {
   const { brand, brandView } = useOutletContext<{ brand?: AdminBrandContext; brandView: AdminBrandView }>();
   const platform = useMemo(() => brand ? brandToPlatform(brand) : undefined, [brand]);
   const { data, error, loading, retry, correlationId } = useAdminOverview(platform);
-  const dashboard = brandView === "all" ? getAdminOverviewDashboard("all") : data?.dashboard;
+  const dashboard = data?.dashboard;
   const label = brand?.brandDisplayName ?? "All Brands";
   return <section className="admin-page admin-overview" aria-label={`${label} overview`}>
     {loading && <div className="admin-overview-loading" aria-live="polite" aria-busy="true"><LoaderCircle aria-hidden="true" /> Loading {label} overview…</div>}
     {error && <div className="admin-feedback admin-feedback--error" role="alert"><div><strong>{error.message}</strong><span>Correlation ID: {error.correlationId}</span></div><button type="button" onClick={retry}>Retry</button></div>}
     {dashboard && !loading && !error && <OverviewContent dashboard={dashboard} />}
-    {!dashboard && !loading && !error && <div className="admin-feedback admin-feedback--error" role="status"><div><strong>Dashboard preview data is unavailable.</strong><span>Correlation ID: {correlationId}</span></div><button type="button" onClick={retry}>Retry</button></div>}
+    {data && !dashboard && !loading && !error && <LiveOverviewSummary overview={data} />}
+    {!data && !dashboard && !loading && !error && <div className="admin-feedback admin-feedback--error" role="status"><div><strong>{brandView === "all" ? "Choose a brand to load live overview data." : "Live overview data is not available yet."}</strong><span>{brandView === "all" ? "The API exposes brand-scoped overviews; no all-brands fixture is shown." : `Correlation ID: ${correlationId}`}</span></div>{brandView !== "all" && <button type="button" onClick={retry}>Retry</button>}</div>}
   </section>;
 }

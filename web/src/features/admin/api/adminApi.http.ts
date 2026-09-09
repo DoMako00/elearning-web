@@ -29,7 +29,7 @@ const failure = (correlationId: CorrelationId, message = unsupportedMessage, cod
 function mapOverview(response: BackendOverviewResponse, fallbackCorrelationId: CorrelationId): AdminDetailResponse<AdminOverview> | ReturnType<typeof failure> {
   const correlationId = safeCorrelationId(response.correlationId, fallbackCorrelationId);
   const brand = response.brand;
-  if (!response.ok || !brand || typeof brand.brandId !== "string" || (brand.brandCode !== "medway" && brand.brandCode !== "elite") || typeof brand.brandDisplayName !== "string" || !response.data?.counts) {
+  if (!response.ok || !brand || typeof brand.brandId !== "string" || (brand.brandCode !== "medway" && brand.brandCode !== "elite" && brand.brandCode !== "nexus") || typeof brand.brandDisplayName !== "string" || !response.data?.counts) {
     return failure(correlationId, typeof response.error?.message === "string" ? response.error.message : "The admin overview response was invalid.", "validation_failed");
   }
   const platform: AdminPlatformContext = { platformId: brand.brandId, platformCode: brand.brandCode, platformDisplayName: brand.brandDisplayName };

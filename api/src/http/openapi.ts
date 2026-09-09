@@ -29,7 +29,7 @@ export const openApiDocument = {
     ...academicCataloguePaths,
     "/health": { get: { tags: ["System"], summary: "Liveness probe", responses: { "200": response("Service is alive") } } },
     "/ready": { get: { tags: ["System"], summary: "Readiness probe", responses: { "200": response("Service is ready") } } },
-    "/v1/admin/overview": { get: { tags: ["Admin overview"], parameters: [{ name: "brand", in: "query", required: true, schema: { type: "string", enum: ["medway", "elite"] }, description: "Commercial brand whose overview is requested." }], ...read("Read the administrative overview") } },
+    "/v1/admin/overview": { get: { tags: ["Admin overview"], parameters: [{ name: "brand", in: "query", required: true, schema: { type: "string", enum: ["medway", "elite", "nexus"] }, description: "Commercial brand whose overview is requested." }], ...read("Read the administrative overview") } },
     "/v1/admin/curriculum/levels": { get: { tags: ["Academic catalogue"], ...read("List academic levels") } },
     "/v1/admin/curriculum/semesters": { get: { tags: ["Academic catalogue"], parameters: [{ name: "levelId", in: "query", required: false, schema: { type: "string", format: "uuid" } }], ...read("List semesters; optionally filter by academic level") } },
     "/v1/admin/curriculum/modules": { get: { tags: ["Academic catalogue"], parameters: [{ name: "semesterId", in: "query", required: false, schema: { type: "string", format: "uuid" } }], ...read("List modules; optionally filter by semester"), responses: { ...read("").responses, "200": catalogueReadResponse("AcademicModule") } } },
