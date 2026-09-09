@@ -9,5 +9,5 @@ export function AdminLayout() {
   const { brand, brandView, availableBrands, setBrandView } = useAdminBrand();
   if (auth.status === "loading") return <main aria-live="polite">Checking your admin session…</main>;
   if (auth.status !== "authenticated") return <Navigate to="/auth/sign-in" replace state={{ from: `${location.pathname}${location.search}` }} />;
-  return <AdminShell brand={brand} brandView={brandView} availableBrands={availableBrands} setBrandView={setBrandView}><Outlet context={{ brand, brandView }} /></AdminShell>;
+  return <AdminShell brand={brand} brandView={brandView} availableBrands={availableBrands} setBrandView={setBrandView}><Outlet context={{ brand, brandView, availableBrands }} /></AdminShell>;
 }
