@@ -103,7 +103,7 @@ const SEARCH_DATABASE: SearchItem[] = [
     category: "instructors",
     title: "Dr. Ahmed Hassan, MD",
     subtitle: "Clinical Neuroanatomy & Surgical Anatomy Lead",
-    route: "/community",
+    route: "/instructor-profile",
     badge: "Faculty",
   },
   {

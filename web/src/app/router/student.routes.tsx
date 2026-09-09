@@ -12,6 +12,7 @@ import { MyCoursesPage } from "../pages/student/MyCoursesPage";
 // import { TestStreakPage } from "../pages/student/test-streak/TestStreakPage";
 // import { TestXPRewardsPage } from "../pages/student/test-xp/TestXPRewardsPage";
 import { CommunityPage } from "../pages/student/CommunityPage";
+import { InstructorProfilePage } from "../pages/student/InstructorProfilePage";
 import { ProfilePage } from "../pages/student/ProfilePage";
 import { StudentLayout } from "../pages/student/StudentLayout";
 import "./student-dashboard.css";
@@ -23,6 +24,9 @@ export const studentRoutes: RouteObject[] = [
     children: [
       { index: true, element: <HomePage /> },
       { path: "profile", element: <ProfilePage /> },
+      { path: "instructor-profile", element: <InstructorProfilePage /> },
+      { path: "instructors", element: <InstructorProfilePage /> },
+      { path: "instructors/:instructorId", element: <InstructorProfilePage /> },
       { path: "my-courses", element: <MyCoursesPage /> },
       { path: "my-courses/human-anatomy-i", element: <CourseOverviewPage /> },
       { path: "my-courses/human-anatomy-i/lessons/:lessonId", element: <LessonPlayerPage /> },

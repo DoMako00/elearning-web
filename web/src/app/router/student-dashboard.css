@@ -106,7 +106,7 @@ main[data-main-workspace] {
   text-decoration: underline;
 }
 
-.student-dashboard__course-breadcrumb > span[aria-hidden="true"] {
+.student-dashboard__course-breadcrumb>span[aria-hidden="true"] {
   color: var(--color-text-tertiary, #8ca097);
   font-size: 18px;
   font-weight: 500;
@@ -191,6 +191,164 @@ main[data-main-workspace] {
   height: 100%;
 }
 
+
+
+.student-dashboard--instructor-profile {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.student-dashboard--instructor-profile .student-dashboard__content {
+  overflow: hidden;
+  height: calc(100% - var(--topbar-height, 76px));
+  max-height: calc(100% - var(--topbar-height, 76px));
+  padding: 8px clamp(12px, 1.4vw, 24px) 12px clamp(12px, 1.4vw, 24px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Tier 1: Portrait tablets & mobile (< 1024px) --- */
+@media (max-width: 1023px) {
+  .student-dashboard--instructor-profile {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .student-dashboard--instructor-profile .student-dashboard__content {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: auto;
+    max-height: none;
+  }
+
+  /* Columns: no height lock, no internal scroll */
+  .student-dashboard--instructor-profile .ip-col {
+    height: auto !important;
+    min-height: 0;
+    overflow: visible !important;
+  }
+}
+
+/*
+ * iPad landscape (1024–1399px): iPad Mini (1024×768), iPad Air (1180×820), iPad Pro (1366×1024)
+ *
+ * We CANNOT make the page itself scroll — [data-app-shell] and main[data-main-workspace]
+ * are both overflow:hidden at 100dvh and cannot be overridden from a descendant class.
+ *
+ * Solution: make .student-dashboard__content the single scroll container, bounded to
+ * the available height (viewport minus topbar). ip-col divs and cards render at their
+ * full natural height inside it, so ALL content is reachable by scrolling.
+ */
+@media (min-width: 1024px) and (max-width: 1399px) {
+  /* Keep the dashboard itself height:100% so the content area fills the shell */
+  .student-dashboard--instructor-profile {
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  /* Content area: single scrollable region, full remaining height */
+  .student-dashboard--instructor-profile .student-dashboard__content {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    /* Fill exactly the space below the topbar */
+    height: calc(100dvh - var(--topbar-height, 76px)) !important;
+    max-height: calc(100dvh - var(--topbar-height, 76px)) !important;
+    /* Let inner flex column grow freely inside this scroll container */
+    display: block !important;
+  }
+
+  /* ── KEY FIX: the InstructorProfile root div has lg:h-full + lg:overflow-hidden
+     which clips everything inside the content area. Reset both so the root div
+     grows to its natural height and doesn't clip any children.            */
+  .student-dashboard--instructor-profile .ip-root {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Columns: natural height, no internal scroll — they expand freely inside the scrollable content area */
+  .student-dashboard--instructor-profile .ip-col {
+    height: auto !important;
+    min-height: 0;
+    overflow: visible !important;
+  }
+
+  /* Grid container: reset flex-1/min-h-0 so it renders at natural height
+     inside the scrollable content area (not trying to fill a flex parent) */
+  .student-dashboard--instructor-profile .ip-grid {
+    height: auto !important;
+    min-height: 0;
+    overflow: visible !important;
+    align-items: start !important;
+  }
+
+  /* Thin scrollbar for the content area */
+  .student-dashboard--instructor-profile .student-dashboard__content::-webkit-scrollbar {
+    width: 4px;
+  }
+  .student-dashboard--instructor-profile .student-dashboard__content::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .student-dashboard--instructor-profile .student-dashboard__content::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.35);
+    border-radius: 9999px;
+  }
+  .student-dashboard--instructor-profile .student-dashboard__content::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.55);
+  }
+  .student-dashboard--instructor-profile .student-dashboard__content {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+  }
+}
+
+@media (min-width: 1400px) {
+
+  /* Compact padding for 1920×800 height */
+  .student-dashboard--instructor-profile .student-dashboard__content {
+    padding: clamp(4px, 0.5vh, 8px) clamp(12px, 1.4vw, 24px) clamp(6px, 0.7vh, 12px) clamp(12px, 1.4vw, 24px);
+  }
+
+  /* Column scrollbar: invisible at rest, subtle on hover/scroll */
+  .student-dashboard--instructor-profile .ip-col {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.2s ease;
+  }
+
+  .student-dashboard--instructor-profile .ip-col:hover,
+  .student-dashboard--instructor-profile .ip-col:focus-within {
+    scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+  }
+
+  /* WebKit (Chrome/Safari/Edge) */
+  .student-dashboard--instructor-profile .ip-col::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .student-dashboard--instructor-profile .ip-col::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .student-dashboard--instructor-profile .ip-col::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 9999px;
+    transition: background 0.2s ease;
+  }
+
+  .student-dashboard--instructor-profile .ip-col:hover::-webkit-scrollbar-thumb,
+  .student-dashboard--instructor-profile .ip-col:focus-within::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.4);
+  }
+
+  .student-dashboard--instructor-profile .ip-col::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.6);
+  }
+}
+
+
 .student-dashboard--calendar,
 .student-dashboard--messages {
   max-height: none;
@@ -222,7 +380,7 @@ main[data-main-workspace] {
   min-height: 0;
 }
 
-/* Transparent pass-through on desktop (xl+) so CommunitySidebar's own classes apply */
+
 .community-sidebar-panel {
   display: contents;
 }
@@ -245,7 +403,8 @@ main[data-main-workspace] {
 }
 
 /* iPad Mini / iPad Air Landscape & Portrait or any short-height displays */
-@media (max-width: 1200px), (max-height: 850px) {
+@media (max-width: 1200px),
+(max-height: 850px) {
   .student-dashboard--profile {
     max-height: none;
     height: 100%;
@@ -270,6 +429,7 @@ main[data-main-workspace] {
 }
 
 @media (max-height: 850px) {
+
   .student-dashboard--community .student-dashboard__header,
   .student-dashboard--calendar .student-dashboard__header,
   .student-dashboard--messages .student-dashboard__header {
@@ -417,10 +577,11 @@ main[data-main-workspace] {
     width: var(--sidebar-width);
     height: 100dvh;
   }
+
   .student-dashboard__header--home {
     display: flex !important;
   }
-  
+
   .student-dashboard__header--home .student-dashboard__search {
     position: static !important;
     transform: none !important;
@@ -428,7 +589,7 @@ main[data-main-workspace] {
     width: auto !important;
     max-width: none !important;
   }
-  
+
   [data-app-shell] {
     display: grid !important;
     grid-template-columns: var(--sidebar-width) minmax(0, 1fr) !important;
@@ -439,7 +600,7 @@ main[data-main-workspace] {
     overflow: hidden !important;
     padding-left: 0 !important;
   }
-  
+
   main[data-main-workspace] {
     display: flex !important;
     flex-direction: column !important;
@@ -460,7 +621,7 @@ main[data-main-workspace] {
     box-sizing: border-box !important;
     overflow: hidden !important;
   }
-  
+
   .student-dashboard__header {
     position: sticky !important;
     top: 0 !important;
@@ -475,20 +636,20 @@ main[data-main-workspace] {
     box-shadow: 0 1px 0 rgb(0 0 0 / 6%) !important;
     overflow: visible !important;
   }
-  
+
   .student-dashboard__search {
     flex: 1 1 0 !important;
     min-width: 0 !important;
     max-width: none !important;
   }
-  
+
   .student-dashboard__search .search-bar {
     height: 48px !important;
     border-radius: 12px !important;
     padding-left: 16px !important;
     padding-right: 10px !important;
   }
-  
+
   .student-dashboard__actions {
     flex: 0 0 auto !important;
     display: flex !important;
@@ -497,7 +658,7 @@ main[data-main-workspace] {
     overflow: visible !important;
     margin-left: auto !important;
   }
-  
+
   .student-dashboard__content {
     flex: 1 1 auto !important;
     width: 100% !important;
@@ -1068,7 +1229,7 @@ main[data-main-workspace] {
   display: none;
 }
 
-.course-focus-card__art > img {
+.course-focus-card__art>img {
   position: absolute;
   display: block;
   z-index: 0;
@@ -1111,10 +1272,21 @@ main[data-main-workspace] {
   opacity: .76;
 }
 
-.course-focus-card__labels { opacity: .42; }
-.course-focus-card__skeleton { opacity: .96; }
-.course-focus-card__skeleton circle { fill: rgb(184 255 211 / 10%); }
-.course-focus-card__molecules { opacity: .7; }
+.course-focus-card__labels {
+  opacity: .42;
+}
+
+.course-focus-card__skeleton {
+  opacity: .96;
+}
+
+.course-focus-card__skeleton circle {
+  fill: rgb(184 255 211 / 10%);
+}
+
+.course-focus-card__molecules {
+  opacity: .7;
+}
 
 .course-focus-card__pen {
   opacity: .9;
@@ -1340,7 +1512,10 @@ main[data-main-workspace] {
   box-shadow: 0 0 12px rgba(40, 173, 104, 0.35);
 }
 
-.course-focus-card__bookmark svg { width: 18px; height: 18px; }
+.course-focus-card__bookmark svg {
+  width: 18px;
+  height: 18px;
+}
 
 .course-focus-card__footer button svg {
   width: 16px;
@@ -1675,6 +1850,7 @@ main[data-main-workspace] {
 }
 
 @media (max-width: 1199px) {
+
   .student-page--courses,
   .student-page--assignments {
     overflow-y: auto;
@@ -1998,4 +2174,3 @@ main[data-main-workspace] {
     white-space: nowrap;
   }
 }
-

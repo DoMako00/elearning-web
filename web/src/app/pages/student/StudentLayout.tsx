@@ -22,11 +22,26 @@ export function StudentLayout() {
   const isTestXP = pathname === "/test-xp";
   const isTestInactivity = pathname === "/test-inactivity";
   const isTestStreak = pathname === "/test-streak";
+  const isInstructorProfile = pathname === "/instructor-profile" || pathname.startsWith("/instructors");
 
   // Search bar in the topbar is shown for Home
   const showCenteredSearch = isHome;
 
   const renderBreadcrumb = () => {
+    if (isInstructorProfile) {
+      return (
+        <div className="student-dashboard__page-title">
+          <span className="student-dashboard__page-title-label font-bold text-emerald-600">
+            Profile
+          </span>
+          <span className="student-dashboard__page-title-separator" aria-hidden="true">
+            /
+          </span>
+          <h1>Instructor Profile</h1>
+        </div>
+      );
+    }
+
     if (isProfile) {
       return (
         <div className="student-dashboard__page-title">
@@ -119,14 +134,15 @@ export function StudentLayout() {
       <div
         className={`student-dashboard${isHome ? " student-dashboard--home" : ""}${
           isProfile ? " student-dashboard--profile" : ""
-        }${isMyCourses ? " student-dashboard--my-courses" : ""}${
-          isCourseOverview ? " student-dashboard--course-overview" : ""
-        }${isAssignments ? " student-dashboard--assignments" : ""}${
-          isAssignmentDetail ? " student-dashboard--assignment-detail" : ""
-        }${isCalendar ? " student-dashboard--calendar" : ""}${
-          isMessages ? " student-dashboard--messages" : ""
-        }${isCommunity ? " student-dashboard--community" : ""}${
-          isScrollablePage ? " student-dashboard--scrollable" : ""}`}
+        }${isInstructorProfile ? " student-dashboard--instructor-profile" : ""}${
+          isMyCourses ? " student-dashboard--my-courses" : ""
+        }${isCourseOverview ? " student-dashboard--course-overview" : ""}${
+          isAssignments ? " student-dashboard--assignments" : ""
+        }${isAssignmentDetail ? " student-dashboard--assignment-detail" : ""}${
+          isCalendar ? " student-dashboard--calendar" : ""
+        }${isMessages ? " student-dashboard--messages" : ""}${
+          isCommunity ? " student-dashboard--community" : ""
+        }${isScrollablePage ? " student-dashboard--scrollable" : ""}`}
       >
         <header
           className={`student-dashboard__header${showCenteredSearch ? " student-dashboard__header--home" : ""}`}
