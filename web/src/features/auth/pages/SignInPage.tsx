@@ -211,7 +211,7 @@ export function SignInPage() {
                     remember ? "checked" : ""
                   }`}
                 >
-                  {remember && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                  {remember && <Check className="w-3.5 h-3.5 stroke-3" />}
                 </div>
                 <span>Remember me</span>
               </button>
