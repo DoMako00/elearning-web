@@ -6,7 +6,7 @@ const now = "2026-01-01T00:00:00.000Z";
 const brand: BrandScope = { brandId: "brand-medway" as BrandScope["brandId"], brandCode: "medway", brandDisplayName: "Medway", isActive: true };
 const level = { id: "level-1", level_number: 1, display_title: "Level 1", sort_order: 1, status: "active", version: 1, created_at: now, updated_at: now };
 const semester = { id: "semester-1", academic_level_id: "level-1", semester_number: 1, display_title: "Semester 1", sort_order: 1, status: "active", version: 1, created_at: now, updated_at: now };
-const academicModule = { id: "module-1", academic_semester_id: "semester-1", code: "MSK2115", normalized_code: "MSK2115", source_display_label: "MSK", sort_order: 1, review_status: "unreviewed", version: 1, created_at: now, updated_at: now };
+const academicModule = { id: "module-1", academic_semester_id: "semester-1", code: "MSK2115", normalized_code: "MSK2115", source_display_label: "MSK", sort_order: 1, review_status: "unreviewed", version: 1, created_at: now, updated_at: now, chapters: [{ id: "chapter-1", code: "topic-1", title: "Topic one", sortOrder: 1, status: "active" }] };
 const alias = { id: "alias-1", academic_module_id: "module-1", alias_value: "2115 MSK", normalized_alias: "2115 MSK", status: "active", version: 1, created_at: now, updated_at: now };
 const instructor = { id: "instructor-1", code: "INS-00001", display_name: "Example", status: "active", version: 1, created_at: now, updated_at: now };
 const instructorBrand = { id: "assignment-1", brand_id: "brand-medway", instructor_id: "instructor-1", status: "active", version: 1, created_at: now, updated_at: now };
@@ -23,7 +23,7 @@ export async function runM2SupabaseReadRepositorySelfTest(): Promise<{ readonly 
   await test("canonical catalogue rows map", async () => {
     const transport = new Fake({ "m2.academic-level.list": [level], "m2.academic-semester.list-level": [semester], "m2.academic-module.list-semester": [academicModule], "m2.academic-module-alias.by-normalized-value": [alias] });
     const levels = await new SupabaseM2AcademicLevelReadRepository(transport).listAcademicLevels(); const semesters = await new SupabaseM2AcademicSemesterReadRepository(transport).listAcademicSemestersByLevelId({ levelId: "level-1" }); const modules = await new SupabaseM2AcademicModuleReadRepository(transport).listAcademicModulesBySemesterId({ semesterId: "semester-1" }); const aliases = await new SupabaseM2AcademicModuleAliasReadRepository(transport).findAcademicModuleAlias({ normalizedAlias: " 2115 msk " });
-    assert(levels.ok && levels.value[0]?.displayTitle === "Level 1", "level mapping"); assert(semesters.ok && semesters.value[0]?.academicLevelId === "level-1", "semester mapping"); assert(modules.ok && modules.value[0]?.normalizedCode === "MSK2115", "module mapping"); assert(aliases.ok && aliases.value.academicModuleId === "module-1", "alias mapping"); transport.requests.forEach(readOnly);
+    assert(levels.ok && levels.value[0]?.displayTitle === "Level 1", "level mapping"); assert(semesters.ok && semesters.value[0]?.academicLevelId === "level-1", "semester mapping"); assert(modules.ok && modules.value[0]?.normalizedCode === "MSK2115" && modules.value[0]?.chapters?.[0]?.title === "Topic one", "module chapter mapping"); assert(aliases.ok && aliases.value.academicModuleId === "module-1", "alias mapping"); transport.requests.forEach(readOnly);
   });
   await test("canonical teaching rows map", async () => {
     const transport = new Fake({ "m2.instructor.list": [instructor], "m2.instructor-brand-assignment.list-brand": [instructorBrand], "m2.brand-course.list-brand": [course], "m2.course-instructor-assignment.list-brand-course": [courseInstructor] });
@@ -34,6 +34,11 @@ export async function runM2SupabaseReadRepositorySelfTest(): Promise<{ readonly 
     const createdAt = new Date(now); const transport = new Fake({ "m2.academic-module.by-code": [{ ...academicModule, created_at: createdAt, updated_at: createdAt }], "m2.instructor.by-code": [instructor] });
     const foundModule = await new SupabaseM2AcademicModuleReadRepository(transport).findAcademicModuleByCode({ moduleCode: " msk2115 " }); const foundInstructor = await new SupabaseM2InstructorReadRepository(transport).findInstructorByCode({ instructorCode: " INS-00001 " });
     assert(foundModule.ok && foundModule.value.createdAt === now, "Date timestamp mapping"); assert(foundInstructor.ok && transport.requests[1]?.values[0] === "INS-00001", "instructor code binding"); assert(transport.requests[0]?.values[0] === "MSK2115", "module code binding");
+  });
+  await test("institution-scoped duplicate module codes fail closed", async () => {
+    const transport = new Fake({ "m2.academic-module.by-code": [academicModule, { ...academicModule, id: "module-2" }] });
+    const result = await new SupabaseM2AcademicModuleReadRepository(transport).findAcademicModuleByCode({ moduleCode: "MSK2115" });
+    assert(!result.ok && result.error.code === "invalid_input", "ambiguous module code accepted");
   });
   await test("malformed persistence fails closed", async () => {
     const invalid = await new SupabaseM2BrandCourseReadRepository(new Fake({ "m2.brand-course.list-brand": [{ ...course, classification: "wrong" }] })).listBrandCourses({ brand }); const unavailable = await new SupabaseM2InstructorReadRepository(new Fake({}, true)).listInstructors();

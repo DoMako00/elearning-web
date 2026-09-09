@@ -5,5 +5,5 @@ export { createAdminApiFromEnvironment, getAdminApiBaseUrl, getAdminDataSource }
 export type { AdminDataSource } from "./adminApi.factory";
 export * from "./adminApi.types";
 export * from "./adminApi.errors";
-export { adminFixtureBundles, eliteBrand, eliteFixtures, elitePlatform, medwayBrand, medwayFixtures, medwayPlatform } from "./adminApi.fixtures";
+export { adminFixtureBundles, eliteBrand, eliteFixtures, elitePlatform, medwayBrand, medwayFixtures, medwayPlatform, nexusBrand, nexusPlatform } from "./adminApi.fixtures";
 export { adminKeys } from "./adminApi.queryKeys";

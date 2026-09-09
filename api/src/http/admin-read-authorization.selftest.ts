@@ -22,7 +22,7 @@ export async function runAdminReadAuthorizationSelfTest(): Promise<void> {
   const admin = { queries: { getAdminOverview: async () => { reads += 1; return repositoryOk({}); }, m2: { listAcademicLevels: async () => { reads += 1; return repositoryOk([]); } } } } as unknown as AdminModule;
   const allowed = createTestAdminRequestContext({ brandId: medwayBrandId, brandCode: "medway", permissions: ["admin.platform.admin.read"] });
   let resolverResult: ReturnType<typeof repositoryOk<typeof allowed>> | ReturnType<typeof repositoryErr> = repositoryOk(allowed);
-  const resolver = { async resolve(input: { readonly requestedBrandCode?: "medway" | "elite" }) { return input.requestedBrandCode === "elite" ? repositoryErr({ code: "permission_denied", message: "denied" }) : resolverResult; } };
+  const resolver = { async resolve(input: { readonly requestedBrandCode?: "medway" | "elite" | "nexus" }) { return input.requestedBrandCode === "elite" ? repositoryErr({ code: "permission_denied", message: "denied" }) : resolverResult; } };
   const handler = createHttpApp({ admin, adminHttpContextResolver: resolver });
   const valid = { authorization: "Bearer mock-auth-medway-admin-001" };
 

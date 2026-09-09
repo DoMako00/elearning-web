@@ -10,10 +10,12 @@ import { eliteOverviewDashboard, medwayOverviewDashboard } from "./adminOverview
 // Canonical brand identities. Platform exports below are compatibility aliases only.
 export const medwayBrand: AdminBrandContext = { brandId: "platform-medway", brandCode: "medway", brandDisplayName: "Medway", platformId: "platform-medway", platformCode: "medway" };
 export const eliteBrand: AdminBrandContext = { brandId: "platform-elite", brandCode: "elite", brandDisplayName: "Elite", platformId: "platform-elite", platformCode: "elite" };
+export const nexusBrand: AdminBrandContext = { brandId: "platform-nexus", brandCode: "nexus", brandDisplayName: "Nexus", platformId: "platform-nexus", platformCode: "nexus" };
 /** @deprecated Compatibility alias only. Medway is a brand, not a separate platform. */
 export const medwayPlatform: AdminPlatformContext = { platformId: medwayBrand.brandId, platformCode: medwayBrand.brandCode, platformDisplayName: medwayBrand.brandDisplayName };
 /** @deprecated Compatibility alias only. Elite is a brand, not a separate platform. */
 export const elitePlatform: AdminPlatformContext = { platformId: eliteBrand.brandId, platformCode: eliteBrand.brandCode, platformDisplayName: eliteBrand.brandDisplayName };
+export const nexusPlatform: AdminPlatformContext = { platformId: nexusBrand.brandId, platformCode: nexusBrand.brandCode, platformDisplayName: nexusBrand.brandDisplayName };
 
 const medDate = "2026-08-19T09:00:00.000Z";
 const eliteDate = "2026-08-19T10:00:00.000Z";

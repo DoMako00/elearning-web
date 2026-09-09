@@ -9,6 +9,8 @@ function readModel(calls: string[]): AdminM2ReadModel {
   const empty = repositoryOk([]);
   const missing = repositoryErr({ code: "not_found" as const, message: "missing" });
   return {
+    listAcademicInstitutions: async () => repositoryOk([]),
+    listCommercialBrandAccess: async () => repositoryOk([]),
     listAcademicLevels: async () => { calls.push("levels"); return empty; },
     listAcademicSemesters: async () => { calls.push("semesters"); return empty; },
     listAcademicModules: async () => { calls.push("modules"); return empty; },

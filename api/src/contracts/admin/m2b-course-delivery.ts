@@ -1,4 +1,13 @@
+import type { AdminSensitiveCommandMetadata } from './commands';
 /** Administrative metadata/participation contracts. No response grants access. */
+export type M2bDeliveryEntity = 'chapters' | 'lessons' | 'resources';
+export interface M2bDeliveryCommand<E extends M2bDeliveryEntity = M2bDeliveryEntity> {
+  readonly metadata: AdminSensitiveCommandMetadata;
+  readonly brandId: string;
+  readonly courseId: string;
+  readonly recordId?: string;
+  readonly fields: Partial<M2bFields[E]>;
+}
 export type M2bEntity = 'chapters' | 'lessons' | 'resources' | 'releases' | 'enrollments' | 'progress';
 export type M2bStructureEntity = 'chapters' | 'lessons' | 'resources' | 'releases';
 export type M2bContentStatus = 'draft' | 'published' | 'archived';

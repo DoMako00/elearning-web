@@ -176,6 +176,8 @@ async function run() {
         assertEqual(response.body.openapi, "3.1.0", "OpenAPI version");
         assertTruthy(response.body.paths?.["/v1/admin/instructors"], "Instructor contract path");
         assertTruthy(response.body.paths?.["/v1/admin/brands/{brandId}/courses/{courseId}/instructors"], "Course instructor contract path");
+        assertTruthy(response.body.components?.schemas?.AcademicCatalogueChapter, "Academic chapter schema");
+        assertTruthy(response.body.paths?.["/v1/admin/curriculum/modules/{moduleId}"]?.get?.summary?.includes("chapter"), "Module chapter contract path");
         assertTruthy(response.headers.get("content-type")?.includes("application/json"), "OpenAPI content type");
       }],
       ["API documentation page", async () => {

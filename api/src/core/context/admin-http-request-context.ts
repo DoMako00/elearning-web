@@ -15,7 +15,7 @@ export interface AdminHttpRequestContextInput {
   /** Untrusted route-match selector. It is never an authorization decision. */
   readonly requestedBrandId?: string;
   /** Untrusted compatibility selector. It is never an authorization decision. */
-  readonly requestedBrandCode?: "medway" | "elite";
+  readonly requestedBrandCode?: "medway" | "elite" | "nexus";
 }
 
 export interface AdminHttpRequestContextResolverDependencies {
@@ -49,7 +49,7 @@ function asPermissionCodes(values: readonly string[], correlationId: string): Re
   return repositoryOk(Object.freeze([...new Set(values as readonly AdminPermissionCode[])].sort((left, right) => left.localeCompare(right))));
 }
 
-function asBrandScope(id: string, code: "medway" | "elite", name: string): BrandScope {
+function asBrandScope(id: string, code: "medway" | "elite" | "nexus", name: string): BrandScope {
   return { brandId: id as BrandScope["brandId"], brandCode: code, brandDisplayName: name, isActive: true };
 }
 

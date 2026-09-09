@@ -1,7 +1,7 @@
 import type { EntityId } from "./common";
 
 /** @deprecated Compatibility alias. Medway/Elite are brands inside one platform. Use AdminBrand* for new admin contracts. */
-export type AdminPlatformCode = "medway" | "elite";
+export type AdminPlatformCode = "medway" | "elite" | "nexus";
 /** @deprecated Compatibility alias. Medway/Elite are brands inside one platform. Use AdminBrandContext for new admin contracts. */
 export interface AdminPlatformContext { platformId: EntityId; platformCode: AdminPlatformCode; platformDisplayName?: string; }
 /** @deprecated Compatibility alias for brand-scoped records. */

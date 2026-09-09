@@ -1,3 +1,4 @@
+import type { AcademicCatalogueInstitution, CommercialBrandCatalogueAccess } from "../../../contracts/admin/academic-catalogue";
 import type { RepositoryResult } from "../../../core/persistence";
 import type { M2AcademicLevel, M2AcademicSemester, M2AcademicModule, M2Instructor, M2InstructorBrandAssignment, M2BrandCourse, M2CourseInstructorAssignment, M2bChapter, M2bLesson, M2bResource } from "../../../core/repositories";
 
@@ -13,6 +14,8 @@ export type CourseLessonAdminDto = M2bLesson;
 export type LessonResourceAdminDto = M2bResource;
 
 export interface AdminM2ReadModel {
+  listAcademicInstitutions(input?:{correlationId?:string}):Promise<RepositoryResult<readonly AcademicCatalogueInstitution[]>>;
+  listCommercialBrandAccess(input?:{correlationId?:string}):Promise<RepositoryResult<readonly CommercialBrandCatalogueAccess[]>>;
   listAcademicLevels(input?: { readonly correlationId?: string }): Promise<RepositoryResult<readonly AcademicLevelAdminDto[]>>;
   listAcademicSemesters(input: { readonly levelId?: string; readonly correlationId?: string }): Promise<RepositoryResult<readonly AcademicSemesterAdminDto[]>>;
   listAcademicModules(input: { readonly semesterId?: string; readonly correlationId?: string }): Promise<RepositoryResult<readonly AcademicModuleAdminDto[]>>;

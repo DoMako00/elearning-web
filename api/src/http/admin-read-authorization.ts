@@ -6,7 +6,7 @@ import { forbiddenResponse, internalErrorResponse, serviceUnavailableResponse, u
 import { parseStrictBearerToken } from "./strict-bearer";
 import type { HttpJsonResponse, HttpRequestContext } from "./http-types";
 
-type BrandTarget = { readonly id: string } | { readonly code: "medway" | "elite" } | undefined;
+type BrandTarget = { readonly id: string } | { readonly code: "medway" | "elite" | "nexus" } | undefined;
 export type AdminReadAuthorization = { readonly ok: true; readonly context: AdminRequestContext } | { readonly ok: false; readonly response: HttpJsonResponse };
 
 function failure(context: HttpRequestContext, code: string): HttpJsonResponse {

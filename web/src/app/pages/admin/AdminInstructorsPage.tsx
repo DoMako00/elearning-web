@@ -21,11 +21,11 @@ import {
   type AdminInstructorFixture,
 } from "../../../features/admin/instructors/adminInstructors.fixtures";
 
-type BrandFilter = "all" | "medway" | "elite" | "both" | "unassigned";
+type BrandFilter = "all" | "medway" | "elite" | "nexus" | "both" | "unassigned";
 type StatusFilter = "all" | "active" | "inactive";
 type PreviewDialogMode = "add" | "edit" | "assign-brand" | "assign-course" | null;
 
-const brandLabel = (brandCode: AdminBrandCode) => brandCode === "medway" ? "Medway" : "Elite";
+const brandLabel = (brandCode: AdminBrandCode) => brandCode === "medway" ? "Medway" : brandCode === "nexus" ? "Nexus" : "Elite";
 function useMediaQuery(query: string) {
   const [matches, setMatches] = useState(() => typeof window !== "undefined" && window.matchMedia(query).matches);
   useEffect(() => {

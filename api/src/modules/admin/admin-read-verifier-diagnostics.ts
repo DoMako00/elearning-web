@@ -83,6 +83,8 @@ export function createAdminReadVerifierDiagnostics(
   return {
     snapshot,
     wrap: (readModel) => ({
+      listAcademicInstitutions: (input) => readModel.listAcademicInstitutions(input),
+      listCommercialBrandAccess: (input) => readModel.listCommercialBrandAccess(input),
       listAcademicLevels: (input) => { increment("curriculumLevelReads"); return readModel.listAcademicLevels(input); },
       listAcademicSemesters: (input) => { increment("curriculumSemesterReads"); return readModel.listAcademicSemesters(input); },
       listAcademicModules: (input) => { increment("curriculumModuleReads"); return readModel.listAcademicModules(input); },

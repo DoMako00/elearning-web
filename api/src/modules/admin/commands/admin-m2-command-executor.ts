@@ -1,4 +1,6 @@
 import { createHash } from "node:crypto";
+import type { M2bDeliveryCommand, M2bDeliveryEntity, M2bFields, M2bRecord, M2bStructureCommandResult } from '../../../contracts/admin/m2b-course-delivery';
+import { validDeliveryFields } from '../../../core/validation/admin-m2b-validation';
 import type {
   AssignInstructorToBrandCommand, AssignInstructorToCourseCommand, BrandInstructorCommandResult,
   CreateBrandCourseCommand, CreateBrandCourseCommandResult, CreateInstructorCommand, CreateInstructorCommandResult,
@@ -38,6 +40,12 @@ export interface AdminM2CommandSuccess<T> {
 export type AdminM2CommandResult<T> = Result<AdminM2CommandSuccess<T>, AdminCoreError>;
 
 export interface AdminM2CommandExecutor {
+  createCourseChapter(context:AdminRequestContext,command:M2bDeliveryCommand<'chapters'>):Promise<AdminM2CommandResult<M2bStructureCommandResult>>;
+  updateCourseChapter(context:AdminRequestContext,command:M2bDeliveryCommand<'chapters'>):Promise<AdminM2CommandResult<M2bStructureCommandResult>>;
+  createCourseLesson(context:AdminRequestContext,command:M2bDeliveryCommand<'lessons'>):Promise<AdminM2CommandResult<M2bStructureCommandResult>>;
+  updateCourseLesson(context:AdminRequestContext,command:M2bDeliveryCommand<'lessons'>):Promise<AdminM2CommandResult<M2bStructureCommandResult>>;
+  createLessonResource(context:AdminRequestContext,command:M2bDeliveryCommand<'resources'>):Promise<AdminM2CommandResult<M2bStructureCommandResult>>;
+  updateLessonResource(context:AdminRequestContext,command:M2bDeliveryCommand<'resources'>):Promise<AdminM2CommandResult<M2bStructureCommandResult>>;
   createInstructor(context: AdminRequestContext, command: CreateInstructorCommand): Promise<AdminM2CommandResult<CreateInstructorCommandResult>>;
   updateInstructor(context: AdminRequestContext, command: UpdateInstructorCommand): Promise<AdminM2CommandResult<CreateInstructorCommandResult>>;
   setInstructorStatus(context: AdminRequestContext, command: SetInstructorStatusCommand): Promise<AdminM2CommandResult<CreateInstructorCommandResult>>;
@@ -76,10 +84,71 @@ function expectedVersion(command: CommandEnvelope): number | undefined { return 
 function versionMatches(command: CommandEnvelope, version: number): boolean { const expected=expectedVersion(command); return expected===undefined||expected===version; }
 function instructorSummary(value: AdminM2InstructorState): Readonly<Record<string, unknown>> { return { id:value.id,code:value.code,displayName:value.displayName,status:value.status,version:value.version }; }
 function brandInstructorSummary(value: AdminM2BrandInstructorState): Readonly<Record<string, unknown>> { return { id:value.id,brandId:value.brandId,instructorId:value.instructorId,status:value.status,version:value.version }; }
-function courseSummary(value: AdminM2BrandCourseState): Readonly<Record<string, unknown>> { return { id:value.id,brandId:value.brandId,academicModuleId:value.academicModuleId,code:value.code,title:value.title,classification:value.classification,status:value.status,version:value.version }; }
+function courseSummary(value: AdminM2BrandCourseState): Readonly<Record<string, unknown>> { return { id:value.id,brandId:value.brandId,academicInstitutionId:value.academicInstitutionId,academicModuleId:value.academicModuleId,code:value.code,title:value.title,classification:value.classification,status:value.status,version:value.version }; }
 function courseInstructorSummary(value: AdminM2CourseInstructorState): Readonly<Record<string, unknown>> { return { id:value.id,brandId:value.brandId,courseId:value.courseId,instructorBrandAssignmentId:value.instructorBrandAssignmentId,instructorId:value.instructorId,status:value.status,version:value.version }; }
+function deliverySummary<E extends M2bDeliveryEntity>(entity: E, value: M2bRecord<E>): Readonly<Record<string, unknown>> {
+  const record = value as unknown as Record<string, unknown>;
+  const summary: Record<string, unknown> = {
+    id: value.id,
+    brandId: value.brandId,
+    brandCourseId: value.brandCourseId,
+    title: record.title,
+    sortOrder: record.sortOrder,
+    status: record.status,
+    version: value.version,
+  };
+  if (entity === 'lessons') summary.courseChapterId = record.courseChapterId;
+  if (entity === 'resources') {
+    summary.courseLessonId = record.courseLessonId;
+    summary.resourceKind = record.resourceKind;
+  }
+  return summary;
+}
 
 export class TransactionalAdminM2CommandExecutor implements AdminM2CommandExecutor {
+  createCourseChapter(context:AdminRequestContext,command:M2bDeliveryCommand<'chapters'>){return this.delivery(context,command,'chapters',false);}
+  updateCourseChapter(context:AdminRequestContext,command:M2bDeliveryCommand<'chapters'>){return this.delivery(context,command,'chapters',true);}
+  createCourseLesson(context:AdminRequestContext,command:M2bDeliveryCommand<'lessons'>){return this.delivery(context,command,'lessons',false);}
+  updateCourseLesson(context:AdminRequestContext,command:M2bDeliveryCommand<'lessons'>){return this.delivery(context,command,'lessons',true);}
+  createLessonResource(context:AdminRequestContext,command:M2bDeliveryCommand<'resources'>){return this.delivery(context,command,'resources',false);}
+  updateLessonResource(context:AdminRequestContext,command:M2bDeliveryCommand<'resources'>){return this.delivery(context,command,'resources',true);}
+
+  private delivery<E extends M2bDeliveryEntity>(context:AdminRequestContext,command:M2bDeliveryCommand<E>,entity:E,update:boolean):Promise<AdminM2CommandResult<M2bStructureCommandResult>> {
+    const fields = { ...command.fields } as Record<string,unknown>;
+    if (!update && fields.status===undefined) fields.status='draft';
+    const invalid = () => fail(adminCoreError('validation_failed','The course delivery metadata is invalid.',context.correlationId));
+    return this.execute<M2bStructureCommandResult>({ context, command,
+      commandName: `admin.m2.${entity}.${update?'update':'create'}`,
+      // Temporary strict M2A permission. Dedicated delivery permissions need a separate migration.
+      permission:'admin.platform.admin.write', scopeKind:'brand', targetType:entity==='chapters'?'course_chapter':entity==='lessons'?'course_lesson':'lesson_resource',
+      resultKeys:['brandId','courseId','entity','recordId'],
+      fingerprintData:{brandId:command.brandId,courseId:command.courseId,recordId:command.recordId??null,entity,fields},
+      validate:()=>uuid.test(command.brandId)&&uuid.test(command.courseId)&&command.brandId===context.brand.brandId
+        && (update ? Boolean(command.recordId&&uuid.test(command.recordId)&&Number.isSafeInteger(command.metadata.expectedVersion)&&command.metadata.expectedVersion!>0) : command.recordId===undefined)
+        && validDeliveryFields(entity,fields,update) ? ok(undefined) : invalid(),
+      mutate:async transaction=>{
+        const scope={brandId:command.brandId,brandCourseId:command.courseId};
+        const course=await transaction.lockBrandCourse(command.brandId,command.courseId);
+        if (!course) return fail(targetNotFound(context.correlationId));
+        const current=update?await transaction.lockDelivery(entity,scope,command.recordId!):null;
+        if (update&&!current) return fail(targetNotFound(context.correlationId));
+        if (current&&!versionMatches(command,current.version)) return fail(conflict(context.correlationId,'expected_version_mismatch'));
+        const next={...(current??{}),...fields} as unknown as Record<string,unknown>;
+        next.title=String(next.title).trim();
+        // No approval command exists: even PATCH cannot publish video metadata.
+        if (entity==='resources'&&next.resourceKind==='video') next.status='draft';
+        if (entity==='lessons'&&!await transaction.lockDelivery('chapters',scope,next.courseChapterId as string)) return fail(targetNotFound(context.correlationId));
+        if (entity==='resources'&&!await transaction.lockDelivery('lessons',scope,next.courseLessonId as string)) return fail(targetNotFound(context.correlationId));
+        const data=(recordId:string):M2bStructureCommandResult=>({brandId:command.brandId,courseId:command.courseId,entity,recordId});
+        const before=current?deliverySummary(entity,current):null;
+        if (current&&Object.keys(fields).every(key=>next[key]===(current as unknown as Record<string,unknown>)[key])&&next.status===current.status)
+          return ok({data:data(current.id),targetId:current.id,before,after:deliverySummary(entity,current),mutated:false});
+        const saved=update?await transaction.updateDelivery(entity,scope,command.recordId!,next as unknown as M2bFields[E]):await transaction.createDelivery(entity,scope,next as unknown as M2bFields[E]);
+        // Receipt and audit identify the scoped child; summaries retain its owning course.
+        return ok({data:data(saved.id),targetId:saved.id,before,after:deliverySummary(entity,saved),mutated:true});
+      }
+    });
+  }
   constructor(private readonly runner: AdminM2WriteTransactionRunner, private readonly permissionResolver: AdminPermissionResolver) {}
 
   private async authorize(context: AdminRequestContext, command: CommandEnvelope, permission: AdminPermissionCode, validate: () => Result<void, AdminCoreError>): Promise<Result<void, AdminCoreError>> {
@@ -181,26 +250,30 @@ export class TransactionalAdminM2CommandExecutor implements AdminM2CommandExecut
   }
 
   createBrandCourse(context: AdminRequestContext, command: CreateBrandCourseCommand): Promise<AdminM2CommandResult<CreateBrandCourseCommandResult>> {
-    return this.execute({ context, command, commandName: "admin.m2.brand_courses.create", permission: "admin.platform.admin.write", validate: () => validateCreateBrandCourseCommand(command), targetType: "brand_course", scopeKind:"brand", resultKeys: ["brandId", "courseId"], fingerprintData: { brandId:command.brandId,code:trim(command.courseCode),title:trim(command.title),classification:command.courseScope,academicModuleId:command.academicModuleId }, mutate: async (transaction) => {
+    return this.execute({ context, command, commandName: "admin.m2.brand_courses.create", permission: "admin.platform.admin.write", validate: () => validateCreateBrandCourseCommand(command), targetType: "brand_course", scopeKind:"brand", resultKeys: ["brandId", "courseId"], fingerprintData: { academicInstitutionId:command.academicInstitutionId,brandId:command.brandId,code:trim(command.courseCode),title:trim(command.title),classification:command.courseScope,academicModuleId:command.academicModuleId }, mutate: async (transaction) => {
       if (command.brandId !== context.brand.brandId) return fail(targetNotFound(context.correlationId));
+      const catalogueError=await transaction.validateCourseCatalogue({brandId:command.brandId,academicInstitutionId:command.academicInstitutionId,academicModuleId:command.academicModuleId});
+      if(catalogueError)return fail(adminCoreError("policy_validation_failed","The course catalogue selection is invalid.",context.correlationId,{reason:catalogueError}));
       const moduleExists = command.academicModuleId ? await transaction.lockAcademicModule(command.academicModuleId) : false;
       const policy = validateM2BrandCourseDefinitionPolicy(context.correlationId, { courseScope: command.courseScope, academicModuleId: command.academicModuleId, academicModuleExists: moduleExists }); if (!policy.ok) return policy;
       if (await transaction.lockBrandCourseByCode(command.brandId, trim(command.courseCode))) return fail(conflict(context.correlationId, "brand_course_code_exists"));
-      const created = await transaction.insertBrandCourse({ brandId:command.brandId,academicModuleId:command.academicModuleId,code:trim(command.courseCode),title:trim(command.title),classification:command.courseScope });
+      const created = await transaction.insertBrandCourse({ academicInstitutionId:command.academicInstitutionId,brandId:command.brandId,academicModuleId:command.academicModuleId,code:trim(command.courseCode),title:trim(command.title),classification:command.courseScope });
       return ok({ data: { brandId: created.brandId, courseId: created.id }, targetId: created.id, before: null, after: courseSummary(created), mutated: true });
     } });
   }
 
   updateBrandCourse(context: AdminRequestContext, command: UpdateBrandCourseCommand): Promise<AdminM2CommandResult<CreateBrandCourseCommandResult>> {
-    return this.execute({ context, command, commandName: "admin.m2.brand_courses.update", permission: "admin.platform.admin.write", validate: () => validateUpdateBrandCourseCommand(command), targetType: "brand_course", scopeKind:"brand", resultKeys: ["brandId", "courseId"], fingerprintData: { brandId:command.brandId,courseId:command.courseId,title:command.title===undefined?"unchanged":trim(command.title),classification:command.courseScope??"unchanged",academicModuleId:command.academicModuleId===undefined?"unchanged":command.academicModuleId }, mutate: async (transaction) => {
+    return this.execute({ context, command, commandName: "admin.m2.brand_courses.update", permission: "admin.platform.admin.write", validate: () => validateUpdateBrandCourseCommand(command), targetType: "brand_course", scopeKind:"brand", resultKeys: ["brandId", "courseId"], fingerprintData: { academicInstitutionId:command.academicInstitutionId??"unchanged",brandId:command.brandId,courseId:command.courseId,title:command.title===undefined?"unchanged":trim(command.title),classification:command.courseScope??"unchanged",academicModuleId:command.academicModuleId===undefined?"unchanged":command.academicModuleId }, mutate: async (transaction) => {
       if (command.brandId !== context.brand.brandId) return fail(targetNotFound(context.correlationId));
       const requestedModuleExists = command.academicModuleId ? await transaction.lockAcademicModule(command.academicModuleId) : false;
       const current = await transaction.lockBrandCourse(command.brandId, command.courseId); if (!current) return fail(targetNotFound(context.correlationId));
       if (!versionMatches(command, current.version)) return fail(conflict(context.correlationId, "expected_version_mismatch"));
-      const next={title:command.title===undefined?current.title:trim(command.title),classification:command.courseScope??current.classification,academicModuleId:command.academicModuleId===undefined?current.academicModuleId:command.academicModuleId};
+      const next={academicInstitutionId:command.academicInstitutionId??current.academicInstitutionId,title:command.title===undefined?current.title:trim(command.title),classification:command.courseScope??current.classification,academicModuleId:command.academicModuleId===undefined?current.academicModuleId:command.academicModuleId};
+      const catalogueError=await transaction.validateCourseCatalogue({brandId:command.brandId,academicInstitutionId:next.academicInstitutionId,academicModuleId:next.academicModuleId});
+      if(catalogueError)return fail(adminCoreError("policy_validation_failed","The course catalogue selection is invalid.",context.correlationId,{reason:catalogueError}));
       const moduleExists = next.academicModuleId ? (command.academicModuleId === undefined ? true : requestedModuleExists) : false;
       const policy=validateM2BrandCourseDefinitionPolicy(context.correlationId,{courseScope:next.classification,academicModuleId:next.academicModuleId,academicModuleExists:moduleExists});if(!policy.ok)return policy;
-      if(next.title===current.title&&next.classification===current.classification&&next.academicModuleId===current.academicModuleId)return ok({data:{brandId:current.brandId,courseId:current.id},targetId:current.id,before:courseSummary(current),after:courseSummary(current),mutated:false});
+      if(next.academicInstitutionId===current.academicInstitutionId&&next.title===current.title&&next.classification===current.classification&&next.academicModuleId===current.academicModuleId)return ok({data:{brandId:current.brandId,courseId:current.id},targetId:current.id,before:courseSummary(current),after:courseSummary(current),mutated:false});
       const updated = await transaction.updateBrandCourse({ id: current.id, ...next, status: current.status });
       return ok({ data: { brandId: updated.brandId, courseId: updated.id }, targetId: updated.id, before: courseSummary(current), after: courseSummary(updated), mutated: true });
     } });
@@ -213,7 +286,7 @@ export class TransactionalAdminM2CommandExecutor implements AdminM2CommandExecut
       if (!versionMatches(command, current.version)) return fail(conflict(context.correlationId, "expected_version_mismatch"));
       const policy = validateBrandCourseStatusTransition(context.correlationId, current.status, command.status); if (!policy.ok) return policy;
       if (policy.value.idempotent) return ok({ data: { brandId: current.brandId, courseId: current.id }, targetId: current.id, before: courseSummary(current), after: courseSummary(current), mutated: false });
-      const updated=await transaction.updateBrandCourse({id:current.id,academicModuleId:current.academicModuleId,title:current.title,classification:current.classification,status:command.status});
+      const updated=await transaction.updateBrandCourse({id:current.id,academicInstitutionId:current.academicInstitutionId,academicModuleId:current.academicModuleId,title:current.title,classification:current.classification,status:command.status});
       return ok({ data: { brandId: updated.brandId, courseId: updated.id }, targetId: updated.id, before: courseSummary(current), after: courseSummary(updated), mutated: true });
     } });
   }

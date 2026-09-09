@@ -1,6 +1,6 @@
 import type { RepositoryResult } from "../persistence/repository-result";
 
-export type BrandCode = "medway" | "elite";
+export type BrandCode = "medway" | "elite" | "nexus";
 export type BrandId = string & { readonly __brandId: unique symbol };
 
 export interface BrandScope {

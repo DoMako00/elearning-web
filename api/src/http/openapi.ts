@@ -1,5 +1,7 @@
+import { academicCataloguePaths, academicCatalogueSchemas, catalogueReadResponse } from "./openapi-academic-catalogue";
 import type { HttpJsonResponse } from "./http-types";
 import { createApiDocsHtml } from "./api-docs-template";
+import { m2bPaths, m2bSchemas } from './openapi-m2b';
 
 const json = (statusCode: number, body: Readonly<Record<string, unknown>>, headers?: Readonly<Record<string, string>>): HttpJsonResponse => ({ statusCode, body, headers });
 
@@ -21,15 +23,17 @@ export const openApiDocument = {
   info: { title: "BUC E-Learning Admin API", version: "1.0.0-local", description: "Local administrative API contract for the canonical M1, M2A, and M4A foundation. The private `app` schema is not exposed through Supabase Data API." },
   servers: [{ url: "/", description: "Current local API origin" }],
   tags: [{ name: "System" }, { name: "Admin overview" }, { name: "Academic catalogue" }, { name: "Instructors" }, { name: "Brand teaching" }],
-  components: { securitySchemes: { BearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" } } },
+  components: { schemas: { ...m2bSchemas, ...academicCatalogueSchemas }, securitySchemes: { BearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" } } },
   paths: {
+    ...m2bPaths,
+    ...academicCataloguePaths,
     "/health": { get: { tags: ["System"], summary: "Liveness probe", responses: { "200": response("Service is alive") } } },
     "/ready": { get: { tags: ["System"], summary: "Readiness probe", responses: { "200": response("Service is ready") } } },
     "/v1/admin/overview": { get: { tags: ["Admin overview"], parameters: [{ name: "brand", in: "query", required: true, schema: { type: "string", enum: ["medway", "elite"] }, description: "Commercial brand whose overview is requested." }], ...read("Read the administrative overview") } },
     "/v1/admin/curriculum/levels": { get: { tags: ["Academic catalogue"], ...read("List academic levels") } },
     "/v1/admin/curriculum/semesters": { get: { tags: ["Academic catalogue"], parameters: [{ name: "levelId", in: "query", required: false, schema: { type: "string", format: "uuid" } }], ...read("List semesters; optionally filter by academic level") } },
-    "/v1/admin/curriculum/modules": { get: { tags: ["Academic catalogue"], parameters: [{ name: "semesterId", in: "query", required: false, schema: { type: "string", format: "uuid" } }], ...read("List modules; optionally filter by semester") } },
-    "/v1/admin/curriculum/modules/{moduleId}": { get: { tags: ["Academic catalogue"], parameters: [id("moduleId")], ...read("Read a module and aliases") } },
+    "/v1/admin/curriculum/modules": { get: { tags: ["Academic catalogue"], parameters: [{ name: "semesterId", in: "query", required: false, schema: { type: "string", format: "uuid" } }], ...read("List modules; optionally filter by semester"), responses: { ...read("").responses, "200": catalogueReadResponse("AcademicModule") } } },
+    "/v1/admin/curriculum/modules/{moduleId}": { get: { tags: ["Academic catalogue"], parameters: [id("moduleId")], ...read("Read a module with its ordered chapter outline"), responses: { ...read("").responses, "200": catalogueReadResponse("AcademicModule", false) } } },
     "/v1/admin/instructors": {
       get: { tags: ["Instructors"], ...read("List global instructor identities") },
       post: { tags: ["Instructors"], parameters: writeHeaders, ...write("Create a global instructor identity", body({ code: { type: "string" }, displayName: { type: "string" }, reason }, ["code", "displayName", "reason"])) },
@@ -47,12 +51,12 @@ export const openApiDocument = {
     "/v1/admin/brands/{brandId}/instructors/{instructorId}/status": { patch: { tags: ["Brand teaching"], parameters: [id("brandId"), id("instructorId"), ...writeHeaders], ...write("Change an instructor brand assignment", body({ status: { type: "string", enum: ["active", "inactive"] }, expectedVersion: version, reason }, ["status", "reason"])) } },
     "/v1/admin/brands/{brandId}/instructors/{instructorId}/courses": { get: { tags: ["Brand teaching"], parameters: [id("brandId"), id("instructorId")], ...read("List a brand instructor's course assignments") } },
     "/v1/admin/brands/{brandId}/courses": {
-      get: { tags: ["Brand teaching"], parameters: [id("brandId")], ...read("List courses owned by one brand") },
-      post: { tags: ["Brand teaching"], parameters: [id("brandId"), ...writeHeaders], ...write("Create a brand course", body({ code: { type: "string" }, title: { type: "string" }, classification: { type: "string", enum: ["academic_module_offering", "standalone"] }, academicModuleId: { type: ["string", "null"], format: "uuid" }, reason }, ["code", "title", "classification", "academicModuleId", "reason"])) },
+      get: { tags: ["Brand teaching"], parameters: [id("brandId")], ...read("List courses owned by one brand"), responses:{...read("").responses,"200":catalogueReadResponse("CatalogueBrandCourse")} },
+      post: { tags: ["Brand teaching"], parameters: [id("brandId"), ...writeHeaders], ...write("Create a brand course", body({ code: { type: "string" }, title: { type: "string" }, classification: { type: "string", enum: ["academic_module_offering", "standalone"] }, academicInstitutionId: { type: "string", format: "uuid", description: "Required for creation; must be allowed for the commercial brand and match any linked module." }, academicModuleId: { type: ["string", "null"], format: "uuid" }, reason }, ["code", "title", "classification", "academicInstitutionId", "academicModuleId", "reason"])) },
     },
     "/v1/admin/brands/{brandId}/courses/{courseId}": {
-      get: { tags: ["Brand teaching"], parameters: [id("brandId"), id("courseId")], ...read("Read a brand-owned course") },
-      patch: { tags: ["Brand teaching"], parameters: [id("brandId"), id("courseId"), ...writeHeaders], ...write("Update a brand-owned course", body({ title: { type: "string" }, classification: { type: "string", enum: ["academic_module_offering", "standalone"] }, academicModuleId: { type: ["string", "null"], format: "uuid" }, expectedVersion: version, reason }, ["reason"])) },
+      get: { tags: ["Brand teaching"], parameters: [id("brandId"), id("courseId")], ...read("Read a brand-owned course"), responses:{...read("").responses,"200":catalogueReadResponse("CatalogueBrandCourse",false)} },
+      patch: { tags: ["Brand teaching"], parameters: [id("brandId"), id("courseId"), ...writeHeaders], ...write("Update a brand-owned course", body({ title: { type: "string" }, classification: { type: "string", enum: ["academic_module_offering", "standalone"] }, academicInstitutionId: { type: "string", format: "uuid", description: "Required for creation; must be allowed for the commercial brand and match any linked module." }, academicModuleId: { type: ["string", "null"], format: "uuid" }, expectedVersion: version, reason }, ["reason"])) },
     },
     "/v1/admin/brands/{brandId}/courses/{courseId}/status": { patch: { tags: ["Brand teaching"], parameters: [id("brandId"), id("courseId"), ...writeHeaders], ...write("Change brand course lifecycle", body({ status: { type: "string", enum: ["draft", "published", "archived"] }, expectedVersion: version, reason }, ["status", "reason"])) } },
     "/v1/admin/brands/{brandId}/courses/{courseId}/instructors": {

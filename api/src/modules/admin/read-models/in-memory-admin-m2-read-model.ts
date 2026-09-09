@@ -4,6 +4,8 @@ import type { AdminM2ReadModel, AcademicLevelAdminDto, AcademicSemesterAdminDto,
 const missing = <T>(correlationId?: string): RepositoryResult<T> => repositoryErr({ code: "not_found", message: "The requested admin M2 record was not found.", correlationId });
 /** Deterministic mock source. Empty results are intentional and do not represent staging data. */
 export class InMemoryAdminM2ReadModel implements AdminM2ReadModel {
+  async listAcademicInstitutions():ReturnType<AdminM2ReadModel["listAcademicInstitutions"]> { return repositoryErr({code:"provider_unavailable",message:"Academic catalogue requires the PostgreSQL source."}); }
+  async listCommercialBrandAccess():ReturnType<AdminM2ReadModel["listCommercialBrandAccess"]> { return repositoryErr({code:"provider_unavailable",message:"Brand catalogue access requires the PostgreSQL source."}); }
   async listAcademicLevels(): Promise<RepositoryResult<readonly AcademicLevelAdminDto[]>> { return repositoryOk([]); }
   async listAcademicSemesters(): Promise<RepositoryResult<readonly AcademicSemesterAdminDto[]>> { return repositoryOk([]); }
   async listAcademicModules(): Promise<RepositoryResult<readonly AcademicModuleAdminDto[]>> { return repositoryOk([]); }
@@ -17,7 +19,7 @@ export class InMemoryAdminM2ReadModel implements AdminM2ReadModel {
   async findBrandCourse(input: { readonly brandId: string; readonly courseId: string; readonly correlationId?: string }): Promise<RepositoryResult<BrandCourseAdminDto>> { return missing(input.correlationId); }
   async listCourseInstructors(): Promise<RepositoryResult<readonly CourseInstructorAssignmentAdminDto[]>> { return repositoryOk([]); }
   async listInstructorCourseAssignments(): Promise<RepositoryResult<readonly CourseInstructorAssignmentAdminDto[]>> { return repositoryOk([]); }
-  async listCourseChapters(): Promise<RepositoryResult<readonly CourseChapterAdminDto[]>> { return repositoryOk([]); }
-  async listCourseLessons(): Promise<RepositoryResult<readonly CourseLessonAdminDto[]>> { return repositoryOk([]); }
-  async listLessonResources(): Promise<RepositoryResult<readonly LessonResourceAdminDto[]>> { return repositoryOk([]); }
+  async listCourseChapters(): Promise<RepositoryResult<readonly CourseChapterAdminDto[]>> { return repositoryErr({code:"provider_unavailable",message:"Course delivery requires the PostgreSQL source."}); }
+  async listCourseLessons(): Promise<RepositoryResult<readonly CourseLessonAdminDto[]>> { return repositoryErr({code:"provider_unavailable",message:"Course delivery requires the PostgreSQL source."}); }
+  async listLessonResources(): Promise<RepositoryResult<readonly LessonResourceAdminDto[]>> { return repositoryErr({code:"provider_unavailable",message:"Course delivery requires the PostgreSQL source."}); }
 }
