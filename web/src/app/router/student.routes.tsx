@@ -17,6 +17,8 @@ import { ProfilePage } from "../pages/student/ProfilePage";
 import { StudentLayout } from "../pages/student/StudentLayout";
 import "./student-dashboard.css";
 
+import { HelpCenterPage } from "../pages/student/HelpCenterPage";
+
 export const studentRoutes: RouteObject[] = [
   {
     path: "/",
@@ -36,6 +38,7 @@ export const studentRoutes: RouteObject[] = [
       { path: "assignments/:assignmentId", element: <AssignmentDetailPage /> },
       { path: "messages", element: <MessagesPage /> },
       { path: "community", element: <CommunityPage /> },
+      { path: "help", element: <HelpCenterPage /> },
       // { path: "test-inactivity", element: <TestInactivityPromptPage /> },
       // { path: "test-streak", element: <TestStreakPage /> },
       // { path: "test-xp", element: <TestXPRewardsPage /> },

@@ -54,7 +54,7 @@ export const primarySidebarItems: SidebarItem[] = [
 
 export const secondarySidebarItems: SidebarItem[] = [
   { label: "Settings", icon: Settings, href: "/settings", enabled: false },
-  { label: "Help Center", icon: CircleHelp, href: "/help", enabled: false },
+  { label: "Help Center", icon: CircleHelp, href: "/help", enabled: true },
 ];
 
 export const sidebarProfile: SidebarProfile = {

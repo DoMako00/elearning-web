@@ -46,7 +46,7 @@ export const InstructorProfile: React.FC<InstructorProfileProps> = ({
   };
 
   return (
-    
+
     <div className="ip-root w-full font-sans
       h-auto flex flex-col gap-3
       lg:h-full lg:overflow-hidden
@@ -68,7 +68,7 @@ export const InstructorProfile: React.FC<InstructorProfileProps> = ({
         <InstructorStatsBar stats={profile.stats} />
       </div>
 
-      
+
       <div className="ip-grid
         grid gap-3
         grid-cols-1

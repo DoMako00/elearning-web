@@ -19,6 +19,7 @@ export function StudentLayout() {
   const isCalendar = pathname === "/calendar";
   const isMessages = pathname === "/messages";
   const isCommunity = pathname === "/community";
+  const isHelp = pathname === "/help";
   const isTestXP = pathname === "/test-xp";
   const isTestInactivity = pathname === "/test-inactivity";
   const isTestStreak = pathname === "/test-streak";
@@ -28,6 +29,16 @@ export function StudentLayout() {
   const showCenteredSearch = isHome;
 
   const renderBreadcrumb = () => {
+    if (isHelp) {
+      return (
+        <div className="student-dashboard__page-title">
+          <span className="student-dashboard__page-title-label">LEARNING SPACE</span>
+          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
+          <h1>Help Center</h1>
+        </div>
+      );
+    }
+
     if (isInstructorProfile) {
       return (
         <div className="student-dashboard__page-title">
@@ -142,7 +153,8 @@ export function StudentLayout() {
           isCalendar ? " student-dashboard--calendar" : ""
         }${isMessages ? " student-dashboard--messages" : ""}${
           isCommunity ? " student-dashboard--community" : ""
-        }${isScrollablePage ? " student-dashboard--scrollable" : ""}`}
+        }${isHelp ? " student-dashboard--help" : ""}${
+          isScrollablePage ? " student-dashboard--scrollable" : ""}`}
       >
         <header
           className={`student-dashboard__header${showCenteredSearch ? " student-dashboard__header--home" : ""}`}
@@ -165,7 +177,7 @@ export function StudentLayout() {
                 if (itemKey === "profile") navigate("/profile");
                 else if (itemKey === "settings") navigate("/profile?tab=settings");
                 else if (itemKey === "notifications") navigate("/profile?tab=activity");
-                else if (itemKey === "help") window.open("https://greenlearn.org/help", "_blank");
+                else if (itemKey === "help") navigate("/help");
                 else if (itemKey === "certificates") navigate("/profile?tab=achievements");
               }}
               onLogOut={() => {

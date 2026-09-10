@@ -355,6 +355,77 @@ main[data-main-workspace] {
   height: 100dvh;
 }
 
+.student-dashboard--help {
+  height: 100%;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.student-dashboard--help .student-dashboard__content {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  display: block;
+  height: 100%;
+  min-height: 0;
+  padding: clamp(8px, 1.2vh, 16px) clamp(14px, 1.6vw, 28px) clamp(16px, 2vh, 28px);
+}
+
+/* Tablet & iPad Portrait / Landscape adjustments (< 1400px) */
+@media (max-width: 1399px) {
+  .student-dashboard--help {
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  .student-dashboard--help .student-dashboard__content {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    height: calc(100dvh - var(--topbar-height, 76px)) !important;
+    max-height: calc(100dvh - var(--topbar-height, 76px)) !important;
+    display: block !important;
+    padding: 12px clamp(12px, 1.8vw, 20px) 40px !important;
+  }
+
+  .student-dashboard--help .help-center-root {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  .student-dashboard--help .help-center-columns {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    align-items: flex-start !important;
+  }
+
+  .student-dashboard--help .help-center-main-col {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .student-dashboard--help {
+    height: auto;
+    min-height: 100vh;
+    max-height: none;
+    overflow-y: auto;
+  }
+
+  .student-dashboard--help .student-dashboard__content {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 100%;
+    display: block !important;
+    padding: 12px 16px 48px !important;
+  }
+}
+
 .student-dashboard--calendar .student-dashboard__content,
 .student-dashboard--messages .student-dashboard__content {
   padding: 0;
