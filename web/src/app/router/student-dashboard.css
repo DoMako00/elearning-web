@@ -426,6 +426,68 @@ main[data-main-workspace] {
   }
 }
 
+/* ─────────────────────────────────────────────────────────────
+   SETTINGS VIEWPORT & RESPONSIVE SCROLL SYSTEM
+   Desktop (>=1400px): Clean containment within viewport
+   iPad & Tablets (<1400px): Fluid vertical scroll with zero card truncation
+───────────────────────────────────────────────────────────── */
+.student-dashboard--settings {
+  height: 100%;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.student-dashboard--settings .student-dashboard__content {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  display: block;
+  height: 100%;
+  min-height: 0;
+  padding: clamp(8px, 1.2vh, 16px) clamp(14px, 1.6vw, 28px) clamp(16px, 2vh, 28px);
+}
+
+@media (max-width: 1399px) {
+  .student-dashboard--settings {
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  .student-dashboard--settings .student-dashboard__content {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    height: calc(100dvh - var(--topbar-height, 76px)) !important;
+    max-height: calc(100dvh - var(--topbar-height, 76px)) !important;
+    display: block !important;
+    padding: 12px clamp(12px, 1.8vw, 20px) 40px !important;
+  }
+
+  .student-dashboard--settings .settings-root {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .student-dashboard--settings {
+    height: auto;
+    min-height: 100vh;
+    max-height: none;
+    overflow-y: auto;
+  }
+
+  .student-dashboard--settings .student-dashboard__content {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 100%;
+    display: block !important;
+    padding: 12px 16px 48px !important;
+  }
+}
+
 .student-dashboard--calendar .student-dashboard__content,
 .student-dashboard--messages .student-dashboard__content {
   padding: 0;

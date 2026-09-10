@@ -20,6 +20,7 @@ export function StudentLayout() {
   const isMessages = pathname === "/messages";
   const isCommunity = pathname === "/community";
   const isHelp = pathname === "/help";
+  const isSettings = pathname === "/settings";
   const isTestXP = pathname === "/test-xp";
   const isTestInactivity = pathname === "/test-inactivity";
   const isTestStreak = pathname === "/test-streak";
@@ -29,6 +30,16 @@ export function StudentLayout() {
   const showCenteredSearch = isHome;
 
   const renderBreadcrumb = () => {
+    if (isSettings) {
+      return (
+        <div className="student-dashboard__page-title">
+          <span className="student-dashboard__page-title-label">LEARNING SPACE</span>
+          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
+          <h1>Settings</h1>
+        </div>
+      );
+    }
+
     if (isHelp) {
       return (
         <div className="student-dashboard__page-title">
@@ -154,6 +165,8 @@ export function StudentLayout() {
         }${isMessages ? " student-dashboard--messages" : ""}${
           isCommunity ? " student-dashboard--community" : ""
         }${isHelp ? " student-dashboard--help" : ""}${
+          isSettings ? " student-dashboard--settings" : ""
+        }${
           isScrollablePage ? " student-dashboard--scrollable" : ""}`}
       >
         <header
@@ -175,8 +188,8 @@ export function StudentLayout() {
               onViewProfile={() => navigate("/profile")}
               onMenuItemClick={(itemKey) => {
                 if (itemKey === "profile") navigate("/profile");
-                else if (itemKey === "settings") navigate("/profile?tab=settings");
-                else if (itemKey === "notifications") navigate("/profile?tab=activity");
+                else if (itemKey === "settings") navigate("/settings");
+                else if (itemKey === "notifications") navigate("/settings");
                 else if (itemKey === "help") navigate("/help");
                 else if (itemKey === "certificates") navigate("/profile?tab=achievements");
               }}

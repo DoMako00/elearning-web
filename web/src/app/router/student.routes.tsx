@@ -18,6 +18,7 @@ import { StudentLayout } from "../pages/student/StudentLayout";
 import "./student-dashboard.css";
 
 import { HelpCenterPage } from "../pages/student/HelpCenterPage";
+import { SettingsPage } from "../pages/student/SettingsPage";
 
 export const studentRoutes: RouteObject[] = [
   {
@@ -39,6 +40,7 @@ export const studentRoutes: RouteObject[] = [
       { path: "messages", element: <MessagesPage /> },
       { path: "community", element: <CommunityPage /> },
       { path: "help", element: <HelpCenterPage /> },
+      { path: "settings", element: <SettingsPage /> },
       // { path: "test-inactivity", element: <TestInactivityPromptPage /> },
       // { path: "test-streak", element: <TestStreakPage /> },
       // { path: "test-xp", element: <TestXPRewardsPage /> },
