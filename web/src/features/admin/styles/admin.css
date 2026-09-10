@@ -604,3 +604,16 @@
  .admin-courses-page .admin-course-directory > header { flex-wrap: wrap; gap: 12px; }
  .admin-courses-page .admin-course-search { width: 100%; }
 }
+
+.admin-course-brand.is-nexus { background: #eef2ff; color: #4056a4; }
+.admin-course-cover.is-nexus { background: #eef2ff; color: #4056a4; }
+.admin-course-status.is-ready { background: #eef7f1; color: #2d7f4d; }
+.admin-course-status.is-ready i { background: #35a862; }
+.admin-course-table tbody tr.is-template .admin-course-title strong { color: #2d8150; }
+.admin-course-action-link { display: inline-flex; align-items: center; min-height: 30px; color: #287c49; font-size: 11px; font-weight: 800; text-decoration: none; white-space: nowrap; }
+.admin-course-action-link:hover { text-decoration: underline; }
+.admin-course-actions a { min-height: 46px; display: grid; grid-template-columns: 25px minmax(0,1fr); align-items: center; gap: 7px; border: 1px solid #e0e6e2; border-radius: 7px; background: #fff; color: #4d5c53; padding: 6px 8px; cursor: pointer; text-align: left; text-decoration: none; }
+.admin-course-actions a:hover { border-color: #bdd9c5; background: #f6fbf7; }
+.admin-course-detail__top > a:first-child { min-height: 34px; display: inline-flex; align-items: center; gap: 4px; border: 0; background: transparent; color: #637168; cursor: pointer; font-size: 11px; font-weight: 700; text-decoration: none; }
+.admin-course-detail__top > a:first-child svg { width: 15px; }
+.admin-course-actions a:focus-visible,.admin-course-action-link:focus-visible,.admin-course-new:focus-visible { outline: 3px solid rgba(47,157,89,.28); outline-offset: 2px; }

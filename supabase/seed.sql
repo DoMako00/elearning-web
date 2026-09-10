@@ -37,27 +37,30 @@ insert into app.academic_semesters (id, academic_level_id, semester_number, disp
 on conflict do nothing;
 
 insert into app.academic_modules (id, academic_semester_id, code, source_display_label, sort_order, review_status) values
-  ('40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','1101 TSF','1101 TSF',1101,'unreviewed'),
-  ('40000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000001','1102 ANA','1102 ANA',1102,'unreviewed'),
-  ('40000000-0000-4000-8000-000000000003','30000000-0000-4000-8000-000000000001','1103 CBG','1103 CBG',1103,'unreviewed'),
-  ('40000000-0000-4000-8000-000000000004','30000000-0000-4000-8000-000000000001','1104 BIO','1104 BIO',1104,'unreviewed'),
-  ('40000000-0000-4000-8000-000000000005','30000000-0000-4000-8000-000000000001','1105 PMD','1105 PMD',1105,'blocked'),
-  ('40000000-0000-4000-8000-000000000006','30000000-0000-4000-8000-000000000001','1106 ECX','1106 ECX',1106,'unreviewed'),
-  ('40000000-0000-4000-8000-000000000007','30000000-0000-4000-8000-000000000001','1107 SIM','1107 SIM',1107,'unreviewed'),
-  ('40000000-0000-4000-8000-000000000008','30000000-0000-4000-8000-000000000002','1208 IPP','1208 IPP',1208,'unreviewed'),
-  ('40000000-0000-4000-8000-000000000009','30000000-0000-4000-8000-000000000002','1209 PAT','1209 PAT',1209,'unreviewed'),
-  ('40000000-0000-4000-8000-000000000010','30000000-0000-4000-8000-000000000002','1210 MIC','1210 MIC',1210,'unreviewed'),
-  ('40000000-0000-4000-8000-000000000011','30000000-0000-4000-8000-000000000002','1211 PHE','1211 PHE',1211,'unreviewed'),
-  ('40000000-0000-4000-8000-000000000012','30000000-0000-4000-8000-000000000002','1212 IMM','1212 IMM',1212,'unreviewed'),
-  ('40000000-0000-4000-8000-000000000013','30000000-0000-4000-8000-000000000002','1213 SIM','1213 SIM',1213,'unreviewed'),
-  ('40000000-0000-4000-8000-000000000014','30000000-0000-4000-8000-000000000002','1214 SBS','1214 SBS',1214,'unreviewed'),
-  ('40000000-0000-4000-8000-000000000101','30000000-0000-4000-8000-000000000101','DELTA-ENG1','English 1',101,'unreviewed'),
-  ('40000000-0000-4000-8000-000000000102','30000000-0000-4000-8000-000000000101','DELTA-IT','IT',102,'unreviewed')
+  ('40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','1101 TSF','Tissue Structure & Function',1101,'unreviewed'),
+  ('40000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000001','1102 ANA','Anatomy',1102,'unreviewed'),
+  ('40000000-0000-4000-8000-000000000003','30000000-0000-4000-8000-000000000001','1103 CBG','Cell Biology & Genetics',1103,'unreviewed'),
+  ('40000000-0000-4000-8000-000000000004','30000000-0000-4000-8000-000000000001','1104 BIO','Biochemistry',1104,'unreviewed'),
+  ('40000000-0000-4000-8000-000000000005','30000000-0000-4000-8000-000000000001','1105 PMD','Professional Medical Development',1105,'blocked'),
+  ('40000000-0000-4000-8000-000000000006','30000000-0000-4000-8000-000000000001','1106 ECX','Early Clinical Exposure',1106,'unreviewed'),
+  ('40000000-0000-4000-8000-000000000007','30000000-0000-4000-8000-000000000001','1107 SIM','Simulation',1107,'unreviewed'),
+  ('40000000-0000-4000-8000-000000000008','30000000-0000-4000-8000-000000000002','1208 IPP','Introduction to Physiology & Clinical Pharmacology',1208,'unreviewed'),
+  ('40000000-0000-4000-8000-000000000009','30000000-0000-4000-8000-000000000002','1209 PAT','Pathology',1209,'unreviewed'),
+  ('40000000-0000-4000-8000-000000000010','30000000-0000-4000-8000-000000000002','1210 MIC','Microbiology',1210,'unreviewed'),
+  ('40000000-0000-4000-8000-000000000011','30000000-0000-4000-8000-000000000002','1211 PHE','Pharmacology',1211,'unreviewed'),
+  ('40000000-0000-4000-8000-000000000012','30000000-0000-4000-8000-000000000002','1212 IMM','Immunology',1212,'unreviewed'),
+  ('40000000-0000-4000-8000-000000000013','30000000-0000-4000-8000-000000000002','1213 SIM','Simulation',1213,'unreviewed'),
+  ('40000000-0000-4000-8000-000000000014','30000000-0000-4000-8000-000000000002','1214 SBS','Social & Behavioural Sciences',1214,'unreviewed')
 on conflict do nothing;
 
 update app.academic_modules m
 set academic_institution_id = '15000000-0000-4000-8000-000000000001'::uuid
 where m.academic_institution_id is null;
+
+insert into app.academic_modules (id, academic_semester_id, academic_institution_id, code, source_display_label, sort_order, review_status) values
+  ('40000000-0000-4000-8000-000000000101','30000000-0000-4000-8000-000000000101','15000000-0000-4000-8000-000000000002','DELTA-ENG1','English 1',101,'unreviewed'),
+  ('40000000-0000-4000-8000-000000000102','30000000-0000-4000-8000-000000000101','15000000-0000-4000-8000-000000000002','DELTA-IT','Information Technology',102,'unreviewed')
+on conflict do nothing;
 
 -- The medical modules are shared by BUC and Delta. Delta receives its own
 -- institution-scoped rows (and Semester 2) so a future course can select the
@@ -1166,24 +1169,26 @@ begin
        ('30000000-0000-4000-8000-000000000101'::uuid,'20000000-0000-4000-8000-000000000101'::uuid,1,'Semester 1',1,'active')) v(id,level_id,semester_number,display_title,sort_order,status)
        join app.academic_semesters s on (s.id,s.academic_level_id,s.semester_number,s.display_title,s.sort_order,s.status)=(v.id,v.level_id,v.semester_number,v.display_title,v.sort_order,v.status)) <> 3
      or (select count(*) from app.academic_modules) <> 30
+     or (select count(*) from app.academic_modules m join app.academic_institutions i on i.id = m.academic_institution_id where i.code = 'buc') <> 14
+     or (select count(*) from app.academic_modules m join app.academic_institutions i on i.id = m.academic_institution_id where i.code = 'delta') <> 16
      or (select count(*) from app.academic_module_chapters) <> 98
      or (select count(*) from (values
-       ('40000000-0000-4000-8000-000000000001'::uuid,'30000000-0000-4000-8000-000000000001'::uuid,'1101 TSF','1101 TSF',1101,'unreviewed'),
-       ('40000000-0000-4000-8000-000000000002'::uuid,'30000000-0000-4000-8000-000000000001'::uuid,'1102 ANA','1102 ANA',1102,'unreviewed'),
-       ('40000000-0000-4000-8000-000000000003'::uuid,'30000000-0000-4000-8000-000000000001'::uuid,'1103 CBG','1103 CBG',1103,'unreviewed'),
-       ('40000000-0000-4000-8000-000000000004'::uuid,'30000000-0000-4000-8000-000000000001'::uuid,'1104 BIO','1104 BIO',1104,'unreviewed'),
-       ('40000000-0000-4000-8000-000000000005'::uuid,'30000000-0000-4000-8000-000000000001'::uuid,'1105 PMD','1105 PMD',1105,'blocked'),
-       ('40000000-0000-4000-8000-000000000006'::uuid,'30000000-0000-4000-8000-000000000001'::uuid,'1106 ECX','1106 ECX',1106,'unreviewed'),
-       ('40000000-0000-4000-8000-000000000007'::uuid,'30000000-0000-4000-8000-000000000001'::uuid,'1107 SIM','1107 SIM',1107,'unreviewed'),
-       ('40000000-0000-4000-8000-000000000008'::uuid,'30000000-0000-4000-8000-000000000002'::uuid,'1208 IPP','1208 IPP',1208,'unreviewed'),
-       ('40000000-0000-4000-8000-000000000009'::uuid,'30000000-0000-4000-8000-000000000002'::uuid,'1209 PAT','1209 PAT',1209,'unreviewed'),
-       ('40000000-0000-4000-8000-000000000010'::uuid,'30000000-0000-4000-8000-000000000002'::uuid,'1210 MIC','1210 MIC',1210,'unreviewed'),
-       ('40000000-0000-4000-8000-000000000011'::uuid,'30000000-0000-4000-8000-000000000002'::uuid,'1211 PHE','1211 PHE',1211,'unreviewed'),
-       ('40000000-0000-4000-8000-000000000012'::uuid,'30000000-0000-4000-8000-000000000002'::uuid,'1212 IMM','1212 IMM',1212,'unreviewed'),
-       ('40000000-0000-4000-8000-000000000013'::uuid,'30000000-0000-4000-8000-000000000002'::uuid,'1213 SIM','1213 SIM',1213,'unreviewed'),
-       ('40000000-0000-4000-8000-000000000014'::uuid,'30000000-0000-4000-8000-000000000002'::uuid,'1214 SBS','1214 SBS',1214,'unreviewed'),
+       ('40000000-0000-4000-8000-000000000001'::uuid,'30000000-0000-4000-8000-000000000001'::uuid,'1101 TSF','Tissue Structure & Function',1101,'unreviewed'),
+       ('40000000-0000-4000-8000-000000000002'::uuid,'30000000-0000-4000-8000-000000000001'::uuid,'1102 ANA','Anatomy',1102,'unreviewed'),
+       ('40000000-0000-4000-8000-000000000003'::uuid,'30000000-0000-4000-8000-000000000001'::uuid,'1103 CBG','Cell Biology & Genetics',1103,'unreviewed'),
+       ('40000000-0000-4000-8000-000000000004'::uuid,'30000000-0000-4000-8000-000000000001'::uuid,'1104 BIO','Biochemistry',1104,'unreviewed'),
+       ('40000000-0000-4000-8000-000000000005'::uuid,'30000000-0000-4000-8000-000000000001'::uuid,'1105 PMD','Professional Medical Development',1105,'blocked'),
+       ('40000000-0000-4000-8000-000000000006'::uuid,'30000000-0000-4000-8000-000000000001'::uuid,'1106 ECX','Early Clinical Exposure',1106,'unreviewed'),
+       ('40000000-0000-4000-8000-000000000007'::uuid,'30000000-0000-4000-8000-000000000001'::uuid,'1107 SIM','Simulation',1107,'unreviewed'),
+       ('40000000-0000-4000-8000-000000000008'::uuid,'30000000-0000-4000-8000-000000000002'::uuid,'1208 IPP','Introduction to Physiology & Clinical Pharmacology',1208,'unreviewed'),
+       ('40000000-0000-4000-8000-000000000009'::uuid,'30000000-0000-4000-8000-000000000002'::uuid,'1209 PAT','Pathology',1209,'unreviewed'),
+       ('40000000-0000-4000-8000-000000000010'::uuid,'30000000-0000-4000-8000-000000000002'::uuid,'1210 MIC','Microbiology',1210,'unreviewed'),
+       ('40000000-0000-4000-8000-000000000011'::uuid,'30000000-0000-4000-8000-000000000002'::uuid,'1211 PHE','Pharmacology',1211,'unreviewed'),
+       ('40000000-0000-4000-8000-000000000012'::uuid,'30000000-0000-4000-8000-000000000002'::uuid,'1212 IMM','Immunology',1212,'unreviewed'),
+       ('40000000-0000-4000-8000-000000000013'::uuid,'30000000-0000-4000-8000-000000000002'::uuid,'1213 SIM','Simulation',1213,'unreviewed'),
+       ('40000000-0000-4000-8000-000000000014'::uuid,'30000000-0000-4000-8000-000000000002'::uuid,'1214 SBS','Social & Behavioural Sciences',1214,'unreviewed'),
        ('40000000-0000-4000-8000-000000000101'::uuid,'30000000-0000-4000-8000-000000000101'::uuid,'DELTA-ENG1','English 1',101,'unreviewed'),
-       ('40000000-0000-4000-8000-000000000102'::uuid,'30000000-0000-4000-8000-000000000101'::uuid,'DELTA-IT','IT',102,'unreviewed')) v(id,semester_id,code,label,sort_order,review_status)
+       ('40000000-0000-4000-8000-000000000102'::uuid,'30000000-0000-4000-8000-000000000101'::uuid,'DELTA-IT','Information Technology',102,'unreviewed')) v(id,semester_id,code,label,sort_order,review_status)
        join app.academic_modules m on (m.id,m.academic_semester_id,m.code,m.source_display_label,m.sort_order,m.review_status)=(v.id,v.semester_id,v.code,v.label,v.sort_order,v.review_status)) <> 16
      or (select count(*) from app.instructors where (id, code, display_name, status) in
       (('50000000-0000-4000-8000-000000000001'::uuid,'INS-00001','محمد بسيوني فايد','active'),('50000000-0000-4000-8000-000000000002'::uuid,'INS-00002','زياد وائل فتحي','active'),('50000000-0000-4000-8000-000000000003'::uuid,'INS-00003','شروق محمد عاطف','active'))) <> 3

@@ -35,6 +35,12 @@ export function AdminCourseBuilderPage() {
   const pending=useRef<{signature:string;key:string}|undefined>(undefined);
   const busy=useRef(false);
   const selectedBrandId=query.get("brandId")??(brandView!=="all"?brand?.brandId:undefined);
+  const initialInstitutionId=query.get("institutionId")??"";
+  const initialLevelId=query.get("levelId")??"";
+  const initialSemesterId=query.get("semesterId")??"";
+  const initialModuleId=query.get("moduleId")??"";
+  const initialCode=query.get("code")??"";
+  const initialTitle=query.get("title")??"";
   const scope=selectedBrandId&&courseId&&courseId!=="new"?deliveryCoursePath(selectedBrandId,courseId):"";
   const currentScope=useRef(scope);
   currentScope.current=scope;
@@ -96,7 +102,7 @@ export function AdminCourseBuilderPage() {
   const addResource=()=>{if(lesson&&resourceTitle.trim())void save("resources",{title:resourceTitle.trim(),courseLessonId:lesson.id,resourceKind,sortOrder:nextOrder(lesson.resources),status:resourceKind==="video"?"draft":resourceStatus});};
   const totals=useMemo(()=>({lessons:chapters.reduce((n,ch)=>n+ch.lessons.length,0),resources:chapters.reduce((n,ch)=>n+ch.lessons.reduce((m,ls)=>m+ls.resources.length,0),0)}),[chapters]);
 
-  if(courseId==="new")return <section className="admin-page admin-course-builder"><Link to="/admin/courses">Back to courses</Link><h1>Create course</h1><AdminCourseTemplateForm key={selectedBrandId??"new"} initialBrandId={selectedBrandId} onSaved={result=>navigate(`/admin/courses/${result.courseId}/builder?brandId=${encodeURIComponent(result.brandId)}`,{replace:true})}/></section>;
+  if(courseId==="new")return <section className="admin-page admin-course-builder"><Link to="/admin/courses">Back to courses</Link><h1>Create course</h1><AdminCourseTemplateForm key={`${selectedBrandId??"new"}:${initialModuleId}`} initialBrandId={selectedBrandId} initialInstitutionId={initialInstitutionId} initialLevelId={initialLevelId} initialSemesterId={initialSemesterId} initialModuleId={initialModuleId} initialCode={initialCode} initialTitle={initialTitle} onSaved={result=>navigate(`/admin/courses/${result.courseId}/builder?brandId=${encodeURIComponent(result.brandId)}`,{replace:true})}/></section>;
   if(!scope)return <section className="admin-page"><h1>Course builder</h1><p>Select the course's brand to manage delivery.</p><Link to="/admin/courses">Back to courses</Link></section>;
   if(loading||!course)return <section className="admin-page" aria-busy={loading}><h1>Course builder</h1>{loading?<p>Loading course and module context…</p>:<><p role="alert">{error||"Course unavailable."}</p><button type="button" onClick={()=>setRevision(value=>value+1)}>Reload</button></>}<Link to="/admin/courses">Back to courses</Link></section>;
   return <section className="admin-page admin-course-builder" aria-label="Course content builder">

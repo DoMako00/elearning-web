@@ -2,19 +2,27 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { adminDeliveryRequest, catalogueBrandAccessPath, catalogueInstitutionsPath, deliveryCoursePath, type CatalogueBrand, type CatalogueInstitution, type DeliveryCourse } from '../api/adminDelivery.http';
 
 /** Uses the existing admin session and writes a draft commercial course only. */
-export function AdminCourseTemplateForm({ course, initialBrandId = '', onSaved }: {
-  course?: DeliveryCourse; initialBrandId?: string; onSaved: (result:{brandId:string;courseId:string})=>void;
+export function AdminCourseTemplateForm({ course, initialBrandId = '', initialInstitutionId = '', initialLevelId = '', initialSemesterId = '', initialModuleId = '', initialCode = '', initialTitle = '', onSaved }: {
+  course?: DeliveryCourse;
+  initialBrandId?: string;
+  initialInstitutionId?: string;
+  initialLevelId?: string;
+  initialSemesterId?: string;
+  initialModuleId?: string;
+  initialCode?: string;
+  initialTitle?: string;
+  onSaved: (result:{brandId:string;courseId:string})=>void;
 }) {
   const [brands,setBrands]=useState<CatalogueBrand[]>([]);
   const [institutions,setInstitutions]=useState<CatalogueInstitution[]>([]);
   const [brandId,setBrandId]=useState(course?.brandId??initialBrandId);
-  const [institutionId,setInstitutionId]=useState(course?.academicInstitutionId??'');
-  const [levelId,setLevelId]=useState('');
-  const [semesterId,setSemesterId]=useState('');
-  const [moduleId,setModuleId]=useState(course?.academicModuleId??'');
+  const [institutionId,setInstitutionId]=useState(course?.academicInstitutionId??initialInstitutionId);
+  const [levelId,setLevelId]=useState(initialLevelId);
+  const [semesterId,setSemesterId]=useState(initialSemesterId);
+  const [moduleId,setModuleId]=useState(course?.academicModuleId??initialModuleId);
   const [classification,setClassification]=useState<DeliveryCourse['classification']>(course?.classification??'academic_module_offering');
-  const [title,setTitle]=useState(course?.title??'');
-  const [code,setCode]=useState(course?.code??'');
+  const [title,setTitle]=useState(course?.title??initialTitle);
+  const [code,setCode]=useState(course?.code??initialCode);
   const [reason,setReason]=useState('');
   const [loading,setLoading]=useState(true);
   const [saving,setSaving]=useState(false);
@@ -33,14 +41,19 @@ export function AdminCourseTemplateForm({ course, initialBrandId = '', onSaved }
       if(controller.signal.aborted)return;
       if(!Array.isArray(brandRows)||!Array.isArray(institutionRows))throw new Error('The catalogue response is invalid.');
       setBrands(brandRows);setInstitutions(institutionRows);
-      const institution=institutionRows.find(item=>item.id===course?.academicInstitutionId);
-      const level=institution?.levels.find(item=>item.semesters.some(semester=>semester.modules.some(module=>module.id===course?.academicModuleId)));
-      const semester=level?.semesters.find(item=>item.modules.some(module=>module.id===course?.academicModuleId));
-      setLevelId(level?.id??'');setSemesterId(semester?.id??'');
+      const selectedModuleId=course?.academicModuleId??initialModuleId;
+      const selectedInstitutionId=course?.academicInstitutionId??initialInstitutionId;
+      const institution=institutionRows.find(item=>item.id===selectedInstitutionId)??institutionRows.find(item=>item.levels.some(level=>level.semesters.some(semester=>semester.modules.some(module=>module.id===selectedModuleId))));
+      const level=(initialLevelId&&institution?.levels.find(item=>item.id===initialLevelId))||institution?.levels.find(item=>item.semesters.some(semester=>semester.modules.some(module=>module.id===selectedModuleId)));
+      const semester=(initialSemesterId&&level?.semesters.find(item=>item.id===initialSemesterId))||level?.semesters.find(item=>item.modules.some(module=>module.id===selectedModuleId));
+      setInstitutionId(institution?.id??selectedInstitutionId??'');
+      setLevelId(level?.id??initialLevelId);
+      setSemesterId(semester?.id??initialSemesterId);
+      setModuleId(selectedModuleId);
     }).catch(e=>{if(!controller.signal.aborted)setError(e instanceof Error?e.message:'Could not load academic catalogues.');})
       .finally(()=>{if(!controller.signal.aborted)setLoading(false);});
     return()=>controller.abort();
-  },[course?.id,revision]);
+  },[course?.id,initialInstitutionId,initialLevelId,initialModuleId,initialSemesterId,revision]);
 
   const brand=brands.find(item=>item.id===brandId&&item.status==='active');
   const allowed=institutions.filter(item=>item.status==='active'&&brand?.allowedAcademicInstitutions.some(access=>access.id===item.id));
@@ -51,6 +64,7 @@ export function AdminCourseTemplateForm({ course, initialBrandId = '', onSaved }
   const semester=semesters.find(item=>item.id===semesterId);
   const modules=semester?.modules??[];
   const module=modules.find(item=>item.id===moduleId&&!['blocked','retired'].includes(item.reviewStatus));
+  const suggestCourseCode=(moduleCode:string)=>`${(brand?.code.trim().slice(0,3).toUpperCase()||'CRS')}-${(moduleCode.trim().replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toUpperCase()||'MODULE')}`.slice(0,80);
   function resetInstitution(id:string){setInstitutionId(id);setLevelId('');setSemesterId('');setModuleId('');}
   async function save(event:FormEvent){
     event.preventDefault();if(busy.current)return;
@@ -82,7 +96,11 @@ export function AdminCourseTemplateForm({ course, initialBrandId = '', onSaved }
         <label>Course classification<select value={classification} onChange={event=>{setClassification(event.target.value as DeliveryCourse['classification']);setModuleId('');}}><option value="academic_module_offering">Academic module offering</option><option value="standalone">Standalone within this catalogue</option></select></label>
         <label>Level<select disabled={!institution||classification==='standalone'} required={classification==='academic_module_offering'} value={levelId} onChange={event=>{setLevelId(event.target.value);setSemesterId('');setModuleId('');}}><option value="">Select a level</option>{levels.map(item=><option key={item.id} value={item.id}>{item.displayTitle}</option>)}</select></label>
         <label>Semester<select disabled={!level||classification==='standalone'} required={classification==='academic_module_offering'} value={semesterId} onChange={event=>{setSemesterId(event.target.value);setModuleId('');}}><option value="">Select a semester</option>{semesters.map(item=><option key={item.id} value={item.id}>{item.displayTitle}</option>)}</select></label>
-        <label>Module<select disabled={!semester||classification==='standalone'} required={classification==='academic_module_offering'} value={moduleId} onChange={event=>setModuleId(event.target.value)}><option value="">Select a module</option>{modules.map(item=><option key={item.id} value={item.id} disabled={['blocked','retired'].includes(item.reviewStatus)}>{item.code} · {item.sourceDisplayLabel}{['blocked','retired'].includes(item.reviewStatus)?` (${item.reviewStatus})`:''}</option>)}</select></label>
+        <label>Module<select disabled={!semester||classification==='standalone'} required={classification==='academic_module_offering'} value={moduleId} onChange={event=>{
+          const next=modules.find(item=>item.id===event.target.value);
+          setModuleId(event.target.value);
+          if(!course&&next){setTitle(current=>current.trim()?current:next.sourceDisplayLabel);setCode(current=>current.trim()?current:suggestCourseCode(next.code));}
+        }}><option value="">Select a module</option>{modules.map(item=><option key={item.id} value={item.id} disabled={['blocked','retired'].includes(item.reviewStatus)}>{item.code} · {item.sourceDisplayLabel}{['blocked','retired'].includes(item.reviewStatus)?` (${item.reviewStatus})`:''}</option>)}</select></label>
         <label>Course code<input required maxLength={80} disabled={!!course} value={code} onChange={event=>setCode(event.target.value)} /></label>
         <label>Course title<input required maxLength={240} value={title} onChange={event=>setTitle(event.target.value)} /></label>
         <label className="admin-course-template__reason">Reason for change<input required maxLength={500} value={reason} onChange={event=>setReason(event.target.value)} /></label>
