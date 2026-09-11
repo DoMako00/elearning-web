@@ -3,6 +3,8 @@ import type {
   StudentProfileData,
   DeviceSession,
   SubscriptionPlan,
+  PaymentMethod,
+  SecuritySettings,
   NotificationPreferences,
   PrivacyPreferences,
   AppearancePreferences,
@@ -12,6 +14,8 @@ import {
   INITIAL_PROFILE_DATA,
   INITIAL_DEVICES,
   INITIAL_SUBSCRIPTION,
+  INITIAL_PAYMENT_METHODS,
+  INITIAL_SECURITY,
   INITIAL_NOTIFICATIONS,
   INITIAL_PRIVACY,
   INITIAL_APPEARANCE,
@@ -22,11 +26,13 @@ export function useSettingsForm(initialTab: SettingsTabId = "profile") {
   const [profile, setProfile] = useState<StudentProfileData>(INITIAL_PROFILE_DATA);
   const [devices, setDevices] = useState<DeviceSession[]>(INITIAL_DEVICES);
   const [subscription, setSubscription] = useState<SubscriptionPlan>(INITIAL_SUBSCRIPTION);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(INITIAL_PAYMENT_METHODS);
+  const [security, setSecurity] = useState<SecuritySettings>(INITIAL_SECURITY);
   const [notifications, setNotifications] = useState<NotificationPreferences>(INITIAL_NOTIFICATIONS);
   const [privacy, setPrivacy] = useState<PrivacyPreferences>(INITIAL_PRIVACY);
   const [appearance, setAppearance] = useState<AppearancePreferences>(INITIAL_APPEARANCE);
 
-  // Email/Phone change form state
+  // Email/Phone change form state for backwards compatibility
   const [contactSubTab, setContactSubTab] = useState<"email" | "phone">("email");
   const [newContactValue, setNewContactValue] = useState("");
 
@@ -45,15 +51,20 @@ export function useSettingsForm(initialTab: SettingsTabId = "profile") {
     setDevices((prev) => prev.filter((d) => d.isCurrent));
   };
 
+  const updateSecurity = (newSettings: Partial<SecuritySettings>) => {
+    setSecurity((prev) => ({ ...prev, ...newSettings }));
+  };
+
   const toggleNotification = (
-    category: keyof NotificationPreferences,
-    channel: "email" | "push" | "sms"
+    group: keyof NotificationPreferences,
+    key: string,
+    value: boolean
   ) => {
     setNotifications((prev) => ({
       ...prev,
-      [category]: {
-        ...prev[category],
-        [channel]: !prev[category][channel],
+      [group]: {
+        ...prev[group],
+        [key]: value,
       },
     }));
   };
@@ -83,6 +94,10 @@ export function useSettingsForm(initialTab: SettingsTabId = "profile") {
     removeAllOtherDevices,
     subscription,
     setSubscription,
+    paymentMethods,
+    setPaymentMethods,
+    security,
+    updateSecurity,
     notifications,
     toggleNotification,
     privacy,

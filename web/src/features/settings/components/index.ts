@@ -1,11 +1,10 @@
+export { SettingsLayout } from "./SettingsLayout";
 export { SettingsTabNav } from "./SettingsTabNav";
-export { ProfileTabContent } from "./tabs/ProfileTabContent";
-export { SecurityTabContent } from "./tabs/SecurityTabContent";
-export { DevicesTabContent } from "./tabs/DevicesTabContent";
-export { NotificationsTabContent } from "./tabs/NotificationsTabContent";
-export { PrivacyTabContent } from "./tabs/PrivacyTabContent";
-export { AppearanceTabContent } from "./tabs/AppearanceTabContent";
-export { ChangePhotoModal } from "./modals/ChangePhotoModal";
-export { ChangePasswordModal } from "./modals/ChangePasswordModal";
-export { CloseAccountModal } from "./modals/CloseAccountModal";
-export { ManageDevicesModal } from "./modals/ManageDevicesModal";
+export * from "./tabs";
+export * from "./common";
+export {
+  ChangePhotoModal,
+  ChangePasswordModal,
+  CloseAccountModal,
+  ManageDevicesModal,
+} from "./modals";

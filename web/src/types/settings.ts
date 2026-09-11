@@ -1,6 +1,7 @@
 export type SettingsTabId =
   | "profile"
   | "account"
+  | "security"
   | "devices"
   | "notifications"
   | "privacy"
@@ -40,22 +41,55 @@ export interface SubscriptionPlan {
   planType: "individual" | "friends" | "enterprise";
 }
 
+export interface PaymentMethod {
+  id: string;
+  brand: "visa" | "mastercard" | "amex";
+  last4: string;
+  expMonth: number;
+  expYear: number;
+  isDefault: boolean;
+}
+
+export interface SecuritySettings {
+  twoFactorEnabled: boolean;
+  recoveryEmail: string;
+  currentPassword?: string;
+  newPassword?: string;
+  confirmPassword?: string;
+}
+
+export interface LearningAlerts {
+  assignmentDeadlines: boolean;
+  lessonReminders: boolean;
+  dailyStreakWarnings: boolean;
+}
+
+export interface SocialCommunityAlerts {
+  directMessages: boolean;
+  mentionsInCommunity: boolean;
+  repliesToPosts: boolean;
+}
+
+export interface SystemAlerts {
+  securityAlerts: boolean;
+  billingUpdates: boolean;
+}
+
 export interface NotificationPreferences {
-  courseUpdates: { email: boolean; push: boolean; sms: boolean };
-  assignments: { email: boolean; push: boolean; sms: boolean };
-  directMessages: { email: boolean; push: boolean; sms: boolean };
-  communityReplies: { email: boolean; push: boolean; sms: boolean };
+  learningAlerts: LearningAlerts;
+  socialCommunity: SocialCommunityAlerts;
+  systemAlerts: SystemAlerts;
 }
 
 export interface PrivacyPreferences {
   profileVisibility: "public" | "students" | "private";
-  showActivityStatus: boolean;
-  shareLearningStats: boolean;
-  allowDirectMessages: boolean;
+  showOnlineStatus: boolean;
+  allowTelemetry: boolean;
+  allowPersonalization: boolean;
 }
 
 export interface AppearancePreferences {
   theme: "system" | "light" | "dark";
-  highContrast: boolean;
-  fontSize: "normal" | "compact" | "large";
+  reduceMotion: boolean;
+  fontSize: "standard" | "large" | "extraLarge";
 }

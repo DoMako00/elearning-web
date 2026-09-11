@@ -2,6 +2,8 @@ import type {
   StudentProfileData,
   DeviceSession,
   SubscriptionPlan,
+  PaymentMethod,
+  SecuritySettings,
   NotificationPreferences,
   PrivacyPreferences,
   AppearancePreferences,
@@ -34,10 +36,10 @@ export const INITIAL_DEVICES: DeviceSession[] = [
   },
   {
     id: "dev-2",
-    name: "iPhone 15 Pro",
+    name: "iPhone 14",
     os: "iOS 17.5",
-    browser: "Safari Mobile",
-    location: "Giza, Egypt",
+    browser: "Safari",
+    location: "Cairo, Egypt",
     ipAddress: "156.204.88.19",
     lastActive: "Yesterday at 9:42 PM",
     isCurrent: false,
@@ -45,14 +47,14 @@ export const INITIAL_DEVICES: DeviceSession[] = [
   },
   {
     id: "dev-3",
-    name: "iPad Air",
-    os: "iPadOS 16.4",
-    browser: "GreenLearn App",
-    location: "Cairo, Egypt",
+    name: "MacBook Pro",
+    os: "macOS Sonoma",
+    browser: "Edge",
+    location: "Giza, Egypt",
     ipAddress: "197.35.120.89",
     lastActive: "3 days ago",
     isCurrent: false,
-    deviceType: "tablet",
+    deviceType: "desktop",
   },
 ];
 
@@ -65,24 +67,50 @@ export const INITIAL_SUBSCRIPTION: SubscriptionPlan = {
   planType: "individual",
 };
 
+export const INITIAL_PAYMENT_METHODS: PaymentMethod[] = [
+  {
+    id: "pm-1",
+    brand: "visa",
+    last4: "4242",
+    expMonth: 12,
+    expYear: 2028,
+    isDefault: true,
+  },
+];
+
+export const INITIAL_SECURITY: SecuritySettings = {
+  twoFactorEnabled: false,
+  recoveryEmail: "recovery.juliana@gmail.com",
+};
+
 export const INITIAL_NOTIFICATIONS: NotificationPreferences = {
-  courseUpdates: { email: true, push: true, sms: false },
-  assignments: { email: true, push: true, sms: true },
-  directMessages: { email: false, push: true, sms: false },
-  communityReplies: { email: true, push: false, sms: false },
+  learningAlerts: {
+    assignmentDeadlines: true,
+    lessonReminders: true,
+    dailyStreakWarnings: true,
+  },
+  socialCommunity: {
+    directMessages: true,
+    mentionsInCommunity: true,
+    repliesToPosts: false,
+  },
+  systemAlerts: {
+    securityAlerts: true,
+    billingUpdates: true,
+  },
 };
 
 export const INITIAL_PRIVACY: PrivacyPreferences = {
   profileVisibility: "students",
-  showActivityStatus: true,
-  shareLearningStats: true,
-  allowDirectMessages: true,
+  showOnlineStatus: true,
+  allowTelemetry: true,
+  allowPersonalization: false,
 };
 
 export const INITIAL_APPEARANCE: AppearancePreferences = {
   theme: "light",
-  highContrast: false,
-  fontSize: "normal",
+  reduceMotion: false,
+  fontSize: "standard",
 };
 
 export const UNIVERSITIES = [
