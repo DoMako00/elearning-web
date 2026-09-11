@@ -1,6 +1,6 @@
 import React from "react";
 import { Search } from "lucide-react";
-import { RobotIllustration } from "./RobotIllustration";
+import aiDocImage from "../../../Assets/AI doc image (2).webp";
 import { POPULAR_SEARCH_TAGS } from "../data/helpCenterData";
 
 interface HelpHeroBannerProps {
@@ -82,9 +82,14 @@ export const HelpHeroBanner: React.FC<HelpHeroBannerProps> = ({
         </div>
       </div>
 
-      {/* Right Graphic / Mascot Container */}
-      <div className="hidden md:flex items-center justify-center shrink-0 pr-2 lg:pr-6 relative z-10">
-        <RobotIllustration className="w-36 h-32 lg:w-44 lg:h-38" />
+      {/* Right Graphic / AI Image */}
+      <div className="hidden md:self-stretch md:flex items-center justify-center shrink-0 pr-2 lg:pr-6 translate-x-20 relative z-10">
+        <img
+          src={aiDocImage}
+          alt="AI assistant helping with learning"
+          className="h-full max-h-50 w-auto object-contain drop-shadow-md select-none pointer-events-none"
+          draggable={false}
+        />
       </div>
     </section>
   );
