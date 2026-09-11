@@ -39,8 +39,8 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({
               </div>
 
               {/* Right: Motivational badge with decorative plant leaf */}
-              <div className="relative z-10 hidden sm:flex items-center gap-3">
-                <div className="text-right">
+              <div className="relative z-10 hidden sm:flex text-left items-center gap-3">
+                <div className="text-left">
                   <p className="text-xs text-gray-400 leading-snug">A better</p>
                   <p className="text-xs font-medium text-gray-600 leading-snug">
                     learning experience
@@ -48,7 +48,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({
                   <p className="text-xs font-medium text-gray-600 leading-snug">
                     starts with you
                   </p>
-                  <div className="w-4 h-0.5 bg-emerald-500 mt-1 ml-auto rounded-full" />
+                  <div className="w-4 h-0.5 bg-emerald-500 mt-1 mr-auto rounded-full" />
                 </div>
 
                 {/* Decorative soft green leaf SVG */}
