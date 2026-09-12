@@ -2,11 +2,24 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { AppShell } from "../../../components/layout/AppShell";
 import { SearchBar } from "../../../components/ui/SearchBar";
 import { UserHeaderActions } from "../../../components/ui/UserHeaderActions";
+import { useIsMobile } from "../../../hooks/useIsMobile";
+import { MobileLayout } from "../../../components/mobile/MobileLayout";
 
 export function StudentLayout() {
+  const isMobile = useIsMobile();
   const location = useLocation();
   const navigate = useNavigate();
   const pathname = location.pathname;
+
+  // Render Mobile Layout when viewport matches <= 767px
+  if (isMobile) {
+    return <MobileLayout />;
+  }
+
+  // Prevent flash while measuring initial viewport on client mount
+  if (isMobile === undefined) {
+    return null;
+  }
 
   const isHome = pathname === "/" || pathname === "";
   const isProfile = pathname === "/profile";
