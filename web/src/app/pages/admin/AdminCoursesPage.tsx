@@ -32,6 +32,9 @@ type ModuleTemplateRow = CourseModuleContext & {
   kind: 'module-template';
   id: string;
   brand: CatalogueBrand;
+  code: string;
+  title: string;
+  cataloguePresentation: DeliveryCourse['cataloguePresentation'];
 };
 
 type CourseDirectoryRow = ExistingCourseRow | ModuleTemplateRow;
@@ -55,10 +58,27 @@ function moduleTemplateLink(row: ModuleTemplateRow) {
     levelId: row.level.id,
     semesterId: row.semester.id,
     moduleId: row.module.id,
-    code: safeCourseCode(row.brand.code, row.module.code),
-    title: row.module.sourceDisplayLabel,
+    code: row.code,
+    title: row.title,
+    presentation: row.cataloguePresentation,
   });
   return `/admin/courses/new/builder?${params.toString()}`;
+}
+
+const firstSemesterSubjectTemplates = [
+  { suffix: 'BIO', title: 'Biochemistry Fundamentals', moduleCodes: ['1104 BIO'] },
+  { suffix: 'PHY', title: 'Physiology Foundations', moduleCodes: ['1101 TSF'] },
+  { suffix: 'HIS', title: 'Histology Foundations', moduleCodes: ['1101 TSF'] },
+  { suffix: 'CBG', title: 'Cellular Biology and Genetics', moduleCodes: ['1103 CBG'] },
+  { suffix: 'ANA', title: 'Anatomy Foundations', moduleCodes: ['1102 ANA'] },
+] as const;
+
+function shouldUseSubjectTemplates(brand: CatalogueBrand, level: CatalogueLevel, semester: CatalogueSemester) {
+  return (brand.code === 'medway' || brand.code === 'elite') && level.levelNumber === 1 && semester.semesterNumber === 1;
+}
+
+function subjectCode(brandCode: string, suffix: string) {
+  return `${brandCode.trim().slice(0, 3).toUpperCase() || 'CRS'}-${suffix}`.slice(0, 80);
 }
 
 function rowSearchText(row: CourseDirectoryRow) {
@@ -82,6 +102,8 @@ function rowSearchText(row: CourseDirectoryRow) {
     row.institution.displayName,
     row.level.displayTitle,
     row.semester.displayTitle,
+    row.title,
+    row.code,
     row.module.reviewStatus,
   ].join(' ');
 }
@@ -202,13 +224,33 @@ export function AdminCoursesPage() {
 
   const templateRows = useMemo<ModuleTemplateRow[]>(() => {
     const existingModuleKeys = new Set(courses.filter((course) => course.academicModuleId).map((course) => `${course.brandId}:${course.academicModuleId}`));
+    const existingCourseKeys = new Set(courses.map((course) => `${course.brandId}:${course.code.trim().toLowerCase()}`));
     return selectedBrands.flatMap((brand) => brand.allowedAcademicInstitutions.flatMap((access) => {
       const institution = institutions.find((item) => item.id === access.id && item.status === 'active');
       if (!institution) return [];
       return institution.levels.filter((level) => level.status === 'active').flatMap((level) => level.semesters.filter((semester) => semester.status === 'active').flatMap((semester) => semester.modules
         .filter((module) => !['blocked', 'retired'].includes(module.reviewStatus))
-        .filter((module) => !existingModuleKeys.has(`${brand.id}:${module.id}`))
-        .map((module) => ({ kind: 'module-template' as const, id: `module-template:${brand.id}:${module.id}`, brand, institution, level, semester, module }))));
+        .flatMap((module): ModuleTemplateRow[] => {
+          if (shouldUseSubjectTemplates(brand, level, semester)) {
+            return firstSemesterSubjectTemplates
+              .filter((template) => template.moduleCodes.some((moduleCode) => moduleCode === module.code))
+              .filter((template) => !existingCourseKeys.has(`${brand.id}:${subjectCode(brand.code, template.suffix).toLowerCase()}`))
+              .map((template) => ({
+                kind: 'module-template' as const,
+                id: `subject-template:${brand.id}:${module.id}:${template.suffix}`,
+                brand,
+                institution,
+                level,
+                semester,
+                module,
+                code: subjectCode(brand.code, template.suffix),
+                title: template.title,
+                cataloguePresentation: 'subject_based' as const,
+              }));
+          }
+          if (existingModuleKeys.has(`${brand.id}:${module.id}`)) return [];
+          return [{ kind: 'module-template' as const, id: `module-template:${brand.id}:${module.id}`, brand, institution, level, semester, module, code: safeCourseCode(brand.code, module.code), title: module.sourceDisplayLabel, cataloguePresentation: 'module_based' as const }];
+        })));
     }));
   }, [courses, institutions, selectedBrands]);
 
@@ -275,9 +317,9 @@ export function AdminCoursesPage() {
                   <td><Link className="admin-course-action-link" to={`/admin/courses/${encodeURIComponent(row.course.id)}/builder?brandId=${encodeURIComponent(row.course.brandId)}`}>Build</Link></td>
                 </tr>;
                 return <tr key={row.id} className={`is-template${isSelected ? ' is-selected' : ''}`}>
-                  <td><button type="button" className="admin-course-title" onClick={() => setSelectedId(row.id)}><strong>{row.module.sourceDisplayLabel}</strong><small>{row.institution.displayName} · {row.level.displayTitle} · {row.semester.displayTitle}</small><em>Selected</em></button></td>
+                  <td><button type="button" className="admin-course-title" onClick={() => setSelectedId(row.id)}><strong>{row.title}</strong><small>{row.institution.displayName} · {row.level.displayTitle} · {row.semester.displayTitle}</small><em>Selected</em></button></td>
                   <td><span className={`admin-course-brand is-${row.brand.code}`}><ShieldCheck aria-hidden="true" />{row.brand.name}</span></td>
-                  <td>Curriculum</td>
+                  <td>{row.cataloguePresentation === 'subject_based' ? 'Subject' : 'Curriculum'}</td>
                   <td className="admin-course-module"><strong>{row.module.code}</strong><span>{row.module.sourceDisplayLabel}</span></td>
                   <td><span className="admin-course-unassigned">Unassigned</span></td>
                   <td><span className="admin-course-status is-ready"><i />Ready</span></td>
@@ -305,7 +347,7 @@ function CourseDetailPanel({ row, onClose }: { row: CourseDirectoryRow; onClose:
   }
   return <aside className="admin-course-detail" aria-label="Academic module template details">
     <div className="admin-course-detail__top"><Link to="/admin/courses"><ArrowLeft aria-hidden="true" />Back to courses</Link><Link className="admin-course-new" to={moduleTemplateLink(row)}><Plus aria-hidden="true" />New Course</Link></div>
-    <div className="admin-course-detail__identity"><div className={`admin-course-cover is-${row.brand.code}`}><BookOpen aria-hidden="true" /></div><div><h2>{row.module.sourceDisplayLabel}</h2><span className="admin-course-status is-ready"><i />Ready template</span><span className={`admin-course-brand is-${row.brand.code}`}><ShieldCheck aria-hidden="true" />{row.brand.name}</span><small>{row.module.code}</small></div><button type="button" className="admin-course-detail__close" onClick={onClose} aria-label="Close module details"><X aria-hidden="true" /></button></div>
-    <div className="admin-course-detail__body"><dl className="admin-course-metadata"><div><dt>Scope</dt><dd>Curriculum</dd></div><div><dt>Linked module</dt><dd>{row.module.code} {row.module.sourceDisplayLabel}</dd></div><div><dt>Academic catalogue</dt><dd>{row.institution.displayName}</dd></div><div><dt>Commercial brand</dt><dd>{row.brand.name}</dd></div><div><dt>Academic level</dt><dd>{row.level.displayTitle}</dd></div><div><dt>Semester</dt><dd>{row.semester.displayTitle}</dd></div><div><dt>Review state</dt><dd>{row.module.reviewStatus}</dd></div><div><dt>Resource refs</dt><dd>{row.module.resourceCount}</dd></div></dl><section className="admin-course-assignments"><header><div><h3>Course-Instructor Assignments <span>0</span></h3><p>Create the course first, then assign instructors to this brand-owned template.</p></div><button type="button" disabled>Manage</button></header><p className="admin-course-assignment-empty">No instructors assigned because this is still an academic module template.</p></section><div className="admin-course-actions"><Link to={moduleTemplateLink(row)}><Plus aria-hidden="true" /><span>Create course from this module</span><small>Preselects brand, catalogue, level, semester, and module in the Course Builder.</small></Link><button type="button" disabled><Layers3 aria-hidden="true" /><span>Module outline</span><small>{row.module.chapters.length ? `${row.module.chapters.length} academic chapters available after creation.` : 'No academic chapter outline registered yet.'}</small></button></div></div>
+    <div className="admin-course-detail__identity"><div className={`admin-course-cover is-${row.brand.code}`}><BookOpen aria-hidden="true" /></div><div><h2>{row.title}</h2><span className="admin-course-status is-ready"><i />Ready template</span><span className={`admin-course-brand is-${row.brand.code}`}><ShieldCheck aria-hidden="true" />{row.brand.name}</span><small>{row.code}</small></div><button type="button" className="admin-course-detail__close" onClick={onClose} aria-label="Close module details"><X aria-hidden="true" /></button></div>
+    <div className="admin-course-detail__body"><dl className="admin-course-metadata"><div><dt>Scope</dt><dd>{row.cataloguePresentation === 'subject_based' ? 'Subject' : 'Curriculum'}</dd></div><div><dt>Linked module</dt><dd>{row.module.code} {row.module.sourceDisplayLabel}</dd></div><div><dt>Academic catalogue</dt><dd>{row.institution.displayName}</dd></div><div><dt>Commercial brand</dt><dd>{row.brand.name}</dd></div><div><dt>Academic level</dt><dd>{row.level.displayTitle}</dd></div><div><dt>Semester</dt><dd>{row.semester.displayTitle}</dd></div><div><dt>Presentation</dt><dd>{row.cataloguePresentation === 'subject_based' ? 'Subject-based course' : 'Module-based course'}</dd></div><div><dt>Review state</dt><dd>{row.module.reviewStatus}</dd></div><div><dt>Resource refs</dt><dd>{row.module.resourceCount}</dd></div></dl><section className="admin-course-assignments"><header><div><h3>Course-Instructor Assignments <span>0</span></h3><p>Create the course first, then assign instructors to this brand-owned template.</p></div><button type="button" disabled>Manage</button></header><p className="admin-course-assignment-empty">No instructors assigned because this is still an academic template.</p></section><div className="admin-course-actions"><Link to={moduleTemplateLink(row)}><Plus aria-hidden="true" /><span>Create course from this {row.cataloguePresentation === 'subject_based' ? 'subject' : 'module'}</span><small>Preselects brand, catalogue, level, semester, module, and presentation mode in the Course Builder.</small></Link><button type="button" disabled><Layers3 aria-hidden="true" /><span>Module outline</span><small>{row.module.chapters.length ? `${row.module.chapters.length} academic chapters available after creation.` : 'No academic chapter outline registered yet.'}</small></button></div></div>
   </aside>;
 }

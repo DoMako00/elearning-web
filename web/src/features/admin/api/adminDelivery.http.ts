@@ -11,6 +11,7 @@ export interface DeliveryCourse {
  academicInstitution:{id:string;code:string;displayName:string}|null;
  academicModuleId:string|null; academicModule:{id:string;code:string;sourceDisplayLabel:string}|null;
  brand:{id:string;code:string;name:string}; status:DeliveryStatus; classification:'academic_module_offering'|'standalone';
+ cataloguePresentation:'module_based'|'subject_based';
  version:number; updatedAt:string; instructorAssignments:{instructorId:string;displayName:string;status:string}[];
 }
 export interface CatalogueChapter { id:string; code:string; title:string; sortOrder:number; status:'active'|'retired'; }
