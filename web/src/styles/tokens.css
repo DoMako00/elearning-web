@@ -1,4 +1,6 @@
 :root {
+  --font-heading: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Montserrat", ui-sans-serif, system-ui, sans-serif;
   --color-bg: #ffffff;
   --color-surface: #ffffff;
   --color-surface-hover: #f7faf8;
@@ -16,6 +18,7 @@
   --sidebar-gutter: 15px;
   --sidebar-nav-item-height: 56px;
   --sidebar-nav-gap: 0px;
+  --topbar-height: 76px;
   --main-padding-x: 32px;
   --main-padding-top: 32px;
 
@@ -23,8 +26,21 @@
   --radius-profile: 11px;
 }
 
+@media (max-width: 1535px) {
+  :root {
+    --sidebar-width: 80px;
+    --sidebar-gutter: 10px;
+  }
+}
+
 @media (max-height: 860px) {
   :root {
     --sidebar-nav-item-height: 48px;
+  }
+}
+
+@media (max-height: 760px) {
+  :root {
+    --sidebar-nav-item-height: 44px;
   }
 }

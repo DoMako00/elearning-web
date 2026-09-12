@@ -1,0 +1,546 @@
+/* XPRewardModal.css - GreenLearn XP Reward Modal (Light Theme) */
+
+:root {
+  --xp-brand: #20a862;
+  --xp-brand-hover: #188a50;
+  --xp-brand-soft: #eff9f2;
+  --xp-brand-soft-strong: #c9f0d7;
+  --xp-emerald: #22c55e;
+  --xp-emerald-dark: #16a34a;
+  --xp-gold: #fbbf24;
+  --xp-gold-dark: #f59e0b;
+  --xp-gold-light: #fef3c7;
+  --xp-blue: #3b82f6;
+  --xp-purple: #a855f7;
+  --xp-white: #ffffff;
+  --xp-surface: #ffffff;
+  --xp-surface-hover: #f7faf8;
+  --xp-dark: #111827;
+  --xp-dark-secondary: #1f2937;
+  --xp-text-primary: #111827;
+  --xp-text-secondary: #667085;
+  --xp-text-tertiary: #9ca3af;
+  --xp-border: #e8ecef;
+  --xp-border-strong: #d1d5db;
+  --xp-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --xp-shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.12);
+  --xp-focus-ring: #20a862;
+}
+
+.xp-reward-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(17, 24, 39, 0.55);
+  backdrop-filter: blur(6px);
+}
+
+.xp-reward-particle-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.xp-reward-modal {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  background: var(--xp-surface, #ffffff);
+  border: 1px solid var(--xp-border, #e8ecef);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--xp-shadow-lg);
+  overflow: hidden;
+}
+
+.xp-reward-modal.level-up {
+  border-color: var(--xp-brand, #20a862);
+  box-shadow: 
+    var(--xp-shadow-lg),
+    0 0 0 1px var(--xp-brand-soft-strong, #c9f0d7),
+    0 0 30px rgba(32, 168, 98, 0.15);
+}
+
+.xp-reward-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--xp-brand), var(--xp-emerald), var(--xp-blue), var(--xp-purple), var(--xp-brand));
+  background-size: 200% 100%;
+  animation: xp-gradient-shift 3s ease infinite;
+}
+
+@keyframes xp-gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.xp-reward-modal.level-up::before {
+  height: 4px;
+}
+
+/* Header */
+.xp-reward-modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.xp-reward-icon-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--xp-brand-soft, #eff9f2);
+  border: 2px solid var(--xp-brand-soft-strong, #c9f0d7);
+  margin-bottom: 0.75rem;
+}
+
+.xp-reward-modal.level-up .xp-reward-icon-container {
+  background: var(--xp-brand-soft, #eff9f2);
+  border-color: var(--xp-brand, #20a862);
+  box-shadow: 0 0 24px rgba(32, 168, 98, 0.25);
+}
+
+.xp-reward-icon {
+  flex-shrink: 0;
+}
+
+.xp-reward-icon.trophy {
+  color: var(--xp-gold, #fbbf24);
+  filter: drop-shadow(0 4px 8px rgba(251, 191, 36, 0.3));
+}
+
+.xp-reward-icon.star {
+  color: var(--xp-brand, #20a862);
+  filter: drop-shadow(0 4px 8px rgba(32, 168, 98, 0.3));
+}
+
+.xp-reward-glow {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--xp-brand) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.xp-reward-title {
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, var(--xp-brand) 0%, var(--xp-emerald) 50%, var(--xp-blue) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.xp-reward-modal.level-up .xp-reward-title {
+  background: linear-gradient(135deg, var(--xp-gold) 0%, var(--xp-gold-light) 50%, var(--xp-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: xp-title-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes xp-title-pulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.15); }
+}
+
+/* Content */
+.xp-reward-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* XP Earned Display */
+.xp-reward-xp-display {
+  text-align: center;
+  padding: 0.25rem 0;
+}
+
+.xp-reward-xp-amount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  font-size: 3rem;
+  font-weight: 900;
+  line-height: 1;
+  font-family: var(--font-heading, 'Montserrat', ui-sans-serif, system-ui, sans-serif);
+  background: linear-gradient(135deg, var(--xp-brand) 0%, var(--xp-gold-light) 30%, var(--xp-white) 60%, var(--xp-brand) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% 100%;
+  animation: xp-number-shine 2.5s ease-in-out infinite;
+  filter: drop-shadow(0 4px 12px rgba(32, 168, 98, 0.25));
+}
+
+@keyframes xp-number-shine {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.xp-reward-plus {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.xp-reward-number {
+  line-height: 1;
+}
+
+.xp-reward-xp-label {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-left: 0.25rem;
+}
+
+.xp-reward-reason {
+  margin-top: 0.375rem;
+  font-size: 13px;
+  color: var(--xp-text-secondary, #667085);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+/* Divider */
+.xp-reward-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.5rem 0;
+}
+
+.xp-reward-divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--xp-border), transparent);
+  transform-origin: center;
+}
+
+/* Level Section */
+.xp-reward-level-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 0.5rem;
+}
+
+.xp-reward-level-badge {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 14px;
+  background: var(--xp-surface, #ffffff);
+  border: 2px solid var(--xp-border, #e8ecef);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.xp-reward-level-badge.is-new {
+  border-color: var(--xp-brand, #20a862);
+  background: linear-gradient(135deg, var(--xp-brand-soft) 0%, var(--xp-surface) 100%);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.06),
+    0 0 24px rgba(32, 168, 98, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.xp-reward-level-badge.pulse {
+  animation: xp-badge-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes xp-badge-pulse {
+  0%, 100% { box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 0 24px rgba(32, 168, 98, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+  50% { box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 0 40px rgba(32, 168, 98, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+}
+
+.xp-reward-level-label {
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--xp-text-secondary, #667085);
+}
+
+.xp-reward-level-number {
+  font-size: 2.25rem;
+  font-weight: 900;
+  line-height: 1;
+  font-family: var(--font-heading, 'Montserrat', ui-sans-serif, system-ui, sans-serif);
+  background: linear-gradient(135deg, var(--xp-brand) 0%, var(--xp-white) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.xp-reward-level-up-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--xp-brand, #20a862);
+  white-space: nowrap;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: var(--xp-brand-soft, #eff9f2);
+  border: 1px solid var(--xp-brand-soft-strong, #c9f0d7);
+}
+
+/* Progress Section */
+.xp-reward-progress-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.xp-reward-progress-labels-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--xp-text-secondary, #667085);
+}
+
+.xp-reward-progress-section strong {
+  color: var(--xp-text-primary, #111827);
+}
+
+.xp-reward-progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.xp-reward-progress-track {
+  position: relative;
+  width: 100%;
+  height: 10px;
+  background: var(--xp-surface-hover, #f7faf8);
+  border: 1px solid var(--xp-border, #e8ecef);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.xp-reward-progress-fill {
+  position: relative;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--xp-brand), var(--xp-emerald), var(--xp-gold));
+  background-size: 200% 100%;
+  animation: xp-progress-flow 2.5s linear infinite;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 4px;
+  box-shadow: 0 0 12px rgba(32, 168, 98, 0.35);
+}
+
+@keyframes xp-progress-flow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.xp-reward-progress-shine {
+  width: 20px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  border-radius: 999px;
+  animation: xp-shine-sweep 1.5s ease-in-out infinite;
+}
+
+@keyframes xp-shine-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(500%); }
+}
+
+.xp-reward-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--xp-text-tertiary, #9ca3af);
+}
+
+.xp-reward-xp-breakdown {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--xp-text-tertiary, #9ca3af);
+}
+
+.xp-reward-xp-breakdown strong {
+  color: var(--xp-text-secondary, #667085);
+}
+
+/* Actions */
+.xp-reward-actions {
+  display: flex;
+  gap: 10px;
+  padding-top: 0.5rem;
+}
+
+.xp-reward-btn-primary,
+.xp-reward-btn-secondary {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.25rem;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.xp-reward-btn-primary {
+  background: linear-gradient(135deg, var(--xp-brand) 0%, var(--xp-brand-hover) 100%);
+  color: var(--xp-white);
+  box-shadow: 
+    0 4px 14px rgba(32, 168, 98, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.xp-reward-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 24px rgba(32, 168, 98, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.xp-reward-btn-primary:active {
+  transform: translateY(0);
+}
+
+.xp-reward-btn-primary:focus-visible {
+  outline: 2px solid var(--xp-focus-ring, #20a862);
+  outline-offset: 2px;
+}
+
+.xp-reward-btn-secondary {
+  background: var(--xp-surface, #ffffff);
+  color: var(--xp-text-secondary, #667085);
+  border: 1px solid var(--xp-border, #e8ecef);
+}
+
+.xp-reward-btn-secondary:hover {
+  background: var(--xp-surface-hover, #f7faf8);
+  color: var(--xp-text-primary, #111827);
+  border-color: var(--xp-border-strong, #d1d5db);
+}
+
+.xp-reward-btn-secondary:focus-visible {
+  outline: 2px solid var(--xp-focus-ring, #20a862);
+  outline-offset: 2px;
+}
+
+.xp-reward-btn-icon {
+  flex-shrink: 0;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .xp-reward-modal,
+  .xp-reward-icon-container,
+  .xp-reward-title,
+  .xp-reward-xp-amount,
+  .xp-reward-level-badge,
+  .xp-reward-progress-fill,
+  .xp-reward-progress-shine,
+  .xp-reward-glow,
+  .xp-reward-divider-line,
+  .xp-reward-actions button {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .xp-reward-progress-fill {
+    animation: none;
+  }
+
+  .xp-reward-progress-shine {
+    animation: none;
+  }
+
+  .xp-reward-badge.pulse {
+    animation: none;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .xp-reward-modal {
+    padding: 1.25rem;
+    margin: 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+
+  .xp-reward-xp-amount {
+    font-size: 2.5rem;
+  }
+
+  .xp-reward-icon-container {
+    width: 64px;
+    height: 64px;
+  }
+
+  .xp-reward-title {
+    font-size: 1.125rem;
+  }
+
+  .xp-reward-level-number {
+    font-size: 1.875rem;
+  }
+
+  .xp-reward-actions {
+    flex-direction: column;
+  }
+
+  .xp-reward-btn-primary,
+  .xp-reward-btn-secondary {
+    width: 100%;
+  }
+}
+
+/* High Contrast */
+@media (prefers-contrast: high) {
+  .xp-reward-modal {
+    border-width: 2px;
+  }
+
+  .xp-reward-progress-track {
+    border-width: 2px;
+  }
+
+  .xp-reward-btn-secondary {
+    border-width: 2px;
+  }
+}

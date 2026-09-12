@@ -1,0 +1,207 @@
+.test-streak-page {
+  padding: 24px 32px 64px;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.test-streak-header {
+  margin-bottom: 24px;
+}
+
+.test-streak-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.test-streak-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-brand, #20a862);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.test-streak-back:hover {
+  opacity: 0.8;
+}
+
+.test-streak-toast {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-brand-soft, #eff9f2);
+  color: var(--color-brand, #20a862);
+  border: 1px solid var(--color-brand-soft-strong, #c9f0d7);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  animation: fadeIn 0.2s ease;
+}
+
+.test-streak-title {
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--color-text-primary, #111827);
+  letter-spacing: -0.02em;
+}
+
+.test-streak-subtitle {
+  margin: 0;
+  color: var(--color-text-secondary, #667085);
+  font-size: 14px;
+}
+
+.test-streak-controls {
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border-subtle, #e8ecef);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.test-streak-controls-title {
+  margin: 0 0 16px;
+  font-size: 17px;
+  font-weight: 750;
+  color: var(--color-text-primary, #111827);
+}
+
+.test-streak-controls-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.test-control-card {
+  background: var(--color-surface-hover, #f7faf8);
+  border: 1px solid var(--color-border-subtle, #e8ecef);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.test-control-heading {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 750;
+  color: var(--color-text-primary, #111827);
+}
+
+.test-control-desc {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-secondary, #667085);
+  line-height: 1.4;
+}
+
+.test-control-status {
+  font-size: 13px;
+  color: var(--color-text-primary, #111827);
+  background: var(--color-surface, #ffffff);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-subtle, #e8ecef);
+}
+
+.test-control-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.test-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.test-btn-primary {
+  background: var(--color-brand, #20a862);
+  color: #ffffff;
+}
+
+.test-btn-primary:hover {
+  background: var(--color-brand-hover, #188a50);
+}
+
+.test-btn-scenario {
+  background: var(--color-surface, #ffffff);
+  color: var(--color-text-primary, #111827);
+  border-color: var(--color-border-subtle, #e8ecef);
+}
+
+.test-btn-scenario:hover {
+  border-color: var(--color-brand, #20a862);
+  color: var(--color-brand, #20a862);
+}
+
+.test-btn-warning {
+  background: #fef3c7;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.test-btn-warning:hover {
+  background: #fde68a;
+}
+
+.test-btn-outline {
+  background: var(--color-surface, #ffffff);
+  color: var(--color-text-secondary, #667085);
+  border-color: var(--color-border-subtle, #e8ecef);
+}
+
+.test-btn-outline:hover {
+  background: #f3f4f6;
+  color: var(--color-text-primary, #111827);
+}
+
+.test-btn-reset {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+  width: 100%;
+  justify-content: center;
+}
+
+.test-btn-reset:hover {
+  background: #fca5a5;
+}
+
+.test-streak-dashboard {
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border-subtle, #e8ecef);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 900px) {
+  .test-streak-controls-grid {
+    grid-template-columns: 1fr;
+  }
+}

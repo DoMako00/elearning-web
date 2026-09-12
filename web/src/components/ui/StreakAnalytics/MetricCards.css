@@ -1,0 +1,135 @@
+/* MetricCards.css - Streak Metrics Cards Styles */
+
+.streak-metric-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+
+.streak-metric-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border-subtle, #e8ecef);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+.streak-metric-card:hover {
+  border-color: var(--color-brand-soft-strong, #c9f0d7);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+.streak-metric-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.streak-metric-icon--fire {
+  background: var(--color-brand-soft, #eff9f2);
+  color: var(--color-brand, #20a862);
+}
+
+.streak-metric-icon--trophy {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.streak-metric-icon--calendar {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.streak-metric-icon--freeze {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.streak-metric-icon-svg {
+  width: 20px;
+  height: 20px;
+}
+
+.metric-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.metric-value {
+  margin: 0 0 2px;
+  font-size: 24px;
+  font-weight: 800;
+  font-family: var(--font-heading, 'Montserrat', ui-sans-serif, system-ui, sans-serif);
+  line-height: 1.1;
+  color: var(--color-text-primary, #111827);
+}
+
+.metric-label {
+  margin: 0 0 2px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-primary, #111827);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.metric-subtext {
+  margin: 0;
+  font-size: 11px;
+  color: var(--color-text-tertiary, #9ca3af);
+  line-height: 1.4;
+}
+
+/* Card variants */
+.streak-metric-card--streak .metric-value {
+  color: var(--color-brand, #20a862);
+}
+
+.streak-metric-card--longest .metric-value {
+  color: #f59e0b;
+}
+
+.streak-metric-card--total .metric-value {
+  color: #2563eb;
+}
+
+.streak-metric-card--freeze .metric-value {
+  color: #f59e0b;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .streak-metric-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .streak-metric-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .streak-metric-card {
+    transition: none !important;
+  }
+}
+
+/* High Contrast */
+@media (prefers-contrast: high) {
+  .streak-metric-card {
+    border-width: 2px;
+  }
+}
