@@ -5,6 +5,9 @@ import { UserHeaderActions } from "../../../components/ui/UserHeaderActions";
 import { useIsMobile } from "../../../hooks/useIsMobile";
 import { MobileLayout } from "../../../components/mobile/MobileLayout";
 
+import { MobileCourseOverviewStubScreen } from "../../../components/mobile/screens/MobileCourseOverviewStubScreen";
+import { MobileLearningPathStubScreen } from "../../../components/mobile/screens/MobileLearningPathStubScreen";
+
 export function StudentLayout() {
   const isMobile = useIsMobile();
   const location = useLocation();
@@ -13,6 +16,12 @@ export function StudentLayout() {
 
   // Render Mobile Layout when viewport matches <= 767px
   if (isMobile) {
+    if (pathname.startsWith("/my-courses/") && pathname !== "/my-courses") {
+      return <MobileCourseOverviewStubScreen />;
+    }
+    if (pathname.startsWith("/explore/paths/") && pathname !== "/explore/paths") {
+      return <MobileLearningPathStubScreen />;
+    }
     return <MobileLayout />;
   }
 

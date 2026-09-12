@@ -37,6 +37,12 @@ export const ScreenStackProvider: React.FC<ScreenStackProviderProps> = ({
   const [activeTab, setActiveTabState] = useState<TabId>(initialScreen.tabRoot);
   const [stack, setStack] = useState<ScreenItem[]>([initialScreen]);
 
+  // Sync if initialScreen tab changes (e.g. navigation via URL)
+  React.useEffect(() => {
+    setActiveTabState(initialScreen.tabRoot);
+    setStack([initialScreen]);
+  }, [initialScreen.id, initialScreen.tabRoot]);
+
   const currentScreen = stack[stack.length - 1];
   const canPop = stack.length > 1;
 

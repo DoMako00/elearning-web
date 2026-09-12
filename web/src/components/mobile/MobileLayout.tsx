@@ -7,12 +7,10 @@ import {
   ScreenItem,
 } from "./ScreenStack";
 import { BottomNav } from "./BottomNav";
-import { HomeStubScreen } from "./screens/HomeScreens";
-import {
-  MyCoursesStubScreen,
-  ExploreStubScreen,
-  CalendarStubScreen,
-} from "./screens/TabScreens";
+import { HomeScreen } from "./screens/HomeScreen";
+import { MyCoursesScreen } from "./screens/MyCoursesScreen";
+import { ExploreScreen } from "./screens/ExploreScreen";
+import { CalendarStubScreen } from "./screens/TabScreens";
 import { MoreRootScreen } from "./screens/MoreRootScreen";
 
 const TAB_ROOT_SCREENS: Record<TabId, ScreenItem> = {
@@ -20,19 +18,19 @@ const TAB_ROOT_SCREENS: Record<TabId, ScreenItem> = {
     id: "tab-home",
     tabRoot: "home",
     variant: "main",
-    component: <HomeStubScreen />,
+    component: <HomeScreen />,
   },
   "my-courses": {
     id: "tab-my-courses",
     tabRoot: "my-courses",
     variant: "main",
-    component: <MyCoursesStubScreen />,
+    component: <MyCoursesScreen />,
   },
   explore: {
     id: "tab-explore",
     tabRoot: "explore",
     variant: "main",
-    component: <ExploreStubScreen />,
+    component: <ExploreScreen />,
   },
   calendar: {
     id: "tab-calendar",
@@ -48,11 +46,22 @@ const TAB_ROOT_SCREENS: Record<TabId, ScreenItem> = {
   },
 };
 
+import { useLocation, useNavigate } from "react-router-dom";
+
 const MobileLayoutContent: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { activeTab, setActiveTab, replace } = useScreenStack();
 
   const handleTabSelect = (tab: TabId) => {
     setActiveTab(tab);
+    // If selecting home, update url to /; if my-courses, to /my-courses
+    if (tab === "home" && location.pathname !== "/") {
+      navigate("/");
+    } else if (tab === "my-courses" && location.pathname !== "/my-courses") {
+      navigate("/my-courses");
+    }
+
     const targetScreen = TAB_ROOT_SCREENS[tab];
     if (targetScreen) {
       replace(targetScreen);
@@ -73,7 +82,19 @@ const MobileLayoutContent: React.FC = () => {
 };
 
 export const MobileLayout: React.FC = () => {
-  const initialScreen = useMemo(() => TAB_ROOT_SCREENS.home, []);
+  const location = useLocation();
+  const initialTab: TabId = location.pathname.startsWith("/my-courses")
+    ? "my-courses"
+    : location.pathname === "/explore"
+    ? "explore"
+    : location.pathname === "/calendar"
+    ? "calendar"
+    : "home";
+
+  const initialScreen = useMemo(
+    () => TAB_ROOT_SCREENS[initialTab] || TAB_ROOT_SCREENS.home,
+    [initialTab]
+  );
 
   return (
     <ScreenStackProvider initialScreen={initialScreen}>
