@@ -6,9 +6,9 @@ import { AdminInstructorsPage } from "../pages/admin/AdminInstructorsPage";
 import { AdminCoursesPage } from "../pages/admin/AdminCoursesPage";
 import { AdminCurriculumPage } from "../pages/admin/AdminCurriculumPage";
 import { AdminCourseBuilderPage } from "../pages/admin/AdminCourseBuilderPage";
+import { AdminStudentsPage } from "../pages/admin/AdminStudentsPage";
 
 const sections = [
-  ["students", "Students", "Read-only student identity, access, and risk summaries."],
   ["payments", "Payments", "Payment, order, and review status for the active brand."],
   ["commercial", "Commercial", "Payment, refund, and order review read models."],
   ["subscriptions", "Subscriptions", "Subscription lifecycle, seats, and terms summaries."],
@@ -30,6 +30,7 @@ export const adminRoutes: RouteObject[] = [{
     { path: "courses/:courseId/builder", element: <AdminCourseBuilderPage /> },
     { path: "instructors", element: <AdminInstructorsPage /> },
     { path: "curriculum", element: <AdminCurriculumPage /> },
+    { path: "students", element: <AdminStudentsPage /> },
     ...sections.map(([path, title, description]) => ({ path, element: <AdminPagePlaceholder title={title} description={description} /> })),
   ],
 }];

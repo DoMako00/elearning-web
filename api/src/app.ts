@@ -5,6 +5,7 @@ import { createAdminModule, createAdminOverviewReadModel, createAdminM2ReadModel
 import { createPersistenceRuntimeComposition, type PersistenceRuntimeCompositionOptions } from "./infrastructure/persistence-runtime-composition";
 import type { PostgresWritePoolFactory } from "./infrastructure/postgres";
 import { createAdminReadVerifierDiagnostics, type AdminReadVerifierDiagnostics } from "./modules/admin/admin-read-verifier-diagnostics";
+import { EmptyAdminStudentsReadModel, PostgresAdminStudentsReadModel } from "./modules/admin/read-models/admin-students-read-model";
 
 /** Framework-independent composition root; no HTTP runtime is started here. */
 export interface BackendApplicationOptions extends PersistenceRuntimeCompositionOptions { readonly writePoolFactory?: PostgresWritePoolFactory; }
@@ -26,6 +27,7 @@ export function createApplication(options: BackendApplicationOptions = {}): Back
     evidenceWriter: new InMemoryAdminEvidenceWriter(),
     overviewReadModel: createAdminOverviewReadModel(adminOverviewSource, persistence),
     m2ReadModel: adminReadVerifierDiagnostics ? adminReadVerifierDiagnostics.wrap(m2ReadModel) : m2ReadModel,
+    studentsReadModel: persistence.provider === "supabase" && persistence.readTransport ? new PostgresAdminStudentsReadModel(persistence.readTransport) : new EmptyAdminStudentsReadModel(),
     m2CommandExecutor: commandRuntime.executor,
   };
   let closePromise: Promise<void> | undefined;

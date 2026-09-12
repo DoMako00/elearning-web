@@ -175,6 +175,8 @@ async function run() {
         assertEqual(response.status, 200, "OpenAPI status");
         assertEqual(response.body.openapi, "3.1.0", "OpenAPI version");
         assertTruthy(response.body.paths?.["/v1/admin/instructors"], "Instructor contract path");
+        assertTruthy(response.body.paths?.["/v1/admin/students"], "Students list contract path");
+        assertTruthy(response.body.paths?.["/v1/admin/students/{studentId}"], "Student detail contract path");
         assertTruthy(response.body.paths?.["/v1/admin/brands/{brandId}/courses/{courseId}/instructors"], "Course instructor contract path");
         assertTruthy(response.body.components?.schemas?.AcademicCatalogueChapter, "Academic chapter schema");
         assertTruthy(response.body.paths?.["/v1/admin/curriculum/modules/{moduleId}"]?.get?.summary?.includes("chapter"), "Module chapter contract path");
@@ -208,6 +210,14 @@ async function run() {
         assertEqual(response.status, 200, "Instructors status");
         assertEqual(response.body.ok, true, "Instructors response");
         assertTruthy(Array.isArray(response.body.data) && response.body.data.length === 0, "Instructors must be empty in mock runtime");
+      }],
+      ["Students are mock-empty", async () => {
+        const response = await request("GET", "/v1/admin/students?brand=medway&page=1&pageSize=25", { "x-correlation-id": "runtime-smoke-students-001" });
+        assertEqual(response.status, 200, "Students status");
+        assertEqual(response.body.ok, true, "Students response");
+        assertEqual(response.body.correlationId, "runtime-smoke-students-001", "Students correlation ID");
+        assertTruthy(Array.isArray(response.body.data?.data) && response.body.data.data.length === 0, "Students must be empty in mock runtime");
+        assertEqual(response.body.data?.pagination?.totalItems, 0, "Students empty total");
       }],
       ["overview missing brand", async () => {
         const response = await request("GET", "/v1/admin/overview");

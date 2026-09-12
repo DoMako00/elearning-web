@@ -22,7 +22,7 @@ export const openApiDocument = {
   openapi: "3.1.0",
   info: { title: "BUC E-Learning Admin API", version: "1.0.0-local", description: "Local administrative API contract for the canonical M1, M2A, and M4A foundation. The private `app` schema is not exposed through Supabase Data API." },
   servers: [{ url: "/", description: "Current local API origin" }],
-  tags: [{ name: "System" }, { name: "Admin overview" }, { name: "Academic catalogue" }, { name: "Instructors" }, { name: "Brand teaching" }],
+  tags: [{ name: "System" }, { name: "Admin overview" }, { name: "Students" }, { name: "Academic catalogue" }, { name: "Instructors" }, { name: "Brand teaching" }],
   components: { schemas: { ...m2bSchemas, ...academicCatalogueSchemas }, securitySchemes: { BearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" } } },
   paths: {
     ...m2bPaths,
@@ -30,6 +30,8 @@ export const openApiDocument = {
     "/health": { get: { tags: ["System"], summary: "Liveness probe", responses: { "200": response("Service is alive") } } },
     "/ready": { get: { tags: ["System"], summary: "Readiness probe", responses: { "200": response("Service is ready") } } },
     "/v1/admin/overview": { get: { tags: ["Admin overview"], parameters: [{ name: "brand", in: "query", required: true, schema: { type: "string", enum: ["medway", "elite", "nexus"] }, description: "Commercial brand whose overview is requested." }], ...read("Read the administrative overview") } },
+    "/v1/admin/students": { get: { tags: ["Students"], parameters: [{ name: "brand", in: "query", required: false, schema: { type: "string", enum: ["all", "medway", "elite", "nexus"] } }, { name: "search", in: "query", required: false, schema: { type: "string", maxLength: 120 }, description: "Matches the available opaque student-profile identifier only; names and emails are not stored by this schema." }, { name: "status", in: "query", required: false, schema: { type: "string", enum: ["active", "pending", "disabled", "suspended"] } }, { name: "page", in: "query", required: false, schema: { type: "integer", minimum: 1 } }, { name: "pageSize", in: "query", required: false, schema: { type: "integer", minimum: 1, maximum: 100 } }], ...read("List read-only student profile records across commercial brands") } },
+    "/v1/admin/students/{studentId}": { get: { tags: ["Students"], parameters: [id("studentId"), { name: "brand", in: "query", required: false, schema: { type: "string", enum: ["all", "medway", "elite", "nexus"] } }], ...read("Read one student profile without exposing auth or service-role data") } },
     "/v1/admin/curriculum/levels": { get: { tags: ["Academic catalogue"], ...read("List academic levels") } },
     "/v1/admin/curriculum/semesters": { get: { tags: ["Academic catalogue"], parameters: [{ name: "levelId", in: "query", required: false, schema: { type: "string", format: "uuid" } }], ...read("List semesters; optionally filter by academic level") } },
     "/v1/admin/curriculum/modules": { get: { tags: ["Academic catalogue"], parameters: [{ name: "semesterId", in: "query", required: false, schema: { type: "string", format: "uuid" } }], ...read("List modules; optionally filter by semester"), responses: { ...read("").responses, "200": catalogueReadResponse("AcademicModule") } } },

@@ -8,3 +8,4 @@ export * from "./in-memory-admin-m2-read-model";
 export * from "./postgres-admin-m2-read-model";
 export * from "./admin-m2-source";
 export * from "./admin-m2-read-model.selftest";
+export * from "./admin-students-read-model";
