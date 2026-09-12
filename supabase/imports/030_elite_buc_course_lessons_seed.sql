@@ -60,7 +60,8 @@ insert into app.brand_courses (
   code,
   title,
   classification,
-  status
+  status,
+  catalogue_presentation
 )
 select
   course_id,
@@ -70,9 +71,22 @@ select
   course_code,
   course_title,
   'academic_module_offering',
-  'draft'
+  'draft',
+  'subject_based'
 from resolved
 on conflict (brand_id, code) do nothing;
+
+update app.brand_courses c
+set catalogue_presentation = 'subject_based'
+from app.educational_brands b
+join app.academic_institutions i
+  on i.code = 'buc'
+ and i.status = 'active'
+where b.id = c.brand_id
+  and b.code = 'elite'
+  and c.academic_institution_id = i.id
+  and c.code in ('ELT-BIO','ELT-PHY','ELT-HIS','ELT-CBG','ELT-ANA')
+  and c.catalogue_presentation <> 'subject_based';
 
 with elite_courses as (
   select c.id as course_id, c.brand_id, c.code
@@ -201,6 +215,7 @@ begin
     where b.code = 'elite'
       and i.code = 'buc'
       and c.code in ('ELT-BIO','ELT-PHY','ELT-HIS','ELT-CBG','ELT-ANA')
+      and c.catalogue_presentation = 'subject_based'
   ) <> 5 then
     raise exception using errcode = '23514', message = 'Elite BUC course seed count mismatch.';
   end if;

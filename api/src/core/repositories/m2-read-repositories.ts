@@ -7,6 +7,7 @@ export type M2InstructorStatus = "active" | "inactive" | "archived";
 export type M2AssignmentStatus = "active" | "inactive";
 export type M2AcademicReviewStatus = "unreviewed" | "approved" | "blocked" | "retired";
 export type M2BrandCourseClassification = "academic_module_offering" | "standalone";
+export type M2BrandCourseCataloguePresentation = "module_based" | "subject_based";
 export type M2BrandCourseStatus = "draft" | "published" | "archived";
 
 interface VersionedRecord { readonly id: string; readonly createdAt: string; readonly updatedAt: string; readonly version: number; }
@@ -21,7 +22,7 @@ export interface M2BrandCourse extends VersionedRecord {
  readonly academicInstitution?: {id:string;code:string;displayName:string}|null;
  readonly academicModule?: {id:string;code:string;sourceDisplayLabel:string}|null;
  readonly brand?: {id:string;code:string;name:string};
- readonly instructorAssignments?: readonly {instructorId:string;displayName:string;status:string}[]; readonly brandId: string; readonly academicModuleId: string | null; readonly code: string; readonly title: string; readonly classification: M2BrandCourseClassification; readonly status: M2BrandCourseStatus; }
+ readonly instructorAssignments?: readonly {instructorId:string;displayName:string;status:string}[]; readonly brandId: string; readonly academicModuleId: string | null; readonly code: string; readonly title: string; readonly classification: M2BrandCourseClassification; readonly cataloguePresentation: M2BrandCourseCataloguePresentation; readonly status: M2BrandCourseStatus; }
 export interface M2CourseInstructorAssignment extends VersionedRecord { readonly courseId: string; readonly brandId: string; readonly instructorBrandAssignmentId: string; readonly instructorId: string; readonly status: M2AssignmentStatus; }
 
 type Correlated = { readonly correlationId?: string };

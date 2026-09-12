@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { adminDeliveryRequest, catalogueBrandAccessPath, catalogueInstitutionsPath, deliveryCoursePath, type CatalogueBrand, type CatalogueInstitution, type DeliveryCourse } from '../api/adminDelivery.http';
 
 /** Uses the existing admin session and writes a draft commercial course only. */
-export function AdminCourseTemplateForm({ course, initialBrandId = '', initialInstitutionId = '', initialLevelId = '', initialSemesterId = '', initialModuleId = '', initialCode = '', initialTitle = '', onSaved }: {
+export function AdminCourseTemplateForm({ course, initialBrandId = '', initialInstitutionId = '', initialLevelId = '', initialSemesterId = '', initialModuleId = '', initialCode = '', initialTitle = '', initialCataloguePresentation = 'module_based', onSaved }: {
   course?: DeliveryCourse;
   initialBrandId?: string;
   initialInstitutionId?: string;
@@ -11,6 +11,7 @@ export function AdminCourseTemplateForm({ course, initialBrandId = '', initialIn
   initialModuleId?: string;
   initialCode?: string;
   initialTitle?: string;
+  initialCataloguePresentation?: DeliveryCourse['cataloguePresentation'];
   onSaved: (result:{brandId:string;courseId:string})=>void;
 }) {
   const [brands,setBrands]=useState<CatalogueBrand[]>([]);
@@ -21,6 +22,7 @@ export function AdminCourseTemplateForm({ course, initialBrandId = '', initialIn
   const [semesterId,setSemesterId]=useState(initialSemesterId);
   const [moduleId,setModuleId]=useState(course?.academicModuleId??initialModuleId);
   const [classification,setClassification]=useState<DeliveryCourse['classification']>(course?.classification??'academic_module_offering');
+  const [cataloguePresentation,setCataloguePresentation]=useState<DeliveryCourse['cataloguePresentation']>(course?.cataloguePresentation??initialCataloguePresentation??'module_based');
   const [title,setTitle]=useState(course?.title??initialTitle);
   const [code,setCode]=useState(course?.code??initialCode);
   const [reason,setReason]=useState('');
@@ -72,7 +74,7 @@ export function AdminCourseTemplateForm({ course, initialBrandId = '', initialIn
     if(!institution){setError('Select an academic catalogue allowed for this brand.');return;}
     if(classification==='academic_module_offering'&&!module){setError('Select an available module from this academic catalogue.');return;}
     const path=course?deliveryCoursePath(brandId,course.id):`/v1/admin/brands/${encodeURIComponent(brandId)}/courses`;
-    const body={title:title.trim(),classification,academicInstitutionId:institution.id,academicModuleId:classification==='academic_module_offering'?module!.id:null,reason:reason.trim(),...(course?{expectedVersion:course.version}:{code:code.trim()})};
+    const body={title:title.trim(),classification,cataloguePresentation,academicInstitutionId:institution.id,academicModuleId:classification==='academic_module_offering'?module!.id:null,reason:reason.trim(),...(course?{expectedVersion:course.version}:{code:code.trim()})};
     const signature=JSON.stringify({path,body});
     if(pending.current?.signature!==signature)pending.current={signature,key:crypto.randomUUID()};
     busy.current=true;setSaving(true);setError('');
@@ -94,6 +96,7 @@ export function AdminCourseTemplateForm({ course, initialBrandId = '', initialIn
         }}><option value="">Select a commercial brand</option>{brands.filter(item=>item.status==='active').map(item=><option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
         <label>Academic catalogue<select required disabled={!brand} value={institution?.id??''} onChange={event=>resetInstitution(event.target.value)}><option value="">Select a university catalogue</option>{allowed.map(item=><option key={item.id} value={item.id}>{item.displayName}</option>)}</select></label>
         <label>Course classification<select value={classification} onChange={event=>{setClassification(event.target.value as DeliveryCourse['classification']);setModuleId('');}}><option value="academic_module_offering">Academic module offering</option><option value="standalone">Standalone within this catalogue</option></select></label>
+        <label>Course presentation<select value={cataloguePresentation} onChange={event=>setCataloguePresentation(event.target.value as DeliveryCourse['cataloguePresentation'])}><option value="module_based">Module-based course</option><option value="subject_based">Subject-based course</option></select></label>
         <label>Level<select disabled={!institution||classification==='standalone'} required={classification==='academic_module_offering'} value={levelId} onChange={event=>{setLevelId(event.target.value);setSemesterId('');setModuleId('');}}><option value="">Select a level</option>{levels.map(item=><option key={item.id} value={item.id}>{item.displayTitle}</option>)}</select></label>
         <label>Semester<select disabled={!level||classification==='standalone'} required={classification==='academic_module_offering'} value={semesterId} onChange={event=>{setSemesterId(event.target.value);setModuleId('');}}><option value="">Select a semester</option>{semesters.map(item=><option key={item.id} value={item.id}>{item.displayTitle}</option>)}</select></label>
         <label>Module<select disabled={!semester||classification==='standalone'} required={classification==='academic_module_offering'} value={moduleId} onChange={event=>{
