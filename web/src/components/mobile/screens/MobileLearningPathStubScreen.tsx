@@ -2,11 +2,11 @@ import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { TopAppBar } from "../TopAppBar";
 import { DocsOnlyBanner } from "../shared/DocsOnlyBanner";
-import { Compass, BookOpen, ArrowLeft, Users, Calendar } from "lucide-react";
+import { Compass, ArrowLeft, Users, Calendar } from "lucide-react";
 
 export const MobileLearningPathStubScreen: React.FC = () => {
   const navigate = useNavigate();
-  const { slug } = useParams<{ slug?: string }>();
+  const { slug: _slug } = useParams<{ slug?: string }>();
 
   const title = "Master Human Anatomy";
   const weeks = 12;
