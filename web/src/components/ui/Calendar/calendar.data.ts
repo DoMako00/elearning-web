@@ -190,6 +190,32 @@ export const INITIAL_CALENDAR_EVENTS: CalendarEvent[] = [
     description: "Musculoskeletal system overview with interactive 3D model walkthrough.",
     status: "upcoming",
   },
+  {
+    id: "evt-16",
+    title: "Anatomy Lecture",
+    type: "live_session",
+    date: "2026-09-14",
+    startTime: "11:00",
+    endTime: "12:30",
+    displayTime: "11:00 AM - 12:30 PM",
+    courseTitle: "Human Anatomy",
+    locationOrUrl: "https://meet.greenlearn.edu/anatomy-sep05",
+    description: "Musculoskeletal system overview with interactive 3D model walkthrough.",
+    status: "upcoming",
+  },
+  {
+    id: "evt-17",
+    title: "Anatomy assignment",
+    type: "assignment",
+    date: "2026-09-14",
+    startTime: "12:00",
+    endTime: "1:30",
+    displayTime: "11:00 AM - 12:30 PM",
+    courseTitle: "Human Anatomy",
+    locationOrUrl: "https://meet.greenlearn.edu/anatomy-sep05",
+    description: "Musculoskeletal system overview with interactive 3D model walkthrough.",
+    status: "upcoming",
+  },
 ];
 
 export const INITIAL_AGENDA_ITEMS: AgendaItem[] = [

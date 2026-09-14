@@ -25,7 +25,7 @@ import {
 import emptyLearningJourney from "../../../Assets/empty-learning-journey.webp";
 import courseAnatomyImage from "../../../Assets/dashboard/human-anatomy.webp";
 // Reusable screen stubs
-import { AssignmentsStubScreen } from "./HomeScreens";
+import { AssignmentsScreen } from "./AssignmentsScreen";
 import { HelpCenterStubScreen } from "./MoreDetailScreens";
 import { SHARED_COURSES_DATA } from "../data/courses.data";
 
@@ -62,7 +62,7 @@ export const HomeScreen: React.FC = () => {
       title: "Assignments",
       tabRoot: "home", // Keeps Home tab visually active in BottomNav
       variant: "main",
-      component: <AssignmentsStubScreen />,
+      component: <AssignmentsScreen />,
     });
   };
 

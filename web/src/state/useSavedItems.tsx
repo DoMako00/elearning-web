@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-export type SavedItemType = "course" | "note" | "article" | "path";
+export type SavedItemType = "course" | "note" | "article" | "path" | "assignment";
 
 export interface SavedItemRecord {
   id: string;
