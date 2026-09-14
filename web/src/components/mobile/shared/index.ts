@@ -13,3 +13,8 @@ export * from "./TrendingRow";
 export * from "./ResourceCard";
 export * from "./AdvancedFilterSheet";
 export * from "./FeaturedPathCard";
+export * from "./EventCard";
+export * from "./EventDetailSheet";
+export * from "./ReminderRow";
+export * from "./eventLive";
+export * from "./MobileWeeklyStudyGoal";

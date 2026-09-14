@@ -10,7 +10,7 @@ import { BottomNav } from "./BottomNav";
 import { HomeScreen } from "./screens/HomeScreen";
 import { MyCoursesScreen } from "./screens/MyCoursesScreen";
 import { ExploreScreen } from "./screens/ExploreScreen";
-import { CalendarStubScreen } from "./screens/TabScreens";
+import { CalendarScreen } from "./screens/CalendarScreen";
 import { MoreRootScreen } from "./screens/MoreRootScreen";
 
 const TAB_ROOT_SCREENS: Record<TabId, ScreenItem> = {
@@ -36,7 +36,7 @@ const TAB_ROOT_SCREENS: Record<TabId, ScreenItem> = {
     id: "tab-calendar",
     tabRoot: "calendar",
     variant: "main",
-    component: <CalendarStubScreen />,
+    component: <CalendarScreen />,
   },
   more: {
     id: "tab-more",

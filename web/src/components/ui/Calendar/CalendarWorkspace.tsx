@@ -59,7 +59,7 @@ function parseTimeToMinutes(timeStr: string): number {
 }
 
 // Helper to format a Date into YYYY-MM-DD using local calendar date parts
-function formatLocalDate(d: Date): string {
+export function formatLocalDate(d: Date): string {
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
@@ -67,7 +67,7 @@ function formatLocalDate(d: Date): string {
 }
 
 // Get current date string (YYYY-MM-DD) and 24h time in Egypt timezone (Africa/Cairo)
-function getEgyptNow(): { dateStr: string; hour: number; minute: number } {
+export function getEgyptNow(): { dateStr: string; hour: number; minute: number } {
   const now = new Date();
   const dateStr = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Africa/Cairo",
