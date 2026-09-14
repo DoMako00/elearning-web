@@ -33,7 +33,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         paddingBottom: "max(0.4rem, env(safe-area-inset-bottom, 0px))",
       }}
     >
-      <div className="h-14 flex items-center justify-around px-2 max-w-lg mx-auto">
+      {/* mobile-bottomnav-inner → shrinks to h-12 on ≤375px via mobile-se.css */}
+      <div className="mobile-bottomnav-inner h-14 flex items-center justify-around px-2 max-w-lg mx-auto">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -42,7 +43,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               key={item.id}
               type="button"
               onClick={() => onTabSelect(item.id)}
-              className={`flex-1 flex flex-col items-center justify-center py-1 gap-1 transition-colors cursor-pointer ${
+              className={`mobile-bottomnav-item flex-1 flex flex-col items-center justify-center py-1 gap-1 transition-colors cursor-pointer ${
                 isActive
                   ? "text-emerald-600 font-bold"
                   : "text-slate-400 hover:text-slate-600 font-medium"
@@ -54,7 +55,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 }`}
                 strokeWidth={isActive ? 2.4 : 1.8}
               />
-              <span className="text-[10.5px] leading-none tracking-tight">
+              <span className="mobile-bottomnav-label text-[10.5px] leading-none tracking-tight">
                 {item.label}
               </span>
             </button>

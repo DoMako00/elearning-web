@@ -22,9 +22,10 @@ export const StatusFilterTabs: React.FC<StatusFilterTabsProps> = ({
   className = "",
 }) => {
   return (
-    <div className={`flex items-center justify-between gap-1.5 overflow-x-auto no-scrollbar py-1 ${className}`}>
-      {/* Tab Pills */}
-      <div className="flex items-center gap-1.5 flex-1 min-w-0">
+    <div className={`flex flex-col gap-2 ${className}`}>
+      {/* Single row: pills grow equally, sort button stays on the right */}
+      <div className="flex items-center gap-1.5">
+        {/* Tab Pills — each takes equal share of available width */}
         {tabs.map((tab) => {
           const isActive = tab.key === activeKey;
           return (
@@ -32,16 +33,16 @@ export const StatusFilterTabs: React.FC<StatusFilterTabsProps> = ({
               key={tab.key}
               type="button"
               onClick={() => onChange(tab.key)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer select-none ${
+              className={`flex-1 inline-flex items-center justify-center gap-1 py-1.5 px-1 rounded-xl font-semibold transition-all cursor-pointer select-none min-w-0 ${
                 isActive
                   ? "bg-emerald-50 text-emerald-800 border border-emerald-300/80 shadow-2xs font-bold"
                   : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 hover:bg-slate-50"
               }`}
             >
-              <span>{tab.label}</span>
+              <span className="text-[11px] leading-tight truncate">{tab.label}</span>
               {typeof tab.count === "number" && (
                 <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold leading-tight ${
+                  className={`text-[9px] px-1 py-0.5 rounded-full font-bold leading-tight shrink-0 ${
                     isActive
                       ? "bg-emerald-200/80 text-emerald-900"
                       : "bg-slate-100 text-slate-500"
@@ -53,10 +54,10 @@ export const StatusFilterTabs: React.FC<StatusFilterTabsProps> = ({
             </button>
           );
         })}
-      </div>
 
-      {/* Right Slot (e.g. Sort button) */}
-      {rightSlot && <div className="shrink-0 pl-1">{rightSlot}</div>}
+        {/* Right Slot (Sort button) — always visible, never pushed off screen */}
+        {rightSlot && <div className="shrink-0 pl-0.5">{rightSlot}</div>}
+      </div>
     </div>
   );
 };

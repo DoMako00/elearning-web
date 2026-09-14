@@ -195,7 +195,7 @@ export const HomeScreen: React.FC = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] text-slate-400 font-medium">Last opened today</p>
-                  <p className="text-xs font-semibold text-slate-700 truncate">
+                  <p className="text-[10px] font-semibold text-slate-500 truncate">
                     Chapter 3: Muscular System Notes.pdf
                   </p>
                 </div>

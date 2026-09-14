@@ -34,62 +34,55 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
         paddingTop: "max(0.5rem, env(safe-area-inset-top, 0px))",
       }}
     >
-      <div className="h-13 px-3.5 flex items-center justify-between gap-2.5">
+      {/* mobile-topbar-inner → shrinks to h-11 on ≤375px via mobile-se.css */}
+      <div className="mobile-topbar-inner h-13 px-3.5 flex items-center justify-between gap-2.5">
         {variant === "main" ? (
           <>
-            {/* Left: Green logo mark + "GreenLearn" wordmark */}
+            {/* Left: logo */}
             <div className="flex items-center gap-2 min-w-0">
-              <span className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+              <span className="mobile-topbar-logo-icon w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
                 <Leaf className="w-4.5 h-4.5" strokeWidth={2.2} />
               </span>
-              <span className="text-base font-extrabold text-slate-900 tracking-tight">
+              <span className="mobile-topbar-wordmark text-base font-extrabold text-slate-900 tracking-tight">
                 GreenLearn
               </span>
             </div>
 
-            {/* Right: Bell with unread dot, XPPill, Avatar with chevron */}
-            <div className="flex items-center gap-2 shrink-0">
-              {/* Notifications bell */}
+            {/* Right: Bell, XPPill, Avatar */}
+            <div className="mobile-topbar-right flex items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={onNotificationClick}
                 aria-label="Notifications"
-                className="relative p-2 rounded-full text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                className="mobile-topbar-bell relative p-2 rounded-full text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <Bell className="w-5 h-5" strokeWidth={1.9} />
                 {hasUnreadNotification && (
                   <span
-                    className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"
+                    className="bell-dot absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"
                     aria-label="Unread notifications"
                   />
                 )}
               </button>
 
-              {/* XP Pill */}
               <XPPill xp={xp} />
 
-              {/* Avatar + small chevron */}
               <button
                 type="button"
                 onClick={onAvatarClick}
                 aria-label="User profile menu"
                 className="flex items-center gap-0.5 p-0.5 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                <div className="w-8 h-8 rounded-full overflow-hidden border border-emerald-500/80 shadow-2xs">
-                  <img
-                    src={avatarUrl}
-                    alt="User avatar"
-                    className="w-full h-full object-cover"
-                  />
+                <div className="mobile-topbar-avatar w-8 h-8 rounded-full overflow-hidden border border-emerald-500/80 shadow-2xs">
+                  <img src={avatarUrl} alt="User avatar" className="w-full h-full object-cover" />
                 </div>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400" strokeWidth={2} />
+                <ChevronDown className="mobile-topbar-avatar-chevron w-3.5 h-3.5 text-slate-400" strokeWidth={2} />
               </button>
             </div>
           </>
         ) : (
           <>
             {/* Detail variant */}
-            {/* Left: Back button + optional label */}
             <div className="flex items-center gap-1 min-w-0 flex-1">
               <button
                 type="button"
@@ -105,15 +98,13 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
                 )}
               </button>
 
-              {/* Center / Adjacent title */}
               {title && (
-                <h1 className="text-sm sm:text-base font-bold text-slate-900 truncate pl-1">
+                <h1 className="text-sm font-bold text-slate-900 truncate pl-1">
                   {title}
                 </h1>
               )}
             </div>
 
-            {/* Right: Optional contextual slot */}
             {rightSlot && (
               <div className="flex items-center gap-1.5 shrink-0 pl-2">
                 {rightSlot}

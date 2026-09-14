@@ -15,8 +15,9 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   className = "",
 }) => {
   return (
-    <div className={`flex items-center justify-between gap-2 mb-2.5 ${className}`}>
-      <h2 className="text-[15px] sm:text-base font-bold text-slate-900 tracking-tight">
+    /* mobile-section-header → title + action label shrink on ≤375px via mobile-se.css */
+    <div className={`mobile-section-header flex items-center justify-between gap-2 mb-2.5 ${className}`}>
+      <h2 className="text-[15px] font-bold text-slate-900 tracking-tight">
         {title}
       </h2>
 
@@ -24,9 +25,9 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
         <button
           type="button"
           onClick={onAction}
-          className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer group"
+          className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer group"
         >
-          <span>{actionLabel}</span>
+          <span className="section-action-label text-[12px]">{actionLabel}</span>
           <ChevronRight className="w-3.5 h-3.5 stroke-[2.2] text-emerald-600 group-hover:translate-x-0.5 transition-transform" />
         </button>
       )}

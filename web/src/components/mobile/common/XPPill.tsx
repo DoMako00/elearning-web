@@ -15,10 +15,11 @@ export const XPPill: React.FC<XPPillProps> = ({
   onClick,
 }) => {
   return (
+    /* mobile-xp-pill → font/padding/icon shrink on ≤375px via mobile-se.css */
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50/90 hover:bg-emerald-100/90 border border-emerald-200/90 text-emerald-800 text-[11px] font-bold shadow-2xs transition-colors cursor-pointer select-none ${className}`}
+      className={`mobile-xp-pill inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50/90 hover:bg-emerald-100/90 border border-emerald-200/90 text-emerald-800 text-[11px] font-bold shadow-2xs transition-colors cursor-pointer select-none ${className}`}
       aria-label={`${numberFormatter.format(xp)} XP points`}
     >
       <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0" strokeWidth={2.2} />

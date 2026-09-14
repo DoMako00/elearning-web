@@ -1,0 +1,171 @@
+/* ============================================================
+   Mobile iPhone SE overrides — only fires at ≤ 375px
+   All other phones (iPhone 16 Pro Max, etc.) are untouched.
+   ============================================================ */
+
+@media (max-width: 375px) {
+
+  /* ── Top App Bar ─────────────────────────────────────── */
+  .mobile-topbar-inner {
+    height: 2.75rem !important; /* 44px — was 52px (h-13) */
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+    gap: 0.5rem !important;
+  }
+
+  /* Logo icon */
+  .mobile-topbar-logo-icon {
+    width: 1.75rem !important;
+    height: 1.75rem !important;
+  }
+  .mobile-topbar-logo-icon svg {
+    width: 1rem !important;
+    height: 1rem !important;
+  }
+
+  /* Logo wordmark */
+  .mobile-topbar-wordmark {
+    font-size: 0.875rem !important; /* 14px */
+  }
+
+  /* Right cluster spacing */
+  .mobile-topbar-right {
+    gap: 0.375rem !important;
+  }
+
+  /* Bell button */
+  .mobile-topbar-bell {
+    padding: 0.375rem !important;
+  }
+  .mobile-topbar-bell svg {
+    width: 1.125rem !important;
+    height: 1.125rem !important;
+  }
+  .mobile-topbar-bell .bell-dot {
+    width: 0.375rem !important;
+    height: 0.375rem !important;
+    top: 0.25rem !important;
+    right: 0.25rem !important;
+  }
+
+  /* XP Pill */
+  .mobile-xp-pill {
+    padding: 0.125rem 0.5rem !important;
+    font-size: 0.625rem !important; /* 10px */
+    gap: 0.25rem !important;
+  }
+  .mobile-xp-pill svg {
+    width: 0.75rem !important;
+    height: 0.75rem !important;
+  }
+
+  /* Avatar */
+  .mobile-topbar-avatar {
+    width: 1.75rem !important;
+    height: 1.75rem !important;
+  }
+  .mobile-topbar-avatar-chevron {
+    width: 0.75rem !important;
+    height: 0.75rem !important;
+  }
+
+  /* ── Bottom Nav ──────────────────────────────────────── */
+  .mobile-bottomnav-inner {
+    height: 3rem !important; /* 48px — was 56px (h-14) */
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+  }
+
+  .mobile-bottomnav-item {
+    gap: 0.125rem !important;
+    padding-top: 0.125rem !important;
+    padding-bottom: 0.125rem !important;
+  }
+
+  .mobile-bottomnav-item svg {
+    width: 1.125rem !important;
+    height: 1.125rem !important;
+  }
+
+  .mobile-bottomnav-label {
+    font-size: 0.5625rem !important; /* 9px */
+    line-height: 1 !important;
+  }
+
+  /* ── Hero Band (page headings) ───────────────────────── */
+  .mobile-hero-band {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.875rem !important;
+  }
+
+  .mobile-hero-eyebrow {
+    font-size: 0.6875rem !important; /* 11px */
+  }
+
+  .mobile-hero-heading {
+    font-size: 1.25rem !important; /* 20px — was 1.5rem/24px */
+    margin-top: 0.125rem !important;
+  }
+
+  .mobile-hero-subtitle {
+    font-size: 0.6875rem !important; /* 11px */
+    margin-top: 0.25rem !important;
+  }
+
+  /* ── Section Headers ─────────────────────────────────── */
+  .mobile-section-header h2 {
+    font-size: 0.8125rem !important; /* 13px — was 15px */
+  }
+
+  .mobile-section-header .section-action-label {
+    font-size: 0.6875rem !important; /* 11px */
+  }
+
+  /* ── General screen content typography ──────────────── */
+  /* Scoped to the mobile shell wrapper so desktop is never affected */
+  .mobile-screen-content {
+    /* Card titles */
+    --mobile-card-title-size: 0.8125rem;   /* 13px */
+    --mobile-card-subtitle-size: 0.6875rem; /* 11px */
+    --mobile-label-size: 0.625rem;          /* 10px */
+  }
+
+  /* Quick action tile labels */
+  .mobile-screen-content .mobile-quick-action-label {
+    font-size: 0.625rem !important; /* 10px */
+  }
+
+  /* Course card titles */
+  .mobile-screen-content .mobile-course-card-title {
+    font-size: 0.8125rem !important;
+  }
+
+  /* Document / event list rows */
+  .mobile-screen-content .mobile-list-row-title {
+    font-size: 0.8125rem !important;
+  }
+  .mobile-screen-content .mobile-list-row-meta {
+    font-size: 0.625rem !important;
+  }
+
+  /* Empty state text */
+  .mobile-screen-content .mobile-empty-title {
+    font-size: 0.9375rem !important; /* 15px */
+  }
+  .mobile-screen-content .mobile-empty-subtitle {
+    font-size: 0.75rem !important; /* 12px */
+  }
+
+  /* Assignment / calendar card tags + badges */
+  .mobile-screen-content .mobile-badge {
+    font-size: 0.5625rem !important; /* 9px */
+    padding: 0.125rem 0.375rem !important;
+  }
+
+  /* Filter tab pills (already handled in StatusFilterTabs) */
+  .mobile-screen-content .mobile-filter-pill {
+    font-size: 0.625rem !important;
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+  }
+}

@@ -28,9 +28,9 @@ export const CategoryChipsRow: React.FC<CategoryChipsRowProps> = ({
             key={cat.key}
             type="button"
             onClick={() => onChange(cat.key)}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer select-none ${
+            className={`mobile-category-chip inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer select-none ${
               isActive
-                ? "bg-emerald-100/80 text-emerald-900 border border-emerald-300 shadow-2xs font-bold"
+                ? "bg-emerald-100/80 text-emerald-900 border border-emerald-300 shadow-2xs font-bold "
                 : "bg-white text-slate-700 hover:text-slate-900 border border-slate-200/90 hover:bg-slate-50"
             }`}
           >

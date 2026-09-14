@@ -97,7 +97,7 @@ export const MobileWeeklyStudyGoal: React.FC<MobileWeeklyGoalProps> = ({
       </div>
 
       {/* Right: 7-bar mini chart */}
-      <div className="flex items-end gap-1.5 shrink-0 h-14">
+      <div className="flex items-end gap-2.5 shrink-0 h-14">
         {DEFAULT_WEEK_DAYS.map((item, idx) => (
           <div key={idx} className="flex flex-col items-center gap-1.5">
             <div className="w-2 sm:w-2.5 h-10 bg-slate-100 rounded-full flex flex-col justify-end overflow-hidden">
