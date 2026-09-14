@@ -6,10 +6,12 @@ export type AdminStudentStatus = "pending" | "active" | "disabled" | "suspended"
 export type AdminStudentRiskFlag = "none" | "multiple_active_sessions" | "device_replacement_abuse" | "concurrent_playback_conflict" | "payment_risk" | "grant_mismatch" | "suspicious_access_denials";
 
 export interface AdminStudentListItem {
-  id: EntityId; platform: AdminPlatformContext; displayName: string; emailMasked: MaskedEmail;
+  id: EntityId; platform: AdminPlatformContext; displayName: string | null; emailMasked: MaskedEmail | null;
   phoneMasked?: MaskedPhone | null; academicTermOrYear?: string | null; university?: string | null;
-  studentIdMasked?: string | null; status: AdminStudentStatus; activeSubscriptionCount: number;
-  activeGrantCount: number; activeDeviceCount: number; activeSessionCount: number;
+  academicInstitution?: string | null; academicLevel?: string | null; academicLevelId?: EntityId | null;
+  academicSemester?: string | null; program?: string | null; expectedGraduationDate?: string | null;
+  studentIdMasked?: string | null; status: AdminStudentStatus; activeSubscriptionCount: number | null;
+  activeGrantCount: number | null; activeDeviceCount: number | null; activeSessionCount: number | null;
   lastSeenAt?: ISODateTime | null; riskFlags: readonly AdminStudentRiskFlag[];
 }
 
@@ -25,13 +27,14 @@ export interface AdminSessionSummary {
   revokedAt?: ISODateTime | null; lastActivityAt?: ISODateTime | null;
 }
 
-export interface AdminStudentAccessSummary { activeSubscriptionCount: number; activeSeatCount: number; activeGrantCount: number; expiredGrantCount: number; revokedGrantCount: number; enrollmentCount: number; }
-export interface AdminStudentLearningSummary { enrollmentCount: number; completedLessonCount: number; attemptCount: number; playbackSessionCount: number; lastLearningActivityAt?: ISODateTime | null; }
+export interface AdminStudentAccessSummary { activeSubscriptionCount: number | null; activeSeatCount: number | null; activeGrantCount: number | null; expiredGrantCount: number | null; revokedGrantCount: number | null; enrollmentCount: number | null; }
+export interface AdminStudentLearningSummary { enrollmentCount: number | null; completedLessonCount: number | null; attemptCount: number | null; playbackSessionCount: number | null; lastLearningActivityAt?: ISODateTime | null; }
 
 export interface AdminStudentDetail {
-  id: EntityId; platform: AdminPlatformContext; displayName: string; emailMasked: MaskedEmail;
+  id: EntityId; platform: AdminPlatformContext; displayName: string | null; emailMasked: MaskedEmail | null;
   phoneMasked?: MaskedPhone | null; status: AdminStudentStatus; academicTermOrYear?: string | null;
-  university?: string | null; studentIdMasked?: string | null; createdAt: ISODateTime; updatedAt?: ISODateTime | null;
+  university?: string | null; academicInstitution?: string | null; academicLevel?: string | null; academicLevelId?: EntityId | null;
+  academicSemester?: string | null; program?: string | null; expectedGraduationDate?: string | null; studentIdMasked?: string | null; createdAt: ISODateTime; updatedAt?: ISODateTime | null;
   access: AdminStudentAccessSummary; learning: AdminStudentLearningSummary;
   devices: readonly AdminDeviceSummary[]; sessions: readonly AdminSessionSummary[]; riskFlags: readonly AdminStudentRiskFlag[];
 }
