@@ -8,6 +8,7 @@ export interface StartedHttpServer { readonly server: Server; readonly applicati
 export function startHttpServerWithApplication(config: HttpRuntimeConfig = defaultHttpRuntimeConfig, dependencies?: HttpAppDependencies): StartedHttpServer {
   const ownedApplication = dependencies ? undefined : createApplication();
   const application = dependencies ?? {
+    studentCourses: ownedApplication!.studentCourses,
     admin: ownedApplication!.admin,
     adminHttpContextResolver: ownedApplication!.adminHttpContextResolver,
     config,

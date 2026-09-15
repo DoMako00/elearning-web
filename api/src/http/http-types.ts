@@ -1,3 +1,4 @@
+import type { StudentCourses } from "../modules/student/student-courses";
 import type { createAdminModule } from "../modules/admin";
 import type { AdminHttpRequestContextResolver } from "../core/context";
 
@@ -17,4 +18,4 @@ export interface HttpRuntimeStatus {
   readonly adminCommandSource: "mock" | "postgres";
 }
 export type DatabaseReadinessProbe = () => Promise<void>;
-export interface HttpAppDependencies { readonly admin: AdminModule; readonly adminHttpContextResolver?: AdminHttpRequestContextResolver; readonly config?: HttpRuntimeConfig; readonly runtimeStatus?: HttpRuntimeStatus; readonly databaseReadinessProbe?: DatabaseReadinessProbe; }
+export interface HttpAppDependencies { readonly studentCourses?: StudentCourses; readonly admin: AdminModule; readonly adminHttpContextResolver?: AdminHttpRequestContextResolver; readonly config?: HttpRuntimeConfig; readonly runtimeStatus?: HttpRuntimeStatus; readonly databaseReadinessProbe?: DatabaseReadinessProbe; }

@@ -1,3 +1,4 @@
+import { createStudentCourses, type StudentCourses } from "./modules/student/student-courses";
 import { InMemoryAdminPermissionResolver } from "./core/permissions";
 import { InMemoryAdminPolicyValidator } from "./core/policies";
 import { InMemoryAdminEvidenceWriter } from "./core/logging";
@@ -9,7 +10,7 @@ import { EmptyAdminStudentsReadModel, PostgresAdminStudentsReadModel } from "./m
 
 /** Framework-independent composition root; no HTTP runtime is started here. */
 export interface BackendApplicationOptions extends PersistenceRuntimeCompositionOptions { readonly writePoolFactory?: PostgresWritePoolFactory; }
-export interface BackendApplication { readonly status: "configured-admin-core-boundary"; readonly admin: ReturnType<typeof createAdminModule>; readonly adminDependencies: AdminModuleDependencies; readonly adminHttpContextResolver: ReturnType<typeof createAdminHttpRequestContextResolver>; readonly persistence: ReturnType<typeof createPersistenceRuntimeComposition>; readonly adminOverviewSource: AdminOverviewReadModelSource; readonly adminM2Source: AdminM2ReadModelSource; readonly adminCommandSource: AdminCommandSource; readonly adminReadVerifierDiagnostics?: AdminReadVerifierDiagnostics; close(): Promise<void>; }
+export interface BackendApplication { readonly studentCourses?: StudentCourses; readonly status: "configured-admin-core-boundary"; readonly admin: ReturnType<typeof createAdminModule>; readonly adminDependencies: AdminModuleDependencies; readonly adminHttpContextResolver: ReturnType<typeof createAdminHttpRequestContextResolver>; readonly persistence: ReturnType<typeof createPersistenceRuntimeComposition>; readonly adminOverviewSource: AdminOverviewReadModelSource; readonly adminM2Source: AdminM2ReadModelSource; readonly adminCommandSource: AdminCommandSource; readonly adminReadVerifierDiagnostics?: AdminReadVerifierDiagnostics; close(): Promise<void>; }
 export function createApplication(options: BackendApplicationOptions = {}): BackendApplication {
   const environment = options.environment ?? process.env;
   const adminOverviewSource = resolveAdminOverviewReadModelSource(environment);
@@ -17,6 +18,7 @@ export function createApplication(options: BackendApplicationOptions = {}): Back
   const adminCommandSource = resolveAdminCommandSource(environment);
   const adminReadVerifierDiagnostics = createAdminReadVerifierDiagnostics(environment);
   const persistence = createPersistenceRuntimeComposition(options);
+  const studentCourses = createStudentCourses(persistence, environment);
   const adminHttpContextResolver = createAdminHttpRequestContextResolver({ persistence, environment });
   const permissionResolver = new InMemoryAdminPermissionResolver();
   const commandRuntime = createAdminM2CommandRuntime({ source: adminCommandSource, persistence, permissionResolver, environment, poolFactory: options.writePoolFactory });
@@ -31,5 +33,5 @@ export function createApplication(options: BackendApplicationOptions = {}): Back
     m2CommandExecutor: commandRuntime.executor,
   };
   let closePromise: Promise<void> | undefined;
-  return { status: "configured-admin-core-boundary", admin: createAdminModule(adminDependencies), adminDependencies, adminHttpContextResolver, persistence, adminOverviewSource, adminM2Source, adminCommandSource, ...(adminReadVerifierDiagnostics ? { adminReadVerifierDiagnostics } : {}), close: () => { if (!closePromise) closePromise = Promise.all([commandRuntime.close(), persistence.close()]).then(() => undefined); return closePromise; } };
+  return { studentCourses, status: "configured-admin-core-boundary", admin: createAdminModule(adminDependencies), adminDependencies, adminHttpContextResolver, persistence, adminOverviewSource, adminM2Source, adminCommandSource, ...(adminReadVerifierDiagnostics ? { adminReadVerifierDiagnostics } : {}), close: () => { if (!closePromise) closePromise = Promise.all([commandRuntime.close(), persistence.close()]).then(() => undefined); return closePromise; } };
 }
