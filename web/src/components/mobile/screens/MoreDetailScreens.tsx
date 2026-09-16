@@ -10,6 +10,7 @@ import {
   Bell,
   Search,
 } from "lucide-react";
+import { ChatConversationScreen } from "./ChatConversationScreen";
 
 // Messages List Stub Screen
 export const MessagesListStubScreen: React.FC = () => {
@@ -19,7 +20,7 @@ export const MessagesListStubScreen: React.FC = () => {
     push({
       id: "conversation-detail",
       title: name,
-      tabRoot: "more",
+      tabRoot: "settings",
       variant: "detail",
       backLabel: "Messages",
       component: <ChatConversationStubScreen interlocutorName={name} subject={subject} />,
@@ -31,7 +32,7 @@ export const MessagesListStubScreen: React.FC = () => {
       <TopAppBar
         variant="detail"
         title="Messages"
-        backLabel="More"
+        backLabel="Settings"
         onBack={pop}
       />
 
@@ -165,7 +166,7 @@ export const CommunityStubScreen: React.FC = () => {
       <TopAppBar
         variant="detail"
         title="Community"
-        backLabel="More"
+        backLabel="Settings"
         onBack={pop}
       />
 
@@ -198,7 +199,7 @@ export const SettingsStubScreen: React.FC = () => {
       <TopAppBar
         variant="detail"
         title="Settings"
-        backLabel="More"
+        backLabel="Settings"
         onBack={pop}
       />
 
@@ -222,31 +223,54 @@ export const SettingsStubScreen: React.FC = () => {
 
 // Help Center Stub Screen
 export const HelpCenterStubScreen: React.FC = () => {
-  const { pop } = useScreenStack();
+  const { pop, push } = useScreenStack();
+
+  const handleStartChat = () => {
+    push({
+      id: "support-chat-conversation",
+      title: "GreenLearn Support",
+      tabRoot: "settings",
+      variant: "detail",
+      backLabel: "Help",
+      component: (
+        <ChatConversationScreen
+          conversationId="c6"
+          initialName="GreenLearn Support"
+          initialRole="Platform Help & Student Success"
+          initialInitials="GL"
+          backLabel="Help"
+        />
+      ),
+    });
+  };
 
   return (
     <div className="flex-1 flex flex-col min-h-0 w-full bg-slate-50/50">
       <TopAppBar
         variant="detail"
         title="Help Center"
-        backLabel="More"
+        backLabel="Settings"
         onBack={pop}
       />
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <DocsOnlyBanner />
 
-        <div className="p-6 bg-white rounded-2xl border border-slate-100 shadow-2xs text-center">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
+        <div className="p-6 bg-white rounded-2xl border border-slate-100 shadow-2xs text-center space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
             <HelpCircle className="w-6 h-6" />
           </div>
           <h2 className="text-sm font-bold text-slate-900">Help & Support</h2>
-          <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
+          <p className="text-xs text-slate-500 max-w-xs mx-auto">
             Guides, FAQs, and ticket submission for mobile learning assistance.
           </p>
-          <span className="mt-3 inline-block px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">
-            Coming soon
-          </span>
+          <button
+            type="button"
+            onClick={handleStartChat}
+            className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
+          >
+            Start Support Chat
+          </button>
         </div>
       </div>
     </div>
@@ -262,7 +286,7 @@ export const NotificationsStubScreen: React.FC = () => {
       <TopAppBar
         variant="detail"
         title="Notifications"
-        backLabel="More"
+        backLabel="Settings"
         onBack={pop}
       />
 

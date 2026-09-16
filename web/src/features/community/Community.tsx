@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "../../hooks/useToast";
 import { ToastNotification } from "../../components/ui/ToastNotification";
 import { SearchAndFilterToolbar } from "./components/SearchAndFilterToolbar";
@@ -25,6 +26,7 @@ import type {
 } from "./types/community";
 
 export function Community() {
+  const navigate = useNavigate();
   const { toastMessage, showToast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<TopicCategory>("all");
   const [selectedDropdownTopic, setSelectedDropdownTopic] = useState("All topics");
@@ -205,6 +207,10 @@ export function Community() {
                   onViewProfile={() =>
                     showToast("Opening Alex Morgan's mentor profile...")
                   }
+                  onMessage={() => {
+                    navigate("/messages");
+                    showToast("Opening chat with Mentor Alex Morgan...");
+                  }}
                 />
               </div>
             </div>

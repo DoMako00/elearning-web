@@ -5,8 +5,9 @@ import { UserHeaderActions } from "../../../components/ui/UserHeaderActions";
 import { useIsMobile } from "../../../hooks/useIsMobile";
 import { MobileLayout } from "../../../components/mobile/MobileLayout";
 
-import { MobileCourseOverviewStubScreen } from "../../../components/mobile/screens/MobileCourseOverviewStubScreen";
+import { CourseOverviewScreen } from "../../../components/mobile/screens/CourseOverviewScreen";
 import { MobileLearningPathStubScreen } from "../../../components/mobile/screens/MobileLearningPathStubScreen";
+import { MobileMessagesProvider } from "../../../components/mobile/data/useMobileMessages";
 
 export function StudentLayout() {
   const isMobile = useIsMobile();
@@ -17,7 +18,11 @@ export function StudentLayout() {
   // Render Mobile Layout when viewport matches <= 767px
   if (isMobile) {
     if (pathname.startsWith("/my-courses/") && pathname !== "/my-courses") {
-      return <MobileCourseOverviewStubScreen />;
+      return (
+        <MobileMessagesProvider>
+          <CourseOverviewScreen />
+        </MobileMessagesProvider>
+      );
     }
     if (pathname.startsWith("/explore/paths/") && pathname !== "/explore/paths") {
       return <MobileLearningPathStubScreen />;

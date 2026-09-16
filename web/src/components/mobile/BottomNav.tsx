@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, BookOpen, Compass, Calendar, Grid } from "lucide-react";
+import { Home, BookOpen, Compass, Calendar, Settings } from "lucide-react";
 import type { TabId } from "./ScreenStack/ScreenStackContext";
 
 interface BottomNavProps {
@@ -18,7 +18,7 @@ const NAV_ITEMS: NavItemConfig[] = [
   { id: "my-courses", label: "My Courses", icon: BookOpen },
   { id: "explore", label: "Explore", icon: Compass },
   { id: "calendar", label: "Calendar", icon: Calendar },
-  { id: "more", label: "More", icon: Grid },
+  { id: "settings", label: "Settings", icon: Settings },
 ];
 
 export const BottomNav: React.FC<BottomNavProps> = ({

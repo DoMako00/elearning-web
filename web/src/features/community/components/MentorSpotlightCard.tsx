@@ -4,11 +4,13 @@ import type { MentorSpotlight } from "../types/community";
 interface MentorSpotlightCardProps {
   mentor: MentorSpotlight;
   onViewProfile?: () => void;
+  onMessage?: () => void;
 }
 
 export function MentorSpotlightCard({
   mentor,
   onViewProfile,
+  onMessage,
 }: MentorSpotlightCardProps) {
   return (
     <div className="relative rounded-2xl border border-slate-200/90 bg-white p-3 sm:p-3.5 shadow-2xs overflow-hidden flex flex-col items-center text-center transition-all hover:shadow-xs h-full justify-between">
@@ -61,16 +63,25 @@ export function MentorSpotlightCard({
         </p>
       </div>
 
-      {/* View Profile Action */}
-      <div className="z-10 mt-1.5 w-full pt-1.5 border-t border-slate-100 flex items-center justify-center">
+      {/* Actions */}
+      <div className="z-10 mt-1.5 w-full pt-1.5 border-t border-slate-100 flex items-center justify-around gap-2">
         <button
           type="button"
           onClick={onViewProfile}
-          className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition-colors cursor-pointer group"
+          className="flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition-colors cursor-pointer group"
         >
           <span>View profile</span>
           <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
         </button>
+        {onMessage && (
+          <button
+            type="button"
+            onClick={onMessage}
+            className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100/80 text-xs font-bold transition-colors cursor-pointer"
+          >
+            Message
+          </button>
+        )}
       </div>
     </div>
   );

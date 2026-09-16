@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 
-export type TabId = "home" | "my-courses" | "explore" | "calendar" | "more";
+export type TabId = "home" | "my-courses" | "explore" | "calendar" | "settings";
 
 export interface ScreenItem {
   id: string;

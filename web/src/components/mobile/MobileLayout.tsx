@@ -11,7 +11,7 @@ import { HomeScreen } from "./screens/HomeScreen";
 import { MyCoursesScreen } from "./screens/MyCoursesScreen";
 import { ExploreScreen } from "./screens/ExploreScreen";
 import { CalendarScreen } from "./screens/CalendarScreen";
-import { MoreRootScreen } from "./screens/MoreRootScreen";
+import { SettingsScreen } from "./screens/SettingsScreen";
 
 const TAB_ROOT_SCREENS: Record<TabId, ScreenItem> = {
   home: {
@@ -38,15 +38,17 @@ const TAB_ROOT_SCREENS: Record<TabId, ScreenItem> = {
     variant: "main",
     component: <CalendarScreen />,
   },
-  more: {
-    id: "tab-more",
-    tabRoot: "more",
+  settings: {
+    id: "tab-settings",
+    tabRoot: "settings",
     variant: "main",
-    component: <MoreRootScreen />,
+    component: <SettingsScreen />,
   },
 };
 
 import { useLocation, useNavigate } from "react-router-dom";
+
+import { MobileMessagesProvider } from "./data/useMobileMessages";
 
 const MobileLayoutContent: React.FC = () => {
   const navigate = useNavigate();
@@ -55,11 +57,16 @@ const MobileLayoutContent: React.FC = () => {
 
   const handleTabSelect = (tab: TabId) => {
     setActiveTab(tab);
-    // If selecting home, update url to /; if my-courses, to /my-courses
     if (tab === "home" && location.pathname !== "/") {
       navigate("/");
     } else if (tab === "my-courses" && location.pathname !== "/my-courses") {
       navigate("/my-courses");
+    } else if (tab === "explore" && location.pathname !== "/explore") {
+      navigate("/explore");
+    } else if (tab === "calendar" && location.pathname !== "/calendar") {
+      navigate("/calendar");
+    } else if (tab === "settings" && location.pathname !== "/settings") {
+      navigate("/settings");
     }
 
     const targetScreen = TAB_ROOT_SCREENS[tab];
@@ -69,9 +76,9 @@ const MobileLayoutContent: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-slate-50 flex flex-col justify-between text-slate-900 antialiased">
+    <div className="relative h-screen h-dvh max-h-screen w-full bg-slate-50 flex flex-col text-slate-900 antialiased overflow-hidden">
       {/* Active Screen Area with Animated Stack Transitions */}
-      <main className="flex-1 flex flex-col min-h-0 w-full pb-16">
+      <main className="flex-1 min-h-0 w-full flex flex-col pb-14 overflow-hidden">
         <ScreenStackContainer />
       </main>
 
@@ -89,6 +96,8 @@ export const MobileLayout: React.FC = () => {
     ? "explore"
     : location.pathname === "/calendar"
     ? "calendar"
+    : location.pathname.startsWith("/settings")
+    ? "settings"
     : "home";
 
   const initialScreen = useMemo(
@@ -97,9 +106,11 @@ export const MobileLayout: React.FC = () => {
   );
 
   return (
-    <ScreenStackProvider initialScreen={initialScreen}>
-      <MobileLayoutContent />
-    </ScreenStackProvider>
+    <MobileMessagesProvider>
+      <ScreenStackProvider initialScreen={initialScreen}>
+        <MobileLayoutContent />
+      </ScreenStackProvider>
+    </MobileMessagesProvider>
   );
 };
 
