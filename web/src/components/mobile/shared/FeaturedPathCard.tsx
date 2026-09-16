@@ -35,7 +35,7 @@ export const FeaturedPathCard: React.FC<FeaturedPathCardProps> = ({
   return (
     <div
       onClick={onExplore}
-      className={`relative w-full rounded-3xl overflow-hidden bg-linear-to-br from-[#032e1e] via-[#05422b] to-[#04281b] p-4.5 sm:p-5 text-white shadow-md cursor-pointer select-none border border-emerald-800/40 ${className}`}
+      className={`relative w-full rounded-3xl overflow-hidden bg-[#032e1e] p-4.5 sm:p-5 text-white shadow-md cursor-pointer select-none border border-emerald-800/40 ${className}`}
     >
       {/* Background illustration / graphic */}
       <div className="absolute top-0 right-0 w-66 sm:w-80 h-full pointer-events-none flex items-center justify-end overflow-hidden pr-1">
@@ -44,7 +44,7 @@ export const FeaturedPathCard: React.FC<FeaturedPathCardProps> = ({
           alt=""
           className="w-full h-full object-contain object-right drop-shadow-md select-none"
         />
-        <div className="absolute inset-0 bg-linear-to-r from-[#032e1e] via-[#032e1e]/40 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-r from-[#032e1e] via-[#032e1e]/60 to-transparent pointer-events-none" />
       </div>
 
       <div className="relative z-10 max-w-[70%] sm:max-w-[75%] flex flex-col justify-between">

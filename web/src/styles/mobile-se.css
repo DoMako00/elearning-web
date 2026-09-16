@@ -7,67 +7,72 @@
 
   /* ── Top App Bar ─────────────────────────────────────── */
   .mobile-topbar-inner {
-    height: 2.75rem !important; /* 44px — was 52px (h-13) */
-    padding-left: 0.75rem !important;
-    padding-right: 0.75rem !important;
-    gap: 0.5rem !important;
+    height: 2.25rem !important;
+    padding-left: 0.625rem !important;
+    padding-right: 0.625rem !important;
+    gap: 0.375rem !important;
   }
 
   /* Logo icon */
   .mobile-topbar-logo-icon {
-    width: 1.75rem !important;
-    height: 1.75rem !important;
+    width: 1.5rem !important;  
+    height: 1.5rem !important;
+    border-radius: 0.375rem !important;
   }
   .mobile-topbar-logo-icon svg {
-    width: 1rem !important;
-    height: 1rem !important;
+    width: 0.75rem !important;
+    height: 0.75rem !important;
   }
 
   /* Logo wordmark */
   .mobile-topbar-wordmark {
-    font-size: 0.875rem !important; /* 14px */
+    font-size: 0.75rem !important;
   }
 
   /* Right cluster spacing */
   .mobile-topbar-right {
-    gap: 0.375rem !important;
+    gap: 0.25rem !important;
   }
 
   /* Bell button */
   .mobile-topbar-bell {
-    padding: 0.375rem !important;
+    padding: 0.25rem !important;
   }
   .mobile-topbar-bell svg {
-    width: 1.125rem !important;
-    height: 1.125rem !important;
+    width: 0.875rem !important;
+    height: 0.875rem !important;
   }
   .mobile-topbar-bell .bell-dot {
-    width: 0.375rem !important;
-    height: 0.375rem !important;
-    top: 0.25rem !important;
-    right: 0.25rem !important;
+    width: 0.3125rem !important;
+    height: 0.3125rem !important;
+    top: 0.1875rem !important;
+    right: 0.1875rem !important;
   }
 
   /* XP Pill */
   .mobile-xp-pill {
-    padding: 0.125rem 0.5rem !important;
-    font-size: 0.625rem !important; /* 10px */
-    gap: 0.25rem !important;
+    padding: 0.0625rem 0.375rem !important;
+    font-size: 0.5625rem !important;
+    gap: 0.1875rem !important;
   }
   .mobile-xp-pill svg {
-    width: 0.75rem !important;
-    height: 0.75rem !important;
+    width: 0.625rem !important;
+    height: 0.625rem !important;
+  }
+  .mobile-xp-pill span {
+    font-size: 0.5625rem !important;
   }
 
   /* Avatar */
   .mobile-topbar-avatar {
-    width: 1.75rem !important;
-    height: 1.75rem !important;
+    width: 1.5rem !important;
+    height: 1.5rem !important;
   }
   .mobile-topbar-avatar-chevron {
-    width: 0.75rem !important;
-    height: 0.75rem !important;
+    width: 0.625rem !important;
+    height: 0.625rem !important;
   }
+
 
   /* ── Bottom Nav ──────────────────────────────────────── */
   .mobile-bottomnav-inner {

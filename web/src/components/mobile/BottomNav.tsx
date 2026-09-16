@@ -28,7 +28,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   return (
     <nav
       aria-label="Mobile primary navigation"
-      className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-lg select-none"
+      className="fixed -bottom-2 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-lg select-none"
       style={{
         paddingBottom: "max(0.4rem, env(safe-area-inset-bottom, 0px))",
       }}
