@@ -8,15 +8,13 @@ import { AdminCurriculumPage } from "../pages/admin/AdminCurriculumPage";
 import { AdminCourseBuilderPage } from "../pages/admin/AdminCourseBuilderPage";
 import { AdminStudentsPage } from "../pages/admin/AdminStudentsPage";
 
+import { AdminPaymentsPage, AdminSubscriptionsPage, AdminContentPage, AdminSecurityPage } from "../pages/admin/AdminOperationsPages";
+
 const sections = [
-  ["payments", "Payments", "Payment, order, and review status for the active brand."],
   ["commercial", "Commercial", "Payment, refund, and order review read models."],
-  ["subscriptions", "Subscriptions", "Subscription lifecycle, seats, and terms summaries."],
   ["access", "Access Grants", "Explicit grant, source, scope, and entitlement summaries."],
-  ["content", "Content", "Learning hierarchy, lesson, and release-rule read models."],
   ["media", "Media", "Protected asset, playback, and access-decision summaries."],
   ["assessments", "Assessments", "Assessment, question-bank, and attempt summaries."],
-  ["security", "Security", "Security event and account-risk read models."],
   ["audit", "Audit", "Append-only audit and administrative action history."],
   ["roles", "Roles & Permissions", "Platform-scoped role and permission summaries."],
 ] as const;
@@ -25,6 +23,10 @@ export const adminRoutes: RouteObject[] = [{
   path: "/admin",
   element: <AdminLayout />,
   children: [
+    { path: "payments", element: <AdminPaymentsPage /> },
+    { path: "subscriptions", element: <AdminSubscriptionsPage /> },
+    { path: "content", element: <AdminContentPage /> },
+    { path: "security", element: <AdminSecurityPage /> },
     { index: true, element: <AdminOverviewPage /> },
     { path: "courses", element: <AdminCoursesPage /> },
     { path: "courses/:courseId/builder", element: <AdminCourseBuilderPage /> },

@@ -1,4 +1,4 @@
-import { ArrowRight, BarChart3, BookOpen, CreditCard, FileText, GraduationCap, LoaderCircle, Megaphone, Plus, Settings, ShoppingCart, UserPlus, UserRound, UsersRound } from "lucide-react";
+import { ArrowRight, BarChart3, BookOpen, CreditCard, FileText, GraduationCap, Megaphone, Plus, Settings, ShoppingCart, UserPlus, UserRound, UsersRound } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
@@ -7,6 +7,7 @@ import { brandToPlatform } from "../../../features/admin/hooks/useAdminBrand";
 import { AdminStatCard, AdminTrendSparkline } from "../../../features/admin/components/AdminStatCard";
 import { AdminEnrollmentChart, AdminPaymentDonut } from "../../../features/admin/components/AdminOverviewCharts";
 import type { AdminBrandContext, AdminBrandView, AdminOverviewActivity, AdminOverviewDashboard, AdminOverviewMetricId } from "../../../features/admin/api";
+import { WorkspaceCard, WorkspaceMetric, WorkspaceState } from "../../../features/admin/components/AdminWorkspacePrimitives";
 import { liveOverviewToDashboard } from "../../../features/admin/api/adminOverview.live";
 
 const number = new Intl.NumberFormat("en-EG");
@@ -49,13 +50,15 @@ function OverviewContent({ dashboard }: { dashboard: AdminOverviewDashboard }) {
 export function AdminOverviewPage() {
   const { brand, availableBrands } = useOutletContext<{ brand?: AdminBrandContext; brandView: AdminBrandView; availableBrands: readonly AdminBrandContext[] }>();
   const platformTargets = useMemo(() => brand ? [brandToPlatform(brand)] : availableBrands.map(brandToPlatform), [brand, availableBrands]);
-  const { data, error, loading, retry, correlationId } = useAdminOverview(platformTargets);
+  const { data, error, loading, retry, dataSource } = useAdminOverview(platformTargets);
   const dashboard = useMemo(() => data?.dashboard ?? (data ? liveOverviewToDashboard(data) : undefined), [data]);
   const label = brand?.brandDisplayName ?? "All Brands";
   return <section className="admin-page admin-overview" aria-label={`${label} overview`}>
-    {loading && <div className="admin-overview-loading" aria-live="polite" aria-busy="true"><LoaderCircle aria-hidden="true" /> Loading {label} overview…</div>}
-    {error && <div className="admin-feedback admin-feedback--error" role="alert"><div><strong>{error.message}</strong><span>Correlation ID: {error.correlationId}</span></div><button type="button" onClick={retry}>Retry</button></div>}
-    {dashboard && !loading && !error && <OverviewContent dashboard={dashboard} />}
-    {!data && !dashboard && !loading && !error && <div className="admin-feedback admin-feedback--error" role="status"><div><strong>Live overview data is not available yet.</strong><span>Correlation ID: {correlationId}</span></div><button type="button" onClick={retry}>Retry</button></div>}
+    {dataSource === "mock" && <div className="admin-workspace-context"><span>Overview</span><span className="admin-workspace-preview">Local preview data · not production</span></div>}
+    {dashboard && !loading && !error ? <OverviewContent dashboard={dashboard} /> : <>
+      <div className="admin-workspace-metrics">{[[UsersRound, "Students"], [BookOpen, "Courses"], [UserRound, "Instructors"], [CreditCard, "Revenue"]].map(([Icon, title]) => <WorkspaceMetric key={title as string} title={title as string} icon={Icon as LucideIcon} value="—" note={loading ? "Loading records" : "Data unavailable"} />)}</div>
+      <div className="admin-overview-middle"><WorkspaceCard title="Access Overview"><WorkspaceState loading={loading} error={!!error} onRetry={retry} title="Overview unavailable" /></WorkspaceCard><WorkspaceCard title="Operational Signals"><WorkspaceState loading={loading} title="No signals available" /></WorkspaceCard><WorkspaceCard title="Payment Queue"><WorkspaceState loading={loading} title="Queue unavailable" /></WorkspaceCard><WorkspaceCard title="Recent Activity"><WorkspaceState loading={loading} title="Activity unavailable" /></WorkspaceCard></div>
+      <div className="admin-overview-bottom"><WorkspaceCard title="Pending Reviews"><WorkspaceState loading={loading} title="Reviews unavailable" /></WorkspaceCard><WorkspaceCard title="Payment Status"><WorkspaceState loading={loading} title="Payment totals unavailable" /></WorkspaceCard><WorkspaceCard title="Workspace"><div className="admin-overview-destinations"><a href="/admin/courses">Manage courses →</a><a href="/admin/students">View students →</a><a href="/admin/instructors">View instructors →</a><a href="/admin/payments">Review payments →</a></div></WorkspaceCard></div>
+    </>}
   </section>;
 }
