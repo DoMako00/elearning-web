@@ -36,7 +36,7 @@ import {
   ALL_CATEGORY_ARTICLES,
 } from "../../../features/help/data/helpCenterData";
 import type { SupportTicket, HelpArticle } from "../../../types/help";
-import emptyLearningJourney from "../../../assets/empty-learning-journey.webp";
+import emptyLearningJourney from "../../../Assets/empty-learning-journey.webp";
 
 // Map icon names from data to Lucide icons
 const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {

@@ -1,3 +1,4 @@
+import { studentCoursePaths, studentCourseSchemas } from "./openapi-student-courses";
 import { academicCataloguePaths, academicCatalogueSchemas, catalogueReadResponse } from "./openapi-academic-catalogue";
 import type { HttpJsonResponse } from "./http-types";
 import { createApiDocsHtml } from "./api-docs-template";
@@ -29,9 +30,10 @@ export const openApiDocument = {
   openapi: "3.1.0",
   info: { title: "BUC E-Learning Admin API", version: "1.0.0-local", description: "Local administrative API contract for the canonical M1, M2A, and M4A foundation. The private `app` schema is not exposed through Supabase Data API." },
   servers: [{ url: "/", description: "Current local API origin" }],
-  tags: [{ name: "System" }, { name: "Admin overview" }, { name: "Students" }, { name: "Academic catalogue" }, { name: "Instructors" }, { name: "Brand teaching" }],
-  components: { schemas: { ...m2bSchemas, ...academicCatalogueSchemas, ...studentReadSchemas }, securitySchemes: { BearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" } } },
+  tags: [{ name: "Student courses" }, { name: "System" }, { name: "Admin overview" }, { name: "Students" }, { name: "Academic catalogue" }, { name: "Instructors" }, { name: "Brand teaching" }],
+  components: { schemas: { ...studentCourseSchemas, ...m2bSchemas, ...academicCatalogueSchemas, ...studentReadSchemas }, securitySchemes: { BearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" } } },
   paths: {
+    ...studentCoursePaths,
     ...m2bPaths,
     ...academicCataloguePaths,
     "/health": { get: { tags: ["System"], summary: "Liveness probe", responses: { "200": response("Service is alive") } } },
