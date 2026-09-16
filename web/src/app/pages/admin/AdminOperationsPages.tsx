@@ -7,7 +7,8 @@ import { WorkspaceBadge, WorkspaceCard, WorkspaceFields, WorkspaceInspector, Wor
 
 type ReadResult<T> = AdminListResponse<T> | { success: false };
 type ListLoader<T> = (api: AdminApi, platform: AdminPlatformContext) => Promise<ReadResult<T>>;
-const request = (platform: AdminPlatformContext) => ({ platform, correlationId: crypto.randomUUID(), pagination: { page: 1, pageSize: 50 } });
+const clientRequestId = () => typeof crypto !== "undefined" && typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `admin-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+const request = (platform: AdminPlatformContext) => ({ platform, correlationId: clientRequestId(), pagination: { page: 1, pageSize: 50 } });
 const readPayments: ListLoader<AdminPaymentListItem> = (api, platform) => api.listPayments(request(platform));
 const readSubscriptions: ListLoader<AdminSubscriptionListItem> = (api, platform) => api.listSubscriptions(request(platform));
 const readContent: ListLoader<AdminContentTreeNode> = (api, platform) => api.getContentTree(request(platform));
