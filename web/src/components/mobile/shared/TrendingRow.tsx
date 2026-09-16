@@ -1,7 +1,7 @@
 import React, { ReactNode } from "react";
 
 export interface TrendingRowProps {
-  rank: string; // e.g. "01", "02", "03"
+  rank?: string; // e.g. "01", "02", "03" (optional for Community)
   icon: ReactNode;
   iconBgColor?: string;
   iconColor?: string;
@@ -29,10 +29,12 @@ export const TrendingRow: React.FC<TrendingRowProps> = ({
       className={`w-full bg-white rounded-2xl border border-slate-100 p-3.5 flex items-center justify-between gap-3 shadow-2xs hover:border-emerald-200 transition-all cursor-pointer select-none ${className}`}
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
-        {/* Rank Number */}
-        <span className="text-sm sm:text-base font-extrabold text-emerald-600/70 tracking-tight shrink-0 w-6">
-          {rank}
-        </span>
+        {/* Rank Number (optional) */}
+        {rank && (
+          <span className="text-sm sm:text-base font-extrabold text-emerald-600/70 tracking-tight shrink-0 w-6">
+            {rank}
+          </span>
+        )}
 
         {/* Circular / Rounded Icon */}
         <div

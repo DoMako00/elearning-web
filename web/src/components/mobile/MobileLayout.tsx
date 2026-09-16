@@ -76,7 +76,7 @@ const MobileLayoutContent: React.FC = () => {
   };
 
   return (
-    <div className="relative h-screen h-dvh max-h-screen w-full bg-slate-50 flex flex-col text-slate-900 antialiased overflow-hidden">
+    <div className="relative  h-dvh max-h-screen w-full bg-slate-50 flex flex-col text-slate-900 antialiased overflow-hidden">
       {/* Active Screen Area with Animated Stack Transitions */}
       <main className="flex-1 min-h-0 w-full flex flex-col pb-14 overflow-hidden">
         <ScreenStackContainer />

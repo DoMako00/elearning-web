@@ -270,6 +270,40 @@ export const INITIAL_CONVERSATIONS: Conversation[] = [
     sharedFiles: [],
     participants: [CURRENT_USER],
   },
+  {
+    id: "mentor-alex",
+    type: "direct",
+    title: "Alex Morgan",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=180&h=180&q=80",
+    initials: "AM",
+    avatarBg: "#dbeafe",
+    unreadCount: 0,
+    lastMessage: {
+      text: "Feel free to ask any design or portfolio questions!",
+      timestamp: "Yesterday",
+      senderId: "u-alex",
+    },
+    recipient: {
+      id: "u-alex",
+      name: "Alex Morgan",
+      role: "Lead Product Designer & Community Mentor",
+      initials: "AM",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=180&h=180&q=80",
+      status: "online",
+      institution: "GreenLearn Community",
+    },
+    courseContext: {
+      courseId: "mentorship",
+      courseTitle: "Community Mentorship",
+      statusBadge: "Verified Mentor",
+      currentModule: "Product Design",
+      currentLesson: "1-on-1 Portfolio Guidance",
+    },
+    sharedFiles: [],
+    participants: [CURRENT_USER],
+  },
 ];
 
 export const INITIAL_MESSAGES_MAP: Record<string, Message[]> = {
@@ -372,6 +406,16 @@ export const INITIAL_MESSAGES_MAP: Record<string, Message[]> = {
       senderId: "u_support",
       text: "Your ticket #GL-4821 has been resolved. Let us know if you need anything else!",
       timestamp: "Aug 24",
+      status: "read",
+    },
+  ],
+  "mentor-alex": [
+    {
+      id: "m-alex-1",
+      conversationId: "mentor-alex",
+      senderId: "u-alex",
+      text: "Hello Juliana! I saw your recent discussion on UI state architectures in the community. Happy to chat about design systems or review your case study!",
+      timestamp: "Yesterday",
       status: "read",
     },
   ],

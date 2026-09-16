@@ -26,7 +26,7 @@ import emptyLearningJourney from "../../../Assets/empty-learning-journey.webp";
 import courseAnatomyImage from "../../../Assets/dashboard/human-anatomy.webp";
 // Reusable screen stubs
 import { AssignmentsScreen } from "./AssignmentsScreen";
-import { HelpCenterStubScreen } from "./MoreDetailScreens";
+import { HelpCenterScreen } from "./HelpCenterScreen";
 import { SHARED_COURSES_DATA } from "../data/courses.data";
 
 // Mock courses matching desktop data (first two for Home compact display)
@@ -71,9 +71,8 @@ export const HomeScreen: React.FC = () => {
       id: "help-center",
       title: "Help Center",
       tabRoot: "home",
-      variant: "detail",
-      backLabel: "Home",
-      component: <HelpCenterStubScreen />,
+      variant: "main",
+      component: <HelpCenterScreen />,
     });
   };
 

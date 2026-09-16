@@ -25,7 +25,8 @@ import { BottomSheet } from "../shared/BottomSheet";
 import { MobileToast } from "../shared/MobileToast";
 import { useMobileMessages } from "../data/useMobileMessages";
 import { MessagesListScreen } from "./MessagesListScreen";
-import { CommunityStubScreen, HelpCenterStubScreen } from "./MoreDetailScreens";
+import { CommunityScreen } from "./CommunityScreen";
+import { HelpCenterScreen } from "./HelpCenterScreen";
 
 export const SettingsScreen: React.FC = () => {
   const { push } = useScreenStack();
@@ -139,9 +140,9 @@ export const SettingsScreen: React.FC = () => {
       id: "community-hub",
       title: "Community",
       tabRoot: "settings",
-      variant: "detail",
+      variant: "main",
       backLabel: "Settings",
-      component: <CommunityStubScreen />,
+      component: <CommunityScreen />,
     });
   };
 
@@ -150,9 +151,9 @@ export const SettingsScreen: React.FC = () => {
       id: "help-center",
       title: "Help Center",
       tabRoot: "settings",
-      variant: "detail",
+      variant: "main",
       backLabel: "Settings",
-      component: <HelpCenterStubScreen />,
+      component: <HelpCenterScreen />,
     });
   };
 

@@ -3,8 +3,16 @@ import { FileText, CheckCircle2, ChevronRight } from "lucide-react";
 import type { ReminderItem } from "../../ui/Calendar/calendar.types";
 
 export interface ReminderRowProps {
-  reminder: ReminderItem;
-  onClick?: (reminder: ReminderItem) => void;
+  reminder: ReminderItem & {
+    unread?: boolean;
+    icon?: React.ComponentType<{ className?: string }>;
+    badgeBg?: string;
+    badgeText?: string;
+    iconBg?: string;
+    iconColor?: string;
+    iconBorder?: string;
+  };
+  onClick?: (reminder: ReminderRowProps["reminder"]) => void;
 }
 
 const REMINDER_CONFIG: Record<
@@ -49,17 +57,30 @@ const REMINDER_CONFIG: Record<
 };
 
 export const ReminderRow: React.FC<ReminderRowProps> = ({ reminder, onClick }) => {
-  const config = REMINDER_CONFIG[reminder.type] || REMINDER_CONFIG.assignment;
-  const IconComponent = config.icon;
+  const defaultConfig = REMINDER_CONFIG[reminder.type] || REMINDER_CONFIG.assignment;
+  const IconComponent = reminder.icon || defaultConfig.icon;
+  const iconBg = reminder.iconBg || defaultConfig.bg;
+  const iconBorder = reminder.iconBorder || defaultConfig.border;
+  const iconText = reminder.iconColor || defaultConfig.text;
+  const badgeClass = reminder.badgeBg || defaultConfig.badgeBg;
+  const badgeLabel = reminder.badgeText || reminder.type;
 
   return (
     <div
       onClick={() => onClick?.(reminder)}
-      className="w-full bg-white rounded-2xl border border-slate-100/80 shadow-2xs hover:border-slate-200 transition-all p-3.5 flex items-center justify-between gap-3 group cursor-pointer"
+      className="w-full bg-white rounded-2xl border border-slate-100/80 shadow-2xs hover:border-slate-200 transition-all p-3.5 flex items-center justify-between gap-3 group cursor-pointer relative select-none"
     >
+      {/* Optional unread dot */}
+      {reminder.unread && (
+        <span
+          className="absolute top-2.5 left-2.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white"
+          aria-label="Unread item"
+        />
+      )}
+
       {/* Left icon circle */}
       <div
-        className={`size-9 rounded-xl flex items-center justify-center shrink-0 border ${config.bg} ${config.border} ${config.text}`}
+        className={`size-9 rounded-xl flex items-center justify-center shrink-0 border ${iconBg} ${iconBorder} ${iconText}`}
       >
         <IconComponent className="size-4 stroke-[2.2]" />
       </div>
@@ -77,9 +98,9 @@ export const ReminderRow: React.FC<ReminderRowProps> = ({ reminder, onClick }) =
       {/* Right: Colored type pill + chevron */}
       <div className="flex items-center gap-2 shrink-0">
         <span
-          className={`px-2 py-0.5 rounded-full text-[10px] font-bold border capitalize ${config.badgeBg}`}
+          className={`px-2 py-0.5 rounded-full text-[10px] font-bold border capitalize ${badgeClass}`}
         >
-          {reminder.type}
+          {badgeLabel}
         </span>
         <ChevronRight className="size-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
       </div>
