@@ -270,12 +270,12 @@ export const CalendarScreen: React.FC = () => {
         {/* Inner Content Container */}
         <div className="px-4 pt-2 pb-10 space-y-6 max-w-lg mx-auto">
           {/* 3. Toolbar & View Toggle */}
-          <div className="bg-white rounded-3xl border border-slate-100/80 p-3.5 sm:p-4 shadow-xs space-y-3.5">
-            {/* Top row: View toggle on left, Today + Nav arrows on right */}
+          <div className="bg-white rounded-2xl border border-slate-100/80 p-3.5 sm:p-4 shadow-xs space-y-2">
+            {/* Top row: View toggle on left, Today + Nav arrows on right — always one line */}
             <div className="flex items-center justify-between gap-2">
               {/* 2-Segment View Mode Toggle (Week / Month) */}
               <div
-                className="flex items-center p-1 rounded-2xl bg-slate-100/90 border border-slate-200/50"
+                className="flex items-center shrink-0 p-1 rounded-2xl bg-slate-100/90 border border-slate-200/50"
                 role="tablist"
                 aria-label="Calendar view mode"
               >
@@ -307,26 +307,19 @@ export const CalendarScreen: React.FC = () => {
                 </button>
               </div>
 
-              {/* In Month view, show current Month Year label */}
-              {viewMode === "month" && (
-                <span className="text-xs font-extrabold text-slate-800 truncate px-1">
-                  {dateHeaderLabel}
-                </span>
-              )}
-
-              {/* Today button + Nav arrows cluster */}
+              {/* Today button + Nav arrows cluster — always on the right */}
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={handleToday}
-                  className="px-3.5 py-1.5 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 text-xs font-extrabold border border-slate-200/80 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                  className="px-3 py-1.5 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 text-xs font-extrabold border border-slate-200/80 shadow-2xs transition-all active:scale-95 cursor-pointer"
                 >
                   Today
                 </button>
                 <button
                   type="button"
                   onClick={handlePrev}
-                  className="size-8 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex items-center justify-center text-slate-700 hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
+                  className="size-7 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex items-center justify-center text-slate-700 hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
                   aria-label="Previous period"
                 >
                   <ChevronLeft className="size-4 stroke-[2.5]" />
@@ -334,13 +327,22 @@ export const CalendarScreen: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="size-8 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex items-center justify-center text-slate-700 hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
+                  className="size-7 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex items-center justify-center text-slate-700 hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
                   aria-label="Next period"
                 >
                   <ChevronRight className="size-4 stroke-[2.5]" />
                 </button>
               </div>
             </div>
+
+            {/* Month label row — only shown in month view, always has its own line */}
+            {viewMode === "month" && (
+              <div className="flex items-center justify-center pt-0.5">
+                <span className="text-sm font-extrabold text-slate-800 tracking-tight">
+                  {dateHeaderLabel}
+                </span>
+              </div>
+            )}
 
             {/* 4. Week View: Horizontal day strip (Mon-Sun) inside bordered grid */}
             {viewMode === "week" && (
