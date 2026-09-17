@@ -6,11 +6,12 @@ import { authorizeAdminRead } from "../admin-read-authorization";
 import type { HttpJsonResponse, HttpRequestContext, AdminModule } from "../http-types";
 import { badRequestResponse, jsonResponse, notFoundResponse, serviceUnavailableResponse } from "../middleware/json-response";
 import { safeErrorResponse } from "../middleware/error-response";
+import { isPostgresUuid } from "../../core/validation/postgres-uuid";
 import { resolveBrandFromRequestUrl } from "../runtime/brand-resolver";
 
-const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 const parse=(url:string)=>new URL(url,"http://localhost");
-const validUuid=(value:string|undefined):value is string=>Boolean(value&&UUID.test(value));
+const validUuid=isPostgresUuid;
 const invalid=(request:HttpRequestContext,message="A valid UUID is required.")=>badRequestResponse(request.correlationId,message,{code:"invalid_input"});
 function parameters(request:HttpRequestContext,allowed:readonly string[]):{ok:true;value:URLSearchParams}|{ok:false;response:HttpJsonResponse}{const values=parse(request.url).searchParams;for(const key of values.keys())if(!allowed.includes(key)||values.getAll(key).length!==1)return{ok:false,response:badRequestResponse(request.correlationId,"Unsupported or repeated query parameter.",{code:"invalid_input"})};return{ok:true,value:values};}
 function response<T>(request:HttpRequestContext,value:RepositoryResult<T>):HttpJsonResponse{if(value.ok)return jsonResponse(200,{ok:true,correlationId:request.correlationId,data:value.value},{"x-correlation-id":request.correlationId});if(value.error.code==="not_found"||value.error.code==="brand_not_found")return notFoundResponse(request.correlationId);if(value.error.code==="invalid_input")return invalid(request,"The request is invalid.");if(["query_failed","provider_unavailable","query_timeout"].includes(value.error.code))return serviceUnavailableResponse(request.correlationId);return safeErrorResponse(request.correlationId,value.error);}

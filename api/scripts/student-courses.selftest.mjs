@@ -11,7 +11,7 @@ const { createHttpApp } = require('../dist/http/http-app.js');
 const { PostgresStudentCourseReadModel } = require('../dist/modules/student/student-course-read-model.js');
 const { SupabaseJwtJwksAuthIdentityAdapter } = require('../dist/infrastructure/supabase/supabase-jwt-adapter.js');
 const { assertReadOnlySelect } = require('../dist/infrastructure/postgres/postgres-read-transport.js');
-const subject = randomUUID(), courseId = randomUUID(), lessonId = randomUUID(), chapterId = randomUUID();
+const subject = randomUUID(), brandId = randomUUID(), institutionId = randomUUID(), levelId = randomUUID(), semesterId = randomUUID(), courseId = randomUUID(), lessonId = randomUUID(), chapterId = randomUUID();
 const lesson = { lessonId, chapterId, title: 'Contract fixture', sortOrder: 1, status: 'published', mediaStatus: 'no_media', resourceId: null, playbackAvailable: false };
 const item = { courseId, title: 'Contract fixture', code: 'TEST', brand: { code: 'elite', name: 'Elite' }, academicInstitution: { code: 'buc', name: 'BUC' }, academicLevel: { levelNumber: 1, title: 'Level 1' }, academicSemester: { semesterNumber: 1, title: 'Semester 1' }, cataloguePresentation: 'subject_based', unitLabel: 'Subject', status: 'published', chapterCount: 1, lessonCount: 1, mediaSummary: { totalLessons: 1, lessonsWithMedia: 0, pendingMediaLessons: 0 }, updatedAt: new Date().toISOString() };
 const detail = { ...item, academicUnit: { code: 'TEST', label: 'Contract fixture' }, chapters: [{ chapterId, title: 'Lessons', sortOrder: 1, status: 'published', lessons: [lesson] }] };
@@ -20,7 +20,7 @@ const transport = { query: async request => {
   assertReadOnlySelect(request.text); calls.push(request);
   assert.ok(!request.text.includes(subject));
   if (mode === 'unavailable') throw new Error('Private database diagnostic must not escape');
-  if (request.label === 'student.course-scope') return { rows: mode === 'no-scope' ? [] : mode === 'multiple' ? [{ brand: 'elite' }, { brand: 'medway' }] : [{ brand: 'elite' }] };
+  if (request.label === 'student.course-scope') return { rows: mode === 'no-scope' ? [] : mode === 'multiple' ? [{ brand: 'elite', brandId, institutionId, levelId, semesterId }, { brand: 'medway', brandId, institutionId, levelId, semesterId }] : [{ brand: 'elite', brandId, institutionId, levelId, semesterId }] };
   if (request.label === 'student.courses.list') return { rows: [{ items: mode === 'empty' ? [] : [item], total: mode === 'empty' ? 0 : 1 }] };
   return { rows: mode === 'missing' ? [] : [{ item: detail }] };
 } };
@@ -42,7 +42,7 @@ try {
   };
   const list = await get('/v1/student/courses?brand=elite');
   check('list contract and private cache policy', () => { assert.equal(list.status, 200); assert.deepEqual(list.body.data.items, [item]); assert.match(list.headers.get('cache-control'), /no-store/); });
-  check('authority comes from verified subject, not user metadata', () => { assert.deepEqual(calls[0].values, [subject, 'elite']); assert.equal(calls[1].values[1], 'elite'); });
+  check('authority comes from verified subject, not user metadata', () => { assert.deepEqual(calls[0].values, [subject, 'elite']); assert.deepEqual(calls[1].values.slice(0, 4), [brandId, institutionId, levelId, semesterId]); });
   const found = await get(`/v1/student/courses/${courseId}`);
   check('detail contract', () => assert.deepEqual(found.body.data, detail));
   const lessons = await get(`/v1/student/courses/${courseId}/lessons`);

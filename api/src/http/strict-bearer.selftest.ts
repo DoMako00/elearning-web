@@ -10,6 +10,8 @@ function request(headers: Record<string, string | string[] | undefined>, rawHead
 export function runStrictBearerSelfTest(): void {
   const token = "eyJhbGciOiJFUzI1NiIsImtpZCI6ImxvY2FsIn0.eyJzdWIiOiIxMjNlNDU2Ny1lODliLTEyZDMtYTQ1Ni00MjY2MTQxNzQwMDAifQ.signature";
   assert(parseStrictBearerToken(request({ authorization: `Bearer ${token}` })).ok, "valid Bearer header");
+  assert(parseStrictBearerToken(request({ authorization: `bearer ${token}` })).ok, "lowercase bearer scheme");
+  assert(parseStrictBearerToken(request({ authorization: `BEARER ${token}` })).ok, "uppercase bearer scheme");
   assert(code(parseStrictBearerToken(request({}))) === "missing", "missing header");
   assert(code(parseStrictBearerToken(request({ authorization: "Basic abc" }))) === "malformed", "wrong scheme");
   assert(code(parseStrictBearerToken(request({ authorization: "Bearer  token" }))) === "malformed", "multiple spaces");

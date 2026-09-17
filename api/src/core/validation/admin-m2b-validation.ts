@@ -1,5 +1,6 @@
 import type { M2bDeliveryEntity } from '../../contracts/admin/m2b-course-delivery';
-export const M2B_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+import { POSTGRES_UUID } from './postgres-uuid';
+export const M2B_UUID = POSTGRES_UUID;
 export const deliveryFields = {
   chapters: ['title','sortOrder','status'],
   lessons: ['title','sortOrder','status','courseChapterId'],

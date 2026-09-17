@@ -34,8 +34,8 @@ export const studentCourseSchemas = {
 
 const brand = { name: "brand", in: "query", required: false, schema: { type: "string", enum: ["medway", "elite", "nexus"] }, description: "Optional when the verified student has one eligible membership. Required when multiple memberships exist. Never grants scope. BUC/Delta are institutions, not brands." };
 const courseId = { name: "courseId", in: "path", required: true, schema: identifier };
-const operation = (summary: string, schema: string, parameters: readonly unknown[]) => ({
-  tags: ["Student courses"], summary, security: [{ BearerAuth: [] }], parameters,
+const operation = (operationId: string, summary: string, schema: string, parameters: readonly unknown[]) => ({
+  tags: ["Student courses"], operationId, summary, security: [{ BearerAuth: [] }], parameters,
   description: "Published course structure scoped to the verified student's active commercial-brand membership and academic institution/level/semester. No enrollment or paid entitlement is fabricated. Synthetic import identities cannot log in. No media delivery URLs are returned.",
   responses: {
     "200": { description: "Visible structure; an empty list is valid.", content: { "application/json": { schema: ref(schema) } } },
@@ -49,10 +49,10 @@ const operation = (summary: string, schema: string, parameters: readonly unknown
 });
 
 export const studentCoursePaths = {
-  "/v1/student/courses": { get: operation("List visible student course shells", "StudentCourseListResponse", [brand,
+  "/v1/student/courses": { get: operation("listStudentCourses", "List visible student course shells", "StudentCourseListResponse", [brand,
     { name: "page", in: "query", schema: { type: "integer", minimum: 1, maximum: 1000000, default: 1 } },
     { name: "pageSize", in: "query", schema: { type: "integer", minimum: 1, maximum: 100, default: 25 } },
   ]) },
-  "/v1/student/courses/{courseId}": { get: operation("Read a visible course and its ordered chapters/lessons", "StudentCourseDetailResponse", [courseId, brand]) },
-  "/v1/student/courses/{courseId}/lessons": { get: operation("List lessons in chapter order with truthful media states", "StudentCourseLessonsResponse", [courseId, brand]) },
+  "/v1/student/courses/{courseId}": { get: operation("getStudentCourse", "Read a visible course and its ordered chapters/lessons", "StudentCourseDetailResponse", [courseId, brand]) },
+  "/v1/student/courses/{courseId}/lessons": { get: operation("listStudentCourseLessons", "List lessons in chapter order with truthful media states", "StudentCourseLessonsResponse", [courseId, brand]) },
 };

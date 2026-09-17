@@ -18,4 +18,4 @@ export function catalogueReadResponse(name:string,list=true){return {description
 export const academicCataloguePaths=Object.fromEntries([
   ['/v1/admin/curriculum/institutions','AcademicCatalogueInstitution','Read university catalogues grouped by institution, level and semester'],
   ['/v1/admin/curriculum/brand-access','CommercialBrandCatalogueAccess','Read commercial brands and active academic catalogue access'],
-].map(([path,schema,summary])=>[path,{get:{summary,tags:['Academic catalogue'],security:[{BearerAuth:[]}],responses:{200:catalogueReadResponse(schema!),401:{description:'Authentication required'},403:{description:'Permission denied'},503:{description:'Catalogue source unavailable; no fallback'}}}}]));
+].map(([path,schema,summary])=>[path,{get:{operationId:path.endsWith('/institutions')?'listCurriculumInstitutions':'listBrandAcademicAccess',summary,tags:['Academic catalogue'],security:[{BearerAuth:[]}],responses:{200:catalogueReadResponse(schema!),401:{description:'Authentication required'},403:{description:'Permission denied'},503:{description:'Catalogue source unavailable; no fallback'}}}}]));

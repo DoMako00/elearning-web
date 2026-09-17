@@ -28,7 +28,7 @@ export function parseStrictBearerToken(request: IncomingMessage): StrictBearerRe
   if (values.length !== 1) return { ok: false, code: "duplicate" };
   const value = values[0]!;
   if (value.length > MAX_TOKEN_LENGTH) return { ok: false, code: "oversized" };
-  if (!value.startsWith("Bearer ") || value.length <= 7) return { ok: false, code: "malformed" };
+  if (!/^Bearer /i.test(value) || value.length <= 7) return { ok: false, code: "malformed" };
   const token = value.slice(7);
   // Preserve the deterministic mock provider contract; Supabase mode still
   // requires the compact JWT shape before jose verification.

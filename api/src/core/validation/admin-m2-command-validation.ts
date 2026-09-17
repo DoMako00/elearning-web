@@ -3,8 +3,9 @@ import { adminCoreError } from "../errors";
 import type { Result } from "../../shared";
 import { fail, ok } from "../../shared";
 import type { AssignInstructorToBrandCommand, AssignInstructorToCourseCommand, CreateBrandCourseCommand, CreateInstructorCommand, SetBrandCourseStatusCommand, SetBrandInstructorStatusCommand, SetCourseInstructorStatusCommand, SetInstructorStatusCommand, UpdateBrandCourseCommand, UpdateInstructorCommand } from "../../contracts/admin";
+import { isPostgresUuid } from "./postgres-uuid";
 
-const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 const activeInactive = new Set(["active", "inactive"]);
 const instructorStatuses = new Set(["active", "inactive", "archived"]);
 const courseStatuses = new Set(["draft", "published", "archived"]);
@@ -12,7 +13,7 @@ const courseScopes = new Set(["academic_module_offering", "standalone"]);
 const cataloguePresentations = new Set(["module_based", "subject_based"]);
 
 function invalid(correlationId: string, field: string): Result<void, AdminCoreError> { return fail(adminCoreError("validation_failed", `The ${field} is invalid.`, correlationId, { field })); }
-function requiredUuid(correlationId: string, field: string, value: unknown): Result<void, AdminCoreError> { return typeof value === "string" && uuid.test(value) ? ok(undefined) : invalid(correlationId, field); }
+function requiredUuid(correlationId: string, field: string, value: unknown): Result<void, AdminCoreError> { return typeof value === "string" && isPostgresUuid(value) ? ok(undefined) : invalid(correlationId, field); }
 function requiredText(correlationId: string, field: string, value: unknown): Result<void, AdminCoreError> { return typeof value === "string" && value.trim().length > 0 ? ok(undefined) : invalid(correlationId, field); }
 function status(correlationId: string, field: string, value: unknown, allowed: ReadonlySet<string>): Result<void, AdminCoreError> { return typeof value === "string" && allowed.has(value) ? ok(undefined) : invalid(correlationId, field); }
 function first(correlationId: string, ...checks: readonly Result<void, AdminCoreError>[]): Result<void, AdminCoreError> { void correlationId; return checks.find((check) => !check.ok) ?? ok(undefined); }
