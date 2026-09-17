@@ -76,12 +76,15 @@ export const EVENT_STYLE_MAP: Record<
   },
 };
 
-export const EventCard: React.FC<EventCardProps> = ({ event, now, onSelect }) => {
-  const styleConfig = EVENT_STYLE_MAP[event.type] || EVENT_STYLE_MAP.quiz;
-  const IconComponent = styleConfig.icon;
+export const EventCard: React.FC<EventCardProps & { isLast?: boolean }> = ({
+  event,
+  now,
+  onSelect,
+  isLast = false,
+}) => {
   const isLive = isEventLive(event, now);
 
-  // Time range formatting: if displayTime is "9:00 - 10:30 AM", we can present start and end times cleanly
+  // Time formatting: "9:00 AM", "10:30 AM"
   const [startTimeDisplay, endTimeDisplay] = React.useMemo(() => {
     if (event.displayTime && event.displayTime.includes("-")) {
       const parts = event.displayTime.split("-").map((s: string) => s.trim());
@@ -90,74 +93,126 @@ export const EventCard: React.FC<EventCardProps> = ({ event, now, onSelect }) =>
     return [event.startTime, event.endTime];
   }, [event.displayTime, event.startTime, event.endTime]);
 
-  return (
-    <button
-      type="button"
-      onClick={() => onSelect(event)}
-      className="w-full text-left bg-white rounded-2xl border border-slate-100 shadow-2xs hover:border-slate-200 active:scale-[0.99] transition-all p-3.5 sm:p-4 flex items-center gap-3.5 relative overflow-hidden group cursor-pointer"
-    >
-      {/* Left accent indicator bar */}
-      <div
-        className="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-2xl"
-        style={{ backgroundColor: styleConfig.accentColor }}
-      />
+  // Design tokens matching target screenshot:
+  // Live Session / blue: bg-blue-50/60, text-blue-600, border-blue-100/50, dot bg-blue-500
+  // Anatomy / blue lecture: bg-blue-50/60, text-blue-600, border-blue-100/50, dot bg-blue-500
+  // Personal Study / amber: bg-amber-50/60, text-amber-700, border-amber-100/50, dot bg-amber-500
+  // Quiz / green: bg-emerald-50/60, text-emerald-700, border-emerald-100/50, dot bg-emerald-500
+  // Office Hours / purple: bg-purple-50/60, text-purple-700, border-purple-100/50, dot bg-purple-500
+  const visualConfig = React.useMemo(() => {
+    switch (event.type) {
+      case "live_session":
+        return {
+          cardBg: "bg-blue-50/50 hover:bg-blue-50/80 border-blue-100/60",
+          dotColor: "bg-blue-600 ring-4 ring-blue-100/70",
+          iconColor: "text-blue-600",
+          titleColor: "text-blue-950",
+          icon: Video,
+        };
+      case "study_block":
+        return {
+          cardBg: "bg-amber-50/50 hover:bg-amber-50/80 border-amber-100/60",
+          dotColor: "bg-amber-500 ring-4 ring-amber-100/70",
+          iconColor: "text-amber-600",
+          titleColor: "text-amber-950",
+          icon: Clock,
+        };
+      case "quiz":
+        return {
+          cardBg: "bg-emerald-50/50 hover:bg-emerald-50/80 border-emerald-100/60",
+          dotColor: "bg-emerald-600 ring-4 ring-emerald-100/70",
+          iconColor: "text-emerald-600",
+          titleColor: "text-emerald-950",
+          icon: FileText,
+        };
+      case "office_hours":
+        return {
+          cardBg: "bg-purple-50/50 hover:bg-purple-50/80 border-purple-100/60",
+          dotColor: "bg-purple-600 ring-4 ring-purple-100/70",
+          iconColor: "text-purple-600",
+          titleColor: "text-purple-950",
+          icon: User,
+        };
+      case "assignment":
+      default:
+        return {
+          cardBg: "bg-indigo-50/50 hover:bg-indigo-50/80 border-indigo-100/60",
+          dotColor: "bg-indigo-600 ring-4 ring-indigo-100/70",
+          iconColor: "text-indigo-600",
+          titleColor: "text-indigo-950",
+          icon: FileText,
+        };
+    }
+  }, [event.type]);
 
-      {/* Left column: stacked start and end times */}
-      <div className="flex flex-col items-start justify-center shrink-0 w-18 pl-1">
-        <span className="text-xs font-black text-slate-800 tracking-tight leading-tight">
+  const IconComp = visualConfig.icon;
+
+  return (
+    <div className="flex items-stretch gap-2.5 sm:gap-3 group">
+      {/* 1. Left Time Column */}
+      <div className="flex flex-col items-start justify-start pt-3 shrink-0 w-16 text-left">
+        <span className="text-xs font-black text-slate-700 tracking-tight leading-tight">
           {startTimeDisplay}
         </span>
-        <span className="text-[11px] font-medium text-slate-400 leading-tight mt-0.5">
-          {endTimeDisplay}
-        </span>
-      </div>
-
-      {/* Vertical divider */}
-      <div className="h-9 w-px bg-slate-100 shrink-0" />
-
-      {/* Center column: Icon chip, title, and description/course */}
-      <div className="flex-1 min-w-0 pr-1">
-        <div className="flex items-center gap-1.5 mb-1">
-          <div
-            className="size-5 rounded-md flex items-center justify-center shrink-0 border"
-            style={{
-              backgroundColor: styleConfig.chipBg,
-              borderColor: styleConfig.chipBorder,
-              color: styleConfig.chipText,
-            }}
-          >
-            <IconComponent className="size-3 stroke-[2.2]" />
-          </div>
-          <span
-            className="text-[10px] font-bold uppercase tracking-wider truncate"
-            style={{ color: styleConfig.chipText }}
-          >
-            {styleConfig.label}
-          </span>
-        </div>
-
-        <h4
-          className="text-sm font-bold truncate leading-snug"
-          style={{ color: styleConfig.titleColor }}
-        >
-          {event.title}
-        </h4>
-
-        <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
-          {event.courseTitle || event.description || "General schedule item"}
-        </p>
-      </div>
-
-      {/* Right column: "Live" status pill if live, plus chevron */}
-      <div className="flex items-center gap-2 shrink-0">
-        {isLive && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-black uppercase tracking-wider animate-pulse shadow-xs">
-            <span className="size-1.5 rounded-full bg-white" />
-            Live
+        {endTimeDisplay && (
+          <span className="text-[11px] font-semibold text-slate-400 leading-tight mt-0.5">
+            {endTimeDisplay}
           </span>
         )}
-        <ChevronRight className="size-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
       </div>
-    </button>
+
+      {/* 2. Timeline spine with node dot */}
+      <div className="relative flex flex-col items-center shrink-0 w-3">
+        {/* Continuous background track line */}
+        {!isLast && (
+          <div className="absolute top-4.5 bottom-0 w-0.5 bg-slate-100" />
+        )}
+        <div className="absolute -top-3.5 bottom-0 w-0.5 bg-slate-100" />
+
+        {/* Timeline node bullet dot */}
+        <div
+          className={`size-2.5 rounded-full z-10 mt-3.5 shrink-0 ${visualConfig.dotColor} transition-transform group-hover:scale-125`}
+        />
+      </div>
+
+      {/* 3. Event Card Bubble */}
+      <button
+        type="button"
+        onClick={() => onSelect(event)}
+        className={`flex-1 text-left rounded-2xl sm:rounded-3xl border p-3.5 sm:p-4 flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs active:scale-[0.99] transition-all cursor-pointer ${visualConfig.cardBg}`}
+      >
+        <div className="flex items-start gap-3 min-w-0 flex-1">
+          {/* Leading Icon */}
+          <div className="pt-0.5 shrink-0">
+            <IconComp className={`size-5 stroke-2 ${visualConfig.iconColor}`} />
+          </div>
+
+          {/* Title & Description */}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h4
+                className={`text-sm font-extrabold truncate leading-tight ${visualConfig.titleColor}`}
+              >
+                {event.title}
+              </h4>
+              {isLive && (
+                <span className="px-2 py-0.5 rounded-full bg-blue-600 text-white text-[9.5px] font-black uppercase tracking-wider shrink-0 shadow-xs animate-pulse">
+                  Live
+                </span>
+              )}
+            </div>
+
+            <p className="text-xs text-slate-600 font-medium line-clamp-2 leading-relaxed mt-1">
+              {event.description || event.courseTitle || "Scheduled academic session"}
+            </p>
+          </div>
+        </div>
+
+        {/* Trailing chevron */}
+        <div className="shrink-0 pl-1">
+          <ChevronRight className="size-4 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-0.5 transition-all" />
+        </div>
+      </button>
+    </div>
   );
 };

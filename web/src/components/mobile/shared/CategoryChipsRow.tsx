@@ -20,7 +20,10 @@ export const CategoryChipsRow: React.FC<CategoryChipsRowProps> = ({
   className = "",
 }) => {
   return (
-    <div className={`flex flex-wrap items-center gap-2 ${className}`}>
+    <div
+      className={`flex items-center gap-1.5 overflow-x-auto no-scrollbar   w-full scroll-smooth ${className}`}
+      style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none", msOverflowStyle: "none" }}
+    >
       {categories.map((cat) => {
         const isActive = cat.key === activeKey;
         return (
@@ -28,9 +31,9 @@ export const CategoryChipsRow: React.FC<CategoryChipsRowProps> = ({
             key={cat.key}
             type="button"
             onClick={() => onChange(cat.key)}
-            className={`mobile-category-chip inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer select-none ${
+            className={`mobile-category-chip shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold whitespace-nowrap transition-all cursor-pointer select-none ${
               isActive
-                ? "bg-emerald-100/80 text-emerald-900 border border-emerald-300 shadow-2xs font-bold "
+                ? "bg-emerald-100/80 text-emerald-900 border border-emerald-300 shadow-2xs font-bold"
                 : "bg-white text-slate-700 hover:text-slate-900 border border-slate-200/90 hover:bg-slate-50"
             }`}
           >

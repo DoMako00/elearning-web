@@ -168,6 +168,47 @@ export const INITIAL_DISCUSSIONS: DiscussionPost[] = [
     ],
   },
   {
+    id: "disc-grid-1",
+    title: "CSS Grid vs Flexbox: When should you actually switch to Grid?",
+    content:
+      "Many developers default to nested flexboxes for almost everything. In what specific mobile and dashboard layouts does CSS Subgrid or 2D Grid shine the brightest?",
+    author: {
+      id: "u-maria",
+      name: "Maria Garcia",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80",
+      role: "UI/UX Designer",
+    },
+    category: {
+      key: "design",
+      label: "Design",
+      badgeColor: "purple",
+    },
+    topicIcon: "palette",
+    timeAgo: "4h ago",
+    timestamp: Date.now() - 4 * 60 * 60 * 1000,
+    repliesCount: 18,
+    viewsCount: 112,
+    upvotesCount: 29,
+    replies: [
+      {
+        id: "rep-grid-1",
+        author: {
+          id: "u-alex",
+          name: "Alex Morgan",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80",
+          role: "Lead Product Designer",
+        },
+        content:
+          "Rule of thumb: 1D linear alignment (row or column) is Flexbox territory. 2D card matrices where headers and footers need cross-cell synchronization belong to Grid.",
+        timestamp: Date.now() - 3 * 60 * 60 * 1000,
+        timeAgo: "3h ago",
+        upvotesCount: 15,
+      },
+    ],
+  },
+  {
     id: "disc-3",
     title: "How to choose the right chart for your data?",
     content:
@@ -207,6 +248,113 @@ export const INITIAL_DISCUSSIONS: DiscussionPost[] = [
         upvotesCount: 9,
       },
     ],
+  },
+  {
+    id: "disc-d3-1",
+    title: "Data Visualization with D3.js in modern React 19 apps",
+    content:
+      "Integrating D3 calculations with React declarative DOM rendering can be tricky. Do you let D3 mutate the DOM or use D3 only as math scales/generators while React renders SVG elements?",
+    author: {
+      id: "u-rohan",
+      name: "Rohan Kumar",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80",
+      role: "Data Scientist",
+    },
+    category: {
+      key: "datascience",
+      label: "Data Science",
+      badgeColor: "blue",
+    },
+    topicIcon: "chart",
+    timeAgo: "5h ago",
+    timestamp: Date.now() - 5 * 60 * 60 * 1000,
+    repliesCount: 15,
+    viewsCount: 78,
+    upvotesCount: 21,
+    replies: [
+      {
+        id: "rep-d3-1",
+        author: {
+          id: "u-sarah",
+          name: "Sarah Chen",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&h=120&q=80",
+          role: "Frontend Developer",
+        },
+        content:
+          "Always use D3 for math and React for DOM rendering! That gives you full control over animations, SSR safety, and standard JSX props.",
+        timestamp: Date.now() - 2 * 60 * 60 * 1000,
+        timeAgo: "2h ago",
+        upvotesCount: 11,
+      },
+    ],
+  },
+  {
+    id: "disc-next-1",
+    title: "Next.js 14 Features: Server Actions vs Route Handlers",
+    content:
+      "With Next.js 14 App Router and Server Actions maturing, in which scenarios do you still find standard Route Handlers (API routes) preferable for data mutations?",
+    author: {
+      id: "u-james",
+      name: "James Wilson",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=120&h=120&q=80",
+      role: "Full Stack Developer",
+    },
+    category: {
+      key: "react",
+      label: "React",
+      badgeColor: "emerald",
+    },
+    topicIcon: "js",
+    timeAgo: "6h ago",
+    timestamp: Date.now() - 6 * 60 * 60 * 1000,
+    repliesCount: 12,
+    viewsCount: 95,
+    upvotesCount: 34,
+    replies: [
+      {
+        id: "rep-next-1",
+        author: {
+          id: "u-alex",
+          name: "Alex Morgan",
+          avatarUrl:
+            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80",
+          role: "Lead Product Designer",
+        },
+        content:
+          "Route Handlers are mandatory for public REST webhooks (Stripe, GitHub callbacks) or when mobile clients consume the exact same endpoint. For pure Next.js client forms, Server Actions are fantastic.",
+        timestamp: Date.now() - 4 * 60 * 60 * 1000,
+        timeAgo: "4h ago",
+        upvotesCount: 18,
+      },
+    ],
+  },
+  {
+    id: "disc-ml-1",
+    title: "Machine Learning Basics every web developer should know",
+    content:
+      "From on-device transformers with ONNX/Transformers.js to embeddings in vector search databases, what ML foundations have paid off the most in your modern web stack?",
+    author: {
+      id: "u-rohan",
+      name: "Rohan Kumar",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80",
+      role: "Data Scientist",
+    },
+    category: {
+      key: "datascience",
+      label: "Data Science",
+      badgeColor: "blue",
+    },
+    topicIcon: "chart",
+    timeAgo: "8h ago",
+    timestamp: Date.now() - 8 * 60 * 60 * 1000,
+    repliesCount: 10,
+    viewsCount: 62,
+    upvotesCount: 16,
+    replies: [],
   },
   {
     id: "disc-4",

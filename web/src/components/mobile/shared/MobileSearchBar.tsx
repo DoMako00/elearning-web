@@ -18,7 +18,7 @@ export const MobileSearchBar: React.FC<MobileSearchBarProps> = ({
 }) => {
   return (
     <div
-      className={`relative w-full flex items-center bg-white rounded-2xl border border-slate-200/90 px-3.5 py-2.5 shadow-2xs focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all ${className}`}
+      className={`relative w-full flex items-center bg-white rounded-2xl border border-slate-200/90 px-3.5 py-1.5 shadow-2xs focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all ${className}`}
     >
       <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2.5" strokeWidth={2} />
       <input

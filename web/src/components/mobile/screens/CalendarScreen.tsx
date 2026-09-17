@@ -13,6 +13,7 @@ import {
   SectionHeader,
   EventCard,
   EventDetailSheet,
+  AddEventSheet,
   ReminderRow,
   MobileWeeklyStudyGoal,
 } from "../shared";
@@ -48,6 +49,7 @@ export const CalendarScreen: React.FC = () => {
   // 3. Selection & detail modal state
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // 4. Egypt now tick for live status and current time line (60s tick interval)
@@ -213,12 +215,13 @@ export const CalendarScreen: React.FC = () => {
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
   }, [events, activeDateStr]);
 
-  // Formatted selected day label, e.g. "Wednesday, Aug 31"
+  // Formatted selected day label, e.g. "Tue, Sep 1, 2026"
   const selectedDayLabel = useMemo(() => {
     return activeDate.toLocaleDateString("en-US", {
-      weekday: "long",
+      weekday: "short",
       month: "short",
       day: "numeric",
+      year: "numeric",
     });
   }, [activeDate]);
 
@@ -231,6 +234,15 @@ export const CalendarScreen: React.FC = () => {
   const handleDeleteEvent = (eventId: string) => {
     setEvents((prev) => prev.filter((e) => e.id !== eventId));
     setToastMessage("Event removed from schedule");
+  };
+
+  const handleAddEvent = (newEvent: CalendarEvent) => {
+    setEvents((prev) => [...prev, newEvent]);
+    // Switch to the day of the new event so the user sees it immediately
+    const [y, m, d] = newEvent.date.split("-").map(Number);
+    setActiveDate(new Date(y, m - 1, d));
+    setViewMode("week");
+    setToastMessage(`"${newEvent.title}" added to your calendar`);
   };
 
   return (
@@ -259,83 +271,84 @@ export const CalendarScreen: React.FC = () => {
         <div className="px-4 pt-2 pb-10 space-y-6 max-w-lg mx-auto">
           {/* 3. Toolbar & View Toggle */}
           <div className="bg-white rounded-3xl border border-slate-100/80 p-3.5 sm:p-4 shadow-xs space-y-3.5">
-            {/* Top row: Nav arrows, date label, and Today button */}
+            {/* Top row: View toggle on left, Today + Nav arrows on right */}
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5">
+              {/* 2-Segment View Mode Toggle (Week / Month) */}
+              <div
+                className="flex items-center p-1 rounded-2xl bg-slate-100/90 border border-slate-200/50"
+                role="tablist"
+                aria-label="Calendar view mode"
+              >
                 <button
                   type="button"
-                  onClick={handlePrev}
-                  className="size-8 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-center text-slate-600 hover:bg-slate-100 active:scale-95 transition-all cursor-pointer"
-                  aria-label="Previous period"
+                  role="tab"
+                  aria-selected={viewMode === "week"}
+                  onClick={() => setViewMode("week")}
+                  className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    viewMode === "week"
+                      ? "bg-white text-emerald-600 shadow-xs"
+                      : "text-slate-500 hover:text-slate-800"
+                  }`}
                 >
-                  <ChevronLeft className="size-4" />
+                  Week
                 </button>
                 <button
                   type="button"
-                  onClick={handleNext}
-                  className="size-8 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-center text-slate-600 hover:bg-slate-100 active:scale-95 transition-all cursor-pointer"
-                  aria-label="Next period"
+                  role="tab"
+                  aria-selected={viewMode === "month"}
+                  onClick={() => setViewMode("month")}
+                  className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    viewMode === "month"
+                      ? "bg-white text-emerald-600 shadow-xs"
+                      : "text-slate-500 hover:text-slate-800"
+                  }`}
                 >
-                  <ChevronRight className="size-4" />
+                  Month
                 </button>
-                <span className="text-xs sm:text-sm font-extrabold text-slate-800 ml-1">
-                  {dateHeaderLabel}
-                </span>
               </div>
 
+              {/* In Month view, show current Month Year label */}
+              {viewMode === "month" && (
+                <span className="text-xs font-extrabold text-slate-800 truncate px-1">
+                  {dateHeaderLabel}
+                </span>
+              )}
+
+              {/* Today button + Nav arrows cluster */}
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={handleToday}
-                  className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all active:scale-95 cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 text-xs font-extrabold border border-slate-200/80 shadow-2xs transition-all active:scale-95 cursor-pointer"
                 >
                   Today
                 </button>
-
-                {/* 2-Segment View Mode Toggle (Week / Month) */}
-                <div
-                  className="flex items-center p-0.5 rounded-xl bg-slate-100 border border-slate-200/60"
-                  role="tablist"
-                  aria-label="Calendar view mode"
+                <button
+                  type="button"
+                  onClick={handlePrev}
+                  className="size-8 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex items-center justify-center text-slate-700 hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
+                  aria-label="Previous period"
                 >
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={viewMode === "week"}
-                    onClick={() => setViewMode("week")}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      viewMode === "week"
-                        ? "bg-white text-emerald-700 shadow-2xs"
-                        : "text-slate-500 hover:text-slate-800"
-                    }`}
-                  >
-                    Week
-                  </button>
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={viewMode === "month"}
-                    onClick={() => setViewMode("month")}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      viewMode === "month"
-                        ? "bg-white text-emerald-700 shadow-2xs"
-                        : "text-slate-500 hover:text-slate-800"
-                    }`}
-                  >
-                    Month
-                  </button>
-                </div>
+                  <ChevronLeft className="size-4 stroke-[2.5]" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="size-8 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex items-center justify-center text-slate-700 hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
+                  aria-label="Next period"
+                >
+                  <ChevronRight className="size-4 stroke-[2.5]" />
+                </button>
               </div>
             </div>
 
-            {/* 4. Week View: Horizontal day-tab strip (Mon-Sun) */}
+            {/* 4. Week View: Horizontal day strip (Mon-Sun) inside bordered grid */}
             {viewMode === "week" && (
-              <div className="grid grid-cols-7 gap-1 pt-1">
+              <div className="grid grid-cols-7 border border-slate-200/70 rounded-2xl overflow-hidden divide-x divide-slate-100 bg-white">
                 {weekDays.map((d, index) => {
                   const dateStr = formatLocalDate(d);
                   const isSelected = dateStr === activeDateStr;
-                  const isToday = dateStr === egyptNow.dateStr;
-                  const dayName = d.toLocaleDateString("en-US", { weekday: "narrow" });
+                  const dayName = d.toLocaleDateString("en-US", { weekday: "short" });
                   const dayNumber = d.getDate();
                   const hasEvents = events.some((e) => e.date === dateStr);
 
@@ -344,30 +357,28 @@ export const CalendarScreen: React.FC = () => {
                       key={index}
                       type="button"
                       onClick={() => setActiveDate(d)}
-                      className={`flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all cursor-pointer relative ${
+                      className={`flex flex-col items-center justify-center py-2.5 px-0.5 transition-all cursor-pointer relative ${
                         isSelected
-                          ? "bg-emerald-600 text-white shadow-xs font-bold"
-                          : isToday
-                          ? "bg-emerald-50 text-emerald-800 border border-emerald-200/80"
-                          : "hover:bg-slate-50 text-slate-700"
+                          ? "bg-emerald-100/70 text-slate-900 font-extrabold"
+                          : "hover:bg-slate-50/80 text-slate-800 font-bold"
                       }`}
                     >
                       <span
-                        className={`text-[10px] font-semibold tracking-wider ${
-                          isSelected ? "text-emerald-100" : "text-slate-400"
+                        className={`text-[11px] font-semibold ${
+                          isSelected ? "text-slate-700" : "text-slate-500"
                         }`}
                       >
                         {dayName}
                       </span>
                       <span className="text-sm font-black mt-0.5">{dayNumber}</span>
 
-                      {/* Small dot indicator under days with scheduled events */}
+                      {/* Dot indicator under days with scheduled events */}
                       <span
                         className={`size-1.5 rounded-full mt-1 transition-colors ${
                           hasEvents
                             ? isSelected
-                              ? "bg-white"
-                              : "bg-emerald-500"
+                              ? "bg-emerald-700"
+                              : "bg-emerald-600"
                             : "bg-transparent"
                         }`}
                       />
@@ -426,38 +437,29 @@ export const CalendarScreen: React.FC = () => {
           </div>
 
           {/* 6. Agenda List for the Selected Day */}
-          <section aria-label="Day Agenda" className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-extrabold text-slate-900">
-                  {selectedDayLabel}
-                </h3>
-                <p className="text-xs text-slate-500 font-medium">
-                  {selectedDayEvents.length === 1
-                    ? "1 scheduled event"
-                    : `${selectedDayEvents.length} scheduled events`}
-                </p>
-              </div>
-
-              {/* 7. "Add to calendar" button stub */}
-              <button
-                type="button"
-                onClick={() => setToastMessage("Add event coming soon")}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold shadow-2xs active:scale-95 transition-all cursor-pointer"
-              >
-                <Plus className="size-3.5 text-emerald-600" />
-                <span>Add to calendar</span>
-              </button>
+          <section aria-label="Day Agenda" className="space-y-3.5">
+            {/* Header: Date with Today prefix on left, events count on right */}
+            <div className="flex items-center justify-between px-0.5">
+              <h3 className="text-sm font-black text-slate-900 tracking-tight">
+                {activeDateStr === egyptNow.dateStr ? "Today · " : ""}
+                {selectedDayLabel}
+              </h3>
+              <span className="text-xs font-bold text-emerald-600">
+                {selectedDayEvents.length === 1
+                  ? "1 event"
+                  : `${selectedDayEvents.length} events`}
+              </span>
             </div>
 
             {selectedDayEvents.length > 0 ? (
-              <div className="space-y-2.5">
-                {selectedDayEvents.map((evt) => (
+              <div className="space-y-3">
+                {selectedDayEvents.map((evt, idx) => (
                   <EventCard
                     key={evt.id}
                     event={evt}
                     now={currentTime}
                     onSelect={handleEventSelect}
+                    isLast={idx === selectedDayEvents.length - 1}
                   />
                 ))}
               </div>
@@ -472,6 +474,23 @@ export const CalendarScreen: React.FC = () => {
                 </p>
               </div>
             )}
+
+            {/* 7. "Add to calendar" card button — opens AddEventSheet */}
+            <button
+              type="button"
+              onClick={() => setIsAddEventOpen(true)}
+              className="w-full bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 flex items-center justify-between shadow-2xs hover:shadow-xs active:scale-[0.99] transition-all cursor-pointer group"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="size-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                  <Plus className="size-4 stroke-[2.5]" />
+                </div>
+                <span className="text-xs font-bold text-emerald-700 group-hover:text-emerald-800">
+                  Add to calendar
+                </span>
+              </div>
+              <ChevronRight className="size-4 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all" />
+            </button>
           </section>
 
           {/* 8. Study Goal Progress (Exact reuse of mobile WeeklyGoalCard ring) */}
@@ -513,6 +532,14 @@ export const CalendarScreen: React.FC = () => {
           setSelectedEvent(null);
         }}
         onDelete={handleDeleteEvent}
+      />
+
+      {/* Add Event BottomSheet */}
+      <AddEventSheet
+        isOpen={isAddEventOpen}
+        onClose={() => setIsAddEventOpen(false)}
+        defaultDate={activeDateStr}
+        onAddEvent={handleAddEvent}
       />
 
       {/* Feedback Toast Notification */}

@@ -90,11 +90,11 @@ export const FeaturedPathCard: React.FC<FeaturedPathCardProps> = ({
           <button
             type="button"
             onClick={onExplore}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white text-emerald-950 hover:bg-emerald-50 text-xs font-extrabold shadow-sm transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white text-emerald-950 hover:bg-emerald-50 text-xs font-extrabold shadow-sm transition-all cursor-pointer"
           >
-            <FileText className="w-3.5 h-3.5 text-emerald-800" />
-            <span>View study resources</span>
-            <ArrowRight className="w-3.5 h-3.5 stroke-[2.2]" />
+            <FileText className="w-6 h-6 text-emerald-800" />
+            <span className="text-xs">View study resources</span>
+            <ArrowRight className="w-6 h-6 stroke-[2.2]" />
           </button>
 
           <button

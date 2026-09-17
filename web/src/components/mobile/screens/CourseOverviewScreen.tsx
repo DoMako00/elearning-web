@@ -332,7 +332,8 @@ export const CourseOverviewScreen: React.FC = () => {
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            Discussion ({discussionPosts.length})
+            Discussion 
+            {/* ({discussionPosts.length}) */}
           </button>
         </div>
 

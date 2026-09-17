@@ -13,6 +13,7 @@ import {
   BarChart3,
   Cpu,
   Send,
+  TrendingUp,
 } from "lucide-react";
 import { TopAppBar } from "../TopAppBar";
 import { useScreenStack } from "../ScreenStack";
@@ -177,6 +178,25 @@ export const CommunityScreen: React.FC = () => {
             );
             showToast("Reply posted");
           }}
+        />
+      ),
+    });
+  };
+
+  // Navigate to Topic's Related Discussions List Screen
+  const handleOpenTopicDiscussions = (topic: (typeof INITIAL_TRENDING_TOPICS)[0]) => {
+    push({
+      id: `community-topic-${topic.id}`,
+      title: topic.title,
+      tabRoot: "settings",
+      variant: "detail",
+      backLabel: "Community",
+      component: (
+        <TopicDiscussionsListSubScreen
+          topic={topic}
+          allDiscussions={discussions}
+          onOpenDiscussion={handleOpenDiscussionDetail}
+          onCreateThread={handleOpenCreateThread}
         />
       ),
     });
@@ -393,8 +413,7 @@ export const CommunityScreen: React.FC = () => {
                       </div>
                     }
                     onClick={() => {
-                      setSearchQuery(topic.title);
-                      showToast(`Filtered by ${topic.title}`);
+                      handleOpenTopicDiscussions(topic);
                     }}
                   />
                 );
@@ -896,6 +915,229 @@ export const MentorProfileSubScreen: React.FC<{
             <MessageSquare className="w-4 h-4" />
             <span>Message {mentor.name.split(" ")[0]}</span>
           </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Sub-screen 5: Topic Discussions List Screen (Opens when tapping a Trending Topic)
+export const TopicDiscussionsListSubScreen: React.FC<{
+  topic: (typeof INITIAL_TRENDING_TOPICS)[0];
+  allDiscussions: DiscussionPost[];
+  onOpenDiscussion: (post: DiscussionPost) => void;
+  onCreateThread: () => void;
+}> = ({ topic, allDiscussions, onOpenDiscussion, onCreateThread }) => {
+  const { pop } = useScreenStack();
+  const [localSearch, setLocalSearch] = useState("");
+
+  // Map icons
+  const renderTopicIcon = (iconName: string) => {
+    switch (iconName) {
+      case "layout":
+        return <Layout className="w-5 h-5 text-purple-600" />;
+      case "chart":
+        return <BarChart3 className="w-5 h-5 text-blue-600" />;
+      case "nextjs":
+        return <Cpu className="w-5 h-5 text-indigo-600" />;
+      case "atom":
+      default:
+        return <Atom className="w-5 h-5 text-emerald-600" />;
+    }
+  };
+
+  const iconBg =
+    topic.category === "Design"
+      ? "bg-purple-50"
+      : topic.category === "Data Science"
+      ? "bg-blue-50"
+      : "bg-emerald-50";
+
+  // Filter related discussions based on topic category and keywords
+  const relatedDiscussions = useMemo(() => {
+    const topicKeywords = topic.title
+      .toLowerCase()
+      .replace(/[^a-z0-9 ]/g, " ")
+      .split(" ")
+      .filter((w) => w.length > 2 && !["the", "and", "for", "with", "in"].includes(w));
+
+    return allDiscussions.filter((disc) => {
+      // Search inside the topic list
+      if (localSearch.trim()) {
+        const q = localSearch.toLowerCase();
+        const matchesSearch =
+          disc.title.toLowerCase().includes(q) ||
+          disc.content?.toLowerCase().includes(q) ||
+          disc.author.name.toLowerCase().includes(q);
+        if (!matchesSearch) return false;
+      }
+
+      // Check direct category match
+      const categoryMatch =
+        disc.category.label.toLowerCase() === topic.category.toLowerCase() ||
+        disc.category.key.toLowerCase() === topic.category.toLowerCase().replace(/\s+/g, "");
+
+      // Check title/content keyword match
+      const discText = (disc.title + " " + (disc.content || "")).toLowerCase();
+      const keywordMatch = topicKeywords.some((kw) => discText.includes(kw));
+
+      return categoryMatch || keywordMatch;
+    });
+  }, [allDiscussions, topic, localSearch]);
+
+  return (
+    <div className="flex-1 flex flex-col min-h-0 w-full bg-slate-50/50">
+      <TopAppBar
+        variant="detail"
+        title={topic.title}
+        backLabel="Community"
+        onBack={pop}
+      />
+
+      {/* Main scrollable list */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-lg mx-auto w-full pb-24">
+        {/* Topic Banner Header */}
+        <div className="bg-white rounded-3xl border border-slate-100 p-4 sm:p-5 shadow-2xs space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`w-11 h-11 rounded-2xl ${iconBg} flex items-center justify-center shrink-0 shadow-2xs`}>
+                {renderTopicIcon(topic.topicIcon)}
+              </div>
+              <div>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 mb-1">
+                  <TrendingUp className="w-3 h-3" />
+                  Trending Topic
+                </span>
+                <h1 className="text-base sm:text-lg font-extrabold text-slate-900 leading-tight">
+                  {topic.title}
+                </h1>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500 font-medium">
+            <span>Category: <strong className="text-slate-800">{topic.category}</strong></span>
+            <div className="flex items-center gap-1.5 text-slate-500">
+              <MessageSquare className="w-3.5 h-3.5 text-slate-400" />
+              <span>{topic.repliesCount} total replies</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Local search & Create discussion bar */}
+        <div className="flex items-center gap-2">
+          <div className="flex-1 min-w-0">
+            <MobileSearchBar
+              value={localSearch}
+              onChange={setLocalSearch}
+              placeholder={`Search in ${topic.title}...`}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={onCreateThread}
+            className="p-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-colors shrink-0 flex items-center gap-1 text-xs font-bold cursor-pointer"
+            title="Start discussion"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span className="hidden sm:inline">Ask</span>
+          </button>
+        </div>
+
+        {/* Discussions List */}
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Discussions ({relatedDiscussions.length})
+            </h2>
+            <span className="text-[11px] text-slate-400 font-medium">Tap to open thread</span>
+          </div>
+
+          {relatedDiscussions.length > 0 ? (
+            relatedDiscussions.map((disc) => {
+              const badgeColorClass =
+                disc.category.label === "Design"
+                  ? "bg-purple-50 text-purple-700 border-purple-200"
+                  : disc.category.label === "Data Science"
+                  ? "bg-blue-50 text-blue-700 border-blue-200"
+                  : "bg-emerald-50 text-emerald-700 border-emerald-200";
+
+              return (
+                <div
+                  key={disc.id}
+                  onClick={() => onOpenDiscussion(disc)}
+                  className="p-3.5 bg-white rounded-2xl border border-slate-100 shadow-2xs hover:border-emerald-300 hover:shadow-xs transition-all cursor-pointer select-none space-y-2.5 active:scale-[0.99]"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <img
+                        src={disc.author.avatarUrl}
+                        alt={disc.author.name}
+                        className="w-7 h-7 rounded-full object-cover shrink-0 ring-1 ring-slate-100"
+                      />
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-900 truncate leading-tight">
+                          {disc.author.name}
+                        </p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">
+                          {disc.timeAgo}
+                        </p>
+                      </div>
+                    </div>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[9.5px] font-bold border shrink-0 ${badgeColorClass}`}
+                    >
+                      {disc.category.label}
+                    </span>
+                  </div>
+
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
+                    {disc.title}
+                  </h3>
+
+                  {disc.content && (
+                    <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                      {disc.content}
+                    </p>
+                  )}
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1.5 border-t border-slate-50">
+                    <div className="flex items-center gap-3">
+                      <span className="flex items-center gap-1 font-medium">
+                        <MessageSquare className="w-3.5 h-3.5 text-slate-400" />
+                        <span>{disc.repliesCount} replies</span>
+                      </span>
+                      <span className="flex items-center gap-1 font-medium">
+                        <Eye className="w-3.5 h-3.5 text-slate-400" />
+                        <span>{disc.viewsCount} views</span>
+                      </span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-emerald-600" />
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="p-8 bg-white rounded-3xl border border-slate-100 text-center space-y-3 shadow-2xs">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center">
+                <MessageSquare className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-slate-800">No discussions found</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  Be the first to start a conversation about {topic.title}!
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={onCreateThread}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-2xs transition-colors cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Start discussion</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
