@@ -8,9 +8,6 @@ import { HomePage } from "../pages/student/HomePage";
 import { LessonPlayerPage } from "../pages/student/LessonPlayerPage";
 import { MessagesPage } from "../pages/student/MessagesPage";
 import { MyCoursesPage } from "../pages/student/MyCoursesPage";
-// import { TestInactivityPromptPage } from "../pages/student/test-inactivity/TestInactivityPromptPage";
-// import { TestStreakPage } from "../pages/student/test-streak/TestStreakPage";
-// import { TestXPRewardsPage } from "../pages/student/test-xp/TestXPRewardsPage";
 import { CommunityPage } from "../pages/student/CommunityPage";
 import { InstructorProfilePage } from "../pages/student/InstructorProfilePage";
 import { ProfilePage } from "../pages/student/ProfilePage";
@@ -19,6 +16,19 @@ import "./student-dashboard.css";
 
 import { HelpCenterPage } from "../pages/student/HelpCenterPage";
 import { SettingsPage } from "../pages/student/SettingsPage";
+
+// Dev-only test pages — tree-shaken from production builds
+let devRoutes: RouteObject[] = [];
+if (import.meta.env.DEV) {
+  const { TestInactivityPromptPage } = await import("../pages/student/test-inactivity/TestInactivityPromptPage");
+  const { TestStreakPage } = await import("../pages/student/test-streak/TestStreakPage");
+  const { TestXPRewardsPage } = await import("../pages/student/test-xp/TestXPRewardsPage");
+  devRoutes = [
+    { path: "test-inactivity", element: <TestInactivityPromptPage /> },
+    { path: "test-streak", element: <TestStreakPage /> },
+    { path: "test-xp", element: <TestXPRewardsPage /> },
+  ];
+}
 
 export const studentRoutes: RouteObject[] = [
   {
@@ -43,10 +53,7 @@ export const studentRoutes: RouteObject[] = [
       { path: "community", element: <CommunityPage /> },
       { path: "help", element: <HelpCenterPage /> },
       { path: "settings", element: <SettingsPage /> },
-      // { path: "test-inactivity", element: <TestInactivityPromptPage /> },
-      // { path: "test-streak", element: <TestStreakPage /> },
-      // { path: "test-xp", element: <TestXPRewardsPage /> },
-      
+      ...devRoutes,
     ],
   },
 ];

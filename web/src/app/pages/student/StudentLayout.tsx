@@ -4,6 +4,7 @@ import { SearchBar } from "../../../components/ui/SearchBar";
 import { UserHeaderActions } from "../../../components/ui/UserHeaderActions";
 import { useIsMobile } from "../../../hooks/useIsMobile";
 import { MobileLayout } from "../../../components/mobile/MobileLayout";
+import { useGamification } from "../../providers/GamificationProvider";
 
 import { CourseOverviewScreen } from "../../../components/mobile/screens/CourseOverviewScreen";
 import { MobileLearningPathStubScreen } from "../../../components/mobile/screens/MobileLearningPathStubScreen";
@@ -13,6 +14,7 @@ export function StudentLayout() {
   const isMobile = useIsMobile();
   const location = useLocation();
   const navigate = useNavigate();
+  const { xpTotal } = useGamification();
   const pathname = location.pathname;
 
   // Render Mobile Layout when viewport matches <= 767px
@@ -211,6 +213,7 @@ export function StudentLayout() {
             <UserHeaderActions
               avatarSrc="https://i.pravatar.cc/112?img=47"
               avatarAlt="Juliana"
+              xp={xpTotal}
               hasNotification
               onViewProfile={() => navigate("/profile")}
               onMenuItemClick={(itemKey) => {

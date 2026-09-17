@@ -196,23 +196,22 @@ export function useBackgroundLearningTracker(
       handleInactivityMessage
     );
 
+    // SW registration is owned exclusively by main.tsx (production-only guard).
+    // Here we only *check* whether the SW is already active and, if so, wire
+    // up the sync message listener. We never call .register() from this hook.
     if (enableOfflineSync && 'serviceWorker' in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.register('/sw-learning-cache.js', {
-          scope: '/',
-        });
-        syncWorkerRef.current = registration.active;
-
-        navigator.serviceWorker.addEventListener('message', (event) => {
-          handleSyncMessage(event.data);
-        });
-
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          syncWorkerRef.current = navigator.serviceWorker.controller;
-        });
-      } catch (error) {
-        console.warn('[BackgroundTracker] Service Worker registration failed:', error);
+      const controller = navigator.serviceWorker.controller;
+      if (controller) {
+        syncWorkerRef.current = controller;
       }
+
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        handleSyncMessage(event.data);
+      });
+
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        syncWorkerRef.current = navigator.serviceWorker.controller;
+      });
     }
 
     const watchInitPayload: WatchTrackerInitPayload = {

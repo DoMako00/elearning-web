@@ -17,3 +17,18 @@ createRoot(rootElement).render(
     </AppProviders>
   </StrictMode>,
 );
+
+// Register the learning cache Service Worker in production builds only.
+// Skipped in dev to prevent stale-cache debugging issues.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/sw-learning-cache.js', { scope: '/' })
+      .then((reg) => {
+        console.info('[SW] Registered:', reg.scope);
+      })
+      .catch((err) => {
+        console.warn('[SW] Registration failed:', err);
+      });
+  });
+}

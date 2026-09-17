@@ -41,7 +41,20 @@ export function useInactivityPrompt(
     setState('countdown');
   }, []);
 
-  const closeModal = useCallback(() => {
+  /**
+   * User dismissed the modal ("End Session", Escape, backdrop click).
+   * Tracking stays paused — does NOT resume. The modal simply closes.
+   */
+  const handleDismiss = useCallback(() => {
+    setState('paused');
+  }, []);
+
+  /**
+   * Passive re-engagement: real user activity (mousemove / keydown / video play)
+   * resumed the worker's idle timer. No button required — silently returns to
+   * 'hidden' tracking state.
+   */
+  const handlePassiveResume = useCallback(() => {
     setState('hidden');
   }, []);
 
@@ -50,13 +63,16 @@ export function useInactivityPrompt(
     openModal();
   }, [openModal]);
 
-  /** Worker message handler */
+  /** Worker message handler — handles idle trigger and passive re-engagement */
   const handleWorkerMessage = useCallback((event: MessageEvent) => {
     const data = event.data as { type: string; payload?: unknown };
-    if (data.type === 'IDLE_TIMEOUT_TRIGGERED') {
+    if (data.type === 'IDLE_TIMEOUT_TRIGGERED' || data.type === 'INACTIVITY_IDLE_TIMEOUT') {
       openModal();
+    } else if (data.type === 'INACTIVITY_RESUME') {
+      // Worker detected real user activity while we were paused — resume silently
+      handlePassiveResume();
     }
-  }, [openModal]);
+  }, [openModal, handlePassiveResume]);
 
   // ---------------------------------------------------------------------------
   // Web Worker lifecycle
@@ -126,8 +142,9 @@ export function useInactivityPrompt(
     state,
     countdown,
     openModal,
-    closeModal,
+    handleDismiss,
     handleResume,
+    handlePassiveResume,
     handleWorkerMessage,
     triggerIdleTimeout,
   };

@@ -3,7 +3,7 @@
  * Handles XP tracking, level calculation, and reward modal state
  */
 
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef, useContext } from 'react';
 import type {
   UseXPRewardsOptions,
   UseXPRewardsReturn,
@@ -12,6 +12,7 @@ import type {
   XPConfig,
 } from './types';
 import { DEFAULT_XP_CONFIG } from './types';
+import { GamificationContext } from '../../../app/providers/GamificationProvider';
 
 function calculateLevelInfo(xp: number, config: XPConfig): LevelInfo {
   let level = 1;
@@ -63,8 +64,9 @@ function generateRewardData(
 }
 
 export function useXPRewards(options: UseXPRewardsOptions = {}): UseXPRewardsReturn {
+  const gamification = useContext(GamificationContext);
   const {
-    initialXP = 0,
+    initialXP = gamification ? gamification.xpTotal : 0,
     config = {},
     onLevelUp,
     onXPEarned,
@@ -75,11 +77,18 @@ export function useXPRewards(options: UseXPRewardsOptions = {}): UseXPRewardsRet
     [config]
   );
 
-  const [currentXP, setCurrentXP] = useState(initialXP);
+  const [currentXP, setCurrentXP] = useState(() => gamification ? gamification.xpTotal : initialXP);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [rewardData, setRewardData] = useState<XPRewardData | null>(null);
   const pendingRewardsRef = useRef<XPRewardData[]>([]);
   const isProcessingRef = useRef(false);
+
+  // Synchronize local currentXP when global xpTotal changes
+  useEffect(() => {
+    if (gamification && gamification.xpTotal !== currentXP) {
+      setCurrentXP(gamification.xpTotal);
+    }
+  }, [gamification?.xpTotal]);
 
   const levelInfo = useMemo(() => calculateLevelInfo(currentXP, mergedConfig), [currentXP, mergedConfig]);
 
@@ -112,6 +121,19 @@ export function useXPRewards(options: UseXPRewardsOptions = {}): UseXPRewardsRet
     (amount: number, reason: XPRewardData['reason'], customData?: Partial<XPRewardData>) => {
       if (amount <= 0) return;
 
+      if (gamification) {
+        const activityType =
+          reason === 'lesson_complete'
+            ? 'lesson_complete'
+            : reason === 'module_complete'
+            ? 'lesson_complete'
+            : reason === 'streak_bonus'
+            ? 'video_watch'
+            : 'quiz_complete';
+
+        gamification.addXP(amount, activityType, { reason, ...customData });
+      }
+
       setCurrentXP((prevXP) => {
         const newXP = prevXP + amount;
         const reward = generateRewardData(amount, reason, prevXP, newXP, mergedConfig, customData);
@@ -131,7 +153,7 @@ export function useXPRewards(options: UseXPRewardsOptions = {}): UseXPRewardsRet
         setTimeout(() => processRewardQueue(), 0);
       }
     },
-    [mergedConfig, onLevelUp, onXPEarned, processRewardQueue]
+    [gamification, mergedConfig, onLevelUp, onXPEarned, processRewardQueue]
   );
 
   const openRewardModal = useCallback((reward: XPRewardData) => {

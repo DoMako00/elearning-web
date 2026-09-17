@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useContext } from "react";
 import type {
   ProfileTabId,
   UserProfileData,
@@ -18,6 +18,7 @@ import {
   learningTrendsMock,
   profileAnalyticsStatsMock,
 } from "../data/profileMockData";
+import { GamificationContext } from "../../../app/providers/GamificationProvider";
 
 export interface UseProfileTabsReturn {
   activeTab: ProfileTabId;
@@ -43,11 +44,30 @@ export interface UseProfileTabsReturn {
 }
 
 export function useProfileTabs(defaultTab: ProfileTabId = "overview"): UseProfileTabsReturn {
+  const gamification = useContext(GamificationContext);
   const [activeTab, setActiveTab] = useState<ProfileTabId>(defaultTab);
   const [profile, setProfile] = useState<UserProfileData>(initialUserProfile);
   const [goals, setGoals] = useState(myGoalsMock);
   const [savedItems, setSavedItems] = useState<SavedItem[]>(savedItemsMock);
   const [savedCategory, setSavedCategory] = useState<SavedCategory | "all">("all");
+
+  const effectiveProfile = useMemo<UserProfileData>(() => {
+    if (!gamification) return profile;
+    return {
+      ...profile,
+      xp: gamification.xpTotal,
+    };
+  }, [profile, gamification?.xpTotal]);
+
+  const effectiveAnalyticsStats = useMemo(() => {
+    if (!gamification) return profileAnalyticsStatsMock;
+    return {
+      ...profileAnalyticsStatsMock,
+      weeklyStreakDays: gamification.currentStreak,
+      bestStreakRecord: gamification.longestStreak,
+      streakFreezePassesRemaining: gamification.streakFreezePasses,
+    };
+  }, [gamification?.currentStreak, gamification?.longestStreak, gamification?.streakFreezePasses]);
 
   const updateProfile = useCallback((updates: Partial<UserProfileData>) => {
     setProfile((prev) => ({ ...prev, ...updates }));
@@ -79,7 +99,7 @@ export function useProfileTabs(defaultTab: ProfileTabId = "overview"): UseProfil
   return {
     activeTab,
     setActiveTab,
-    profile,
+    profile: effectiveProfile,
     updateProfile,
     enrolledCourses: enrolledCoursesMock,
     goals,
@@ -96,6 +116,6 @@ export function useProfileTabs(defaultTab: ProfileTabId = "overview"): UseProfil
     toggleSaveItem,
     studyDistribution: studyDistributionMock,
     learningTrends: learningTrendsMock,
-    analyticsStats: profileAnalyticsStatsMock,
+    analyticsStats: effectiveAnalyticsStats,
   };
 }

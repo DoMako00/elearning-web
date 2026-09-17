@@ -8,7 +8,7 @@ export function TestInactivityPromptPage() {
     state,
     countdown,
     openModal,
-    closeModal,
+    handleDismiss,
     handleResume,
     triggerIdleTimeout,
   } = useInactivityPrompt({
@@ -163,7 +163,7 @@ export function TestInactivityPromptPage() {
 
       <InactivityModal
         isOpen={state === 'countdown'}
-        onClose={closeModal}
+        onClose={handleDismiss}
         onResume={handleResume}
         countdown={countdown}
         totalCountdown={10}

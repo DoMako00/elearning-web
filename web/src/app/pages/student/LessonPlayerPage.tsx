@@ -32,6 +32,9 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type Poin
 import { useNavigate, useParams } from "react-router-dom";
 import { useXPRewards, XPRewardModal } from "../../../components/ui/XPRewards";
 import type { XPRewardData } from "../../../components/ui/XPRewards";
+import { useInactivityPrompt, InactivityModal } from "../../../components/ui/InactivityPrompt";
+import { useBackgroundLearningTracker } from "../../../hooks/useBackgroundLearningTracker";
+import { useGamification } from "../../providers/GamificationProvider";
 import anatomyArt from "../../../Assets/image copy.webp";
 import { CourseDiscussionPanel } from "../../../components/learning-space/CourseDiscussionPanel";
 import { CourseResourcesPanel } from "../../../components/learning-space/CourseResourcesPanel";
@@ -146,7 +149,7 @@ function formatTime(seconds: number) {
   return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
-function LessonVideoPlayer() {
+function LessonVideoPlayer({ lessonId }: { lessonId: string }) {
   const playerRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hideTimer = useRef<number | null>(null);
@@ -159,6 +162,64 @@ function LessonVideoPlayer() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [captionsOn, setCaptionsOn] = useState(false);
   const [showControls, setShowControls] = useState(true);
+
+  // Background learning tracker — logs real watch-time into GamificationContext
+  const gamification = useGamification();
+  const { isTracking, flushProgress, pauseTracking } = useBackgroundLearningTracker({
+    lessonId,
+    userId: 'current-user',
+    videoElement: videoRef.current ?? null,
+    enableOfflineSync: false, // SW not deployed; disable to avoid 404 noise
+    idleThresholdMs: 5 * 60 * 1000,
+    batchIntervalMs: 30_000,
+  });
+
+  // Inactivity detection — lives here so it shares scope with videoRef, flushProgress, pauseTracking
+  const {
+    state: inactivityState,
+    countdown: inactivityCountdown,
+    handleResume: handleInactivityResume,
+    handleDismiss: handleInactivityDismissState,
+  } = useInactivityPrompt({
+    initialCountdown: 60,
+    onTimeout: () => {
+      console.log('[InactivityPrompt] Session timed out');
+    },
+    onResume: () => {
+      console.log('[InactivityPrompt] Session resumed');
+    },
+  });
+
+  /**
+   * "End Session" / Escape / backdrop click — dismiss WITHOUT confirming presence.
+   * - Sets inactivityState to 'paused' (tracking does not resume).
+   * - Explicitly pauses the video if it's playing.
+   * - Flushes accumulated progress to the worker so it isn't lost in memory.
+   */
+  const handleInactivityDismiss = useCallback(async () => {
+    handleInactivityDismissState();
+    if (videoRef.current && !videoRef.current.paused) {
+      videoRef.current.pause();
+    }
+    pauseTracking();
+    await flushProgress();
+  }, [handleInactivityDismissState, pauseTracking, flushProgress]);
+
+  // Log a video_watch activity event to gamification when actively tracking
+  useEffect(() => {
+    if (!isTracking) return;
+    const TICK_INTERVAL_MS = 60_000; // every minute of active watch time
+    const id = setInterval(() => {
+      const video = videoRef.current;
+      if (!video || video.paused) return;
+      gamification.logActivity({
+        type: 'video_watch',
+        xpAwarded: 0,
+        metadata: { durationMinutes: 1, lessonId },
+      });
+    }, TICK_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [isTracking, gamification, lessonId]);
 
   const revealControls = useCallback(() => {
     setShowControls(true);
@@ -300,101 +361,110 @@ function LessonVideoPlayer() {
   const controlsVisible = showControls || !isPlaying;
 
   return (
-    <article
-      className={`lesson-player${controlsVisible ? " is-controls-visible" : ""}`}
-      ref={playerRef}
-      tabIndex={0}
-      onMouseMove={revealControls}
-      onMouseLeave={() => isPlaying && setShowControls(false)}
-      onDoubleClick={(event) => {
-        if ((event.target as HTMLElement).closest("button, input, .lesson-player__timeline")) return;
-        void toggleFullscreen();
-      }}
-      onTouchEnd={handleTouchEnd}
-    >
-      <video
-        ref={videoRef}
-        className="lesson-player__video"
-        src={VIDEO_SRC}
-        poster={anatomyArt}
-        preload="metadata"
-        playsInline
-        onClick={togglePlay}
-      />
-      {!isPlaying ? (
-        <div className="lesson-player__overlay" aria-hidden="true">
-          <span>Introduction to Anatomy</span>
-          <small>Understanding the human body and basic anatomical terminology.</small>
-        </div>
-      ) : null}
-      {!isPlaying ? (
-        <button type="button" className="lesson-player__play-center" onClick={togglePlay} aria-label="Play lesson video">
-          <Play aria-hidden="true" />
-        </button>
-      ) : null}
-      {captionsOn ? (
-        <p className="lesson-player__captions">Anatomical terms describe location, direction, and body planes.</p>
-      ) : null}
-      <div className="lesson-player__controls">
-        <div
-          className="lesson-player__timeline"
-          role="slider"
-          aria-label="Lesson progress"
-          aria-valuemin={0}
-          aria-valuemax={Math.floor(duration)}
-          aria-valuenow={Math.floor(currentTime)}
-          tabIndex={0}
-          onPointerDown={seekFromPointer}
-        >
-          <span style={{ width: `${progress}%` }} />
-        </div>
-        <div className="lesson-player__bar">
-          <div className="lesson-player__cluster">
-            <button type="button" onClick={togglePlay} aria-label={isPlaying ? "Pause" : "Play"}>
-              {isPlaying ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
-            </button>
-            <button type="button" onClick={() => skip(-10)} aria-label="Skip back 10 seconds">
-              <RotateCcw aria-hidden="true" />
-            </button>
-            <button type="button" onClick={() => skip(10)} aria-label="Skip forward 10 seconds">
-              <RotateCw aria-hidden="true" />
-            </button>
-            <span className="lesson-player__volume">
-              <button type="button" onClick={toggleMute} aria-label={isMuted ? "Unmute" : "Mute"}>
-                {isMuted || volume === 0 ? <VolumeX aria-hidden="true" /> : <Volume2 aria-hidden="true" />}
+    <>
+      <article
+        className={`lesson-player${controlsVisible ? " is-controls-visible" : ""}`}
+        ref={playerRef}
+        tabIndex={0}
+        onMouseMove={revealControls}
+        onMouseLeave={() => isPlaying && setShowControls(false)}
+        onDoubleClick={(event) => {
+          if ((event.target as HTMLElement).closest("button, input, .lesson-player__timeline")) return;
+          void toggleFullscreen();
+        }}
+        onTouchEnd={handleTouchEnd}
+      >
+        <video
+          ref={videoRef}
+          className="lesson-player__video"
+          src={VIDEO_SRC}
+          poster={anatomyArt}
+          preload="metadata"
+          playsInline
+          onClick={togglePlay}
+        />
+        {!isPlaying ? (
+          <div className="lesson-player__overlay" aria-hidden="true">
+            <span>Introduction to Anatomy</span>
+            <small>Understanding the human body and basic anatomical terminology.</small>
+          </div>
+        ) : null}
+        {!isPlaying ? (
+          <button type="button" className="lesson-player__play-center" onClick={togglePlay} aria-label="Play lesson video">
+            <Play aria-hidden="true" />
+          </button>
+        ) : null}
+        {captionsOn ? (
+          <p className="lesson-player__captions">Anatomical terms describe location, direction, and body planes.</p>
+        ) : null}
+        <div className="lesson-player__controls">
+          <div
+            className="lesson-player__timeline"
+            role="slider"
+            aria-label="Lesson progress"
+            aria-valuemin={0}
+            aria-valuemax={Math.floor(duration)}
+            aria-valuenow={Math.floor(currentTime)}
+            tabIndex={0}
+            onPointerDown={seekFromPointer}
+          >
+            <span style={{ width: `${progress}%` }} />
+          </div>
+          <div className="lesson-player__bar">
+            <div className="lesson-player__cluster">
+              <button type="button" onClick={togglePlay} aria-label={isPlaying ? "Pause" : "Play"}>
+                {isPlaying ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
               </button>
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.05}
-                value={isMuted ? 0 : volume}
-                aria-label="Volume"
-                onChange={(event) => changeVolume(Number(event.target.value))}
-              />
-            </span>
-            <time>{formatTime(currentTime)} / {formatTime(duration || 19 * 60 + 45)}</time>
-          </div>
-          <div className="lesson-player__cluster">
-            <button
-              type="button"
-              className={captionsOn ? "is-active" : ""}
-              onClick={() => setCaptionsOn((on) => !on)}
-              aria-pressed={captionsOn}
-              aria-label="Closed captions"
-            >
-              <Captions aria-hidden="true" />
-            </button>
-            <button type="button" className="lesson-player__rate" onClick={cycleRate} aria-label={`Playback speed ${playbackRate}x`}>
-              {playbackRate}x
-            </button>
-            <button type="button" onClick={() => void toggleFullscreen()} aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}>
-              {isFullscreen ? <Minimize aria-hidden="true" /> : <Maximize aria-hidden="true" />}
-            </button>
+              <button type="button" onClick={() => skip(-10)} aria-label="Skip back 10 seconds">
+                <RotateCcw aria-hidden="true" />
+              </button>
+              <button type="button" onClick={() => skip(10)} aria-label="Skip forward 10 seconds">
+                <RotateCw aria-hidden="true" />
+              </button>
+              <span className="lesson-player__volume">
+                <button type="button" onClick={toggleMute} aria-label={isMuted ? "Unmute" : "Mute"}>
+                  {isMuted || volume === 0 ? <VolumeX aria-hidden="true" /> : <Volume2 aria-hidden="true" />}
+                </button>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={isMuted ? 0 : volume}
+                  aria-label="Volume"
+                  onChange={(event) => changeVolume(Number(event.target.value))}
+                />
+              </span>
+              <time>{formatTime(currentTime)} / {formatTime(duration || 19 * 60 + 45)}</time>
+            </div>
+            <div className="lesson-player__cluster">
+              <button
+                type="button"
+                className={captionsOn ? "is-active" : ""}
+                onClick={() => setCaptionsOn((on) => !on)}
+                aria-pressed={captionsOn}
+                aria-label="Closed captions"
+              >
+                <Captions aria-hidden="true" />
+              </button>
+              <button type="button" className="lesson-player__rate" onClick={cycleRate} aria-label={`Playback speed ${playbackRate}x`}>
+                {playbackRate}x
+              </button>
+              <button type="button" onClick={() => void toggleFullscreen()} aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}>
+                {isFullscreen ? <Minimize aria-hidden="true" /> : <Maximize aria-hidden="true" />}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </article>
+      </article>
+      <InactivityModal
+        isOpen={inactivityState === 'countdown'}
+        countdown={inactivityCountdown}
+        totalCountdown={60}
+        onResume={handleInactivityResume}
+        onClose={handleInactivityDismiss}
+      />
+    </>
   );
 }
 
@@ -497,7 +567,7 @@ export function LessonPlayerPage() {
     rewardData,
     closeRewardModal,
   } = useXPRewards({
-    initialXP: 1250,
+    // initialXP intentionally omitted — hook reads live value from GamificationContext
     onLevelUp: (level: number, reward: XPRewardData) => {
       console.log('🎉 Level Up!', { level, reward });
     },
@@ -505,6 +575,7 @@ export function LessonPlayerPage() {
       console.log('✨ XP Earned:', reward);
     },
   });
+
 
   const handleMarkComplete = () => {
     // Prevent marking complete if already completed (permanent completion)
@@ -582,7 +653,7 @@ export function LessonPlayerPage() {
 
       <div className="course-overview-layout">
         <div className={`course-overview-primary${activeTab === "overview" ? "" : " is-tab-expanded"}`}>
-          {activeTab === "overview" ? <LessonVideoPlayer /> : null}
+          {activeTab === "overview" ? <LessonVideoPlayer lessonId={lessonId} /> : null}
 
           <div className="course-overview-tabs" role="tablist" aria-label="Lesson sections">
             {TABS.map(({ id, label, icon: Icon }, index) => (

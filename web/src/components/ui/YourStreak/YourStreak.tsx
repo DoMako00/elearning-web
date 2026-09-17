@@ -1,13 +1,14 @@
-import { useId, useState } from "react";
+import { useId, useState, useContext } from "react";
 import { Check, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import fireAsset from "../../../Assets/fire.webp";
 import trophyAsset from "../../../Assets/trophy.webp";
+import { GamificationContext } from "../../../app/providers/GamificationProvider";
 import type { YourStreakProps } from "./your-streak.types";
 import "./YourStreak.css";
 
 export function YourStreak({
-  streakDays = 12,
+  streakDays,
   completedMilestones = 7,
   totalMilestones = 8,
   message = "Consistency is the key to mastery!",
@@ -17,8 +18,17 @@ export function YourStreak({
   const titleId = useId();
   const navigate = useNavigate();
   const [showTooltip, setShowTooltip] = useState(false);
+  const gamification = useContext(GamificationContext);
 
-  const safeStreakDays = Math.max(0, Math.floor(streakDays));
+  const effectiveStreakDays = streakDays !== undefined 
+    ? streakDays 
+    : gamification 
+    ? gamification.currentStreak 
+    : 5;
+
+  const freezePasses = gamification ? gamification.streakFreezePasses : 3;
+
+  const safeStreakDays = Math.max(0, Math.floor(effectiveStreakDays));
   const safeTotalMilestones = Math.max(1, Math.floor(totalMilestones));
   const safeCompletedMilestones = Math.min(
     safeTotalMilestones,
@@ -57,7 +67,7 @@ export function YourStreak({
                 <span>Streak Rules</span>
               </div>
               <p className="text-[11px] text-slate-200 leading-tight">
-                Study 5 more minutes today to maintain your {safeStreakDays}-day streak! 4 streak freezes remaining.
+                Study 5 more minutes today to maintain your {safeStreakDays}-day streak! {freezePasses} streak freeze{freezePasses !== 1 ? 's' : ''} remaining.
               </p>
               <div className="absolute -bottom-1.5 left-6 border-4 border-transparent border-t-slate-900" />
             </div>
