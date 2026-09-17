@@ -61,7 +61,7 @@ export async function runHttpSmokeSelfTest(): Promise<HttpSmokeSelfTestRunResult
     assertEqual(response.statusCode, 200, "Health status");
     assertEqual(response.body.status, "ok", "Health body status");
     assertEqual(response.body.service, "api", "Health service");
-    assertEqual(response.body.runtime, "http-skeleton", "Health runtime");
+    assertEqual(response.body.runtime, "http-api", "Health runtime");
     assertTruthy(response.headers["x-correlation-id"], "Health correlation header");
   }));
 
@@ -76,6 +76,17 @@ export async function runHttpSmokeSelfTest(): Promise<HttpSmokeSelfTestRunResult
     assertEqual(checks.auth, "not_configured", "Auth check");
   }));
 
+  cases.push(await recordCase("GET /v1/health compatibility alias remains public", async () => {
+    const response = await invoke("GET", "/v1/health", { authorization: "Bearer malformed.token.value" });
+    assertEqual(response.statusCode, 200, "Versioned health status");
+    assertEqual(response.body.status, "ok", "Versioned health body status");
+  }));
+
+  cases.push(await recordCase("GET /v1/ready compatibility alias remains public", async () => {
+    const response = await invoke("GET", "/v1/ready", { authorization: "Bearer malformed.token.value" });
+    assertEqual(response.statusCode, 200, "Versioned readiness status");
+    assertEqual(response.body.status, "ready", "Versioned readiness body status");
+  }));
   cases.push(await recordCase("GET /v1/admin/curriculum/levels returns an empty mock list", async () => {
     const response = await invoke("GET", "/v1/admin/curriculum/levels");
     assertEqual(response.statusCode, 200, "Curriculum levels status");
@@ -144,10 +155,10 @@ export async function runHttpSmokeSelfTest(): Promise<HttpSmokeSelfTestRunResult
 
   cases.push(await recordCase("default mock runtime never reports an Admin M2 write success", async () => {
     const brandId = "10000000-0000-4000-8000-000000000001";
-    const url = `/v1/admin/brands/${brandId}/instructors/global`;
-    const unauthenticated = await invoke("POST", url, {}, JSON.stringify({ displayName: "No Auth", reason: "Smoke test." }));
+    const url = `/v1/admin/brands/${brandId}/instructors`;
+    const unauthenticated = await invoke("POST", url, {}, JSON.stringify({ instructorId: "10000000-0000-4000-8000-000000000002", reason: "Smoke test." }));
     assertEqual(unauthenticated.statusCode, 401, "Unauthenticated write status");
-    const disabled = await invoke("POST", url, { authorization: "Bearer mock-auth-medway-admin-001", "idempotency-key": "smoke-write-disabled-001" }, JSON.stringify({ displayName: "No Persistence", reason: "Smoke test." }));
+    const disabled = await invoke("POST", url, { authorization: "Bearer mock-auth-medway-admin-001", "idempotency-key": "smoke-write-disabled-001" }, JSON.stringify({ instructorId: "10000000-0000-4000-8000-000000000002", reason: "Smoke test." }));
     assertEqual(disabled.statusCode, 503, "Mock command source must fail closed");
     assertEqual(disabled.body.ok, false, "Mock command source must not report success");
   }));
