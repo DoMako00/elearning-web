@@ -10,6 +10,7 @@ type Resource = DeliveryResource & { kind: ResourceKind };
 type Lesson = DeliveryLesson & { resources: Resource[] };
 type Chapter = DeliveryChapter & { lessons: Lesson[] };
 const labels: Record<ResourceKind, string> = { video: "Video / session metadata", document: "Document / PDF", quiz: "Quiz / exam", file: "File", link: "Link metadata" };
+const clientRequestId = () => typeof crypto !== "undefined" && typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `admin-course-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 export function AdminCourseBuilderPage() {
   const { courseId } = useParams();
@@ -84,7 +85,7 @@ export function AdminCourseBuilderPage() {
     const path=scope;
     const body={...fields,reason:reason.trim()};
     const signature=JSON.stringify({path,entity,body});
-    if(pending.current?.signature!==signature)pending.current={signature,key:crypto.randomUUID()};
+    if(pending.current?.signature!==signature)pending.current={signature,key:clientRequestId()};
     busy.current=true;setSaving(true);setError("");setNotice("");
     try {
       const result=await adminDeliveryRequest<{recordId:string}>(path+"/"+entity,{body,key:pending.current.key,method:"POST"});

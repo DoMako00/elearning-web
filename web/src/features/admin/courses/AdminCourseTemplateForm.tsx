@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { adminDeliveryRequest, catalogueBrandAccessPath, catalogueInstitutionsPath, deliveryCoursePath, type CatalogueBrand, type CatalogueInstitution, type DeliveryCourse } from '../api/adminDelivery.http';
 
+const clientRequestId = () => typeof crypto !== "undefined" && typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `admin-course-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
 /** Uses the existing admin session and writes a draft commercial course only. */
 export function AdminCourseTemplateForm({ course, initialBrandId = '', initialInstitutionId = '', initialLevelId = '', initialSemesterId = '', initialModuleId = '', initialCode = '', initialTitle = '', initialCataloguePresentation = 'module_based', onSaved }: {
   course?: DeliveryCourse;
@@ -76,7 +78,7 @@ export function AdminCourseTemplateForm({ course, initialBrandId = '', initialIn
     const path=course?deliveryCoursePath(brandId,course.id):`/v1/admin/brands/${encodeURIComponent(brandId)}/courses`;
     const body={title:title.trim(),classification,cataloguePresentation,academicInstitutionId:institution.id,academicModuleId:classification==='academic_module_offering'?module!.id:null,reason:reason.trim(),...(course?{expectedVersion:course.version}:{code:code.trim()})};
     const signature=JSON.stringify({path,body});
-    if(pending.current?.signature!==signature)pending.current={signature,key:crypto.randomUUID()};
+    if(pending.current?.signature!==signature)pending.current={signature,key:clientRequestId()};
     busy.current=true;setSaving(true);setError('');
     try{
       const result=await adminDeliveryRequest<{brandId:string;courseId:string}>(path,{body,key:pending.current.key,method:course?'PATCH':'POST'});

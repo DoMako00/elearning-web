@@ -204,7 +204,7 @@ export function AdminInstructorsPage() {
     <div className={`admin-instructors-workspace${detailOpen ? " has-detail" : ""}`}>
       <article className="admin-instructor-directory">
         <header className="admin-instructor-directory__header">
-          <div><h2>Global Instructor Directory</h2><span>{instructors.length} instructors</span></div>
+          <div><h2>Global Instructor Directory</h2><span>{instructors.length} instructors</span><span className="admin-workspace-preview">Local preview data</span></div>
           <div>
             {selectedRows.size > 0 && <span className="admin-instructor-selection" role="status"><Check aria-hidden="true" />{selectedRows.size} selected</span>}
             <button className="admin-instructor-button is-secondary" type="button" onClick={() => announce("Export is unavailable in the frontend preview.")}><Download aria-hidden="true" />Export</button>

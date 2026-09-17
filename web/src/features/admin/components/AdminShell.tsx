@@ -4,6 +4,7 @@ import { AdminSidebar } from "./AdminSidebar";
 import { AdminTopbar } from "./AdminTopbar";
 import "../styles/admin.css";
 import "../styles/admin-curriculum.css";
+import "../styles/admin-polish.css";
 
 export function AdminShell({ children, brand, brandView, availableBrands, setBrandView }: { children: ReactNode; brand?: AdminBrandContext; brandView: AdminBrandView; availableBrands: readonly AdminBrandContext[]; setBrandView: (view: AdminBrandView) => void }) {
   const [collapsed, setCollapsed] = useState(false);
