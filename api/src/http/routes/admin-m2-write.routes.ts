@@ -6,9 +6,10 @@ import { requireAdminPermission } from "../../core/permissions";
 import type { AdminM2CommandExecutor } from "../../modules/admin/commands";
 import type { AdminModule,HttpJsonResponse,HttpRequestContext } from "../http-types";
 import { badRequestResponse,conflictResponse,forbiddenResponse,jsonResponse,methodNotAllowedResponse,notFoundResponse,serviceUnavailableResponse,unauthorizedResponse } from "../middleware/json-response";
+import { isPostgresUuid } from "../../core/validation/postgres-uuid";
 import { parseStrictBearerToken } from "../strict-bearer";
 
-const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 const IDEMPOTENCY=/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const MAX=32*1024;
 type Route={readonly method:"POST"|"PATCH";readonly name:"createInstructor"|"updateInstructor"|"setInstructorStatus"|"assignInstructorToBrand"|"setBrandInstructorStatus"|"createBrandCourse"|"updateBrandCourse"|"setBrandCourseStatus"|"assignInstructorToCourse"|"setCourseInstructorStatus";readonly fields:readonly string[];readonly brand:boolean;readonly create?:true;};
@@ -30,7 +31,7 @@ export const isAdminM2WritePath=(path:string)=>Boolean(match(path));
 async function body(request:IncomingMessage,c:string):Promise<Readonly<Record<string,unknown>>|HttpJsonResponse>{const chunks:Uint8Array[]=[];let size=0;try{for await(const chunk of request){const x=typeof chunk==="string"?Buffer.from(chunk):chunk;size+=x.byteLength;if(size>MAX)return badRequestResponse(c,"The request body is too large.");chunks.push(x)}}catch{return badRequestResponse(c,"The request body is invalid.")}if(!size)return badRequestResponse(c,"A JSON object body is required.");try{const value=JSON.parse(Buffer.concat(chunks).toString("utf8"));return value&&!Array.isArray(value)&&typeof value==="object"?value as Readonly<Record<string,unknown>>:badRequestResponse(c,"A JSON object body is required.")}catch{return badRequestResponse(c,"The request body must be valid JSON.")}}
 const isResponse=(x:Readonly<Record<string,unknown>>|HttpJsonResponse):x is HttpJsonResponse=>"statusCode"in x;
 function invalidBody(data:Readonly<Record<string,unknown>>,allowed:readonly string[],c:string):HttpJsonResponse|undefined{if(Object.keys(data).some(k=>!allowed.includes(k)))return badRequestResponse(c,"The request body contains an unsupported field.");if(typeof data.reason!=="string"||!data.reason.trim()||data.reason.length>500)return badRequestResponse(c,"A valid reason is required.");if(data.expectedVersion!==undefined&&(!Number.isSafeInteger(data.expectedVersion)||Number(data.expectedVersion)<1))return badRequestResponse(c,"The expectedVersion must be a positive integer.");return undefined;}
-const valid=(id:string|undefined)=>Boolean(id&&UUID.test(id));
+const valid=isPostgresUuid;
 function metadata(context:AdminRequestContext,reason:string,key:string,expected:unknown):AdminSensitiveCommandMetadata{return{platform:context.platform,correlationId:context.correlationId,reason,idempotencyKey:key,...(typeof expected==="number"?{expectedVersion:expected}:{})};}
 const courseErrors:Readonly<Record<string,string>>={
  brand_not_found:"Select an existing active commercial brand.", academic_institution_required:"Select an academic catalogue.",

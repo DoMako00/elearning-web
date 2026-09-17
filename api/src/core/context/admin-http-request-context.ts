@@ -3,10 +3,11 @@ import type { AuthIdentityAdapter } from "../auth";
 import type { BrandScope } from "../brand-scope";
 import { repositoryErr, repositoryOk, type RepositoryResult } from "../persistence";
 import type { M1AdminProfileReadRepository, M1EducationalBrandReadRepository } from "../repositories";
+import { isPostgresUuid } from "../validation/postgres-uuid";
 import type { AdminRequestContext } from "./admin-request-context";
 import type { AdminResolvedBrandContext, AdminResolvedPlatformContext } from "./platform-context";
 
-const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 
 export interface AdminHttpRequestContextInput {
   readonly requestId: string;
@@ -62,7 +63,7 @@ export class DefaultAdminHttpRequestContextResolver implements AdminHttpRequestC
   constructor(private readonly dependencies: AdminHttpRequestContextResolverDependencies) {}
 
   async resolve(input: AdminHttpRequestContextInput): Promise<RepositoryResult<AdminRequestContext>> {
-    if (!input.requestId.trim() || !input.correlationId.trim() || (input.requestedBrandId !== undefined && !uuid.test(input.requestedBrandId)) || (input.requestedBrandId && input.requestedBrandCode)) {
+    if (!input.requestId.trim() || !input.correlationId.trim() || (input.requestedBrandId !== undefined && !isPostgresUuid(input.requestedBrandId)) || (input.requestedBrandId && input.requestedBrandCode)) {
       return failure("invalid_input", "A valid request context is required.", input.correlationId);
     }
     const identity = await this.dependencies.authIdentityAdapter.verifyRequestAuth({ bearerToken: input.bearerToken, correlationId: input.correlationId });

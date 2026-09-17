@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { isPostgresUuid } from "../../../core/validation/postgres-uuid";
 import type { M2bDeliveryCommand, M2bDeliveryEntity, M2bFields, M2bRecord, M2bStructureCommandResult } from '../../../contracts/admin/m2b-course-delivery';
 import { validDeliveryFields } from '../../../core/validation/admin-m2b-validation';
 import type {
@@ -61,7 +62,7 @@ export interface AdminM2CommandExecutor {
 type TargetType = AdminM2ActionEvidence["targetType"];
 type Mutation<T> = { readonly data: T; readonly targetId: string; readonly before: Readonly<Record<string, unknown>> | null; readonly after: Readonly<Record<string, unknown>>; readonly mutated: boolean };
 type CommandEnvelope = { readonly metadata: CreateInstructorCommand["metadata"] };
-const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 const MAX_SAFE_JSON_BYTES = 16 * 1024;
 
 function canonicalize(value: unknown): unknown {
@@ -123,8 +124,8 @@ export class TransactionalAdminM2CommandExecutor implements AdminM2CommandExecut
       permission:'admin.platform.admin.write', scopeKind:'brand', targetType:entity==='chapters'?'course_chapter':entity==='lessons'?'course_lesson':'lesson_resource',
       resultKeys:['brandId','courseId','entity','recordId'],
       fingerprintData:{brandId:command.brandId,courseId:command.courseId,recordId:command.recordId??null,entity,fields},
-      validate:()=>uuid.test(command.brandId)&&uuid.test(command.courseId)&&command.brandId===context.brand.brandId
-        && (update ? Boolean(command.recordId&&uuid.test(command.recordId)&&Number.isSafeInteger(command.metadata.expectedVersion)&&command.metadata.expectedVersion!>0) : command.recordId===undefined)
+      validate:()=>isPostgresUuid(command.brandId)&&isPostgresUuid(command.courseId)&&command.brandId===context.brand.brandId
+        && (update ? Boolean(command.recordId&&isPostgresUuid(command.recordId)&&Number.isSafeInteger(command.metadata.expectedVersion)&&command.metadata.expectedVersion!>0) : command.recordId===undefined)
         && validDeliveryFields(entity,fields,update) ? ok(undefined) : invalid(),
       mutate:async transaction=>{
         const scope={brandId:command.brandId,brandCourseId:command.courseId};
@@ -155,7 +156,7 @@ export class TransactionalAdminM2CommandExecutor implements AdminM2CommandExecut
     const metadata = validateSensitiveCommandMetadata(command.metadata); if (!metadata.ok) return metadata;
     if (command.metadata.correlationId !== context.correlationId) return fail(adminCoreError("validation_failed", "The command correlation does not match the trusted request context.", context.correlationId));
     const brand = validateCommandBrand(command.metadata, context); if (!brand.ok) return brand;
-    if (!uuid.test(context.brand.brandId) || !uuid.test(context.adminUser.adminProfileId) || context.adminUser.adminProfileId !== context.adminUser.adminUserId) return fail(adminCoreError("unauthenticated", "A trusted Admin profile and brand identity are required.", context.correlationId));
+    if (!isPostgresUuid(context.brand.brandId) || !isPostgresUuid(context.adminUser.adminProfileId) || context.adminUser.adminProfileId !== context.adminUser.adminUserId) return fail(adminCoreError("unauthenticated", "A trusted Admin profile and brand identity are required.", context.correlationId));
     if (context.correlationId.length > 128 || (context.requestId?.length ?? 0) > 128 || trim(command.metadata.idempotencyKey).length > 128 || (command.metadata.policySetId?.length ?? 0) > 128 || (expectedVersion(command) !== undefined && (!Number.isSafeInteger(expectedVersion(command)) || expectedVersion(command)! < 1))) return fail(adminCoreError("validation_failed", "The administrative command metadata is invalid.", context.correlationId));
     const syntactic = validate(); if (!syntactic.ok) return syntactic;
     const permissions = await this.permissionResolver.resolvePermissions(context);
