@@ -12,6 +12,14 @@ export interface StudentCourseReadModel {
   find(input: StudentCourseReadInput & { readonly courseId: string }): Promise<RepositoryResult<StudentCourseDetail>>;
 }
 
+interface StudentCourseScope extends Record<string, unknown> {
+  readonly brand: StudentCommercialBrand;
+  readonly brandId: string;
+  readonly institutionId: string;
+  readonly levelId: string;
+  readonly semesterId: string;
+}
+
 // These joins derive identity and placement from private records. Client filters
 // select among eligible memberships; they never supply student or placement IDs.
 const scopeFrom = `from app.app_users su
@@ -40,9 +48,8 @@ const courseWhere = `c.status = 'published' and c.classification = 'academic_mod
   and m.review_status in ('unreviewed', 'approved')
   and (l.level_number <> 1 or s.semester_number <> 1
     or c.catalogue_presentation = case b.code when 'nexus' then 'module_based' else 'subject_based' end)
-  and exists (select 1 ${scopeFrom} where ${scopeWhere}
-    and sap.brand_id = c.brand_id and sap.academic_institution_id = i.id
-    and sap.academic_level_id = l.id and sap.academic_semester_id = s.id)`;
+  and c.brand_id = $1::uuid and c.academic_institution_id = $2::uuid
+  and l.id = $3::uuid and s.id = $4::uuid`;
 const chaptersFrom = `from app.course_chapters ch
   where ch.brand_course_id = c.id and ch.brand_id = c.brand_id and ch.status = 'published'`;
 const lessonsFrom = `from app.course_lessons ls
@@ -81,14 +88,17 @@ const detailJson = `${courseJson} || jsonb_build_object(
 export class PostgresStudentCourseReadModel implements StudentCourseReadModel {
   constructor(private readonly transport: ReadQueryTransport) {}
 
-  private async scope(input: StudentCourseReadInput): Promise<RepositoryResult<StudentCommercialBrand>> {
-    const rows = (await this.transport.query<{ brand: StudentCommercialBrand }>({
-      label: "student.course-scope", text: `select sb.code as brand ${scopeFrom} where ${scopeWhere} order by sb.code limit 2`,
+  private async scope(input: StudentCourseReadInput): Promise<RepositoryResult<StudentCourseScope>> {
+    const rows = (await this.transport.query<StudentCourseScope>({
+      label: "student.course-scope",
+      text: `select sb.code as brand, sap.brand_id as "brandId", sap.academic_institution_id as "institutionId",
+          sap.academic_level_id as "levelId", sap.academic_semester_id as "semesterId"
+        ${scopeFrom} where ${scopeWhere} order by sb.code limit 2`,
       values: [input.subject, input.brand ?? ""],
     })).rows;
     if (!rows.length) return repositoryErr({ code: "permission_denied", message: "An active student academic placement is required.", correlationId: input.correlationId });
     if (rows.length > 1) return repositoryErr({ code: "invalid_input", message: "Select a commercial brand for this student membership.", correlationId: input.correlationId });
-    return repositoryOk(rows[0].brand);
+    return repositoryOk(rows[0]);
   }
 
   async list(input: StudentCourseReadInput & { readonly page: number; readonly pageSize: number }): Promise<RepositoryResult<StudentCourseList>> {
@@ -102,8 +112,15 @@ export class PostgresStudentCourseReadModel implements StudentCourseReadModel {
         text: `select (select count(*)::integer ${courseFrom} where ${courseWhere}) as total,
           coalesce((select jsonb_agg(page.item order by page.title, page.id) from (
             select ${courseJson} as item, c.title, c.id ${courseFrom} where ${courseWhere}
-            order by c.title, c.id limit $3::integer offset $4::integer) page), '[]'::jsonb) as items`,
-        values: [input.subject, scope.value, String(input.pageSize), String((input.page - 1) * input.pageSize)],
+            order by c.title, c.id limit $5::integer offset $6::integer) page), '[]'::jsonb) as items`,
+        values: [
+          scope.value.brandId,
+          scope.value.institutionId,
+          scope.value.levelId,
+          scope.value.semesterId,
+          String(input.pageSize),
+          String((input.page - 1) * input.pageSize),
+        ],
       });
       const row = result.rows[0];
       if (!row || !Array.isArray(row.items) || !Number.isSafeInteger(row.total)) throw new Error("Invalid course data");
@@ -119,8 +136,8 @@ export class PostgresStudentCourseReadModel implements StudentCourseReadModel {
       if (!scope.ok) return scope;
       const result = await this.transport.query<{ item: StudentCourseDetail }>({
         label: "student.courses.detail",
-        text: `select ${detailJson} as item ${courseFrom} where ${courseWhere} and c.id = $3::uuid`,
-        values: [input.subject, scope.value, input.courseId],
+        text: `select ${detailJson} as item ${courseFrom} where ${courseWhere} and c.id = $5::uuid`,
+        values: [scope.value.brandId, scope.value.institutionId, scope.value.levelId, scope.value.semesterId, input.courseId],
       });
       return result.rows[0] ? repositoryOk(result.rows[0].item)
         : repositoryErr({ code: "not_found", message: "Course was not found.", correlationId: input.correlationId });
