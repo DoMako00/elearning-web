@@ -1,0 +1,187 @@
+import { Bell, ChevronDown, Sparkles } from "lucide-react";
+import { useRef, useState } from "react";
+import { useToast } from "../../../hooks/useToast";
+import { ToastNotification } from "../ToastNotification";
+import { ProfileDropdown } from "./ProfileDropdown";
+import { XpDropdown } from "./XpDropdown";
+import { NotificationsDropdown } from "./NotificationsDropdown";
+import type { UserHeaderActionsProps } from "./user-header-actions.types";
+import "./UserHeaderActions.css";
+
+const numberFormatter = new Intl.NumberFormat("en-US");
+
+export function UserHeaderActions({
+  avatarSrc,
+  avatarAlt = "Juliana Silva",
+  userName = "Juliana Silva",
+  userRole = "Student",
+  xp = 2450,
+  hasNotification = false,
+  unreadNotificationsCount = 3,
+  onNotificationClick,
+  onXpClick,
+  onAvatarClick,
+  onViewProfile,
+  onMenuItemClick,
+  onLogOut,
+  className = "",
+}: UserHeaderActionsProps) {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isXpOpen, setIsXpOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+
+  const profileTriggerRef = useRef<HTMLButtonElement>(null);
+  const xpTriggerRef = useRef<HTMLButtonElement>(null);
+  const notifTriggerRef = useRef<HTMLButtonElement>(null);
+  const { toastMessage, showToast } = useToast();
+
+  const formattedXp = `${numberFormatter.format(xp)} XP`;
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen((prev) => !prev);
+    setIsXpOpen(false);
+    setIsNotifOpen(false);
+    onAvatarClick?.();
+  };
+
+  const toggleXp = () => {
+    setIsXpOpen((prev) => !prev);
+    setIsDropdownOpen(false);
+    setIsNotifOpen(false);
+    onXpClick?.();
+  };
+
+  const toggleNotif = () => {
+    const opening = !isNotifOpen;
+    setIsNotifOpen(opening);
+    setIsDropdownOpen(false);
+    setIsXpOpen(false);
+    if (opening && unreadNotificationsCount > 0) {
+      showToast(`You have ${unreadNotificationsCount} unread notification${unreadNotificationsCount !== 1 ? 's' : ''}`);
+    }
+    onNotificationClick?.();
+  };
+
+  return (
+    <div
+      className={`user-header-actions relative flex items-center ${className}`}
+      aria-label="User header actions"
+    >
+      <ToastNotification message={toastMessage} />
+      {/* Bell / Notifications */}
+      <div className="relative flex items-center">
+        <button
+          ref={notifTriggerRef}
+          type="button"
+          className="user-header-actions__notifications relative grid shrink-0 place-items-center rounded-full text-(--color-text-primary) transition-opacity duration-150 hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-focus-ring) focus-visible:ring-offset-2"
+          aria-label="Notifications"
+          aria-haspopup="true"
+          aria-expanded={isNotifOpen}
+          onClick={toggleNotif}
+        >
+          <Bell className="size-6" strokeWidth={1.8} aria-hidden="true" />
+          {hasNotification ? (
+            <span
+              className="absolute right-0 top-0 size-2.25 rounded-full border-2 border-(--color-surface) bg-(--color-brand)"
+              aria-label="Unread notifications"
+            />
+          ) : null}
+        </button>
+
+        <NotificationsDropdown
+          isOpen={isNotifOpen}
+          onClose={() => setIsNotifOpen(false)}
+          triggerRef={notifTriggerRef}
+          onMarkAllRead={() => showToast("All notifications marked as read")}
+        />
+      </div>
+
+      <div className="relative flex items-center user-header-actions__xp-wrap">
+        <button
+          ref={xpTriggerRef}
+          type="button"
+          className={`user-header-actions__xp flex shrink-0 items-center justify-center rounded-full border border-(--color-border-subtle) bg-(--color-surface-hover) text-(--color-text-primary) transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-focus-ring) focus-visible:ring-offset-2 ${
+            isXpOpen ? "user-header-actions__xp--active" : "hover:opacity-85"
+          }`}
+          aria-label={`${formattedXp} experience points`}
+          aria-haspopup="true"
+          aria-expanded={isXpOpen}
+          onClick={toggleXp}
+        >
+          <Sparkles
+            className="user-header-actions__xp-icon shrink-0 text-(--color-brand)"
+            strokeWidth={2.2}
+            aria-hidden="true"
+          />
+          <span className="user-header-actions__xp-copy whitespace-nowrap font-semibold leading-none">
+            {formattedXp}
+          </span>
+          <ChevronDown
+            className="user-header-actions__xp-chevron shrink-0"
+            strokeWidth={2}
+            aria-hidden="true"
+          />
+        </button>
+
+        <XpDropdown
+          isOpen={isXpOpen}
+          onClose={() => setIsXpOpen(false)}
+          triggerRef={xpTriggerRef}
+          xp={xp}
+        />
+      </div>
+
+      <div className="relative flex items-center user-header-actions__profile-wrap">
+        <button
+          ref={profileTriggerRef}
+          type="button"
+          className={`user-header-actions__profile-btn flex items-center gap-2 rounded-full transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-focus-ring) focus-visible:ring-offset-2 ${
+            isDropdownOpen ? "opacity-100" : "hover:opacity-90"
+          }`}
+          aria-label={`User menu for ${userName}`}
+          aria-haspopup="true"
+          aria-expanded={isDropdownOpen}
+          onClick={toggleDropdown}
+        >
+          <div
+            className={`user-header-actions__avatar shrink-0 overflow-hidden rounded-full transition-all duration-200 ${
+              isDropdownOpen
+                ? "ring-2 ring-(--color-brand,#20a862) ring-offset-2"
+                : ""
+            }`}
+          >
+            <img
+              className="size-full object-cover"
+              src={avatarSrc}
+              alt={avatarAlt}
+            />
+          </div>
+
+          <ChevronDown
+            className={`user-header-actions__chevron shrink-0 text-(--color-text-primary) transition-transform duration-200 ${
+              isDropdownOpen ? "rotate-180 text-(--color-brand,#20a862)" : ""
+            }`}
+            strokeWidth={2}
+            aria-hidden="true"
+          />
+        </button>
+
+        {/* Profile Dropdown Popup */}
+        <ProfileDropdown
+          isOpen={isDropdownOpen}
+          onClose={() => setIsDropdownOpen(false)}
+          triggerRef={profileTriggerRef}
+          avatarSrc={avatarSrc}
+          avatarAlt={avatarAlt}
+          userName={userName}
+          userRole={userRole}
+          unreadNotificationsCount={unreadNotificationsCount}
+          onViewProfile={onViewProfile}
+          onMenuItemClick={onMenuItemClick}
+          onLogOut={onLogOut}
+        />
+      </div>
+    </div>
+  );
+}
+

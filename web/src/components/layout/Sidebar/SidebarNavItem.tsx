@@ -6,7 +6,7 @@ interface SidebarNavItemProps {
 }
 
 const baseClasses =
-  "flex h-[var(--sidebar-nav-item-height)] w-full items-center gap-[18px] rounded-[var(--radius-nav)] px-[18px] text-[15px] font-medium leading-none transition-colors duration-200 motion-reduce:transition-none";
+  "sidebar-nav-item flex h-[var(--sidebar-nav-item-height)] w-full items-center gap-[18px] rounded-[var(--radius-nav)] px-[18px] text-[15px] font-medium leading-none transition-colors duration-200 motion-reduce:transition-none";
 
 export function SidebarNavItem({ item }: SidebarNavItemProps) {
   const Icon = item.icon;
@@ -19,9 +19,9 @@ export function SidebarNavItem({ item }: SidebarNavItemProps) {
         strokeWidth={1.8}
         aria-hidden="true"
       />
-      <span className="min-w-0 flex-1 truncate">{item.label}</span>
+      <span className="sidebar-nav-label min-w-0 flex-1 truncate">{item.label}</span>
       {item.badge ? (
-        <span className="grid size-6 shrink-0 place-items-center rounded-full bg-[var(--color-brand-soft-strong)] text-xs font-semibold text-[var(--color-brand-hover)]">
+        <span className="sidebar-nav-badge grid size-6 shrink-0 place-items-center rounded-full bg-[var(--color-brand-soft-strong)] text-xs font-semibold text-[var(--color-brand-hover)]">
           {item.badge}
         </span>
       ) : null}
