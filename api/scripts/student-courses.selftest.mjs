@@ -11,6 +11,7 @@ const { createHttpApp } = require('../dist/http/http-app.js');
 const { PostgresStudentCourseReadModel } = require('../dist/modules/student/student-course-read-model.js');
 const { SupabaseJwtJwksAuthIdentityAdapter } = require('../dist/infrastructure/supabase/supabase-jwt-adapter.js');
 const { assertReadOnlySelect } = require('../dist/infrastructure/postgres/postgres-read-transport.js');
+const adminSubject = randomUUID();
 const subject = randomUUID(), brandId = randomUUID(), institutionId = randomUUID(), levelId = randomUUID(), semesterId = randomUUID(), courseId = randomUUID(), lessonId = randomUUID(), chapterId = randomUUID();
 const lesson = { lessonId, chapterId, title: 'Contract fixture', sortOrder: 1, status: 'published', mediaStatus: 'no_media', resourceId: null, playbackAvailable: false };
 const item = { courseId, title: 'Contract fixture', code: 'TEST', brand: { code: 'elite', name: 'Elite' }, academicInstitution: { code: 'buc', name: 'BUC' }, academicLevel: { levelNumber: 1, title: 'Level 1' }, academicSemester: { semesterNumber: 1, title: 'Semester 1' }, cataloguePresentation: 'subject_based', unitLabel: 'Subject', status: 'published', chapterCount: 1, lessonCount: 1, mediaSummary: { totalLessons: 1, lessonsWithMedia: 0, pendingMediaLessons: 0 }, updatedAt: new Date().toISOString() };
@@ -18,10 +19,15 @@ const detail = { ...item, academicUnit: { code: 'TEST', label: 'Contract fixture
 let mode = 'normal', calls = [], stage = 'setup', passed = 0, server;
 const transport = { query: async request => {
   assertReadOnlySelect(request.text); calls.push(request);
+  const parameterNumbers = [...request.text.matchAll(/\$(\d+)/g)].map(match => Number(match[1]));
+  assert.equal(Math.max(...parameterNumbers), request.values.length);
+  assert.match(request.text, /not exists \(select 1 from app\.admin_profiles ap where ap\.app_user_id = su\.id\)/);
+  assert.match(request.text, /sl\.level_number <> 1 or ss\.semester_number <> 1/);
+  if (request.label !== 'student.course-scope') assert.match(request.text, /exists \(select 1 from app\.app_users su/);
   assert.ok(!request.text.includes(subject));
   if (mode === 'unavailable') throw new Error('Private database diagnostic must not escape');
-  if (request.label === 'student.course-scope') return { rows: mode === 'no-scope' ? [] : mode === 'multiple' ? [{ brand: 'elite', brandId, institutionId, levelId, semesterId }, { brand: 'medway', brandId, institutionId, levelId, semesterId }] : [{ brand: 'elite', brandId, institutionId, levelId, semesterId }] };
-  if (request.label === 'student.courses.list') return { rows: [{ items: mode === 'empty' ? [] : [item], total: mode === 'empty' ? 0 : 1 }] };
+  if (request.label === 'student.course-scope') return { rows: mode === 'no-scope' || request.values[0] === adminSubject || request.values[1] === 'nexus' ? [] : mode === 'multiple' ? [{ brand: 'elite', brandId, institutionId, levelId, semesterId }, { brand: 'medway', brandId, institutionId, levelId, semesterId }] : [{ brand: 'elite', brandId, institutionId, levelId, semesterId }] };
+  if (request.label === 'student.courses.list') return { rows: mode === 'revoked' ? [] : [{ items: mode === 'empty' ? [] : [item], total: mode === 'empty' ? 0 : 1 }] };
   return { rows: mode === 'missing' ? [] : [{ item: detail }] };
 } };
 const application = createApplication({ environment: {} });
@@ -31,7 +37,7 @@ try {
   const jwk = await exportJWK(publicKey); jwk.kid = 'isolated-test'; jwk.alg = 'ES256';
   const issuer = 'https://abcdefghijklmnopqrst.supabase.co/auth/v1';
   const auth = new SupabaseJwtJwksAuthIdentityAdapter({ projectRef: 'abcdefghijklmnopqrst', issuer, jwksUrl: `${issuer}/.well-known/jwks.json`, audience: 'authenticated', timeoutMs: 1000 }, { keySet: createLocalJWKSet({ keys: [jwk] }) });
-  const sign = (overrides = {}) => new SignJWT({ user_metadata: { brand: 'nexus', studentProfileId: randomUUID() } }).setProtectedHeader({ alg: 'ES256', kid: jwk.kid }).setSubject(subject).setIssuer(overrides.issuer ?? issuer).setAudience(overrides.audience ?? 'authenticated').setIssuedAt().setExpirationTime(overrides.expires ?? '5m').sign(privateKey);
+  const sign = (overrides = {}) => new SignJWT({ user_metadata: { brand: 'nexus', studentProfileId: randomUUID() } }).setProtectedHeader({ alg: 'ES256', kid: jwk.kid }).setSubject(overrides.subject ?? subject).setIssuer(overrides.issuer ?? issuer).setAudience(overrides.audience ?? 'authenticated').setIssuedAt().setExpirationTime(overrides.expires ?? '5m').sign(privateKey);
   const token = await sign();
   server = createServer(createHttpApp({ admin: application.admin, studentCourses: { auth, readModel: new PostgresStudentCourseReadModel(transport) } }));
   server.listen(0, '127.0.0.1'); await once(server, 'listening');
@@ -43,6 +49,10 @@ try {
   const list = await get('/v1/student/courses?brand=elite');
   check('list contract and private cache policy', () => { assert.equal(list.status, 200); assert.deepEqual(list.body.data.items, [item]); assert.match(list.headers.get('cache-control'), /no-store/); });
   check('authority comes from verified subject, not user metadata', () => { assert.deepEqual(calls[0].values, [subject, 'elite']); assert.deepEqual(calls[1].values.slice(0, 4), [brandId, institutionId, levelId, semesterId]); });
+  const adminBearer = await get('/v1/student/courses?brand=elite', await sign({ subject: adminSubject }));
+  check('persisted admin identity receives no student scope', () => assert.equal(adminBearer.status, 403));
+  const wrongBrand = await get('/v1/student/courses?brand=nexus');
+  check('wrong commercial brand receives no student scope', () => assert.equal(wrongBrand.status, 403));
   const found = await get(`/v1/student/courses/${courseId}`);
   check('detail contract', () => assert.deepEqual(found.body.data, detail));
   const lessons = await get(`/v1/student/courses/${courseId}/lessons`);
@@ -67,22 +77,39 @@ try {
     stage = name; calls = []; const result = await get(path, bearer);
     check(name, () => { assert.equal(result.status, status); assert.equal(calls.length, 0); });
   }
-  for (const [scenario, path, status] of [['no-scope', '/v1/student/courses', 403], ['multiple', '/v1/student/courses', 400], ['unavailable', '/v1/student/courses', 503], ['missing', `/v1/student/courses/${courseId}`, 404], ['empty', '/v1/student/courses', 200]]) {
+  for (const [scenario, path, status] of [['no-scope', '/v1/student/courses', 403], ['revoked', '/v1/student/courses', 403], ['multiple', '/v1/student/courses', 400], ['unavailable', '/v1/student/courses', 503], ['missing', `/v1/student/courses/${courseId}`, 404], ['empty', '/v1/student/courses', 200]]) {
     mode = scenario; stage = scenario; const result = await get(path);
     check(scenario, () => { assert.equal(result.status, status); assert.ok(!JSON.stringify(result.body).includes('Private database')); if (scenario === 'empty') assert.deepEqual(result.body.data.items, []); });
   }
   mode = 'normal';
   const write = await get('/v1/student/courses', token, 'POST');
   check('read routes reject writes', () => assert.equal(write.status, 405));
-  for (const path of ['/health', '/ready', '/openapi.json']) {
+  for (const path of ['/health', '/ready', '/v1/health', '/v1/ready', '/openapi.json']) {
     const result = await get(path, '');
     check(`${path} JSON`, () => {
       assert.equal(result.status, 200);
       if (path === '/openapi.json') {
         for (const route of ['/v1/student/courses', '/v1/student/courses/{courseId}', '/v1/student/courses/{courseId}/lessons']) assert.ok(result.body.paths[route].get);
         assert.equal(result.body.components.schemas.StudentLessonItem.properties.playbackAvailable.const, false);
+        for (const [path, methods] of Object.entries(result.body.paths)) {
+          for (const [method, operation] of Object.entries(methods)) {
+            if (path.startsWith('/v1/student/')) assert.deepEqual(operation.security, [{ StudentBearerAuth: [] }]);
+            else if (path.startsWith('/v1/admin/')) assert.deepEqual(operation.security, [{ AdminBearerAuth: [] }]);
+            else assert.deepEqual(operation.security, []);
+            const key = (operation.parameters ?? []).find(parameter => parameter.name === 'Idempotency-Key');
+            assert.equal(Boolean(key?.required), method !== 'get', 'Only mutations require idempotency');
+          }
+        }
       }
     });
+  }
+  for (const [method, path] of [
+    ['GET', '/v1/admin/students/invalid'], ['GET', '/v1/admin/curriculum/modules/invalid'],
+    ['GET', '/v1/admin/overview?brand=buc'], ['GET', '/v1/admin/brands/invalid/courses'],
+    ['POST', '/v1/admin/instructors/invalid'], ['POST', '/v1/admin/brands/invalid/courses/invalid/lessons'],
+  ]) {
+    const result = await get(path, '', method);
+    check('missing admin bearer before route validation ' + method + ' ' + path, () => assert.equal(result.status, path === '/v1/admin/instructors/invalid' ? 405 : 401));
   }
   const docs = await fetch(origin + '/docs', { signal: AbortSignal.timeout(5000) }); const html = await docs.text();
   check('docs HTML', () => { assert.equal(docs.status, 200); assert.match(html, /openapi\.json/); });

@@ -36,7 +36,14 @@ const scopeWhere = `su.auth_user_id = $1::uuid and ($2 = '' or sb.code = $2)
   and sm.valid_from <= now() and (sm.valid_until is null or sm.valid_until > now())
   and sb.status = 'active' and si.status = 'active' and sl.status = 'active' and ss.status = 'active' and sa.status = 'active'
   and sb.code in ('medway', 'elite', 'nexus')
-  and si.code = case sb.code when 'nexus' then 'delta' else 'buc' end`;
+  and not exists (select 1 from app.admin_profiles ap where ap.app_user_id = su.id)
+  and (sl.level_number <> 1 or ss.semester_number <> 1
+    or si.code = case sb.code when 'nexus' then 'delta' else 'buc' end)`;
+
+// Revalidate membership, placement and admin exclusion in the data statement.
+const scopeGuard = (subjectParameter: number, brandParameter: number): string =>
+  `exists (select 1 ${scopeFrom} where ${scopeWhere.replaceAll("$1", "$" + subjectParameter).replaceAll("$2", "$" + brandParameter)}
+    and sb.id = $1::uuid and si.id = $2::uuid and sl.id = $3::uuid and ss.id = $4::uuid)`;
 
 const courseFrom = `from app.brand_courses c
   join app.educational_brands b on b.id = c.brand_id
@@ -112,7 +119,8 @@ export class PostgresStudentCourseReadModel implements StudentCourseReadModel {
         text: `select (select count(*)::integer ${courseFrom} where ${courseWhere}) as total,
           coalesce((select jsonb_agg(page.item order by page.title, page.id) from (
             select ${courseJson} as item, c.title, c.id ${courseFrom} where ${courseWhere}
-            order by c.title, c.id limit $5::integer offset $6::integer) page), '[]'::jsonb) as items`,
+            order by c.title, c.id limit $5::integer offset $6::integer) page), '[]'::jsonb) as items
+          where ${scopeGuard(7, 8)}`,
         values: [
           scope.value.brandId,
           scope.value.institutionId,
@@ -120,10 +128,13 @@ export class PostgresStudentCourseReadModel implements StudentCourseReadModel {
           scope.value.semesterId,
           String(input.pageSize),
           String((input.page - 1) * input.pageSize),
+          input.subject,
+          input.brand ?? "",
         ],
       });
       const row = result.rows[0];
-      if (!row || !Array.isArray(row.items) || !Number.isSafeInteger(row.total)) throw new Error("Invalid course data");
+      if (!row) return repositoryErr({ code: "permission_denied", message: "An active student academic placement is required.", correlationId: input.correlationId });
+      if (!Array.isArray(row.items) || !Number.isSafeInteger(row.total)) throw new Error("Invalid course data");
       return repositoryOk({ items: row.items, pagination: { page: input.page, pageSize: input.pageSize, totalItems: row.total } });
     } catch {
       return repositoryErr({ code: "provider_unavailable", message: "Student courses are temporarily unavailable.", correlationId: input.correlationId });
@@ -136,8 +147,8 @@ export class PostgresStudentCourseReadModel implements StudentCourseReadModel {
       if (!scope.ok) return scope;
       const result = await this.transport.query<{ item: StudentCourseDetail }>({
         label: "student.courses.detail",
-        text: `select ${detailJson} as item ${courseFrom} where ${courseWhere} and c.id = $5::uuid`,
-        values: [scope.value.brandId, scope.value.institutionId, scope.value.levelId, scope.value.semesterId, input.courseId],
+        text: `select ${detailJson} as item ${courseFrom} where ${courseWhere} and c.id = $5::uuid and ${scopeGuard(6, 7)}`,
+        values: [scope.value.brandId, scope.value.institutionId, scope.value.levelId, scope.value.semesterId, input.courseId, input.subject, input.brand ?? ""],
       });
       return result.rows[0] ? repositoryOk(result.rows[0].item)
         : repositoryErr({ code: "not_found", message: "Course was not found.", correlationId: input.correlationId });

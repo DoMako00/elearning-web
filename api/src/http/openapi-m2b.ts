@@ -5,7 +5,7 @@ const version={type:'integer',minimum:1};
 const common={title:{type:'string',minLength:1,maxLength:240,pattern:'\\S'},sortOrder:{type:'integer',minimum:1,maximum:2147483647},status};
 const fields={chapters:common,lessons:{...common,courseChapterId:uuid},resources:{...common,courseLessonId:uuid,resourceKind:{type:'string',enum:['video','document','quiz','link','file']}}};
 const pathId=(name:string)=>({name,in:'path',required:true,schema:uuid});
-const security=[{BearerAuth:[]}];
+const security=[{AdminBearerAuth:[]}];
 const json=(schema:unknown)=>({'application/json':{schema}});
 const errors=Object.fromEntries([400,401,403,404,409,503].map(code=>[String(code),{description:({400:'Invalid input',401:'Sign in required',403:'Permission denied',404:'Scoped course or parent not found',409:'Version, sort order, or idempotency conflict',503:'Persistence or evidence unavailable'} as Record<number,string>)[code]}]));
 const commandResult={type:'object',properties:{ok:{const:true},correlationId:{type:'string'},mutated:{type:'boolean'},replayed:{type:'boolean'},receiptId:uuid,auditEventId:uuid,data:{type:'object',required:['brandId','courseId','entity','recordId'],properties:{brandId:uuid,courseId:uuid,entity:{type:'string',enum:['chapters','lessons','resources']},recordId:uuid}}}};

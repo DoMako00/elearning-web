@@ -15,9 +15,15 @@ export async function handleAdminM2bWrite(raw:IncomingMessage,context:HttpReques
   const [,brandId,courseId,entityName,recordId]=match;
   const entity=entityName as M2bDeliveryEntity, update=recordId!==undefined;
   if (context.method!==(update?'PATCH':'POST')) return methodNotAllowedResponse(c,update?['PATCH']:['GET','POST']);
-  if ([...url.searchParams].length||![brandId,courseId,...(recordId?[recordId]:[])].every(id=>M2B_UUID.test(id))) return badRequestResponse(c,'Invalid delivery route.');
   const bearer=parseStrictBearerToken(raw);
   if (!bearer.ok) return bearer.code==='duplicate'||bearer.code==='oversized'?badRequestResponse(c,'Invalid Authorization header.'):unauthorizedResponse(c);
+  if ([...url.searchParams].length||![brandId,courseId,...(recordId?[recordId]:[])].every(id=>M2B_UUID.test(id))) return badRequestResponse(c,'Invalid delivery route.');
+  if (!resolver||!admin.commands.m2) return serviceUnavailableResponse(c);
+  const resolved=await resolver.resolve({requestId:context.requestId,correlationId:c as never,bearerToken:bearer.token,requestedBrandId:brandId});
+  if (!resolved.ok) return ['authentication_required','authentication_invalid'].includes(resolved.error.code)?unauthorizedResponse(c):resolved.error.code==='permission_denied'?forbiddenResponse(c):serviceUnavailableResponse(c);
+  const trusted=resolved.value;
+  // Same strict M2A permission until a separately approved permission migration.
+  if (trusted.brand.brandId!==brandId||!requireAdminPermission(trusted,'admin.platform.admin.write').ok) return forbiddenResponse(c);
   const key=raw.headers['idempotency-key'];
   const keyCount=raw.rawHeaders.filter((_,index)=>index%2===0&&raw.rawHeaders[index].toLowerCase()==='idempotency-key').length;
   if (keyCount!==1||typeof key!=='string'||!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(key)) return badRequestResponse(c,'A valid Idempotency-Key is required.');
@@ -33,12 +39,6 @@ export async function handleAdminM2bWrite(raw:IncomingMessage,context:HttpReques
   if (!update&&fields.status===undefined) fields.status='draft';
   if (typeof reason!=='string'||!reason.trim()||reason.length>500||!validDeliveryFields(entity,fields,update)
     ||(update?(!Number.isSafeInteger(expectedVersion)||Number(expectedVersion)<1):expectedVersion!==undefined)) return badRequestResponse(c,'Provide valid metadata, a nonblank reason, and expectedVersion for updates.');
-  if (!resolver||!admin.commands.m2) return serviceUnavailableResponse(c);
-  const resolved=await resolver.resolve({requestId:context.requestId,correlationId:c as never,bearerToken:bearer.token,requestedBrandId:brandId});
-  if (!resolved.ok) return ['authentication_required','authentication_invalid'].includes(resolved.error.code)?unauthorizedResponse(c):resolved.error.code==='permission_denied'?forbiddenResponse(c):serviceUnavailableResponse(c);
-  const trusted=resolved.value;
-  // Same strict M2A permission until a separately approved permission migration.
-  if (trusted.brand.brandId!==brandId||!requireAdminPermission(trusted,'admin.platform.admin.write').ok) return forbiddenResponse(c);
   const command:M2bDeliveryCommand={brandId,courseId,...(recordId?{recordId}:{}),fields,metadata:{platform:trusted.platform,correlationId:trusted.correlationId,reason,idempotencyKey:key,...(update?{expectedVersion:expectedVersion as number}:{})}};
   const executor=admin.commands.m2;
   const result=await (entity==='chapters'?(update?executor.updateCourseChapter(trusted,command):executor.createCourseChapter(trusted,command)):entity==='lessons'?(update?executor.updateCourseLesson(trusted,command):executor.createCourseLesson(trusted,command)):(update?executor.updateLessonResource(trusted,command):executor.createLessonResource(trusted,command)));

@@ -189,12 +189,13 @@ async function run() {
         assertTruthy(response.headers.get("content-type")?.includes("text/html"), "Documentation content type");
         assertTruthy(page.includes("BUC E-Learning API"), "Documentation title");
         assertTruthy(page.includes("/openapi.json"), "Documentation contract link");
-        assertTruthy(page.includes("readDashboardSession"), "Documentation must use the active dashboard session");
-        assertTruthy(!page.includes("supabaseUrl"), "Documentation must not request Supabase environment values");
-        assertTruthy(!page.includes("Use mock admin"), "Documentation must not promote mock authentication");
-        assertTruthy(page.includes("return '/api'+path"), "Documentation must send live requests through the public API proxy");
-        assertTruthy(page.includes('data-response-view="json"'), "Documentation must default to a JSON response view");
-        assertTruthy(!page.includes('id="tryButton"'), "Documentation must not render a manual try-it button");
+        for (const id of ['studentBearerToken', 'adminBearerToken', 'apiBaseUrl', 'supabaseUrl', 'publishableKey', 'studentEmail', 'studentPassword', 'requestBody', 'idempotencyKey', 'sendRequest', 'responseBody', 'responseHeaders', 'correlationId', 'authRequirement', 'autoStatus']) {
+          assertTruthy(page.includes('id="' + id + '"'), 'Documentation control ' + id);
+        }
+        assertTruthy(page.includes('canAutoRequest') && page.includes('autoRequestSelected'), 'Documentation retains guarded automatic GETs');
+        assertTruthy(!page.includes('readDashboardSession'), 'Documentation must keep student and admin credentials separate');
+        assertTruthy(!page.includes('Use mock admin'), 'Documentation must not promote mock authentication');
+        assertTruthy(!/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i.test(page), 'Documentation must not seed active UUID examples');
         const inlineScript = page.match(/<script>\s*([\s\S]*?)\s*<\/script>/);
         assertTruthy(inlineScript?.[1], "Documentation inline script");
         new Function(inlineScript[1]);

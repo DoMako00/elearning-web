@@ -35,13 +35,13 @@ export const studentCourseSchemas = {
 const brand = { name: "brand", in: "query", required: false, schema: { type: "string", enum: ["medway", "elite", "nexus"] }, description: "Optional when the verified student has one eligible membership. Required when multiple memberships exist. Never grants scope. BUC/Delta are institutions, not brands." };
 const courseId = { name: "courseId", in: "path", required: true, schema: identifier };
 const operation = (operationId: string, summary: string, schema: string, parameters: readonly unknown[]) => ({
-  tags: ["Student courses"], operationId, summary, security: [{ BearerAuth: [] }], parameters,
-  description: "Published course structure scoped to the verified student's active commercial-brand membership and academic institution/level/semester. No enrollment or paid entitlement is fabricated. Synthetic import identities cannot log in. No media delivery URLs are returned.",
+  tags: ["Student courses"], operationId, summary, security: [{ StudentBearerAuth: [] }], parameters,
+  description: "Published course structure scoped to the verified student's active commercial-brand membership and academic institution/level/semester. No enrollment or paid entitlement is fabricated. An identity with a persisted admin profile is rejected; admin preview is not provided by these endpoints. No media delivery URLs are returned.",
   responses: {
     "200": { description: "Visible structure; an empty list is valid.", content: { "application/json": { schema: ref(schema) } } },
     "400": { description: "Invalid/repeated/unsupported parameter, or brand selection needed." },
     "401": { description: "Missing, malformed, expired or invalid bearer token." },
-    "403": { description: "No active student membership and valid academic placement in this scope." },
+    "403": { description: "No active student membership and valid academic placement in this scope, or identity belongs to an admin profile." },
     "404": { description: "Course missing or outside the student's visible scope." },
     "405": { description: "Only GET is supported." },
     "503": { description: "Real authentication or database reads are unavailable. No mock fallback." },

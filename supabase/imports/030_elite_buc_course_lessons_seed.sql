@@ -1,5 +1,7 @@
 begin;
 
+select pg_advisory_xact_lock(hashtext('backend-mvp-a-year1-import'));
+
 -- Controlled Elite delivery seed for BUC Level 1 / Semester 1 medical modules.
 -- Creates draft commercial course shells and lesson titles only.
 -- Does not upload files, publish releases, grant student access, or create
@@ -27,6 +29,7 @@ begin
   end if;
 end $$;
 
+create temporary table elite_course_manifest on commit drop as
 with desired_courses(course_code, course_title, module_code) as (values
   ('ELT-BIO', 'Biochemistry Fundamentals', '1104 BIO'),
   ('ELT-PHY', 'Physiology Foundations', '1101 TSF'),
@@ -52,6 +55,30 @@ with desired_courses(course_code, course_title, module_code) as (values
     on m.academic_institution_id = i.id
    and m.code = dc.module_code
 )
+select * from resolved;
+
+do $$
+begin
+  if (select count(*) from elite_course_manifest) <> 5
+    or (select count(*) from elite_course_manifest d
+      join app.academic_modules m on m.id = d.academic_module_id and m.academic_institution_id = d.academic_institution_id
+      join app.academic_semesters s on s.id = m.academic_semester_id and s.semester_number = 1 and s.status = 'active'
+      join app.academic_levels l on l.id = s.academic_level_id and l.academic_institution_id = d.academic_institution_id
+        and l.level_number = 1 and l.status = 'active'
+      join app.brand_academic_institution_access a on a.brand_id = d.brand_id
+        and a.academic_institution_id = d.academic_institution_id and a.status = 'active'
+      where m.review_status in ('unreviewed', 'approved')) <> 5 then
+    raise exception using errcode = 'P0001', message = 'ELITE_YEAR1_PREREQUISITES_MISMATCH';
+  end if;
+  if exists (select 1 from elite_course_manifest d
+    join app.brand_courses c on c.id = d.course_id or (c.brand_id = d.brand_id and c.code = d.course_code)
+    where c.id <> d.course_id or c.brand_id <> d.brand_id
+      or c.academic_institution_id <> d.academic_institution_id or c.academic_module_id <> d.academic_module_id
+      or c.code <> d.course_code or c.title <> d.course_title
+      or c.classification <> 'academic_module_offering' or c.status not in ('draft', 'published')) then
+    raise exception using errcode = 'P0001', message = 'ELITE_YEAR1_COURSE_CONFLICT';
+  end if;
+end $$;
 insert into app.brand_courses (
   id,
   brand_id,
@@ -73,7 +100,7 @@ select
   'academic_module_offering',
   'draft',
   'subject_based'
-from resolved
+from elite_course_manifest
 on conflict (brand_id, code) do nothing;
 
 update app.brand_courses c
@@ -114,6 +141,19 @@ select
 from elite_courses
 on conflict do nothing;
 
+do $$
+begin
+  if (select count(*) from elite_course_manifest d
+    join app.course_chapters ch on ch.brand_course_id = d.course_id and ch.brand_id = d.brand_id
+      and ch.id = md5('elite-buc-course-chapter:' || d.course_code || ':lessons')::uuid
+      and ch.title = 'Lessons' and ch.sort_order = 1 and ch.status in ('draft', 'published')) <> 5
+    or (select count(*) from elite_course_manifest d
+      join app.course_chapters ch on ch.brand_course_id = d.course_id and ch.brand_id = d.brand_id) <> 5 then
+    raise exception using errcode = 'P0001', message = 'ELITE_YEAR1_CHAPTER_CONFLICT';
+  end if;
+end $$;
+
+create temporary table elite_lesson_manifest on commit drop as
 with desired_lessons(course_code, lesson_title, sort_order) as (values
   ('ELT-BIO', 'Carbohydrates', 1),
   ('ELT-BIO', 'Lipids', 2),
@@ -183,6 +223,8 @@ with desired_lessons(course_code, lesson_title, sort_order) as (values
    and ch.brand_id = c.brand_id
    and ch.sort_order = 1
 )
+select * from resolved_lessons;
+
 insert into app.course_lessons (
   id,
   course_chapter_id,
@@ -200,7 +242,7 @@ select
   lesson_title,
   sort_order,
   'draft'
-from resolved_lessons
+from elite_lesson_manifest
 on conflict do nothing;
 
 do $$
@@ -247,4 +289,14 @@ begin
   end if;
 end $$;
 
+do $$
+begin
+  if (select count(*) from elite_lesson_manifest) <> 49
+    or (select count(*) from elite_lesson_manifest d
+      join app.course_lessons ls on ls.id = d.lesson_id and ls.course_chapter_id = d.course_chapter_id
+        and ls.brand_course_id = d.brand_course_id and ls.brand_id = d.brand_id
+        and ls.title = d.lesson_title and ls.sort_order = d.sort_order and ls.status in ('draft', 'published')) <> 49 then
+    raise exception using errcode = 'P0001', message = 'ELITE_YEAR1_LESSON_CONFLICT';
+  end if;
+end $$;
 commit;

@@ -73,6 +73,7 @@ export function createApiDocsHtml(options: ApiDocsTemplateOptions): string {
     </main>
   </div>
   <div id="toast" class="toast hidden" role="status"></div>
+  <div class="hidden" aria-hidden="true"><input id="apiBaseUrl" type="url"><input id="studentEmail" type="email"><input id="studentPassword" type="password"><input id="adminBearerToken" type="password"><pre id="responseHeaders"></pre><span id="correlationId"></span><span id="authRequirement"></span><span id="autoStatus"></span></div>
   <script>window.__apiDocsConfig=${configJson};</script>
   <script>
   (function(){
