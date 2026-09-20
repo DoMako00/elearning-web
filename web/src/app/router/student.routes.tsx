@@ -42,6 +42,7 @@ export const studentRoutes: RouteObject[] = [
       { path: "instructors/:instructorId", element: <InstructorProfilePage /> },
       { path: "my-courses", element: <MyCoursesPage /> },
       { path: "my-courses/:slug", element: <CourseOverviewPage /> },
+      { path: "my-courses/:slug/lessons/:lessonId", element: <LessonPlayerPage /> },
       { path: "my-courses/human-anatomy-i", element: <CourseOverviewPage /> },
       { path: "my-courses/human-anatomy-i/lessons/:lessonId", element: <LessonPlayerPage /> },
       { path: "explore", element: <ExplorePage /> },

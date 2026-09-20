@@ -7,21 +7,18 @@ import {
   ChevronRight,
   CirclePlay,
   Clock3,
-  Download,
-  FileText,
   Gauge,
   LayoutGrid,
   MessageSquareText,
   Paperclip,
   Play,
-  Presentation,
   ShieldCheck,
   Sparkles,
   StickyNote,
   FolderOpen,
 } from "lucide-react";
-import { useState, type KeyboardEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import heroBackground from "../../../Assets/dashboard/my-courses-hero-background.png";
 import anatomyOverlay from "../../../Assets/dashboard/my-courses-anatomy-overlay.png";
 import { CourseDiscussionPanel } from "../../../components/learning-space/CourseDiscussionPanel";
@@ -32,10 +29,16 @@ import {
   ResourcesWorkspaceRail,
 } from "../../../components/learning-space/LearningSpaceRails";
 import { LearningNotesPanel } from "../../../components/learning-space/LearningNotesPanel";
+import {
+  getStudentCourse,
+  listStudentCourseLessons,
+  type StudentCourseDetail,
+  type StudentLessonItem,
+} from "../../../features/student/api/studentCoursesApi";
 import "../../../components/learning-space/learningSpace.css";
 import "./CourseOverviewPage.css";
 
-const FIRST_LESSON_ID = "human-anatomy-i-lesson-1";
+const STUDENT_COURSE_BRAND = "elite" as const;
 
 const TABS = [
   { id: "overview", label: "Overview", icon: LayoutGrid },
@@ -46,106 +49,31 @@ const TABS = [
 
 type CourseTabId = (typeof TABS)[number]["id"];
 
-interface Lesson {
+interface LessonView {
   id: string;
   number: number;
   title: string;
-  duration: string;
-  ready?: boolean;
+  mediaStatus: string;
+  ready: boolean;
 }
 
-interface CourseModule {
+interface CourseModuleView {
   id: string;
   number: number;
   title: string;
   lessonCount: number;
-  lessons?: Lesson[];
-}
-
-interface CourseMaterial {
-  id: string;
-  title: string;
-  extension: "pdf" | "pptx";
-  size: string;
+  lessons: LessonView[];
 }
 
 export interface CourseOverviewPageProps {
   onStartLesson?: (lessonId: string) => void;
 }
 
-const COURSE_MODULES: CourseModule[] = [
-  {
-    id: "module-1",
-    number: 1,
-    title: "Introduction to Anatomy",
-    lessonCount: 3,
-    lessons: [
-      {
-        id: FIRST_LESSON_ID,
-        number: 1,
-        title: "Introduction to Anatomy & Anatomical Terms",
-        duration: "24:35",
-        ready: true,
-      },
-      {
-        id: "human-anatomy-i-lesson-2",
-        number: 2,
-        title: "Basic Anatomical Positions & Directional Terms",
-        duration: "18:50",
-      },
-      {
-        id: "human-anatomy-i-lesson-3",
-        number: 3,
-        title: "Body Cavities & Regions",
-        duration: "20:15",
-      },
-    ],
-  },
-  { id: "module-2", number: 2, title: "Upper Limb", lessonCount: 5 },
-  { id: "module-3", number: 3, title: "Thorax", lessonCount: 4 },
-  { id: "module-4", number: 4, title: "Abdomen & Pelvis", lessonCount: 5 },
-  { id: "module-5", number: 5, title: "Lower Limb", lessonCount: 4 },
-  {
-    id: "module-6",
-    number: 6,
-    title: "Neuroanatomy Foundations",
-    lessonCount: 3,
-  },
-];
-
-const COURSE_MATERIALS: CourseMaterial[] = [
-  {
-    id: "anatomy-syllabus",
-    title: "Human Anatomy I Syllabus.pdf",
-    extension: "pdf",
-    size: "1.2 MB",
-  },
-  {
-    id: "anatomy-slides",
-    title: "Intro to Anatomy Slides.pptx",
-    extension: "pptx",
-    size: "8.6 MB",
-  },
-  {
-    id: "anatomical-terms-checklist",
-    title: "Anatomical Terms Checklist.pdf",
-    extension: "pdf",
-    size: "420 KB",
-  },
-  {
-    id: "osteology-atlas",
-    title: "Basic Osteology Atlas.pdf",
-    extension: "pdf",
-    size: "12.4 MB",
-  },
-];
-
 const LEARNING_OUTCOMES = [
-  "Understand anatomy fundamentals and terminology",
-  "Use anatomical positions and directional terms",
-  "Identify major bones, muscles, and organs",
-  "Describe the organization of body systems",
-  "Apply anatomy to real medical scenarios",
+  "Review the official Year 1 lesson sequence",
+  "Follow the published subject outline in order",
+  "Track which lessons already have media metadata",
+  "Prepare for video playback once media is connected",
 ] as const;
 
 function InstructorPortrait() {
@@ -164,84 +92,118 @@ function InstructorPortrait() {
 function AnatomyHeroArt() {
   return (
     <div className="course-overview-hero__art" aria-hidden="true">
-      <img
-        src={heroBackground}
-        alt=""
-        className="course-overview-hero__art-bg"
-      />
+      <img src={heroBackground} alt="" className="course-overview-hero__art-bg" />
       <img src={anatomyOverlay} alt="" className="course-overview-hero__art-anatomy" />
     </div>
   );
 }
 
-function MaterialsGrid({ materials = COURSE_MATERIALS }: { materials?: CourseMaterial[] }) {
-  if (!materials || materials.length === 0) {
-    return (
-      <div className="course-overview-materials__empty">
-        <FolderOpen aria-hidden="true" />
-        <p>No materials attached to this lesson yet.</p>
-      </div>
-    );
-  }
-
+function MaterialsGrid() {
   return (
-    <div className="course-overview-materials__grid">
-      {materials.map((material) => {
-        const MaterialIcon = material.extension === "pptx" ? Presentation : FileText;
-
-        return (
-          <button
-            type="button"
-            className={`course-overview-material course-overview-material--${material.extension}`}
-            key={material.id}
-            aria-label={`Open ${material.title}, ${material.size}`}
-          >
-            <span className="course-overview-material__icon">
-              <MaterialIcon aria-hidden="true" />
-              <small>{material.extension}</small>
-            </span>
-            <span className="course-overview-material__copy">
-              <strong>{material.title}</strong>
-              <small>{material.size}</small>
-            </span>
-            <Download className="course-overview-material__download" aria-hidden="true" />
-          </button>
-        );
-      })}
+    <div className="course-overview-materials__empty">
+      <FolderOpen aria-hidden="true" />
+      <p>No materials or videos are attached yet.</p>
     </div>
   );
 }
 
-interface MaterialsCardProps {
-  className?: string;
-  hidden?: boolean;
-  materials?: CourseMaterial[];
-}
-
-function MaterialsCard({ className = "", hidden = false, materials = COURSE_MATERIALS }: MaterialsCardProps) {
+function MaterialsCard({ className = "", hidden = false }: { className?: string; hidden?: boolean }) {
   return (
-    <article
-      className={`course-overview-card course-overview-materials${className ? ` ${className}` : ""}`}
-      hidden={hidden}
-    >
+    <article className={`course-overview-card course-overview-materials${className ? ` ${className}` : ""}`} hidden={hidden}>
       <header>
         <h2>Recent materials</h2>
-        <button type="button">View all resources <ArrowRight aria-hidden="true" /></button>
+        <button type="button" disabled>Media coming soon <ArrowRight aria-hidden="true" /></button>
       </header>
-      <MaterialsGrid materials={materials} />
+      <MaterialsGrid />
     </article>
+  );
+}
+
+function toLessonLabel(lesson: StudentLessonItem) {
+  if (lesson.mediaStatus === "pending_media") return "Pending media";
+  if (lesson.mediaStatus === "ready") return "Ready soon";
+  return "No media";
+}
+
+function toCourseModules(course: StudentCourseDetail): CourseModuleView[] {
+  return course.chapters.map((chapter, chapterIndex) => ({
+    id: chapter.chapterId,
+    number: chapterIndex + 1,
+    title: chapter.title,
+    lessonCount: chapter.lessons.length,
+    lessons: chapter.lessons.map((lesson, lessonIndex) => ({
+      id: lesson.lessonId,
+      number: lessonIndex + 1,
+      title: lesson.title,
+      mediaStatus: toLessonLabel(lesson),
+      ready: lesson.playbackAvailable,
+    })),
+  }));
+}
+
+function FeedbackState({ message, tone = "neutral" }: { message: string; tone?: "neutral" | "error" }) {
+  return (
+    <section className="course-overview-page" aria-labelledby="course-overview-title">
+      <div className={`course-overview-panel--message${tone === "error" ? " dashboard-feedback--error" : ""}`} role={tone === "error" ? "alert" : "status"}>
+        <BookOpen aria-hidden="true" />
+        <h2 id="course-overview-title">Course overview</h2>
+        <p>{message}</p>
+      </div>
+    </section>
   );
 }
 
 export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
   const navigate = useNavigate();
+  const { slug } = useParams<{ slug: string }>();
+  const courseId = slug ?? "";
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [activeTab, setActiveTab] = useState<CourseTabId>("overview");
-  const [expandedModuleId, setExpandedModuleId] = useState<string | null>("module-1");
+  const [expandedModuleId, setExpandedModuleId] = useState<string | null>(null);
+  const [course, setCourse] = useState<StudentCourseDetail | null>(null);
+  const [lessons, setLessons] = useState<readonly StudentLessonItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!courseId) {
+      setError("A valid course identifier is required.");
+      setIsLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setIsLoading(true);
+    setError(null);
+    Promise.all([
+      getStudentCourse({ courseId, brand: STUDENT_COURSE_BRAND, signal: controller.signal }),
+      listStudentCourseLessons({ courseId, brand: STUDENT_COURSE_BRAND, signal: controller.signal }),
+    ])
+      .then(([nextCourse, lessonPayload]) => {
+        setCourse(nextCourse);
+        setLessons(lessonPayload.lessons);
+        setExpandedModuleId(nextCourse.chapters[0]?.chapterId ?? null);
+      })
+      .catch((nextError: unknown) => {
+        if (controller.signal.aborted) return;
+        setCourse(null);
+        setLessons([]);
+        setError(nextError instanceof Error ? nextError.message : "The course could not be loaded.");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [courseId]);
+
+  const courseModules = useMemo(() => course ? toCourseModules(course) : [], [course]);
+  const firstLesson = lessons[0] ?? course?.chapters[0]?.lessons[0] ?? null;
+  const totalLessons = lessons.length || course?.lessonCount || 0;
 
   const startLesson = (lessonId: string) => {
     onStartLesson?.(lessonId);
-    navigate(`/my-courses/human-anatomy-i/lessons/${lessonId}`);
+    navigate(`/my-courses/${courseId}/lessons/${lessonId}`);
   };
 
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, tabIndex: number) => {
@@ -263,33 +225,39 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
 
   const toggleBookmark = () => setIsBookmarked((current) => !current);
 
+  if (isLoading) return <FeedbackState message="Loading course details..." />;
+  if (error) return <FeedbackState message={error} tone="error" />;
+  if (!course) return <FeedbackState message="This course is not available for this student." />;
+
+  const canStartLesson = Boolean(firstLesson?.playbackAvailable);
+
   return (
     <section className="course-overview-page" aria-labelledby="course-overview-title">
       <div className="course-overview-layout">
         <div className={`course-overview-primary${activeTab === "overview" ? "" : " is-tab-expanded"}`}>
           {activeTab === "overview" ? (
-            <article className="course-overview-hero" aria-labelledby="course-lesson-title">
+            <article className="course-overview-hero" aria-labelledby="course-overview-title">
               <AnatomyHeroArt />
               <div className="course-overview-hero__content">
                 <div className="course-overview-hero__intro">
                   <span className="course-overview-hero__status">
                     <CirclePlay aria-hidden="true" />
-                    Lesson 1 of 14
+                    {course.unitLabel} • {totalLessons} lessons
                   </span>
-                  <h2 id="course-lesson-title">Introduction to Anatomy &amp; Anatomical Terms</h2>
+                  <h2 id="course-overview-title">{course.title}</h2>
                   <p className="course-overview-hero__context">
-                    <span>BUC School of Medicine</span>
+                    <span>{course.academicInstitution.name}</span>
                     <i aria-hidden="true" />
-                    <span>Semester 1</span>
+                    <span>{course.academicLevel.title}</span>
                     <i aria-hidden="true" />
-                    <span>Basic Medical Sciences</span>
+                    <span>{course.academicSemester.title}</span>
                   </p>
                   <span className="course-overview-hero__divider" aria-hidden="true" />
                 </div>
                 <div className="course-overview-hero__footer">
                   <div className="course-overview-hero__instructor">
                     <InstructorPortrait />
-                    <span><strong>Dr. Ahmed Hassan</strong><small>Professor of Anatomy</small></span>
+                    <span><strong>{course.brand.name}</strong><small>{course.cataloguePresentation === "subject_based" ? "General subject course" : "Module-based course"}</small></span>
                   </div>
                   <span className="course-overview-hero__divider" aria-hidden="true" />
                 </div>
@@ -298,20 +266,20 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
                 <button
                   type="button"
                   className="course-overview-hero__bookmark"
-                  aria-label={isBookmarked ? "Remove lesson bookmark" : "Bookmark first lesson"}
+                  aria-label={isBookmarked ? "Remove course bookmark" : "Bookmark course"}
                   aria-pressed={isBookmarked}
                   onClick={toggleBookmark}
                 >
                   <Bookmark aria-hidden="true" fill={isBookmarked ? "currentColor" : "none"} />
                 </button>
-                <button type="button" className="course-overview-hero__start" onClick={() => startLesson(FIRST_LESSON_ID)}>
-                  Continue Lesson <ArrowRight aria-hidden="true" />
+                <button type="button" className="course-overview-hero__start" disabled={!canStartLesson} onClick={() => firstLesson && startLesson(firstLesson.lessonId)}>
+                  {canStartLesson ? "Continue Lesson" : "Media coming soon"} <ArrowRight aria-hidden="true" />
                 </button>
               </div>
               <dl className="course-overview-hero__meta">
-                <div><Clock3 aria-hidden="true" /><span><dt>Duration</dt><dd>24:35 min</dd></span></div>
-                <div><Gauge aria-hidden="true" /><span><dt>Level</dt><dd>Beginner</dd></span></div>
-                <div><Sparkles aria-hidden="true" /><span><dt>XP Reward</dt><dd>50 XP</dd></span></div>
+                <div><Clock3 aria-hidden="true" /><span><dt>Media</dt><dd>{course.mediaSummary.lessonsWithMedia}/{totalLessons} ready</dd></span></div>
+                <div><Gauge aria-hidden="true" /><span><dt>Level</dt><dd>{course.academicLevel.title}</dd></span></div>
+                <div><Sparkles aria-hidden="true" /><span><dt>Unit</dt><dd>{course.unitLabel}</dd></span></div>
               </dl>
             </article>
           ) : null}
@@ -335,28 +303,20 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
             ))}
           </div>
 
-          <div
-            className="course-overview-panel course-overview-panel--overview"
-            role="tabpanel"
-            id="course-overview-panel-overview"
-            aria-labelledby="course-overview-tab-overview"
-            hidden={activeTab !== "overview"}
-          >
+          <div className="course-overview-panel course-overview-panel--overview" role="tabpanel" id="course-overview-panel-overview" aria-labelledby="course-overview-tab-overview" hidden={activeTab !== "overview"}>
             <div className="course-overview-info-row">
               <article className="course-overview-card course-overview-about">
-                <h2>About this lesson</h2>
-                <p>
-                  An introduction to the human body and the essential anatomical terms used throughout your studies.
-                </p>
+                <h2>About this {course.unitLabel.toLowerCase()}</h2>
+                <p>{course.title} is published for {course.brand.name} students in {course.academicInstitution.name} {course.academicLevel.title}, {course.academicSemester.title}.</p>
                 <dl>
-                  <div><Sparkles aria-hidden="true" /><span><dt>Level</dt><dd>Beginner</dd></span></div>
-                  <div><LayoutGrid aria-hidden="true" /><span><dt>Includes</dt><dd>Video, Notes, Quiz</dd></span></div>
-                  <div><Clock3 aria-hidden="true" /><span><dt>Estimated time</dt><dd>24:35 min</dd></span></div>
-                  <div><ShieldCheck aria-hidden="true" /><span><dt>Certificate</dt><dd>Available</dd></span></div>
+                  <div><Sparkles aria-hidden="true" /><span><dt>Presentation</dt><dd>{course.cataloguePresentation === "subject_based" ? "Subject based" : "Module based"}</dd></span></div>
+                  <div><LayoutGrid aria-hidden="true" /><span><dt>Includes</dt><dd>{course.chapterCount} chapters, {totalLessons} lessons</dd></span></div>
+                  <div><Clock3 aria-hidden="true" /><span><dt>Playback</dt><dd>Not connected yet</dd></span></div>
+                  <div><ShieldCheck aria-hidden="true" /><span><dt>Access</dt><dd>Verified student scope</dd></span></div>
                 </dl>
               </article>
               <article className="course-overview-card course-overview-learn">
-                <h2>What you’ll learn</h2>
+                <h2>What you can do now</h2>
                 <ul>
                   {LEARNING_OUTCOMES.map((outcome) => (
                     <li key={outcome}><CheckCircle2 aria-hidden="true" /><span>{outcome}</span></li>
@@ -389,11 +349,11 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
             <>
               <article className="course-overview-card course-overview-curriculum">
                 <header>
-                  <h2>Course curriculum</h2>
-                  <span>0% complete</span>
+                  <h2>{course.unitLabel} curriculum</h2>
+                  <span>{totalLessons} lessons</span>
                 </header>
                 <div className="course-overview-curriculum__modules">
-                  {COURSE_MODULES.map((module) => {
+                  {courseModules.map((module) => {
                     const isExpanded = expandedModuleId === module.id;
                     return (
                       <section className={`course-overview-module${isExpanded ? " is-expanded" : ""}`} key={module.id}>
@@ -405,28 +365,27 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
                           onClick={() => setExpandedModuleId(isExpanded ? null : module.id)}
                         >
                           <ChevronRight className="course-overview-module__leading-chevron" aria-hidden="true" />
-                          <span><strong>Module {module.number}: {module.title}</strong></span>
+                          <span><strong>Chapter {module.number}: {module.title}</strong></span>
                           <small>{module.lessonCount} lessons</small>
                           <ChevronDown className="course-overview-module__trailing-chevron" aria-hidden="true" />
                         </button>
                         <div className="course-overview-module__lessons" id={`course-overview-${module.id}-lessons`} hidden={!isExpanded}>
-                          {module.lessons?.map((lesson) => (
+                          {module.lessons.map((lesson) => (
                             <button
                               type="button"
                               className={`course-overview-lesson${lesson.ready ? " is-ready" : ""}`}
                               key={lesson.id}
-                              aria-label={`${lesson.title}, ${lesson.duration}${lesson.ready ? ", ready to begin" : ""}`}
+                              aria-label={`${lesson.title}, ${lesson.mediaStatus}`}
+                              disabled={!lesson.ready}
                               onClick={lesson.ready ? () => startLesson(lesson.id) : undefined}
                             >
                               <span className="course-overview-lesson__marker">{lesson.ready ? <Play aria-hidden="true" /> : <i />}</span>
                               <span className="course-overview-lesson__number">{lesson.number}</span>
                               <strong>{lesson.title}</strong>
-                              {lesson.ready ? <em>Ready</em> : null}
-                              <time>{lesson.duration}</time>
+                              <em>{lesson.mediaStatus}</em>
+                              <time>{course.unitLabel}</time>
                             </button>
-                          )) ?? (
-                            <p className="course-overview-module__summary"><BookOpen aria-hidden="true" /> {module.lessonCount} lessons in this module</p>
-                          )}
+                          ))}
                         </div>
                       </section>
                     );
@@ -439,10 +398,10 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
                 <p className="course-overview-progress__summary"><strong>0%</strong><span>completed</span></p>
                 <div className="course-overview-progress__track" role="progressbar" aria-label="Course progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={0}><span /></div>
                 <dl className="course-overview-progress__metrics">
-                  <div><dt>Lessons</dt><dd>14</dd></div>
-                  <div><dt>Modules</dt><dd>6</dd></div>
-                  <div><dt>Total duration</dt><dd>12h 40m</dd></div>
-                  <div><dt>Certificate</dt><dd>1</dd></div>
+                  <div><dt>Lessons</dt><dd>{totalLessons}</dd></div>
+                  <div><dt>Chapters</dt><dd>{course.chapterCount}</dd></div>
+                  <div><dt>Media ready</dt><dd>{course.mediaSummary.lessonsWithMedia}</dd></div>
+                  <div><dt>Pending</dt><dd>{course.mediaSummary.pendingMediaLessons}</dd></div>
                 </dl>
               </article>
             </>

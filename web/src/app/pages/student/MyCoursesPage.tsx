@@ -21,6 +21,7 @@ import { CourseLibrary } from "../../../components/ui/CourseLibrary";
 import { SearchBar } from "../../../components/ui/SearchBar";
 import heroBackground from "../../../Assets/dashboard/my-courses-hero-background.png";
 import { INITIAL_COURSES, type StudentCourse } from "../../../components/ui/CourseLibrary/courses.data";
+import { listStudentCourses, type StudentCourseItem } from "../../../features/student/api/studentCoursesApi";
 
 export type { StudentCourse };
 
@@ -33,6 +34,55 @@ const WEEK_SCHEDULE = [
   { day: "Fri", date: "16", hours: "2h planned", status: "upcoming" },
 ];
 
+const STUDENT_COURSE_BRAND = "elite" as const;
+
+function normalizeCategory(title: string) {
+  const lower = title.toLowerCase();
+  if (lower.includes("anatomy")) return { label: "Anatomy", id: "anatomy" };
+  if (lower.includes("histology")) return { label: "Histology", id: "histology" };
+  if (lower.includes("physiology")) return { label: "Physiology", id: "physiology" };
+  if (lower.includes("bio")) return { label: "Biochemistry", id: "biochemistry" };
+  if (lower.includes("genetic") || lower.includes("cellular")) return { label: "Cell Biology", id: "histology" };
+  return { label: "Medicine", id: "all" };
+}
+
+function visualPresetForCourse(course: StudentCourseItem) {
+  const title = course.title.toLowerCase();
+  return INITIAL_COURSES.find((item) => title.includes(item.categoryId) || title.includes(item.category.toLowerCase())) ?? INITIAL_COURSES[0];
+}
+
+function toDisplayCourse(course: StudentCourseItem): StudentCourse {
+  const visual = visualPresetForCourse(course);
+  const category = normalizeCategory(course.title);
+  const subtitle = `${course.academicInstitution.name} • ${course.academicLevel.title} • ${course.academicSemester.title}`;
+  const mediaReady = course.mediaSummary.lessonsWithMedia;
+
+  return {
+    id: course.courseId,
+    title: course.title,
+    subtitle,
+    category: category.label,
+    categoryId: category.id,
+    level: course.unitLabel,
+    progress: 0,
+    lessonText: `${course.lessonCount} ${course.lessonCount === 1 ? "lesson" : "lessons"}`,
+    completedLessons: 0,
+    totalLessons: course.lessonCount,
+    opened: mediaReady > 0 ? `${mediaReady} lessons have media metadata` : "Media coming soon",
+    art: visual.art,
+    image: visual.image,
+    heroOverlay: visual.heroOverlay,
+    Icon: visual.Icon,
+    status: "in-progress",
+    instructor: {
+      initials: course.brand.code === "elite" ? "EL" : course.brand.name.slice(0, 2).toUpperCase(),
+      name: course.brand.name,
+      role: `${course.unitLabel}-based programme`,
+    },
+    summary: `${course.chapterCount} ${course.chapterCount === 1 ? "chapter" : "chapters"} • ${course.lessonCount} lessons`,
+    slug: course.courseId,
+  };
+}
 function buildPacePoints(values: number[]) {
   return values.map((value, index) => ({ index, value }));
 }
@@ -60,29 +110,51 @@ export function MyCoursesPage() {
   const [isSortOpen, setIsSortOpen] = useState(false);
   const sortRef = useRef<HTMLDivElement>(null);
 
-  const [bookmarked, setBookmarked] = useState<Record<string, boolean>>({
-    "course-1": true,
-    "course-2": true,
-    "course-4": true,
-  });
+  const [bookmarked, setBookmarked] = useState<Record<string, boolean>>({});
 
-  const [selectedCourseId, setSelectedCourseId] = useState<string>("course-1");
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const [courses, setCourses] = useState<StudentCourse[]>([]);
+  const [isCoursesLoading, setIsCoursesLoading] = useState(true);
+  const [coursesError, setCoursesError] = useState<string | null>(null);
 
   const [activeScheduleIndex, setActiveScheduleIndex] = useState<number>(1);
   const [isPaceMonthly, setIsPaceMonthly] = useState(false);
 
   const activeFocusCourse = useMemo(() => {
-    return INITIAL_COURSES.find((c) => c.id === selectedCourseId) || INITIAL_COURSES[0];
-  }, [selectedCourseId]);
+    return courses.find((c) => c.id === selectedCourseId) ?? courses[0] ?? null;
+  }, [courses, selectedCourseId]);
 
-  const inProgressCount = useMemo(() => INITIAL_COURSES.filter((c) => c.status === "in-progress").length, []);
-  const completedCount = useMemo(() => INITIAL_COURSES.filter((c) => c.status === "completed").length, []);
-  const savedCount = useMemo(() => INITIAL_COURSES.filter((c) => bookmarked[c.id]).length, [bookmarked]);
+  const inProgressCount = useMemo(() => courses.filter((c) => c.status === "in-progress").length, [courses]);
+  const completedCount = useMemo(() => courses.filter((c) => c.status === "completed").length, [courses]);
+  const savedCount = useMemo(() => courses.filter((c) => bookmarked[c.id]).length, [bookmarked, courses]);
 
   const toggleBookmark = (id: string) => {
     setBookmarked((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  useEffect(() => {
+    const controller = new AbortController();
+
+    setIsCoursesLoading(true);
+    setCoursesError(null);
+    listStudentCourses({ brand: STUDENT_COURSE_BRAND, page: 1, pageSize: 25, signal: controller.signal })
+      .then((payload) => {
+        const nextCourses = payload.items.map(toDisplayCourse);
+        setCourses(nextCourses);
+        setSelectedCourseId((current) => current || nextCourses[0]?.id || "");
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        setCourses([]);
+        setSelectedCourseId("");
+        setCoursesError(error instanceof Error ? error.message : "The learning API request failed.");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsCoursesLoading(false);
+      });
+
+    return () => controller.abort();
+  }, []);
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (sortRef.current && !sortRef.current.contains(e.target as Node)) {
@@ -209,6 +281,13 @@ export function MyCoursesPage() {
           </div>
         </header>
 
+        {isCoursesLoading ? (
+          <div className="dashboard-feedback" role="status">Loading your Elite subjects...</div>
+        ) : coursesError ? (
+          <div className="dashboard-feedback dashboard-feedback--error" role="alert">{coursesError}</div>
+        ) : !activeFocusCourse ? (
+          <div className="dashboard-feedback" role="status">No Elite subjects are available for this student yet.</div>
+        ) : (
         <div className="my-courses-overview">
           <article
             className="course-focus-card"
@@ -397,8 +476,12 @@ export function MyCoursesPage() {
             </article>
           </div>
         </div>
+        )}
 
+        {!isCoursesLoading && !coursesError && courses.length > 0 ? (
         <CourseLibrary
+          courses={courses}
+          unitLabel="subject"
           statusFilter={statusFilter}
           searchQuery={searchQuery}
           sortBy={sortBy}
@@ -408,6 +491,7 @@ export function MyCoursesPage() {
           onToggleBookmark={toggleBookmark}
           onClearSearch={() => setSearchQuery("")}
         />
+        ) : null}
       </div>
     </section>
   );

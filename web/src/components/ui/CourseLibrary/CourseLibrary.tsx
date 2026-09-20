@@ -11,10 +11,12 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { COURSE_CATEGORY_TABS, INITIAL_COURSES } from "./courses.data";
+import { COURSE_CATEGORY_TABS, INITIAL_COURSES, type StudentCourse } from "./courses.data";
 import "./CourseLibrary.css";
 
 interface CourseLibraryProps {
+  courses?: readonly StudentCourse[];
+  unitLabel?: string;
   statusFilter?: "in-progress" | "completed" | "saved";
   searchQuery?: string;
   sortBy?: "opened" | "progress" | "title";
@@ -26,6 +28,8 @@ interface CourseLibraryProps {
 }
 
 export function CourseLibrary({
+  courses = INITIAL_COURSES,
+  unitLabel = "module",
   statusFilter = "in-progress",
   searchQuery = "",
   sortBy = "opened",
@@ -49,7 +53,7 @@ export function CourseLibrary({
 
   // Filtered courses based on status tabs, categories, and search
   const filteredCourses = useMemo(() => {
-    return INITIAL_COURSES.filter((course) => {
+    return courses.filter((course) => {
       // 1. Status Filter
       if (statusFilter === "in-progress" && course.status !== "in-progress") return false;
       if (statusFilter === "completed" && course.status !== "completed") return false;
@@ -73,7 +77,7 @@ export function CourseLibrary({
       if (sortBy === "title") return a.title.localeCompare(b.title);
       return 0;
     });
-  }, [statusFilter, categoryFilter, effectiveQuery, bookmarked, sortBy]);
+  }, [courses, statusFilter, categoryFilter, effectiveQuery, bookmarked, sortBy]);
 
   const checkScroll = () => {
     if (viewportRef.current) {
@@ -116,7 +120,7 @@ export function CourseLibrary({
         <div className="flex items-center gap-3">
           <h2 id="course-library-title">Course library</h2>
           <span className="text-xs font-semibold text-[#64748b] bg-[#f1f5f3] px-2.5 py-0.5 rounded-full">
-            {filteredCourses.length} {filteredCourses.length === 1 ? "module" : "modules"}
+            {filteredCourses.length} {filteredCourses.length === 1 ? unitLabel : `${unitLabel}s`}
           </span>
         </div>
 
