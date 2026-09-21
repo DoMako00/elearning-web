@@ -18,6 +18,7 @@ interface StudentCourseScope extends Record<string, unknown> {
   readonly institutionId: string;
   readonly levelId: string;
   readonly semesterId: string;
+  readonly studentProfileId: string;
 }
 
 // These joins derive identity and placement from private records. Client filters
@@ -57,6 +58,19 @@ const courseWhere = `c.status = 'published' and c.classification = 'academic_mod
     or c.catalogue_presentation = case b.code when 'nexus' then 'module_based' else 'subject_based' end)
   and c.brand_id = $1::uuid and c.academic_institution_id = $2::uuid
   and l.id = $3::uuid and s.id = $4::uuid`;
+const enrolledCourseExists = (studentProfileParameter: number): string =>
+  `exists (select 1 from app.course_enrollments ce
+    where ce.student_profile_id = $${studentProfileParameter}::uuid and ce.brand_course_id = c.id
+      and ce.brand_id = c.brand_id and ce.status in ('active','completed'))`;
+const enrollmentStatus = (studentProfileParameter: number): string =>
+  `(select ce.status from app.course_enrollments ce
+    where ce.student_profile_id = $${studentProfileParameter}::uuid and ce.brand_course_id = c.id
+      and ce.brand_id = c.brand_id and ce.status in ('active','completed')
+    order by case ce.status when 'active' then 0 else 1 end, ce.enrolled_at desc limit 1)`;
+const courseAccessJson = (studentProfileParameter: number): string =>
+  `jsonb_build_object('isEnrolled', ${enrolledCourseExists(studentProfileParameter)},
+    'canOpen', ${enrolledCourseExists(studentProfileParameter)},
+    'enrollmentStatus', ${enrollmentStatus(studentProfileParameter)})`;
 const chaptersFrom = `from app.course_chapters ch
   where ch.brand_course_id = c.id and ch.brand_id = c.brand_id and ch.status = 'published'`;
 const lessonsFrom = `from app.course_lessons ls
@@ -69,7 +83,7 @@ const lessonJson = `jsonb_build_object(
   'lessonId', ls.id, 'chapterId', ls.course_chapter_id, 'title', ls.title, 'sortOrder', ls.sort_order, 'status', ls.status,
   'mediaStatus', case when ${pendingResource} is null then 'no_media' else 'pending_media' end,
   'resourceId', ${pendingResource}, 'playbackAvailable', false)`;
-const courseJson = `jsonb_build_object(
+const courseJson = (studentProfileParameter: number): string => `jsonb_build_object(
   'courseId', c.id, 'title', c.title, 'code', c.code,
   'brand', jsonb_build_object('code', b.code, 'name', b.name),
   'academicInstitution', jsonb_build_object('code', i.code, 'name', i.display_name),
@@ -81,8 +95,9 @@ const courseJson = `jsonb_build_object(
   'lessonCount', (select count(*) ${lessonsFrom}),
   'mediaSummary', jsonb_build_object('totalLessons', (select count(*) ${lessonsFrom}),
     'lessonsWithMedia', 0, 'pendingMediaLessons', (select count(*) ${lessonsFrom} and ${pendingResource} is not null)),
+  'access', ${courseAccessJson(studentProfileParameter)},
   'updatedAt', c.updated_at)`;
-const detailJson = `${courseJson} || jsonb_build_object(
+const detailJson = (studentProfileParameter: number): string => `${courseJson(studentProfileParameter)} || jsonb_build_object(
   'academicUnit', jsonb_build_object('code', m.code, 'label', case c.catalogue_presentation when 'subject_based' then c.title else m.source_display_label end),
   'chapters', coalesce((select jsonb_agg(jsonb_build_object(
     'chapterId', ch.id, 'title', ch.title, 'sortOrder', ch.sort_order, 'status', ch.status,
@@ -98,7 +113,7 @@ export class PostgresStudentCourseReadModel implements StudentCourseReadModel {
   private async scope(input: StudentCourseReadInput): Promise<RepositoryResult<StudentCourseScope>> {
     const rows = (await this.transport.query<StudentCourseScope>({
       label: "student.course-scope",
-      text: `select sb.code as brand, sap.brand_id as "brandId", sap.academic_institution_id as "institutionId",
+      text: `select sb.code as brand, sp.id as "studentProfileId", sap.brand_id as "brandId", sap.academic_institution_id as "institutionId",
           sap.academic_level_id as "levelId", sap.academic_semester_id as "semesterId"
         ${scopeFrom} where ${scopeWhere} order by sb.code limit 2`,
       values: [input.subject, input.brand ?? ""],
@@ -117,15 +132,16 @@ export class PostgresStudentCourseReadModel implements StudentCourseReadModel {
       const result = await this.transport.query<{ items: StudentCourseList["items"]; total: number }>({
         label: "student.courses.list",
         text: `select (select count(*)::integer ${courseFrom} where ${courseWhere}) as total,
-          coalesce((select jsonb_agg(page.item order by page.title, page.id) from (
-            select ${courseJson} as item, c.title, c.id ${courseFrom} where ${courseWhere}
-            order by c.title, c.id limit $5::integer offset $6::integer) page), '[]'::jsonb) as items
-          where ${scopeGuard(7, 8)}`,
+          coalesce((select jsonb_agg(page.item order by page.is_enrolled desc, page.title, page.id) from (
+            select ${courseJson(5)} as item, ${enrolledCourseExists(5)} as is_enrolled, c.title, c.id ${courseFrom} where ${courseWhere}
+            order by is_enrolled desc, c.title, c.id limit $6::integer offset $7::integer) page), '[]'::jsonb) as items
+          where ${scopeGuard(8, 9)}`,
         values: [
           scope.value.brandId,
           scope.value.institutionId,
           scope.value.levelId,
           scope.value.semesterId,
+          scope.value.studentProfileId,
           String(input.pageSize),
           String((input.page - 1) * input.pageSize),
           input.subject,
@@ -147,8 +163,8 @@ export class PostgresStudentCourseReadModel implements StudentCourseReadModel {
       if (!scope.ok) return scope;
       const result = await this.transport.query<{ item: StudentCourseDetail }>({
         label: "student.courses.detail",
-        text: `select ${detailJson} as item ${courseFrom} where ${courseWhere} and c.id = $5::uuid and ${scopeGuard(6, 7)}`,
-        values: [scope.value.brandId, scope.value.institutionId, scope.value.levelId, scope.value.semesterId, input.courseId, input.subject, input.brand ?? ""],
+        text: `select ${detailJson(6)} as item ${courseFrom} where ${courseWhere} and c.id = $5::uuid and ${enrolledCourseExists(6)} and ${scopeGuard(7, 8)}`,
+        values: [scope.value.brandId, scope.value.institutionId, scope.value.levelId, scope.value.semesterId, input.courseId, scope.value.studentProfileId, input.subject, input.brand ?? ""],
       });
       return result.rows[0] ? repositoryOk(result.rows[0].item)
         : repositoryErr({ code: "not_found", message: "Course was not found.", correlationId: input.correlationId });

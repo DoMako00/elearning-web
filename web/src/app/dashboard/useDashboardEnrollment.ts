@@ -19,6 +19,10 @@ export interface DashboardEnrollmentViewModel {
 
 const STUDENT_DASHBOARD_BRAND = "elite" as const;
 
+function canOpenCourse(course: StudentCourseItem): boolean {
+  return course.access?.canOpen === true;
+}
+
 function toEnrollment(course: StudentCourseItem): DashboardEnrollment {
   return { id: course.courseId };
 }
@@ -54,7 +58,7 @@ export function useDashboardEnrollment() {
       .then((payload) => {
         if (controller.signal.aborted) return;
         const courses = [...payload.items];
-        const enrolledCourses = courses.map(toEnrollment);
+        const enrolledCourses = courses.filter(canOpenCourse).map(toEnrollment);
         setViewModel({
           status: enrolledCourses.length > 0 ? "enrolled" : "empty",
           enrolledCourses,

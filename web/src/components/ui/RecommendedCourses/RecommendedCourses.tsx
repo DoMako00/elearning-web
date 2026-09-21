@@ -19,6 +19,10 @@ interface RecommendedCoursesProps {
   courses?: readonly StudentCourseItem[];
 }
 
+function canOpenCourse(course: StudentCourseItem) {
+  return course.access?.canOpen === true;
+}
+
 function imageForCourse(course: StudentCourseItem) {
   const source = `${course.code} ${course.title}`.toLowerCase();
   if (source.includes("bio")) return biochemistryImage;
@@ -38,7 +42,7 @@ function orderedCourses(courses: readonly StudentCourseItem[]) {
 
 export function RecommendedCourses({ courses = [] }: RecommendedCoursesProps) {
   const navigate = useNavigate();
-  const displayCourses = useMemoSafeCourses(courses);
+  const displayCourses = useMemoSafeCourses(courses).filter((course) => !canOpenCourse(course));
   const [bookmarkedCourses, setBookmarkedCourses] = useState<Record<string, boolean>>({});
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(displayCourses.length > 2);
@@ -91,7 +95,7 @@ export function RecommendedCourses({ courses = [] }: RecommendedCoursesProps) {
     <section className="recommended-card" aria-labelledby="recommended-title">
       <ToastNotification message={toastMessage} />
       <header className="recommended-header">
-        <h2 id="recommended-title">Your Elite Year 1 Subjects</h2>
+        <h2 id="recommended-title">Recommended subjects</h2>
         <button type="button" className="recommended-view-all cursor-pointer" onClick={() => navigate("/my-courses")}>
           <span>View all</span>
           <ArrowRight aria-hidden="true" />

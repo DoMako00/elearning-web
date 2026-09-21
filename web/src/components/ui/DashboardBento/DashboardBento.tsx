@@ -16,8 +16,12 @@ export interface DashboardBentoProps {
   courses?: readonly StudentCourseItem[];
 }
 
+function canOpenCourse(course: StudentCourseItem) {
+  return course.access?.canOpen === true;
+}
+
 function buildAvailableSubjectItems(courses: readonly StudentCourseItem[]): UpcomingItem[] {
-  return courses.slice(0, 5).map((course) => ({
+  return courses.filter(canOpenCourse).slice(0, 5).map((course) => ({
     id: course.courseId,
     title: course.title,
     time: `${course.lessonCount} lessons available`,

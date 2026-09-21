@@ -203,7 +203,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
 
   const startLesson = (lessonId: string) => {
     onStartLesson?.(lessonId);
-    navigate(`/my-courses/${courseId}/lessons/${lessonId}`);
+    navigate(`/my-courses/${courseId}/lessons/${lessonId}`, { state: { courseTitle: course?.title, courseId } });
   };
 
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, tabIndex: number) => {

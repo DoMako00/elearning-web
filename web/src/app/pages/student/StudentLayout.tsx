@@ -39,11 +39,16 @@ export function StudentLayout() {
     return null;
   }
 
+  const courseRouteMatch = pathname.match(/^\/my-courses\/([^/]+)(?:\/lessons\/([^/]+))?$/);
+  const courseRouteState = location.state as { courseTitle?: unknown; courseId?: unknown } | null;
+  const currentCourseTitle = typeof courseRouteState?.courseTitle === "string" && courseRouteState.courseTitle.trim() ? courseRouteState.courseTitle : "Subject overview";
+  const currentCourseId = courseRouteMatch?.[1] ?? "";
+
   const isHome = pathname === "/" || pathname === "";
   const isProfile = pathname === "/profile";
   const isMyCourses = pathname === "/my-courses";
-  const isCourseOverview = pathname === "/my-courses/human-anatomy-i";
-  const isLessonPlayer = pathname.startsWith("/my-courses/human-anatomy-i/lessons");
+  const isCourseOverview = Boolean(courseRouteMatch && !courseRouteMatch[2]);
+  const isLessonPlayer = Boolean(courseRouteMatch?.[2]);
   const isExplore = pathname === "/explore";
   const isAssignments = pathname === "/assignments";
   const isAssignmentDetail = pathname.startsWith("/assignments/");
@@ -120,9 +125,7 @@ export function StudentLayout() {
         <nav className="student-dashboard__course-breadcrumb" aria-label="Lesson breadcrumb">
           <Link to="/my-courses">My Courses</Link>
           <span aria-hidden="true">›</span>
-          <h1 id="course-overview-title" className="student-dashboard__course-breadcrumb-title">Human Anatomy</h1>
-          <span aria-hidden="true">›</span>
-          <strong aria-current="page">Lesson 1</strong>
+          <h1 id="course-overview-title" className="student-dashboard__course-breadcrumb-title">{currentCourseTitle}</h1>
         </nav>
       );
     }
@@ -132,7 +135,7 @@ export function StudentLayout() {
         <nav className="student-dashboard__course-breadcrumb" aria-label="Lesson breadcrumb">
           <Link to="/my-courses">My Courses</Link>
           <span aria-hidden="true">›</span>
-          <Link to="/my-courses/human-anatomy-i">Human Anatomy</Link>
+          <Link to={`/my-courses/${currentCourseId}`} state={{ courseTitle: currentCourseTitle, courseId: currentCourseId }}>{currentCourseTitle}</Link>
           <span aria-hidden="true">›</span>
           <strong aria-current="page">Lesson Player</strong>
         </nav>

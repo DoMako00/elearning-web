@@ -4,6 +4,13 @@ import { getSupabaseAccessToken } from "../../auth/api/supabaseAuth";
 export type StudentCommercialBrand = "medway" | "elite" | "nexus";
 export type CataloguePresentation = "subject_based" | "module_based";
 export type LessonMediaStatus = "no_media" | "pending_media" | "ready";
+export type StudentCourseEnrollmentStatus = "active" | "completed";
+
+export interface StudentCourseAccess {
+  readonly isEnrolled: boolean;
+  readonly canOpen: boolean;
+  readonly enrollmentStatus: StudentCourseEnrollmentStatus | null;
+}
 
 export interface StudentLessonItem {
   readonly lessonId: string;
@@ -42,6 +49,7 @@ export interface StudentCourseItem {
     readonly lessonsWithMedia: number;
     readonly pendingMediaLessons: number;
   };
+  readonly access: StudentCourseAccess;
   readonly updatedAt: string;
 }
 

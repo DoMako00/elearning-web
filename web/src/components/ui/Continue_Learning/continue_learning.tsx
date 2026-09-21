@@ -105,7 +105,7 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
       return;
     }
     if (!selectedCourse) return;
-    navigate(selectedCourse.route);
+    navigate(selectedCourse.route, { state: { courseTitle: selectedCourse.name, courseId: selectedCourse.id } });
   };
 
   const toggleBookmark = () => {
@@ -178,7 +178,7 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
                   type="button"
                   onClick={() => {
                     setIsMenuOpen(false);
-                    navigate(selectedCourse.route);
+                    navigate(selectedCourse.route, { state: { courseTitle: selectedCourse.name, courseId: selectedCourse.id } });
                   }}
                   className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left hover:bg-slate-50 transition-colors"
                   role="menuitem"
@@ -290,7 +290,7 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
             </div>
 
             <p className="text-xs text-slate-500 mt-2 mb-4">
-              Select one of your available Elite Year 1 subjects to feature on Home.
+              Select one of your enrolled Elite Year 1 subjects to feature on Home.
             </p>
 
             <div className="space-y-2.5">
