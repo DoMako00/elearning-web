@@ -60,7 +60,7 @@ export function SignInPage() {
     navigate(
       typeof redirect === "string" && redirect.startsWith("/")
         ? redirect
-        : "/admin",
+        : "/my-courses",
       { replace: true }
     );
   };

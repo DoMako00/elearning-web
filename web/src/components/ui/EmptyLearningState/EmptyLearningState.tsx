@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import {
   ArrowRight,
   Award,
@@ -186,7 +187,7 @@ export function EmptyLearningState() {
           <div className="empty-learning-main-card__copy">
             <h1>Your learning journey is waiting</h1>
             <p>You haven&apos;t subscribed to any courses yet.<br />Let&apos;s find the perfect course to start your growth.</p>
-            <UnavailableAction className="empty-learning-main-card__primary-action"><Compass aria-hidden="true" /><span>Explore Courses</span></UnavailableAction>
+            <Link className="empty-learning-main-card__primary-action" to="/auth/sign-in" state={{ from: "/my-courses" }}><Compass aria-hidden="true" /><span>Sign in to view courses</span></Link>
             <UnavailableAction className="empty-learning-main-card__secondary-action"><span>How learning works</span><ArrowRight aria-hidden="true" /></UnavailableAction>
           </div>
         </div>

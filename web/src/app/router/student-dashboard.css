@@ -2307,3 +2307,40 @@ main[data-main-workspace] {
     white-space: nowrap;
   }
 }
+.student-dashboard__signin-button,
+.dashboard-feedback button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--color-brand-hover, #20a862);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgb(32 168 98 / 18%);
+  transition: transform 150ms ease, box-shadow 150ms ease, opacity 150ms ease;
+}
+
+.student-dashboard__signin-button:hover,
+.dashboard-feedback button:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px rgb(32 168 98 / 22%);
+}
+
+.student-dashboard__signin-button:focus-visible,
+.dashboard-feedback button:focus-visible {
+  outline: 2px solid var(--color-focus-ring, #20a862);
+  outline-offset: 3px;
+}
+
+.dashboard-feedback strong {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--color-text-primary, #1f2937);
+  font-size: 16px;
+}

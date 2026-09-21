@@ -17,6 +17,7 @@ import {
   Tooltip,
   YAxis,
 } from "recharts";
+import { useAuth } from "../../providers/AuthProvider";
 import { CourseLibrary } from "../../../components/ui/CourseLibrary";
 import { SearchBar } from "../../../components/ui/SearchBar";
 import heroBackground from "../../../Assets/dashboard/my-courses-hero-background.png";
@@ -103,6 +104,7 @@ function PaceCustomTooltip({ active, payload }: PaceCustomTooltipProps) {
 
 export function MyCoursesPage() {
   const navigate = useNavigate();
+  const auth = useAuth();
 
   const [statusFilter, setStatusFilter] = useState<"in-progress" | "completed" | "saved">("in-progress");
   const [searchQuery, setSearchQuery] = useState("");
@@ -133,6 +135,19 @@ export function MyCoursesPage() {
   };
 
   useEffect(() => {
+    if (auth.status === "loading") {
+      setIsCoursesLoading(true);
+      return;
+    }
+
+    if (auth.status !== "authenticated") {
+      setCourses([]);
+      setSelectedCourseId("");
+      setCoursesError(null);
+      setIsCoursesLoading(false);
+      return;
+    }
+
     const controller = new AbortController();
 
     setIsCoursesLoading(true);
@@ -154,7 +169,7 @@ export function MyCoursesPage() {
       });
 
     return () => controller.abort();
-  }, []);
+  }, [auth.status]);
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (sortRef.current && !sortRef.current.contains(e.target as Node)) {
@@ -283,6 +298,11 @@ export function MyCoursesPage() {
 
         {isCoursesLoading ? (
           <div className="dashboard-feedback" role="status">Loading your Elite subjects...</div>
+        ) : auth.status !== "authenticated" ? (
+          <div className="dashboard-feedback" role="status">
+            <strong>Sign in to view your Elite subjects.</strong>
+            <button type="button" onClick={() => navigate("/auth/sign-in", { state: { from: "/my-courses" } })}>Sign in</button>
+          </div>
         ) : coursesError ? (
           <div className="dashboard-feedback dashboard-feedback--error" role="alert">{coursesError}</div>
         ) : !activeFocusCourse ? (

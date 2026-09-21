@@ -5,6 +5,7 @@ import { UserHeaderActions } from "../../../components/ui/UserHeaderActions";
 import { useIsMobile } from "../../../hooks/useIsMobile";
 import { MobileLayout } from "../../../components/mobile/MobileLayout";
 import { useGamification } from "../../providers/GamificationProvider";
+import { useAuth } from "../../providers/AuthProvider";
 
 import { CourseOverviewScreen } from "../../../components/mobile/screens/CourseOverviewScreen";
 import { MobileLearningPathStubScreen } from "../../../components/mobile/screens/MobileLearningPathStubScreen";
@@ -15,6 +16,7 @@ export function StudentLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { xpTotal } = useGamification();
+  const auth = useAuth();
   const pathname = location.pathname;
 
   // Render Mobile Layout when viewport matches <= 767px
@@ -210,23 +212,36 @@ export function StudentLayout() {
             renderBreadcrumb()
           )}
           <div className="student-dashboard__actions">
-            <UserHeaderActions
-              avatarSrc="https://i.pravatar.cc/112?img=47"
-              avatarAlt="Juliana"
-              xp={xpTotal}
-              hasNotification
-              onViewProfile={() => navigate("/profile")}
-              onMenuItemClick={(itemKey) => {
-                if (itemKey === "profile") navigate("/profile");
-                else if (itemKey === "settings") navigate("/settings");
-                else if (itemKey === "notifications") navigate("/settings");
-                else if (itemKey === "help") navigate("/help");
-                else if (itemKey === "certificates") navigate("/profile?tab=achievements");
-              }}
-              onLogOut={() => {
-                window.location.href = "/";
-              }}
-            />
+            {auth.status === "authenticated" ? (
+              <UserHeaderActions
+                avatarSrc="https://i.pravatar.cc/112?img=47"
+                avatarAlt="Student account"
+                userName={auth.user?.name ?? "Student"}
+                userRole="Student"
+                xp={xpTotal}
+                hasNotification
+                onViewProfile={() => navigate("/profile")}
+                onMenuItemClick={(itemKey) => {
+                  if (itemKey === "profile") navigate("/profile");
+                  else if (itemKey === "settings") navigate("/settings");
+                  else if (itemKey === "notifications") navigate("/settings");
+                  else if (itemKey === "help") navigate("/help");
+                  else if (itemKey === "certificates") navigate("/profile?tab=achievements");
+                }}
+                onLogOut={() => {
+                  auth.signOut();
+                  navigate("/", { replace: true });
+                }}
+              />
+            ) : (
+              <button
+                type="button"
+                className="student-dashboard__signin-button"
+                onClick={() => navigate("/auth/sign-in", { state: { from: "/my-courses" } })}
+              >
+                Sign in
+              </button>
+            )}
           </div>
         </header>
         <div className="student-dashboard__content">
