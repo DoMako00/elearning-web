@@ -42,6 +42,10 @@ function isBiochemistry(course: StudentCourseItem) {
   return source.includes("bio") || source.includes("biochem");
 }
 
+function canOpenCourse(course: StudentCourseItem) {
+  return course.access?.canOpen === true;
+}
+
 function toCourseOption(course: StudentCourseItem): CourseOption {
   return {
     id: course.courseId,
@@ -72,8 +76,9 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
   onContinue,
 }) => {
   const navigate = useNavigate();
-  const courseOptions = useMemo(() => orderedCourseOptions(courses), [courses]);
-  const preferredCourse = useMemo(() => courses.find(isBiochemistry) ?? courses[0] ?? null, [courses]);
+  const enrolledCourses = useMemo(() => courses.filter(canOpenCourse), [courses]);
+  const courseOptions = useMemo(() => orderedCourseOptions(enrolledCourses), [enrolledCourses]);
+  const preferredCourse = useMemo(() => enrolledCourses.find(isBiochemistry) ?? enrolledCourses[0] ?? null, [enrolledCourses]);
   const preferredCourseId = preferredCourse?.courseId ?? "";
   const [selectedCourseId, setSelectedCourseId] = useState(preferredCourseId);
   const selectedCourse = courseOptions.find((course) => course.id === selectedCourseId) ?? courseOptions[0] ?? null;
@@ -128,7 +133,7 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
           <h2 className="continue-learning-title text-section-title font-bold text-(--text-color-black) tracking-tight">
             {title}
           </h2>
-          <p className="continue-learning-course-subtitle">No published Elite subjects are available yet.</p>
+          <p className="continue-learning-course-subtitle">No enrolled Elite subjects are available yet.</p>
         </div>
       </section>
     );

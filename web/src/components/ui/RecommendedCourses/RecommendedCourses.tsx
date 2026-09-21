@@ -91,6 +91,10 @@ export function RecommendedCourses({ courses = [] }: RecommendedCoursesProps) {
     }
   };
 
+  const showLockedSubjectMessage = (title: string) => {
+    showToast(`"${title}" is recommended. Subscribe or get enrolled before opening its lessons.`);
+  };
+
   return (
     <section className="recommended-card" aria-labelledby="recommended-title">
       <ToastNotification message={toastMessage} />
@@ -122,10 +126,10 @@ export function RecommendedCourses({ courses = [] }: RecommendedCoursesProps) {
               <article
                 className="recommended-course cursor-pointer transition-all hover:shadow-md"
                 key={course.courseId}
-                onClick={() => navigate(`/my-courses/${course.courseId}`)}
+                onClick={() => showLockedSubjectMessage(course.title)}
                 tabIndex={0}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") navigate(`/my-courses/${course.courseId}`);
+                  if (e.key === "Enter") showLockedSubjectMessage(course.title);
                 }}
               >
                 <div className="recommended-course-media">
