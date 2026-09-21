@@ -237,7 +237,7 @@ export function StudentLayout() {
               <button
                 type="button"
                 className="student-dashboard__signin-button"
-                onClick={() => navigate("/auth/sign-in", { state: { from: "/my-courses" } })}
+                onClick={() => navigate("/auth/sign-in", { state: { from: "/" } })}
               >
                 Sign in
               </button>

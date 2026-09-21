@@ -29,10 +29,10 @@ function DashboardErrorState({ onRetry }: { onRetry: () => void }) {
 }
 
 export function HomePage() {
-  const { status, enrolledCourses, retry } = useDashboardEnrollment();
+  const { status, enrolledCourses, courses, retry } = useDashboardEnrollment();
 
   if (status === "loading") return <DashboardLoadingState />;
   if (status === "error") return <DashboardErrorState onRetry={retry} />;
 
-  return enrolledCourses.length > 0 ? <DashboardBento /> : <EmptyLearningState />;
+  return enrolledCourses.length > 0 ? <DashboardBento courses={courses} /> : <EmptyLearningState />;
 }

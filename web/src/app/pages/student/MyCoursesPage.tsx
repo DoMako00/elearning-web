@@ -301,7 +301,7 @@ export function MyCoursesPage() {
         ) : auth.status !== "authenticated" ? (
           <div className="dashboard-feedback" role="status">
             <strong>Sign in to view your Elite subjects.</strong>
-            <button type="button" onClick={() => navigate("/auth/sign-in", { state: { from: "/my-courses" } })}>Sign in</button>
+            <button type="button" onClick={() => navigate("/auth/sign-in", { state: { from: "/" } })}>Sign in</button>
           </div>
         ) : coursesError ? (
           <div className="dashboard-feedback dashboard-feedback--error" role="alert">{coursesError}</div>
@@ -433,7 +433,7 @@ export function MyCoursesPage() {
               <header className="flex justify-between items-start">
                 <div>
                   <h2>Your pace</h2>
-                  <strong>{isPaceMonthly ? "88%" : "68%"}</strong>
+                  <strong>0%</strong>
                   <small>Course completion rate</small>
                 </div>
                 <div className="pace-header-actions">
@@ -491,7 +491,7 @@ export function MyCoursesPage() {
               </div>
               <p>
                 <Sparkles aria-hidden="true" />
-                +12% this month
+                Progress starts after lesson completion
               </p>
             </article>
           </div>

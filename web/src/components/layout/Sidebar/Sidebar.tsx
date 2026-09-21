@@ -129,7 +129,7 @@ export function Sidebar() {
             type="button"
             className="sidebar-profile sidebar-profile--signin flex w-full min-h-19.5 shrink-0 items-center gap-3 rounded-2.5 bg-(--color-brand-soft) px-3 text-left transition-all duration-150 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-focus-ring)"
             aria-label="Sign in to your student account"
-            onClick={() => navigate("/auth/sign-in", { state: { from: "/my-courses" } })}
+            onClick={() => navigate("/auth/sign-in", { state: { from: "/" } })}
           >
             <div className="sidebar-profile-avatar-wrap relative shrink-0">
               <span className="sidebar-profile-avatar grid size-11 shrink-0 place-items-center rounded-full bg-(--color-brand-hover) text-sm font-semibold text-white">
