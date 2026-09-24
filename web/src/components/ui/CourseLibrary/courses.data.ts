@@ -7,7 +7,7 @@ import {
   Stethoscope,
   type LucideIcon,
 } from "lucide-react";
-import anatomyOverlay from "../../../Assets/dashboard/my-courses-anatomy-overlay.png";
+import anatomyOverlay from "../../../Assets/dashboard/my-courses-anatomy-overlay.webp";
 import histologyOverlay from "../../../Assets/dashboard/histology-basics.webp";
 import physiologyOverlay from "../../../Assets/dashboard/medical-physiology.webp";
 import biochemistryOverlay from "../../../Assets/dashboard/biochemistry-essentials.webp";

@@ -322,7 +322,7 @@ export function CourseLibrary({
                     onClick={() => onSelectCourse(course.id)}
                   >
                     <div className={`course-library__art course-library__art--${course.art}`}>
-                      <img src={course.image} alt="" />
+                      <img src={course.image} alt="" loading="lazy" />
                       <span><course.Icon aria-hidden="true" /></span>
                       <div>
                         <em>{course.category}</em>

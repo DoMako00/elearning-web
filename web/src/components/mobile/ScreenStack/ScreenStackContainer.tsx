@@ -1,6 +1,8 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useScreenStack } from "./ScreenStackContext";
+import { RouteErrorBoundary } from "../../layout/RouteErrorBoundary";
+import { RouteLoadingFallback } from "../../layout/RouteLoadingFallback";
 
 export const ScreenStackContainer: React.FC = () => {
   const { currentScreen } = useScreenStack();
@@ -16,7 +18,11 @@ export const ScreenStackContainer: React.FC = () => {
           transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
           className="w-full h-full flex flex-col"
         >
-          {currentScreen.component}
+          <RouteErrorBoundary isMobile>
+            <Suspense fallback={<RouteLoadingFallback isMobile message="Loading screen..." />}>
+              {currentScreen.component}
+            </Suspense>
+          </RouteErrorBoundary>
         </motion.div>
       </AnimatePresence>
     </div>

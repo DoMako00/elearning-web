@@ -1,8 +1,8 @@
 import { ArrowRight, Bookmark, Star } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import anatomyOverlay from "../../../Assets/dashboard/my-courses-anatomy-overlay.png";
-import heroBackground from "../../../Assets/dashboard/my-courses-hero-background.png";
+import anatomyOverlay from "../../../Assets/dashboard/my-courses-anatomy-overlay.webp";
+import heroBackground from "../../../Assets/dashboard/my-courses-hero-background.webp";
 import { HERO_PATH } from "./exploreData";
 
 export function ExploreHero() {

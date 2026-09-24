@@ -19,8 +19,9 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import heroBackground from "../../../Assets/dashboard/my-courses-hero-background.png";
-import anatomyOverlay from "../../../Assets/dashboard/my-courses-anatomy-overlay.png";
+import heroBackground from "../../../Assets/dashboard/my-courses-hero-background.webp";
+import anatomyOverlay from "../../../Assets/dashboard/my-courses-anatomy-overlay.webp";
+import { Skeleton, SkeletonText, SkeletonAvatar } from "../../../components/ui/Skeleton";
 import { CourseDiscussionPanel } from "../../../components/learning-space/CourseDiscussionPanel";
 import { CourseResourcesPanel } from "../../../components/learning-space/CourseResourcesPanel";
 import {
@@ -153,6 +154,68 @@ function FeedbackState({ message, tone = "neutral" }: { message: string; tone?: 
   );
 }
 
+function CourseOverviewSkeleton() {
+  return (
+    <section className="course-overview-page" aria-busy="true" aria-label="Loading course overview">
+      <div className="course-overview-layout">
+        <div className="course-overview-primary">
+          <div className="course-overview-hero bg-white border border-[#dfe9e4] rounded-2xl p-6 flex flex-col justify-between" style={{ minHeight: "340px" }}>
+            <div className="space-y-4 max-w-xl">
+              <Skeleton width={160} height={24} borderRadius={999} />
+              <Skeleton width="85%" height={32} borderRadius={6} />
+              <div className="flex gap-3">
+                <Skeleton width={120} height={16} borderRadius={4} />
+                <Skeleton width={100} height={16} borderRadius={4} />
+              </div>
+            </div>
+            <div className="pt-6 border-t border-[#edf3f0] flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <SkeletonAvatar size={44} />
+                <div className="space-y-1.5">
+                  <Skeleton width={140} height={14} borderRadius={4} />
+                  <Skeleton width={90} height={12} borderRadius={4} />
+                </div>
+              </div>
+              <Skeleton width={150} height={40} borderRadius={10} />
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-4">
+            <Skeleton width={100} height={36} borderRadius={8} />
+            <Skeleton width={90} height={36} borderRadius={8} />
+            <Skeleton width={100} height={36} borderRadius={8} />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+            <div className="p-5 rounded-2xl border border-[#dfe9e4] bg-white space-y-3">
+              <Skeleton width="40%" height={20} borderRadius={4} />
+              <SkeletonText lines={3} />
+            </div>
+            <div className="p-5 rounded-2xl border border-[#dfe9e4] bg-white space-y-3">
+              <Skeleton width="50%" height={20} borderRadius={4} />
+              <SkeletonText lines={3} />
+            </div>
+          </div>
+        </div>
+
+        <aside className="course-overview-rail space-y-3" style={{ minWidth: "300px" }}>
+          <div className="p-5 rounded-2xl border border-[#dfe9e4] bg-white space-y-4">
+            <div className="flex justify-between items-center">
+              <Skeleton width={120} height={18} borderRadius={4} />
+              <Skeleton width={60} height={14} borderRadius={4} />
+            </div>
+            <div className="space-y-2.5">
+              <Skeleton width="100%" height={44} borderRadius={10} />
+              <Skeleton width="100%" height={44} borderRadius={10} />
+              <Skeleton width="100%" height={44} borderRadius={10} />
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  );
+}
+
 export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
   const navigate = useNavigate();
   const { slug } = useParams<{ slug: string }>();
@@ -225,7 +288,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
 
   const toggleBookmark = () => setIsBookmarked((current) => !current);
 
-  if (isLoading) return <FeedbackState message="Loading course details..." />;
+  if (isLoading) return <CourseOverviewSkeleton />;
   if (error) return <FeedbackState message={error} tone="error" />;
   if (!course) return <FeedbackState message="This course is not available for this student." />;
 

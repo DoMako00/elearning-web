@@ -7,9 +7,14 @@ import { MobileLayout } from "../../../components/mobile/MobileLayout";
 import { useGamification } from "../../providers/GamificationProvider";
 import { useAuth } from "../../providers/AuthProvider";
 
-import { CourseOverviewScreen } from "../../../components/mobile/screens/CourseOverviewScreen";
-import { MobileLearningPathStubScreen } from "../../../components/mobile/screens/MobileLearningPathStubScreen";
+import { lazy, Suspense } from "react";
+
 import { MobileMessagesProvider } from "../../../components/mobile/data/useMobileMessages";
+import { RouteErrorBoundary } from "../../../components/layout/RouteErrorBoundary";
+import { RouteLoadingFallback } from "../../../components/layout/RouteLoadingFallback";
+
+const CourseOverviewScreen = lazy(() => import("../../../components/mobile/screens/CourseOverviewScreen").then((m) => ({ default: m.CourseOverviewScreen })));
+const MobileLearningPathStubScreen = lazy(() => import("../../../components/mobile/screens/MobileLearningPathStubScreen").then((m) => ({ default: m.MobileLearningPathStubScreen })));
 
 export function StudentLayout() {
   const isMobile = useIsMobile();
@@ -23,13 +28,23 @@ export function StudentLayout() {
   if (isMobile) {
     if (pathname.startsWith("/my-courses/") && pathname !== "/my-courses") {
       return (
-        <MobileMessagesProvider>
-          <CourseOverviewScreen />
-        </MobileMessagesProvider>
+        <RouteErrorBoundary isMobile>
+          <Suspense fallback={<RouteLoadingFallback isMobile message="Loading course..." />}>
+            <MobileMessagesProvider>
+              <CourseOverviewScreen />
+            </MobileMessagesProvider>
+          </Suspense>
+        </RouteErrorBoundary>
       );
     }
     if (pathname.startsWith("/explore/paths/") && pathname !== "/explore/paths") {
-      return <MobileLearningPathStubScreen />;
+      return (
+        <RouteErrorBoundary isMobile>
+          <Suspense fallback={<RouteLoadingFallback isMobile message="Loading learning path..." />}>
+            <MobileLearningPathStubScreen />
+          </Suspense>
+        </RouteErrorBoundary>
+      );
     }
     return <MobileLayout />;
   }

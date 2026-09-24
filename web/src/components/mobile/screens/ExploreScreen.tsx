@@ -33,7 +33,7 @@ import anatomyImage from "../../../Assets/course-library/human-anatomy.webp";
 import histologyImage from "../../../Assets/course-library/histology-basics.webp";
 import physiologyImage from "../../../Assets/course-library/medical-physiology.webp";
 import biochemistryImage from "../../../Assets/course-library/biochemistry-essentials.webp";
-import myCoursesAnatomyOverlay from "../../../Assets/dashboard/my-courses-anatomy-overlay.png";
+import myCoursesAnatomyOverlay from "../../../Assets/dashboard/my-courses-anatomy-overlay.webp";
 
 // Categories matching screenshot
 const EXPLORE_CATEGORIES: CategoryItem[] = [

@@ -122,7 +122,13 @@ export const SubmitAssignmentSheet: React.FC<SubmitAssignmentSheetProps> = ({
         />
 
         {/* File Picker Zone */}
-        {!selectedFile ? (
+        {isSubmitting ? (
+          <div className="w-full rounded-3xl p-6 text-center bg-slate-50 border border-slate-200/80 flex flex-col items-center justify-center gap-3">
+            <Loader2 className="size-8 text-emerald-600 animate-spin" />
+            <p className="text-xs font-bold text-slate-700">Submitting your assignment...</p>
+            <p className="text-[11px] text-slate-400">Encrypting & uploading {selectedFile?.name}</p>
+          </div>
+        ) : !selectedFile ? (
           <div
             onClick={() => fileInputRef.current?.click()}
             className="w-full border-2 border-dashed border-slate-200 hover:border-emerald-500 rounded-3xl p-6 text-center bg-slate-50/60 hover:bg-emerald-50/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-2"

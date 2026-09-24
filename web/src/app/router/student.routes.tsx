@@ -1,21 +1,35 @@
+import { lazy, Suspense } from "react";
 import type { RouteObject } from "react-router-dom";
-import { AssignmentsPage } from "../pages/student/AssignmentsPage";
-import { AssignmentDetailPage } from "../../components/ui/Assignments/AssignmentDetailPage";
-import { CalendarPage } from "../pages/student/CalendarPage";
-import { CourseOverviewPage } from "../pages/student/CourseOverviewPage";
-import { ExplorePage } from "../pages/student/ExplorePage";
-import { HomePage } from "../pages/student/HomePage";
-import { LessonPlayerPage } from "../pages/student/LessonPlayerPage";
-import { MessagesPage } from "../pages/student/MessagesPage";
-import { MyCoursesPage } from "../pages/student/MyCoursesPage";
-import { CommunityPage } from "../pages/student/CommunityPage";
-import { InstructorProfilePage } from "../pages/student/InstructorProfilePage";
-import { ProfilePage } from "../pages/student/ProfilePage";
 import { StudentLayout } from "../pages/student/StudentLayout";
+import { RouteErrorBoundary } from "../../components/layout/RouteErrorBoundary";
+import { RouteLoadingFallback } from "../../components/layout/RouteLoadingFallback";
 import "./student-dashboard.css";
 
-import { HelpCenterPage } from "../pages/student/HelpCenterPage";
-import { SettingsPage } from "../pages/student/SettingsPage";
+// Lazy-loaded student pages for route-level code splitting
+const HomePage = lazy(() => import("../pages/student/HomePage").then((m) => ({ default: m.HomePage })));
+const ProfilePage = lazy(() => import("../pages/student/ProfilePage").then((m) => ({ default: m.ProfilePage })));
+const InstructorProfilePage = lazy(() => import("../pages/student/InstructorProfilePage").then((m) => ({ default: m.InstructorProfilePage })));
+const MyCoursesPage = lazy(() => import("../pages/student/MyCoursesPage").then((m) => ({ default: m.MyCoursesPage })));
+const CourseOverviewPage = lazy(() => import("../pages/student/CourseOverviewPage").then((m) => ({ default: m.CourseOverviewPage })));
+const LessonPlayerPage = lazy(() => import("../pages/student/LessonPlayerPage").then((m) => ({ default: m.LessonPlayerPage })));
+const ExplorePage = lazy(() => import("../pages/student/ExplorePage").then((m) => ({ default: m.ExplorePage })));
+const CalendarPage = lazy(() => import("../pages/student/CalendarPage").then((m) => ({ default: m.CalendarPage })));
+const AssignmentsPage = lazy(() => import("../pages/student/AssignmentsPage").then((m) => ({ default: m.AssignmentsPage })));
+const AssignmentDetailPage = lazy(() => import("../../components/ui/Assignments/AssignmentDetailPage").then((m) => ({ default: m.AssignmentDetailPage })));
+const MessagesPage = lazy(() => import("../pages/student/MessagesPage").then((m) => ({ default: m.MessagesPage })));
+const CommunityPage = lazy(() => import("../pages/student/CommunityPage").then((m) => ({ default: m.CommunityPage })));
+const HelpCenterPage = lazy(() => import("../pages/student/HelpCenterPage").then((m) => ({ default: m.HelpCenterPage })));
+const SettingsPage = lazy(() => import("../pages/student/SettingsPage").then((m) => ({ default: m.SettingsPage })));
+
+function withSuspense(Component: React.ComponentType) {
+  return (
+    <RouteErrorBoundary>
+      <Suspense fallback={<RouteLoadingFallback />}>
+        <Component />
+      </Suspense>
+    </RouteErrorBoundary>
+  );
+}
 
 // Dev-only test pages — tree-shaken from production builds
 let devRoutes: RouteObject[] = [];
@@ -35,25 +49,25 @@ export const studentRoutes: RouteObject[] = [
     path: "/",
     element: <StudentLayout />,
     children: [
-      { index: true, element: <HomePage /> },
-      { path: "profile", element: <ProfilePage /> },
-      { path: "instructor-profile", element: <InstructorProfilePage /> },
-      { path: "instructors", element: <InstructorProfilePage /> },
-      { path: "instructors/:instructorId", element: <InstructorProfilePage /> },
-      { path: "my-courses", element: <MyCoursesPage /> },
-      { path: "my-courses/:slug", element: <CourseOverviewPage /> },
-      { path: "my-courses/:slug/lessons/:lessonId", element: <LessonPlayerPage /> },
-      { path: "my-courses/human-anatomy-i", element: <CourseOverviewPage /> },
-      { path: "my-courses/human-anatomy-i/lessons/:lessonId", element: <LessonPlayerPage /> },
-      { path: "explore", element: <ExplorePage /> },
-      { path: "explore/paths/:slug", element: <ExplorePage /> },
-      { path: "calendar", element: <CalendarPage /> },
-      { path: "assignments", element: <AssignmentsPage /> },
-      { path: "assignments/:assignmentId", element: <AssignmentDetailPage /> },
-      { path: "messages", element: <MessagesPage /> },
-      { path: "community", element: <CommunityPage /> },
-      { path: "help", element: <HelpCenterPage /> },
-      { path: "settings", element: <SettingsPage /> },
+      { index: true, element: withSuspense(HomePage) },
+      { path: "profile", element: withSuspense(ProfilePage) },
+      { path: "instructor-profile", element: withSuspense(InstructorProfilePage) },
+      { path: "instructors", element: withSuspense(InstructorProfilePage) },
+      { path: "instructors/:instructorId", element: withSuspense(InstructorProfilePage) },
+      { path: "my-courses", element: withSuspense(MyCoursesPage) },
+      { path: "my-courses/:slug", element: withSuspense(CourseOverviewPage) },
+      { path: "my-courses/:slug/lessons/:lessonId", element: withSuspense(LessonPlayerPage) },
+      { path: "my-courses/human-anatomy-i", element: withSuspense(CourseOverviewPage) },
+      { path: "my-courses/human-anatomy-i/lessons/:lessonId", element: withSuspense(LessonPlayerPage) },
+      { path: "explore", element: withSuspense(ExplorePage) },
+      { path: "explore/paths/:slug", element: withSuspense(ExplorePage) },
+      { path: "calendar", element: withSuspense(CalendarPage) },
+      { path: "assignments", element: withSuspense(AssignmentsPage) },
+      { path: "assignments/:assignmentId", element: withSuspense(AssignmentDetailPage) },
+      { path: "messages", element: withSuspense(MessagesPage) },
+      { path: "community", element: withSuspense(CommunityPage) },
+      { path: "help", element: withSuspense(HelpCenterPage) },
+      { path: "settings", element: withSuspense(SettingsPage) },
       ...devRoutes,
     ],
   },
