@@ -5,6 +5,7 @@ const presentation = { type: "string", enum: ["subject_based", "module_based"] }
 const unitLabel = { type: "string", enum: ["Subject", "Module"] } as const;
 const ref = (name: string) => ({ $ref: `#/components/schemas/${name}` });
 const object = (properties: Record<string, unknown>) => ({ type: "object", additionalProperties: false, required: Object.keys(properties), properties });
+const courseAccess = object({ isEnrolled: { type: "boolean" }, canOpen: { type: "boolean" }, enrollmentStatus: { type: ["string", "null"], enum: ["active", "completed", null] } });
 const course = {
   courseId: identifier, title: text, code: text,
   brand: object({ code: { type: "string", enum: ["medway", "elite", "nexus"] }, name: text }),
@@ -14,11 +15,13 @@ const course = {
   cataloguePresentation: presentation, unitLabel, status: { const: "published" },
   chapterCount: count, lessonCount: count,
   mediaSummary: object({ totalLessons: count, lessonsWithMedia: { const: 0, description: "No playable media is delivered in this phase." }, pendingMediaLessons: count }),
+  access: ref("StudentCourseAccess"),
   updatedAt: { type: "string", format: "date-time" },
 };
 const envelope = (data: unknown) => object({ ok: { const: true }, correlationId: text, data });
 
 export const studentCourseSchemas = {
+  StudentCourseAccess: courseAccess,
   StudentLessonItem: object({
     lessonId: identifier, chapterId: identifier, title: text, sortOrder: { type: "integer", minimum: 1 }, status: { const: "published" },
     mediaStatus: { type: "string", enum: ["no_media", "pending_media", "ready"], description: "no_media when there is no visible resource; pending_media for published metadata only. ready is reserved and is never emitted by this phase." },
@@ -36,7 +39,7 @@ const brand = { name: "brand", in: "query", required: false, schema: { type: "st
 const courseId = { name: "courseId", in: "path", required: true, schema: identifier };
 const operation = (operationId: string, summary: string, schema: string, parameters: readonly unknown[]) => ({
   tags: ["Student courses"], operationId, summary, security: [{ StudentBearerAuth: [] }], parameters,
-  description: "Published course structure scoped to the verified student's active commercial-brand membership and academic institution/level/semester. No enrollment or paid entitlement is fabricated. An identity with a persisted admin profile is rejected; admin preview is not provided by these endpoints. No media delivery URLs are returned.",
+  description: "Published course structure scoped to the verified student's active commercial-brand membership and academic institution/level/semester. List responses include per-course enrollment access from course_enrollments. Detail and lessons are available only for actively enrolled/completed courses; recommendations are listed but not openable. An identity with a persisted admin profile is rejected; admin preview is not provided by these endpoints. No media delivery URLs are returned.",
   responses: {
     "200": { description: "Visible structure; an empty list is valid.", content: { "application/json": { schema: ref(schema) } } },
     "400": { description: "Invalid/repeated/unsupported parameter, or brand selection needed." },

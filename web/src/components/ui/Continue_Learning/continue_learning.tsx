@@ -1,15 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { MoreHorizontal, Bookmark, Play, CheckCircle2, RefreshCw, ExternalLink, X, Check } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '../../../hooks/useToast';
-import { ToastNotification } from '../ToastNotification';
-import { XPRewardModal } from '../XPRewards';
-import type { XPRewardData } from '../XPRewards';
-import courseImage from '../../../Assets/dashboard/human-anatomy.webp';
-import physioImage from '../../../Assets/dashboard/medical-physiology.webp';
-import histologyImage from '../../../Assets/dashboard/histology-basics.webp';
-import './index.css';
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { MoreHorizontal, Bookmark, Play, RefreshCw, ExternalLink, X, Check } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "../../../hooks/useToast";
+import { ToastNotification } from "../ToastNotification";
+import type { StudentCourseItem } from "../../../features/student/api/studentCoursesApi";
+import anatomyImage from "../../../Assets/dashboard/human-anatomy.webp";
+import physioImage from "../../../Assets/dashboard/medical-physiology.webp";
+import histologyImage from "../../../Assets/dashboard/histology-basics.webp";
+import biochemistryImage from "../../../Assets/dashboard/biochemistry-essentials.webp";
+import "./index.css";
 
 interface CourseOption {
   id: string;
@@ -22,65 +22,75 @@ interface CourseOption {
   route: string;
 }
 
-const AVAILABLE_COURSES: CourseOption[] = [
-  {
-    id: 'anatomy',
-    name: 'Human Anatomy I',
-    subtitle: 'Structure & Organization',
-    currentLesson: 6,
-    totalLessons: 14,
-    progressPercentage: 60,
-    imageSrc: courseImage,
-    route: '/my-courses/human-anatomy-i/lessons/human-anatomy-i-lesson-1',
-  },
-  {
-    id: 'physio',
-    name: 'Medical Physiology',
-    subtitle: 'Body Functions & Regulation',
-    currentLesson: 4,
-    totalLessons: 10,
-    progressPercentage: 40,
-    imageSrc: physioImage,
-    route: '/my-courses',
-  },
-  {
-    id: 'histology',
-    name: 'Histology Basics',
-    subtitle: 'Tissues of the Human Body',
-    currentLesson: 2,
-    totalLessons: 6,
-    progressPercentage: 33,
-    imageSrc: histologyImage,
-    route: '/explore',
-  },
-];
-
-interface Continue_learningProps {
+interface ContinueLearningProps {
   title?: string;
-  courseName?: string;
-  courseSubtitle?: string;
   status?: string;
-  currentLesson?: number;
-  totalLessons?: number;
-  progressPercentage?: number;
-  imageSrc?: string;
+  courses?: readonly StudentCourseItem[];
   onContinue?: () => void;
 }
 
-const Continue_learning: React.FC<Continue_learningProps> = ({
+function imageForCourse(course: StudentCourseItem) {
+  const source = `${course.code} ${course.title}`.toLowerCase();
+  if (source.includes("bio")) return biochemistryImage;
+  if (source.includes("phys")) return physioImage;
+  if (source.includes("histo")) return histologyImage;
+  return anatomyImage;
+}
+
+function isBiochemistry(course: StudentCourseItem) {
+  const source = `${course.code} ${course.title}`.toLowerCase();
+  return source.includes("bio") || source.includes("biochem");
+}
+
+function canOpenCourse(course: StudentCourseItem) {
+  return course.access?.canOpen === true;
+}
+
+function toCourseOption(course: StudentCourseItem): CourseOption {
+  return {
+    id: course.courseId,
+    name: course.title,
+    subtitle: `${course.academicInstitution.name} • ${course.academicLevel.title} • ${course.academicSemester.title}`,
+    currentLesson: course.lessonCount > 0 ? 1 : 0,
+    totalLessons: course.lessonCount,
+    progressPercentage: 0,
+    imageSrc: imageForCourse(course),
+    route: `/my-courses/${course.courseId}`,
+  };
+}
+
+function orderedCourseOptions(courses: readonly StudentCourseItem[]) {
+  const options = courses.map(toCourseOption);
+  return [...options].sort((a, b) => {
+    const aIsBio = /bio|biochem/i.test(a.name);
+    const bIsBio = /bio|biochem/i.test(b.name);
+    if (aIsBio !== bIsBio) return aIsBio ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
+}
+
+const ContinueLearning: React.FC<ContinueLearningProps> = ({
   title = "Continue Learning",
-  status = "In Progress",
+  status = "Ready to start",
+  courses = [],
   onContinue,
 }) => {
   const navigate = useNavigate();
-  const [selectedCourse, setSelectedCourse] = useState<CourseOption>(AVAILABLE_COURSES[0]);
+  const enrolledCourses = useMemo(() => courses.filter(canOpenCourse), [courses]);
+  const courseOptions = useMemo(() => orderedCourseOptions(enrolledCourses), [enrolledCourses]);
+  const preferredCourse = useMemo(() => enrolledCourses.find(isBiochemistry) ?? enrolledCourses[0] ?? null, [enrolledCourses]);
+  const preferredCourseId = preferredCourse?.courseId ?? "";
+  const [selectedCourseId, setSelectedCourseId] = useState(preferredCourseId);
+  const selectedCourse = courseOptions.find((course) => course.id === selectedCourseId) ?? courseOptions[0] ?? null;
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
-  const [rewardData, setRewardData] = useState<XPRewardData | null>(null);
-  const [isRewardOpen, setIsRewardOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { toastMessage, showToast } = useToast();
+
+  useEffect(() => {
+    setSelectedCourseId((current) => current || preferredCourseId);
+  }, [preferredCourseId]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -89,73 +99,49 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
       }
     }
     if (isMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [isMenuOpen]);
 
   const handleContinue = () => {
     if (onContinue) {
       onContinue();
-    } else {
-      showToast(`Resuming ${selectedCourse.name} — Lesson ${selectedCourse.currentLesson}`);
-      navigate(selectedCourse.route);
+      return;
     }
+    if (!selectedCourse) return;
+    navigate(selectedCourse.route, { state: { courseTitle: selectedCourse.name, courseId: selectedCourse.id } });
   };
 
   const toggleBookmark = () => {
+    if (!selectedCourse) return;
     const nextState = !isBookmarked;
     setIsBookmarked(nextState);
-    if (nextState) {
-      showToast(`Saved "${selectedCourse.name}" to Profile > Saved`);
-    } else {
-      showToast(`Removed "${selectedCourse.name}" from Profile > Saved`);
-    }
-  };
-
-  const handleMarkCompleted = () => {
-    setIsMenuOpen(false);
-    // Dispatch XP reward immediately
-    setRewardData({
-      earnedXP: 150,
-      reason: 'lesson_complete',
-      previousLevel: 8,
-      newLevel: 8,
-      leveledUp: false,
-      totalXP: 2600,
-    });
-    setIsRewardOpen(true);
-    showToast(`+150 XP awarded for completing Lesson ${selectedCourse.currentLesson}!`);
+    showToast(nextState ? `Saved "${selectedCourse.name}"` : `Removed "${selectedCourse.name}" from saved subjects`);
   };
 
   const handleSwitchCourse = (course: CourseOption) => {
-    setSelectedCourse(course);
+    setSelectedCourseId(course.id);
     setIsSwitchModalOpen(false);
     showToast(`Pinned "${course.name}" to your Home banner`);
   };
 
-  const renderCourseName = (name: string) => {
-    if (name.includes('\n')) {
-      return name.split('\n').map((line, idx) => (
-        <span key={idx} className="block">{line}</span>
-      ));
-    }
-    return name;
-  };
+  if (!selectedCourse) {
+    return (
+      <section className="continue-learning w-full max-w-(--card-max-width) font-sans">
+        <div className="continue-learning-card w-full bg-(--secondary-color) rounded-(--border-radius-card) border border-(--color-border-color) pt-(--card-padding-top) pb-(--card-padding-bottom) pl-(--card-padding-left) pr-(--card-padding-right) shadow-sm">
+          <h2 className="continue-learning-title text-section-title font-bold text-(--text-color-black) tracking-tight">
+            {title}
+          </h2>
+          <p className="continue-learning-course-subtitle">No enrolled Elite subjects are available yet.</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="continue-learning w-full max-w-(--card-max-width) font-sans">
-      {/* Render toast & reward modal via portal so they don't affect grid layout */}
       {createPortal(<ToastNotification message={toastMessage} />, document.body)}
-
-      {rewardData && createPortal(
-        <XPRewardModal
-          isOpen={isRewardOpen}
-          onClose={() => setIsRewardOpen(false)}
-          rewardData={rewardData}
-        />,
-        document.body
-      )}
 
       <div className="continue-learning-card w-full bg-(--secondary-color) rounded-(--border-radius-card) border border-(--color-border-color) pt-(--card-padding-top) pb-(--card-padding-bottom) pl-(--card-padding-left) pr-(--card-padding-right) shadow-sm transition-all duration-300 hover:shadow-md">
         <div className="continue-learning-header flex items-center justify-between mb-6">
@@ -163,7 +149,6 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
             {title}
           </h2>
 
-          {/* Three-Dots Menu */}
           <div className="relative" ref={menuRef}>
             <button
               type="button"
@@ -191,30 +176,20 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
                   role="menuitem"
                 >
                   <RefreshCw className="size-4 text-emerald-600" />
-                  <span>Switch Active Course / Swap</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleMarkCompleted}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left hover:bg-slate-50 transition-colors"
-                  role="menuitem"
-                >
-                  <CheckCircle2 className="size-4 text-(--color-brand,#20a862)" />
-                  <span>Mark as Completed (+150 XP)</span>
+                  <span>Switch active subject</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => {
                     setIsMenuOpen(false);
-                    navigate("/my-courses/human-anatomy-i");
+                    navigate(selectedCourse.route, { state: { courseTitle: selectedCourse.name, courseId: selectedCourse.id } });
                   }}
                   className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left hover:bg-slate-50 transition-colors"
                   role="menuitem"
                 >
                   <ExternalLink className="size-4 text-slate-500" />
-                  <span>View Course Details</span>
+                  <span>View subject details</span>
                 </button>
               </div>
             )}
@@ -244,9 +219,7 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
                 {status}
               </span>
               <div className="continue-learning-title-metrics-wrap">
-                <h3 className="continue-learning-course-title">
-                  {renderCourseName(selectedCourse.name)}
-                </h3>
+                <h3 className="continue-learning-course-title">{selectedCourse.name}</h3>
                 <p className="continue-learning-course-subtitle">{selectedCourse.subtitle}</p>
 
                 <div className="continue-learning-metrics mt-auto">
@@ -263,7 +236,9 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
                   </div>
 
                   <p className="continue-learning-lesson text-lesson-meta font-normal text-(--paragraphs)">
-                    Lesson {selectedCourse.currentLesson} of {selectedCourse.totalLessons}
+                    {selectedCourse.totalLessons > 0
+                      ? `${selectedCourse.totalLessons} lessons available`
+                      : "Lesson list is not available yet"}
                   </p>
                 </div>
               </div>
@@ -278,39 +253,38 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
             className="continue-learning-cta relative group overflow-hidden flex-1 h-(--cta-height) max-w-(--cta-width) px-6 bg-(--primary-color) hover:shadow-md text-white font-semibold text-cta rounded-(--border-radius-cta) transition-all duration-300 active:scale-[0.99] cursor-pointer flex items-center justify-center text-center"
           >
             <div className="absolute inset-0 w-1/2 h-full bg-linear-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-[350%] transition-transform duration-800 ease-in-out pointer-events-none" />
-            <span className="relative z-10">Continue Lesson</span>
+            <span className="relative z-10">View Subject</span>
           </button>
 
           <button
             type="button"
             onClick={toggleBookmark}
-            aria-label={isBookmarked ? "Remove course bookmark" : "Bookmark course"}
+            aria-label={isBookmarked ? "Remove subject bookmark" : "Bookmark subject"}
             aria-pressed={isBookmarked}
             data-bookmarked={isBookmarked}
             className={`w-(--bookmark-width) h-(--bookmark-height) rounded-(--border-radius-cta) border border-(--color-border-color) flex items-center justify-center transition-all duration-200 cursor-pointer ${isBookmarked
-                ? 'bg-(--label-color-light-green) border-(--text-color-green) text-(--text-color-green)'
-                : 'bg-(--secondary-color) hover:bg-(--label-color-light-green) text-(--text-color-green)'
+                ? "bg-(--label-color-light-green) border-(--text-color-green) text-(--text-color-green)"
+                : "bg-(--secondary-color) hover:bg-(--label-color-light-green) text-(--text-color-green)"
               }`}
           >
-            <Bookmark className={`w-6 h-6 ${isBookmarked ? 'fill-current' : ''}`} />
+            <Bookmark className={`w-6 h-6 ${isBookmarked ? "fill-current" : ""}`} />
           </button>
         </div>
       </div>
 
-      {/* Switch Active Course Mini Modal — portaled to avoid layout disruption */}
       {isSwitchModalOpen && createPortal(
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs animate-in fade-in duration-150"
           onClick={() => setIsSwitchModalOpen(false)}
           role="dialog"
-          aria-label="Switch Active Course"
+          aria-label="Switch Active Subject"
         >
           <div
             className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-900">Pin Course to Home Banner</h3>
+              <h3 className="text-base font-bold text-slate-900">Pin Subject to Home Banner</h3>
               <button
                 type="button"
                 onClick={() => setIsSwitchModalOpen(false)}
@@ -321,11 +295,11 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
             </div>
 
             <p className="text-xs text-slate-500 mt-2 mb-4">
-              Select one of your enrolled medical courses to feature in the main Continue Learning card:
+              Select one of your enrolled Elite Year 1 subjects to feature on Home.
             </p>
 
             <div className="space-y-2.5">
-              {AVAILABLE_COURSES.map((course) => {
+              {courseOptions.map((course) => {
                 const isCurrent = course.id === selectedCourse.id;
                 return (
                   <button
@@ -334,8 +308,8 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
                     onClick={() => handleSwitchCourse(course)}
                     className={`flex w-full items-center justify-between rounded-xl border p-3 text-left transition-all ${
                       isCurrent
-                        ? 'border-emerald-500 bg-emerald-50/50 shadow-xs'
-                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                        ? "border-emerald-500 bg-emerald-50/50 shadow-xs"
+                        : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -347,7 +321,7 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
                       <div>
                         <h4 className="text-sm font-semibold text-slate-800">{course.name}</h4>
                         <p className="text-xs text-slate-500">
-                          Lesson {course.currentLesson} of {course.totalLessons} • {course.progressPercentage}% done
+                          {course.totalLessons} lessons • {course.progressPercentage}% started
                         </p>
                       </div>
                     </div>
@@ -369,10 +343,4 @@ const Continue_learning: React.FC<Continue_learningProps> = ({
   );
 };
 
-export default Continue_learning;
-
-
-
-
-
-
+export default ContinueLearning;

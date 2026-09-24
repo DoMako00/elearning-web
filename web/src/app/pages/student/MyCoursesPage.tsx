@@ -26,8 +26,8 @@ import { listStudentCourses, type StudentCourseItem } from "../../../features/st
 
 export type { StudentCourse };
 
-const PACE_WEEKLY_DATA = [10, 18, 14, 22, 19, 28, 24, 30, 27, 30, 32, 40, 70, 78, 60, 32, 55, 56, 60, 50, 63, 65, 67, 72, 70, 80];
-const PACE_MONTHLY_DATA = [25, 30, 35, 42, 48, 52, 55, 58, 60, 64, 68, 70, 75, 78, 80, 82, 85, 88];
+const PACE_WEEKLY_DATA = Array.from({ length: 26 }, () => 0);
+const PACE_MONTHLY_DATA = Array.from({ length: 18 }, () => 0);
 
 const WEEK_SCHEDULE = [
   { day: "Mon", date: "12", hours: "2h planned", status: "completed" },
@@ -82,8 +82,17 @@ function toDisplayCourse(course: StudentCourseItem): StudentCourse {
     },
     summary: `${course.chapterCount} ${course.chapterCount === 1 ? "chapter" : "chapters"} • ${course.lessonCount} lessons`,
     slug: course.courseId,
+    access: course.access,
   };
 }
+function canOpenDisplayCourse(course: StudentCourse) {
+  return course.access?.canOpen === true;
+}
+
+function courseRouteState(course: StudentCourse) {
+  return { courseTitle: course.title, courseId: course.id };
+}
+
 function buildPacePoints(values: number[]) {
   return values.map((value, index) => ({ index, value }));
 }
@@ -122,12 +131,16 @@ export function MyCoursesPage() {
   const [activeScheduleIndex, setActiveScheduleIndex] = useState<number>(1);
   const [isPaceMonthly, setIsPaceMonthly] = useState(false);
 
-  const activeFocusCourse = useMemo(() => {
-    return courses.find((c) => c.id === selectedCourseId) ?? courses[0] ?? null;
-  }, [courses, selectedCourseId]);
+  const enrolledCourses = useMemo(() => courses.filter(canOpenDisplayCourse), [courses]);
+  const recommendedCourses = useMemo(() => courses.filter((course) => !canOpenDisplayCourse(course)), [courses]);
+  const recommendedCourseIds = useMemo(() => recommendedCourses.map((course) => course.id), [recommendedCourses]);
 
-  const inProgressCount = useMemo(() => courses.filter((c) => c.status === "in-progress").length, [courses]);
-  const completedCount = useMemo(() => courses.filter((c) => c.status === "completed").length, [courses]);
+  const activeFocusCourse = useMemo(() => {
+    return enrolledCourses.find((c) => c.id === selectedCourseId) ?? enrolledCourses[0] ?? null;
+  }, [enrolledCourses, selectedCourseId]);
+
+  const inProgressCount = useMemo(() => enrolledCourses.filter((c) => c.status === "in-progress").length, [enrolledCourses]);
+  const completedCount = useMemo(() => enrolledCourses.filter((c) => c.status === "completed").length, [enrolledCourses]);
   const savedCount = useMemo(() => courses.filter((c) => bookmarked[c.id]).length, [bookmarked, courses]);
 
   const toggleBookmark = (id: string) => {
@@ -155,8 +168,12 @@ export function MyCoursesPage() {
     listStudentCourses({ brand: STUDENT_COURSE_BRAND, page: 1, pageSize: 25, signal: controller.signal })
       .then((payload) => {
         const nextCourses = payload.items.map(toDisplayCourse);
+        const nextEnrolledCourses = nextCourses.filter(canOpenDisplayCourse);
         setCourses(nextCourses);
-        setSelectedCourseId((current) => current || nextCourses[0]?.id || "");
+        setSelectedCourseId((current) => {
+          if (nextEnrolledCourses.some((course) => course.id === current)) return current;
+          return nextEnrolledCourses[0]?.id || "";
+        });
       })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
@@ -301,12 +318,12 @@ export function MyCoursesPage() {
         ) : auth.status !== "authenticated" ? (
           <div className="dashboard-feedback" role="status">
             <strong>Sign in to view your Elite subjects.</strong>
-            <button type="button" onClick={() => navigate("/auth/sign-in", { state: { from: "/my-courses" } })}>Sign in</button>
+            <button type="button" onClick={() => navigate("/auth/sign-in", { state: { from: "/" } })}>Sign in</button>
           </div>
         ) : coursesError ? (
           <div className="dashboard-feedback dashboard-feedback--error" role="alert">{coursesError}</div>
         ) : !activeFocusCourse ? (
-          <div className="dashboard-feedback" role="status">No Elite subjects are available for this student yet.</div>
+          <div className="dashboard-feedback" role="status">No enrolled subjects are available for this student yet.</div>
         ) : (
         <div className="my-courses-overview">
           <article
@@ -367,8 +384,8 @@ export function MyCoursesPage() {
             <button
               type="button"
               className="course-focus-card__play cursor-pointer"
-              aria-label={`Play ${activeFocusCourse.title}`}
-              onClick={() => navigate(`/my-courses/${activeFocusCourse.slug}`)}
+              aria-label={`Open ${activeFocusCourse.title}`}
+              onClick={() => navigate(`/my-courses/${activeFocusCourse.slug}`, { state: courseRouteState(activeFocusCourse) })}
             >
               <CirclePlay aria-hidden="true" />
             </button>
@@ -393,9 +410,9 @@ export function MyCoursesPage() {
                 <button
                   type="button"
                   className="cursor-pointer"
-                  onClick={() => navigate(`/my-courses/${activeFocusCourse.slug}`)}
+                  onClick={() => navigate(`/my-courses/${activeFocusCourse.slug}`, { state: courseRouteState(activeFocusCourse) })}
                 >
-                  {activeFocusCourse.status === "completed" ? "Review Course" : "Continue Lesson"} <ArrowRight aria-hidden="true" />
+                  {activeFocusCourse.status === "completed" ? "Review Subject" : "Open Subject"} <ArrowRight aria-hidden="true" />
                 </button>
               </div>
             </footer>
@@ -433,7 +450,7 @@ export function MyCoursesPage() {
               <header className="flex justify-between items-start">
                 <div>
                   <h2>Your pace</h2>
-                  <strong>{isPaceMonthly ? "88%" : "68%"}</strong>
+                  <strong>0%</strong>
                   <small>Course completion rate</small>
                 </div>
                 <div className="pace-header-actions">
@@ -491,22 +508,25 @@ export function MyCoursesPage() {
               </div>
               <p>
                 <Sparkles aria-hidden="true" />
-                +12% this month
+                Progress starts after lesson completion
               </p>
             </article>
           </div>
         </div>
         )}
 
-        {!isCoursesLoading && !coursesError && courses.length > 0 ? (
+        {!isCoursesLoading && !coursesError && recommendedCourses.length > 0 ? (
         <CourseLibrary
-          courses={courses}
+          title="Recommended subjects"
+          courses={recommendedCourses}
           unitLabel="subject"
-          statusFilter={statusFilter}
+          statusFilter="in-progress"
           searchQuery={searchQuery}
           sortBy={sortBy}
           bookmarked={bookmarked}
-          selectedCourseId={selectedCourseId}
+          selectedCourseId=""
+          lockedCourseIds={recommendedCourseIds}
+          lockedMessage="This subject is recommended. Subscribe or get enrolled before opening its lessons."
           onSelectCourse={(courseId) => setSelectedCourseId(courseId)}
           onToggleBookmark={toggleBookmark}
           onClearSearch={() => setSearchQuery("")}

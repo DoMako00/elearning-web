@@ -14,9 +14,14 @@ export interface DashboardEnrollment {
 export interface DashboardEnrollmentViewModel {
   status: DashboardEnrollmentState;
   enrolledCourses: DashboardEnrollment[];
+  courses: StudentCourseItem[];
 }
 
 const STUDENT_DASHBOARD_BRAND = "elite" as const;
+
+function canOpenCourse(course: StudentCourseItem): boolean {
+  return course.access?.canOpen === true;
+}
 
 function toEnrollment(course: StudentCourseItem): DashboardEnrollment {
   return { id: course.courseId };
@@ -28,6 +33,7 @@ export function useDashboardEnrollment() {
   const [viewModel, setViewModel] = useState<DashboardEnrollmentViewModel>({
     status: "loading",
     enrolledCourses: [],
+    courses: [],
   });
 
   const retry = useCallback(() => {
@@ -36,25 +42,27 @@ export function useDashboardEnrollment() {
 
   useEffect(() => {
     if (auth.status === "loading") {
-      setViewModel({ status: "loading", enrolledCourses: [] });
+      setViewModel({ status: "loading", enrolledCourses: [], courses: [] });
       return;
     }
 
     if (auth.status !== "authenticated") {
-      setViewModel({ status: "empty", enrolledCourses: [] });
+      setViewModel({ status: "empty", enrolledCourses: [], courses: [] });
       return;
     }
 
     const controller = new AbortController();
-    setViewModel({ status: "loading", enrolledCourses: [] });
+    setViewModel({ status: "loading", enrolledCourses: [], courses: [] });
 
     listStudentCourses({ brand: STUDENT_DASHBOARD_BRAND, page: 1, pageSize: 25, signal: controller.signal })
       .then((payload) => {
         if (controller.signal.aborted) return;
-        const enrolledCourses = payload.items.map(toEnrollment);
+        const courses = [...payload.items];
+        const enrolledCourses = courses.filter(canOpenCourse).map(toEnrollment);
         setViewModel({
           status: enrolledCourses.length > 0 ? "enrolled" : "empty",
           enrolledCourses,
+          courses,
         });
       })
       .catch((error: unknown) => {
@@ -62,11 +70,11 @@ export function useDashboardEnrollment() {
 
         if (error instanceof StudentCoursesApiError && error.status === 401) {
           auth.signOut();
-          setViewModel({ status: "empty", enrolledCourses: [] });
+          setViewModel({ status: "empty", enrolledCourses: [], courses: [] });
           return;
         }
 
-        setViewModel({ status: "error", enrolledCourses: [] });
+        setViewModel({ status: "error", enrolledCourses: [], courses: [] });
       });
 
     return () => controller.abort();

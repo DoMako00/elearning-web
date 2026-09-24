@@ -9,11 +9,10 @@ import {
   ChartNoAxesCombined,
   Check,
   Clock3,
-  Code2,
+  FlaskConical,
   Compass,
   Sparkles,
-  MonitorSmartphone,
-  Palette,
+  Microscope,
   UserRoundCheck,
 } from "lucide-react";
 import robotAsset from "../../../Assets/ai-learning-robot.webp";
@@ -28,10 +27,10 @@ const benefits = [
 ] as const;
 
 const topics = [
-  { label: "Web Development", icon: Code2 },
-  { label: "UI/UX Design", icon: Palette },
-  { label: "Data Science", icon: ChartNoAxesCombined },
-  { label: "Mobile Development", icon: MonitorSmartphone },
+  { label: "Biochemistry", icon: FlaskConical },
+  { label: "Anatomy", icon: UserRoundCheck },
+  { label: "Physiology", icon: ChartNoAxesCombined },
+  { label: "Histology", icon: Microscope },
 ] as const;
 
 const weeklyStudyHourOptions = [4, 6, 8] as const;
@@ -73,7 +72,7 @@ export function PopularTopicsCard() {
       <header className="empty-topics-card__header">
         <div>
           <h2 id="popular-topics-title">Popular Topics</h2>
-          <p>Find your next learning path</p>
+          <p>Elite Year 1 starting point</p>
         </div>
         <span className="empty-topics-card__count" aria-label={`${topics.length} topics available`}>
           {topics.length} topics
@@ -84,12 +83,12 @@ export function PopularTopicsCard() {
           <UnavailableAction className="empty-topic" ariaLabel={`${label} topic`} tooltip={label} key={label}>
             <span className="empty-topic__icon" aria-hidden="true"><Icon /></span>
             <span className="empty-topic__label">{label}</span>
-            {label === "Web Development" ? <ArrowRight className="empty-topic__arrow" aria-hidden="true" /> : null}
+            {label === "Biochemistry" ? <ArrowRight className="empty-topic__arrow" aria-hidden="true" /> : null}
           </UnavailableAction>
         ))}
       </div>
       <footer className="empty-topics-card__footer">
-        <UnavailableAction className="empty-side-link"><span>Explore all topics</span><ArrowRight aria-hidden="true" /></UnavailableAction>
+        <UnavailableAction className="empty-side-link"><span>View medical subjects</span><ArrowRight aria-hidden="true" /></UnavailableAction>
       </footer>
     </article>
   );
@@ -100,9 +99,9 @@ export function AIRecommendationsCard() {
     <article className="empty-side-card empty-ai-card" aria-labelledby="ai-recommendations-title">
       <div className="empty-ai-card__copy">
         <span className="empty-ai-card__eyebrow" aria-hidden="true"><Bot /></span>
-        <h2 id="ai-recommendations-title">Continue Learning with AI</h2>
-        <p>Get personalized course recommendations based on your interests and goals.</p>
-        <UnavailableAction className="empty-ai-card__button"><Sparkles aria-hidden="true" /><span>Get Recommendations</span></UnavailableAction>
+        <h2 id="ai-recommendations-title">Plan your medical study week</h2>
+        <p>Start with Biochemistry, then review the rest of your Year 1 subjects as they become available.</p>
+        <UnavailableAction className="empty-ai-card__button"><Sparkles aria-hidden="true" /><span>Study plan</span></UnavailableAction>
       </div>
       <img className="empty-ai-card__robot" src={robotAsset} alt="Friendly GreenLearn AI learning guide robot" />
     </article>
@@ -187,7 +186,7 @@ export function EmptyLearningState() {
           <div className="empty-learning-main-card__copy">
             <h1>Your learning journey is waiting</h1>
             <p>You haven&apos;t subscribed to any courses yet.<br />Let&apos;s find the perfect course to start your growth.</p>
-            <Link className="empty-learning-main-card__primary-action" to="/auth/sign-in" state={{ from: "/my-courses" }}><Compass aria-hidden="true" /><span>Sign in to view courses</span></Link>
+            <Link className="empty-learning-main-card__primary-action" to="/auth/sign-in" state={{ from: "/" }}><Compass aria-hidden="true" /><span>Sign in to view courses</span></Link>
             <UnavailableAction className="empty-learning-main-card__secondary-action"><span>How learning works</span><ArrowRight aria-hidden="true" /></UnavailableAction>
           </div>
         </div>

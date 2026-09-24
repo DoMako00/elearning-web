@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Sparkles, X } from "lucide-react";
 import robotAsset from "../../../Assets/dashboard/doctor-robot.webp";
 import { AILearningGuide } from "../AILearningGuide";
@@ -8,17 +8,38 @@ import { RecommendedCourses } from "../RecommendedCourses";
 import { Upcoming } from "../Upcoming";
 import { WeeklyGoalCard } from "../WeeklyGoalCard";
 import { YourStreak } from "../YourStreak";
+import type { UpcomingItem } from "../Upcoming/upcoming.types";
+import type { StudentCourseItem } from "../../../features/student/api/studentCoursesApi";
 import "./DashboardBento.css";
 
-export function DashboardBento() {
+export interface DashboardBentoProps {
+  courses?: readonly StudentCourseItem[];
+}
+
+function canOpenCourse(course: StudentCourseItem) {
+  return course.access?.canOpen === true;
+}
+
+function buildAvailableSubjectItems(courses: readonly StudentCourseItem[]): UpcomingItem[] {
+  return courses.filter(canOpenCourse).slice(0, 5).map((course) => ({
+    id: course.courseId,
+    title: course.title,
+    time: `${course.lessonCount} lessons available`,
+    iconType: "assignment",
+    tag: course.unitLabel,
+  }));
+}
+
+export function DashboardBento({ courses = [] }: DashboardBentoProps) {
   const [isAIOpen, setIsAIOpen] = useState(false);
+  const availableSubjectItems = useMemo(() => buildAvailableSubjectItems(courses), [courses]);
 
   return (
     <section className="dashboard-bento" aria-label="Learning dashboard">
       <h1 className="sr-only">Student Home Dashboard</h1>
       <div className="dashboard-bento__row dashboard-bento__row--top">
         <div className="dashboard-bento__slot dashboard-bento__slot--continue">
-          <ContinueLearning />
+          <ContinueLearning courses={courses} />
         </div>
         <div className="dashboard-bento__slot dashboard-bento__slot--ai">
           <AILearningGuide />
@@ -30,10 +51,19 @@ export function DashboardBento() {
 
       <div className="dashboard-bento__row dashboard-bento__row--middle">
         <div className="dashboard-bento__slot dashboard-bento__slot--progress">
-          <MyProgress />
+          <MyProgress
+            completionPercentage={0}
+            monthlyGrowth={0}
+            growthLabel="until lesson progress starts"
+            chartData={[0, 0, 0, 0, 0, 0, 0, 0]}
+          />
         </div>
         <div className="dashboard-bento__slot dashboard-bento__slot--upcoming">
-          <Upcoming />
+          <Upcoming
+            title="Available subjects"
+            count={availableSubjectItems.length}
+            items={availableSubjectItems}
+          />
         </div>
         <div className="dashboard-bento__slot dashboard-bento__slot--streak">
           <YourStreak />
@@ -42,11 +72,10 @@ export function DashboardBento() {
 
       <div className="dashboard-bento__row dashboard-bento__row--bottom">
         <div className="dashboard-bento__slot dashboard-bento__slot--recommended">
-          <RecommendedCourses />
+          <RecommendedCourses courses={courses} />
         </div>
       </div>
 
-      {/* Floating AI Guide Button for tablet/mobile viewports */}
       <button
         type="button"
         className="ai-guide-floating-btn"
@@ -66,7 +95,6 @@ export function DashboardBento() {
         <span className="ai-guide-floating-badge">AI Guide</span>
       </button>
 
-      {/* Modal dialog when floating AI button is clicked on tablet */}
       {isAIOpen && (
         <div className="ai-guide-modal-overlay" onClick={() => setIsAIOpen(false)}>
           <div className="ai-guide-modal-content" onClick={(e) => e.stopPropagation()}>

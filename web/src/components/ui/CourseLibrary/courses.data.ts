@@ -41,6 +41,11 @@ export interface StudentCourse {
   };
   summary: string;
   slug: string;
+  access?: {
+    isEnrolled: boolean;
+    canOpen: boolean;
+    enrollmentStatus: "active" | "completed" | null;
+  };
 }
 
 export interface CourseCategoryTab {

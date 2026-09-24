@@ -1,79 +1,51 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import {
   ArrowRight,
   Bookmark,
   ChevronLeft,
   ChevronRight,
-  Star,
 } from "lucide-react";
 import anatomyImage from "../../../Assets/dashboard/human-anatomy.webp";
 import histologyImage from "../../../Assets/dashboard/histology-basics.webp";
 import physiologyImage from "../../../Assets/dashboard/medical-physiology.webp";
 import biochemistryImage from "../../../Assets/dashboard/biochemistry-essentials.webp";
-import embryologyImage from "../../../Assets/dashboard/embryology-foundations.webp";
 import "./RecommendedCourses.css";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../../../hooks/useToast";
 import { ToastNotification } from "../ToastNotification";
+import type { StudentCourseItem } from "../../../features/student/api/studentCoursesApi";
 
-const courses = [
-  {
-    title: "Human Anatomy I",
-    subtitle: "Structure & Organization",
-    level: "Intermediate",
-    lessons: 8,
-    rating: "4.8",
-    image: anatomyImage,
-    imagePosition: "50% 28%",
-    route: "/my-courses/human-anatomy-i",
-  },
-  {
-    title: "Histology Basics",
-    subtitle: "Tissues of the Human Body",
-    level: "Beginner",
-    lessons: 6,
-    rating: "4.7",
-    image: histologyImage,
-    imagePosition: "center",
-    route: "/explore",
-  },
-  {
-    title: "Medical Physiology",
-    subtitle: "Body Functions & Regulation",
-    level: "Intermediate",
-    lessons: 10,
-    rating: "4.8",
-    image: physiologyImage,
-    imagePosition: "center",
-    route: "/explore",
-  },
-  {
-    title: "Biochemistry Essentials",
-    subtitle: "Molecules of Life",
-    level: "Intermediate",
-    lessons: 7,
-    rating: "4.6",
-    image: biochemistryImage,
-    imagePosition: "center",
-    route: "/explore",
-  },
-  {
-    title: "Embryology Foundations",
-    subtitle: "Development of Human Life",
-    level: "Beginner",
-    lessons: 5,
-    rating: "4.8",
-    image: embryologyImage,
-    imagePosition: "center",
-    route: "/explore",
-  },
-] as const;
+interface RecommendedCoursesProps {
+  courses?: readonly StudentCourseItem[];
+}
 
-export function RecommendedCourses() {
+function canOpenCourse(course: StudentCourseItem) {
+  return course.access?.canOpen === true;
+}
+
+function imageForCourse(course: StudentCourseItem) {
+  const source = `${course.code} ${course.title}`.toLowerCase();
+  if (source.includes("bio")) return biochemistryImage;
+  if (source.includes("phys")) return physiologyImage;
+  if (source.includes("histo")) return histologyImage;
+  return anatomyImage;
+}
+
+function orderedCourses(courses: readonly StudentCourseItem[]) {
+  return [...courses].sort((a, b) => {
+    const aIsBio = /bio|biochem/i.test(`${a.code} ${a.title}`);
+    const bIsBio = /bio|biochem/i.test(`${b.code} ${b.title}`);
+    if (aIsBio !== bIsBio) return aIsBio ? -1 : 1;
+    return a.title.localeCompare(b.title);
+  });
+}
+
+export function RecommendedCourses({ courses = [] }: RecommendedCoursesProps) {
   const navigate = useNavigate();
+  const displayCourses = useMemoSafeCourses(courses).filter((course) => !canOpenCourse(course));
   const [bookmarkedCourses, setBookmarkedCourses] = useState<Record<string, boolean>>({});
   const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [canScrollRight, setCanScrollRight] = useState(displayCourses.length > 2);
   const rowRef = useRef<HTMLDivElement>(null);
   const { toastMessage, showToast } = useToast();
 
@@ -89,20 +61,16 @@ export function RecommendedCourses() {
     checkScroll();
     window.addEventListener("resize", checkScroll);
     return () => window.removeEventListener("resize", checkScroll);
-  }, []);
+  }, [displayCourses.length]);
 
-  const toggleBookmark = (title: string, e?: React.MouseEvent) => {
+  const toggleBookmark = (title: string, e?: MouseEvent) => {
     e?.stopPropagation();
     const isCurrentlyBookmarked = !!bookmarkedCourses[title];
     setBookmarkedCourses((prev) => ({
       ...prev,
       [title]: !prev[title],
     }));
-    if (isCurrentlyBookmarked) {
-      showToast(`Removed "${title}" from Profile > Saved`);
-    } else {
-      showToast(`"${title}" saved to Profile > Saved`);
-    }
+    showToast(isCurrentlyBookmarked ? `Removed "${title}" from saved subjects` : `"${title}" saved`);
   };
 
   const handleScrollPrev = () => {
@@ -123,12 +91,16 @@ export function RecommendedCourses() {
     }
   };
 
+  const showLockedSubjectMessage = (title: string) => {
+    showToast(`"${title}" is recommended. Subscribe or get enrolled before opening its lessons.`);
+  };
+
   return (
     <section className="recommended-card" aria-labelledby="recommended-title">
       <ToastNotification message={toastMessage} />
       <header className="recommended-header">
-        <h2 id="recommended-title">Recommended Medical Modules For You</h2>
-        <button type="button" className="recommended-view-all cursor-pointer" onClick={() => navigate('/explore')}>
+        <h2 id="recommended-title">Recommended subjects</h2>
+        <button type="button" className="recommended-view-all cursor-pointer" onClick={() => navigate("/my-courses")}>
           <span>View all</span>
           <ArrowRight aria-hidden="true" />
         </button>
@@ -140,32 +112,32 @@ export function RecommendedCourses() {
             type="button"
             onClick={handleScrollPrev}
             className="recommended-prev"
-            aria-label="Show previous recommended courses"
+            aria-label="Show previous subjects"
           >
             <ChevronLeft aria-hidden="true" />
           </button>
         )}
 
         <div className="recommended-row" ref={rowRef} onScroll={checkScroll}>
-          {courses.map((course) => {
+          {displayCourses.map((course) => {
             const isBookmarked = !!bookmarkedCourses[course.title];
+            const subtitle = `${course.academicInstitution.name} • ${course.academicLevel.title} • ${course.academicSemester.title}`;
             return (
               <article
                 className="recommended-course cursor-pointer transition-all hover:shadow-md"
-                key={course.title}
-                onClick={() => navigate(course.route)}
+                key={course.courseId}
+                onClick={() => showLockedSubjectMessage(course.title)}
                 tabIndex={0}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") navigate(course.route);
+                  if (e.key === "Enter") showLockedSubjectMessage(course.title);
                 }}
               >
                 <div className="recommended-course-media">
                   <img
-                    src={course.image}
-                    alt={`${course.title} medical illustration`}
+                    src={imageForCourse(course)}
+                    alt={`${course.title} subject illustration`}
                     loading="lazy"
                     decoding="async"
-                    style={{ objectPosition: course.imagePosition }}
                   />
                   <button
                     type="button"
@@ -182,16 +154,13 @@ export function RecommendedCourses() {
                   <div className="recommended-title-wrap">
                     <h3 title={course.title}>{course.title}</h3>
                   </div>
-                  <p className="recommended-course-subtitle" title={course.subtitle}>{course.subtitle}</p>
+                  <p className="recommended-course-subtitle" title={subtitle}>{subtitle}</p>
                   <div className="recommended-course-footer">
-                    <span className="recommended-course-level" title={course.level}>
-                      {course.level}
+                    <span className="recommended-course-level" title={course.unitLabel}>
+                      {course.unitLabel}
                     </span>
                     <span className="recommended-course-separator" aria-hidden="true">•</span>
-                    <span className="recommended-course-lessons">{course.lessons} Lessons</span>
-                    <span className="recommended-rating">
-                      <Star aria-hidden="true" /> {course.rating}
-                    </span>
+                    <span className="recommended-course-lessons">{course.lessonCount} Lessons</span>
                   </div>
                 </div>
               </article>
@@ -204,7 +173,7 @@ export function RecommendedCourses() {
             type="button"
             onClick={handleScrollNext}
             className="recommended-next"
-            aria-label="Show more recommended courses"
+            aria-label="Show more subjects"
           >
             <ChevronRight aria-hidden="true" />
           </button>
@@ -214,3 +183,12 @@ export function RecommendedCourses() {
   );
 }
 
+function useMemoSafeCourses(courses: readonly StudentCourseItem[]) {
+  const [ordered, setOrdered] = useState<StudentCourseItem[]>(() => orderedCourses(courses));
+
+  useEffect(() => {
+    setOrdered(orderedCourses(courses));
+  }, [courses]);
+
+  return ordered;
+}

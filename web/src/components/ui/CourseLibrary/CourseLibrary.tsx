@@ -15,6 +15,7 @@ import { COURSE_CATEGORY_TABS, INITIAL_COURSES, type StudentCourse } from "./cou
 import "./CourseLibrary.css";
 
 interface CourseLibraryProps {
+  title?: string;
   courses?: readonly StudentCourse[];
   unitLabel?: string;
   statusFilter?: "in-progress" | "completed" | "saved";
@@ -25,9 +26,12 @@ interface CourseLibraryProps {
   onSelectCourse: (courseId: string) => void;
   onToggleBookmark: (courseId: string) => void;
   onClearSearch?: () => void;
+  lockedCourseIds?: readonly string[];
+  lockedMessage?: string;
 }
 
 export function CourseLibrary({
+  title = "Course library",
   courses = INITIAL_COURSES,
   unitLabel = "module",
   statusFilter = "in-progress",
@@ -38,6 +42,8 @@ export function CourseLibrary({
   onSelectCourse,
   onToggleBookmark,
   onClearSearch,
+  lockedCourseIds = [],
+  lockedMessage = "Subscribe or get enrolled before opening this subject.",
 }: CourseLibraryProps) {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -47,6 +53,15 @@ export function CourseLibrary({
   const viewportRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const lockedIds = useMemo(() => new Set(lockedCourseIds), [lockedCourseIds]);
+
+  const openCourse = (course: StudentCourse) => {
+    if (lockedIds.has(course.id)) {
+      window.alert(lockedMessage);
+      return;
+    }
+    navigate(`/my-courses/${course.slug}`, { state: { courseTitle: course.title, courseId: course.id } });
+  };
 
   // Combine top search and local search
   const effectiveQuery = (searchQuery || localSearch).toLowerCase().trim();
@@ -118,7 +133,7 @@ export function CourseLibrary({
     <section className={`course-library course-library--${viewMode}`} aria-labelledby="course-library-title">
       <header className="course-library__header">
         <div className="flex items-center gap-3">
-          <h2 id="course-library-title">Course library</h2>
+          <h2 id="course-library-title">{title}</h2>
           <span className="text-xs font-semibold text-[#64748b] bg-[#f1f5f3] px-2.5 py-0.5 rounded-full">
             {filteredCourses.length} {filteredCourses.length === 1 ? unitLabel : `${unitLabel}s`}
           </span>
@@ -216,6 +231,7 @@ export function CourseLibrary({
           {filteredCourses.map((course) => {
             const isSelected = selectedCourseId === course.id;
             const isSaved = !!bookmarked[course.id];
+            const isLocked = lockedIds.has(course.id);
 
             return (
               <article
@@ -232,7 +248,7 @@ export function CourseLibrary({
                 <div className="course-library__list-content">
                   <div className="course-library__list-header">
                     <h3 title={course.title}>
-                      {course.title} {isSelected && <span className="text-[10px] text-[#24ad68] font-bold ml-1">● Active</span>}
+                      {course.title} {isSelected && !isLocked && <span className="text-[10px] text-[#24ad68] font-bold ml-1">● Active</span>} {isLocked && <span className="text-[10px] text-[#64748b] font-bold ml-1">● Recommended</span>}
                     </h3>
                     <p>{course.subtitle}</p>
                     <div className="course-library__list-tags">
@@ -240,7 +256,7 @@ export function CourseLibrary({
                       <em>{course.level}</em>
                     </div>
                   </div>
-                  <p className="course-library__list-opened">{course.opened}</p>
+                  <p className="course-library__list-opened">{isLocked ? "Subscribe to unlock" : course.opened}</p>
                 </div>
                 <div className="course-library__list-progress-wrap">
                   <div className="course-library__progress">
@@ -260,8 +276,8 @@ export function CourseLibrary({
                   <button
                     type="button"
                     className="course-library__list-arrow cursor-pointer"
-                    aria-label={`Open ${course.title}`}
-                    onClick={() => navigate(`/my-courses/${course.slug}`)}
+                    aria-label={isLocked ? `Recommended subject ${course.title}` : `Open ${course.title}`}
+                    onClick={() => openCourse(course)}
                   >
                     <ArrowRight aria-hidden="true" />
                   </button>
@@ -294,6 +310,7 @@ export function CourseLibrary({
               {filteredCourses.map((course) => {
                 const isSelected = selectedCourseId === course.id;
                 const isSaved = !!bookmarked[course.id];
+                const isLocked = lockedIds.has(course.id);
 
                 return (
                   <article
@@ -326,9 +343,14 @@ export function CourseLibrary({
                     <div className="course-library__card-body">
                       <div className="flex items-center justify-between">
                         <h3 title={course.title}>{course.title}</h3>
-                        {isSelected && (
+                        {isSelected && !isLocked && (
                           <span className="text-[10px] text-[#16a34a] font-bold bg-[#eefaf2] px-1.5 py-0.5 rounded">
                             Focusing
+                          </span>
+                        )}
+                        {isLocked && (
+                          <span className="text-[10px] text-[#64748b] font-bold bg-[#f1f5f3] px-1.5 py-0.5 rounded">
+                            Recommended
                           </span>
                         )}
                       </div>
@@ -338,14 +360,14 @@ export function CourseLibrary({
                         <strong>{course.progress}%</strong>
                       </div>
                       <footer>
-                        <span>{course.opened}</span>
+                        <span>{isLocked ? "Subscribe to unlock" : course.opened}</span>
                         <button
                           type="button"
                           className="cursor-pointer"
-                          aria-label={`Open ${course.title}`}
+                          aria-label={isLocked ? `Recommended subject ${course.title}` : `Open ${course.title}`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigate(`/my-courses/${course.slug}`);
+                            openCourse(course);
                           }}
                         >
                           <ArrowRight aria-hidden="true" />

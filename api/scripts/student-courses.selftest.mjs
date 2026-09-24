@@ -12,9 +12,9 @@ const { PostgresStudentCourseReadModel } = require('../dist/modules/student/stud
 const { SupabaseJwtJwksAuthIdentityAdapter } = require('../dist/infrastructure/supabase/supabase-jwt-adapter.js');
 const { assertReadOnlySelect } = require('../dist/infrastructure/postgres/postgres-read-transport.js');
 const adminSubject = randomUUID();
-const subject = randomUUID(), brandId = randomUUID(), institutionId = randomUUID(), levelId = randomUUID(), semesterId = randomUUID(), courseId = randomUUID(), lessonId = randomUUID(), chapterId = randomUUID();
+const subject = randomUUID(), brandId = randomUUID(), institutionId = randomUUID(), levelId = randomUUID(), semesterId = randomUUID(), studentProfileId = randomUUID(), courseId = randomUUID(), lessonId = randomUUID(), chapterId = randomUUID();
 const lesson = { lessonId, chapterId, title: 'Contract fixture', sortOrder: 1, status: 'published', mediaStatus: 'no_media', resourceId: null, playbackAvailable: false };
-const item = { courseId, title: 'Contract fixture', code: 'TEST', brand: { code: 'elite', name: 'Elite' }, academicInstitution: { code: 'buc', name: 'BUC' }, academicLevel: { levelNumber: 1, title: 'Level 1' }, academicSemester: { semesterNumber: 1, title: 'Semester 1' }, cataloguePresentation: 'subject_based', unitLabel: 'Subject', status: 'published', chapterCount: 1, lessonCount: 1, mediaSummary: { totalLessons: 1, lessonsWithMedia: 0, pendingMediaLessons: 0 }, updatedAt: new Date().toISOString() };
+const item = { courseId, title: 'Contract fixture', code: 'TEST', brand: { code: 'elite', name: 'Elite' }, academicInstitution: { code: 'buc', name: 'BUC' }, academicLevel: { levelNumber: 1, title: 'Level 1' }, academicSemester: { semesterNumber: 1, title: 'Semester 1' }, cataloguePresentation: 'subject_based', unitLabel: 'Subject', status: 'published', chapterCount: 1, lessonCount: 1, mediaSummary: { totalLessons: 1, lessonsWithMedia: 0, pendingMediaLessons: 0 }, access: { isEnrolled: true, canOpen: true, enrollmentStatus: 'active' }, updatedAt: new Date().toISOString() };
 const detail = { ...item, academicUnit: { code: 'TEST', label: 'Contract fixture' }, chapters: [{ chapterId, title: 'Lessons', sortOrder: 1, status: 'published', lessons: [lesson] }] };
 let mode = 'normal', calls = [], stage = 'setup', passed = 0, server;
 const transport = { query: async request => {
@@ -26,7 +26,7 @@ const transport = { query: async request => {
   if (request.label !== 'student.course-scope') assert.match(request.text, /exists \(select 1 from app\.app_users su/);
   assert.ok(!request.text.includes(subject));
   if (mode === 'unavailable') throw new Error('Private database diagnostic must not escape');
-  if (request.label === 'student.course-scope') return { rows: mode === 'no-scope' || request.values[0] === adminSubject || request.values[1] === 'nexus' ? [] : mode === 'multiple' ? [{ brand: 'elite', brandId, institutionId, levelId, semesterId }, { brand: 'medway', brandId, institutionId, levelId, semesterId }] : [{ brand: 'elite', brandId, institutionId, levelId, semesterId }] };
+  if (request.label === 'student.course-scope') return { rows: mode === 'no-scope' || request.values[0] === adminSubject || request.values[1] === 'nexus' ? [] : mode === 'multiple' ? [{ brand: 'elite', brandId, institutionId, levelId, semesterId, studentProfileId }, { brand: 'medway', brandId, institutionId, levelId, semesterId, studentProfileId: randomUUID() }] : [{ brand: 'elite', brandId, institutionId, levelId, semesterId, studentProfileId }] };
   if (request.label === 'student.courses.list') return { rows: mode === 'revoked' ? [] : [{ items: mode === 'empty' ? [] : [item], total: mode === 'empty' ? 0 : 1 }] };
   return { rows: mode === 'missing' ? [] : [{ item: detail }] };
 } };
@@ -48,7 +48,7 @@ try {
   };
   const list = await get('/v1/student/courses?brand=elite');
   check('list contract and private cache policy', () => { assert.equal(list.status, 200); assert.deepEqual(list.body.data.items, [item]); assert.match(list.headers.get('cache-control'), /no-store/); });
-  check('authority comes from verified subject, not user metadata', () => { assert.deepEqual(calls[0].values, [subject, 'elite']); assert.deepEqual(calls[1].values.slice(0, 4), [brandId, institutionId, levelId, semesterId]); });
+  check('authority comes from verified subject and student profile scope, not user metadata', () => { assert.deepEqual(calls[0].values, [subject, 'elite']); assert.deepEqual(calls[1].values.slice(0, 5), [brandId, institutionId, levelId, semesterId, studentProfileId]); assert.notEqual(calls[1].values[4], JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString()).user_metadata.studentProfileId); });
   const adminBearer = await get('/v1/student/courses?brand=elite', await sign({ subject: adminSubject }));
   check('persisted admin identity receives no student scope', () => assert.equal(adminBearer.status, 403));
   const wrongBrand = await get('/v1/student/courses?brand=nexus');
@@ -91,6 +91,7 @@ try {
       if (path === '/openapi.json') {
         for (const route of ['/v1/student/courses', '/v1/student/courses/{courseId}', '/v1/student/courses/{courseId}/lessons']) assert.ok(result.body.paths[route].get);
         assert.equal(result.body.components.schemas.StudentLessonItem.properties.playbackAvailable.const, false);
+        assert.equal(result.body.components.schemas.StudentCourseAccess.properties.canOpen.type, 'boolean');
         for (const [path, methods] of Object.entries(result.body.paths)) {
           for (const [method, operation] of Object.entries(methods)) {
             if (path.startsWith('/v1/student/')) assert.deepEqual(operation.security, [{ StudentBearerAuth: [] }]);

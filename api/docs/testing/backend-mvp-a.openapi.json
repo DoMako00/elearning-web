@@ -1359,7 +1359,7 @@
             }
           }
         ],
-        "description": "Published course structure scoped to the verified student's active commercial-brand membership and academic institution/level/semester. No enrollment or paid entitlement is fabricated. An identity with a persisted admin profile is rejected; admin preview is not provided by these endpoints. No media delivery URLs are returned.",
+        "description": "Published course structure scoped to the verified student's active commercial-brand membership and academic institution/level/semester. List responses include per-course enrollment access from course_enrollments. Detail and lessons are available only for actively enrolled/completed courses; recommendations are listed but not openable. An identity with a persisted admin profile is rejected; admin preview is not provided by these endpoints. No media delivery URLs are returned.",
         "responses": {
           "200": {
             "description": "Visible structure; an empty list is valid.",
@@ -1436,7 +1436,7 @@
             "description": "Optional when the verified student has one eligible membership. Required when multiple memberships exist. Never grants scope. BUC/Delta are institutions, not brands."
           }
         ],
-        "description": "Published course structure scoped to the verified student's active commercial-brand membership and academic institution/level/semester. No enrollment or paid entitlement is fabricated. An identity with a persisted admin profile is rejected; admin preview is not provided by these endpoints. No media delivery URLs are returned.",
+        "description": "Published course structure scoped to the verified student's active commercial-brand membership and academic institution/level/semester. List responses include per-course enrollment access from course_enrollments. Detail and lessons are available only for actively enrolled/completed courses; recommendations are listed but not openable. An identity with a persisted admin profile is rejected; admin preview is not provided by these endpoints. No media delivery URLs are returned.",
         "responses": {
           "200": {
             "description": "Visible structure; an empty list is valid.",
@@ -1513,7 +1513,7 @@
             "description": "Optional when the verified student has one eligible membership. Required when multiple memberships exist. Never grants scope. BUC/Delta are institutions, not brands."
           }
         ],
-        "description": "Published course structure scoped to the verified student's active commercial-brand membership and academic institution/level/semester. No enrollment or paid entitlement is fabricated. An identity with a persisted admin profile is rejected; admin preview is not provided by these endpoints. No media delivery URLs are returned.",
+        "description": "Published course structure scoped to the verified student's active commercial-brand membership and academic institution/level/semester. List responses include per-course enrollment access from course_enrollments. Detail and lessons are available only for actively enrolled/completed courses; recommendations are listed but not openable. An identity with a persisted admin profile is rejected; admin preview is not provided by these endpoints. No media delivery URLs are returned.",
         "responses": {
           "200": {
             "description": "Visible structure; an empty list is valid.",
@@ -1699,6 +1699,7 @@
           "chapterCount",
           "lessonCount",
           "mediaSummary",
+          "access",
           "updatedAt",
           "academicUnit",
           "chapters"
@@ -1833,6 +1834,9 @@
               }
             }
           },
+          "access": {
+            "$ref": "#/components/schemas/StudentCourseAccess"
+          },
           "updatedAt": {
             "type": "string",
             "format": "date-time"
@@ -1891,6 +1895,34 @@
             "items": {
               "$ref": "#/components/schemas/StudentLessonItem"
             }
+          }
+        }
+      },
+      "StudentCourseAccess": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "isEnrolled",
+          "canOpen",
+          "enrollmentStatus"
+        ],
+        "properties": {
+          "isEnrolled": {
+            "type": "boolean"
+          },
+          "canOpen": {
+            "type": "boolean"
+          },
+          "enrollmentStatus": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "active",
+              "completed",
+              null
+            ]
           }
         }
       },
@@ -1968,6 +2000,7 @@
           "chapterCount",
           "lessonCount",
           "mediaSummary",
+          "access",
           "updatedAt"
         ],
         "properties": {
@@ -2099,6 +2132,9 @@
                 "minimum": 0
               }
             }
+          },
+          "access": {
+            "$ref": "#/components/schemas/StudentCourseAccess"
           },
           "updatedAt": {
             "type": "string",
