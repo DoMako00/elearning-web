@@ -7,8 +7,9 @@ import type { AdminOverviewReadModel, AdminM2ReadModel } from "./read-models";
 import { executeAdminCommandBoundary, type AdminCommandBoundaryDependencies, type AdminCommandBoundaryInput } from "./admin-command-boundary";
 import type { AdminM2CommandExecutor } from "./commands";
 import type { AdminStudentsReadModel } from "./read-models/admin-students-read-model";
+import type { AdminOperationsExecutor } from "./operations";
 
-export interface AdminModuleDependencies { readonly permissionResolver: AdminPermissionResolver; readonly policyValidator: AdminPolicyValidator; readonly evidenceWriter: AdminEvidenceWriter; readonly overviewReadModel?: AdminOverviewReadModel; readonly m2ReadModel?: AdminM2ReadModel; readonly studentsReadModel?: AdminStudentsReadModel; readonly m2CommandExecutor?: AdminM2CommandExecutor; }
+export interface AdminModuleDependencies { readonly permissionResolver: AdminPermissionResolver; readonly policyValidator: AdminPolicyValidator; readonly evidenceWriter: AdminEvidenceWriter; readonly overviewReadModel?: AdminOverviewReadModel; readonly m2ReadModel?: AdminM2ReadModel; readonly studentsReadModel?: AdminStudentsReadModel; readonly m2CommandExecutor?: AdminM2CommandExecutor; readonly operationsExecutor?: AdminOperationsExecutor; }
 export function createAdminModule(dependencies: AdminModuleDependencies) {
   const overviewReadModel = dependencies.overviewReadModel;
   const m2ReadModel = dependencies.m2ReadModel;
@@ -17,5 +18,5 @@ export function createAdminModule(dependencies: AdminModuleDependencies) {
   if (!m2ReadModel) throw new Error("Admin module requires an M2 read model for the current composition boundary.");
   if (!studentsReadModel) throw new Error("Admin module requires a Students read model for the current composition boundary.");
   const boundary: AdminCommandBoundaryDependencies = dependencies;
-  return { queries: { getAdminOverview: (context: AdminRequestContext) => getAdminOverview(context, overviewReadModel), m2: m2ReadModel, students: studentsReadModel }, commands: { executeAdminCommandBoundary: <T>(input: AdminCommandBoundaryInput<T>) => executeAdminCommandBoundary(input, boundary), m2: dependencies.m2CommandExecutor } };
+  return { queries: { getAdminOverview: (context: AdminRequestContext) => getAdminOverview(context, overviewReadModel), m2: m2ReadModel, students: studentsReadModel }, commands: { executeAdminCommandBoundary: <T>(input: AdminCommandBoundaryInput<T>) => executeAdminCommandBoundary(input, boundary), m2: dependencies.m2CommandExecutor, operations: dependencies.operationsExecutor } };
 }

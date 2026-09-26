@@ -7,6 +7,7 @@ import { createPersistenceRuntimeComposition, type PersistenceRuntimeComposition
 import type { PostgresWritePoolFactory } from "./infrastructure/postgres";
 import { createAdminReadVerifierDiagnostics, type AdminReadVerifierDiagnostics } from "./modules/admin/admin-read-verifier-diagnostics";
 import { EmptyAdminStudentsReadModel, PostgresAdminStudentsReadModel } from "./modules/admin/read-models/admin-students-read-model";
+import { createAdminOperationsExecutor } from "./modules/admin/operations";
 
 /** Framework-independent composition root; no HTTP runtime is started here. */
 export interface BackendApplicationOptions extends PersistenceRuntimeCompositionOptions { readonly writePoolFactory?: PostgresWritePoolFactory; }
@@ -22,6 +23,7 @@ export function createApplication(options: BackendApplicationOptions = {}): Back
   const adminHttpContextResolver = createAdminHttpRequestContextResolver({ persistence, environment });
   const permissionResolver = new InMemoryAdminPermissionResolver();
   const commandRuntime = createAdminM2CommandRuntime({ source: adminCommandSource, persistence, permissionResolver, environment, poolFactory: options.writePoolFactory });
+  const operationsExecutor = persistence.provider === "supabase" ? createAdminOperationsExecutor(environment, options.writePoolFactory) : undefined;
   const m2ReadModel = createAdminM2ReadModel(adminM2Source, persistence);
   const adminDependencies: AdminModuleDependencies = {
     permissionResolver,
@@ -31,7 +33,8 @@ export function createApplication(options: BackendApplicationOptions = {}): Back
     m2ReadModel: adminReadVerifierDiagnostics ? adminReadVerifierDiagnostics.wrap(m2ReadModel) : m2ReadModel,
     studentsReadModel: persistence.provider === "supabase" && persistence.readTransport ? new PostgresAdminStudentsReadModel(persistence.readTransport) : new EmptyAdminStudentsReadModel(),
     m2CommandExecutor: commandRuntime.executor,
+    operationsExecutor,
   };
   let closePromise: Promise<void> | undefined;
-  return { studentCourses, status: "configured-admin-core-boundary", admin: createAdminModule(adminDependencies), adminDependencies, adminHttpContextResolver, persistence, adminOverviewSource, adminM2Source, adminCommandSource, ...(adminReadVerifierDiagnostics ? { adminReadVerifierDiagnostics } : {}), close: () => { if (!closePromise) closePromise = Promise.all([commandRuntime.close(), persistence.close()]).then(() => undefined); return closePromise; } };
+  return { studentCourses, status: "configured-admin-core-boundary", admin: createAdminModule(adminDependencies), adminDependencies, adminHttpContextResolver, persistence, adminOverviewSource, adminM2Source, adminCommandSource, ...(adminReadVerifierDiagnostics ? { adminReadVerifierDiagnostics } : {}), close: () => { if (!closePromise) closePromise = Promise.all([commandRuntime.close(), operationsExecutor?.close() ?? Promise.resolve(), persistence.close()]).then(() => undefined); return closePromise; } };
 }

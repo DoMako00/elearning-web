@@ -265,3 +265,22 @@
   .admin-shell .admin-workspace-tree nav { max-height: 260px; }
   .admin-shell .admin-workspace-page .admin-workspace-table-wrap { max-height: 420px; }
 }
+
+.admin-workspace-form { display: grid; gap: 12px; }
+.admin-workspace-form label { display: grid; gap: 6px; color: #315640; font-size: 11px; font-weight: 700; letter-spacing: .02em; }
+.admin-workspace-form input,
+.admin-workspace-form select,
+.admin-workspace-form textarea { width: 100%; border: 1px solid rgba(81, 124, 95, .22); border-radius: 12px; background: #fff; color: #13261a; font: inherit; font-size: 12px; padding: 10px 12px; outline: none; }
+.admin-workspace-form textarea { min-height: 78px; resize: vertical; }
+.admin-workspace-form input:focus,
+.admin-workspace-form select:focus,
+.admin-workspace-form textarea:focus { border-color: rgba(36, 151, 84, .56); box-shadow: 0 0 0 3px rgba(36, 151, 84, .1); }
+.admin-workspace-form > button,
+.admin-workspace-inline-state button,
+.admin-workspace-actions-inline button { border: 0; border-radius: 12px; background: #159947; color: #fff; font-weight: 800; font-size: 12px; padding: 10px 14px; cursor: pointer; }
+.admin-workspace-form > button:disabled { cursor: not-allowed; opacity: .45; }
+.admin-workspace-course-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; padding: 10px; border: 1px dashed rgba(81, 124, 95, .25); border-radius: 14px; background: rgba(237, 248, 241, .55); }
+.admin-workspace-course-picker label { display: flex; align-items: flex-start; gap: 8px; padding: 9px; border: 1px solid rgba(81, 124, 95, .16); border-radius: 12px; background: rgba(255, 255, 255, .82); font-size: 12px; }
+.admin-workspace-course-picker small { display: block; margin-top: 3px; color: #799082; font-size: 10px; }
+.admin-workspace-actions-inline { display: inline-flex; gap: 7px; flex-wrap: wrap; }
+.admin-workspace-actions-inline button + button { background: #fff; color: #b84646; border: 1px solid rgba(184, 70, 70, .28); }

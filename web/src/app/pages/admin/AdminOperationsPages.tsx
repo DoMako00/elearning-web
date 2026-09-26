@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { Activity, BookOpen, CreditCard, FileText, FolderTree, KeyRound, Laptop, Search, ShieldCheck, UsersRound, Wallet, type LucideIcon } from "lucide-react";
-import { createAdminApiFromEnvironment, getAdminDataSource, type AdminApi, type AdminBrandContext, type AdminContentTreeNode, type AdminPaymentListItem, type AdminSubscriptionListItem, type AdminSecurityEventItem, type AdminPlatformContext, type AdminListResponse } from "../../../features/admin/api";
+import { createAdminApiFromEnvironment, getAdminDataSource, type AdminApi, type AdminBrandContext, type AdminContentTreeNode, type AdminPaymentListItem, type AdminSecurityEventItem, type AdminStudentListItem, type AdminPlatformContext, type AdminListResponse } from "../../../features/admin/api";
 import { brandToPlatform } from "../../../features/admin/hooks/useAdminBrand";
 import { WorkspaceBadge, WorkspaceCard, WorkspaceFields, WorkspaceInspector, WorkspaceMetric, WorkspaceState } from "../../../features/admin/components/AdminWorkspacePrimitives";
+import { approveManualSubscriptionOrder, createAdminStudent, createManualSubscriptionOrder, listBrandCourses, listManualSubscriptionOrders, listManualSubscriptionPlans, rejectManualSubscriptionOrder, type BrandCourseOption, type ManualPlanCode, type ManualSubscriptionOrder, type ManualSubscriptionPlan } from "../../../features/admin/api/adminOperationsApi";
 
 type ReadResult<T> = AdminListResponse<T> | { success: false };
 type ListLoader<T> = (api: AdminApi, platform: AdminPlatformContext) => Promise<ReadResult<T>>;
 const clientRequestId = () => typeof crypto !== "undefined" && typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `admin-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 const request = (platform: AdminPlatformContext) => ({ platform, correlationId: clientRequestId(), pagination: { page: 1, pageSize: 50 } });
 const readPayments: ListLoader<AdminPaymentListItem> = (api, platform) => api.listPayments(request(platform));
-const readSubscriptions: ListLoader<AdminSubscriptionListItem> = (api, platform) => api.listSubscriptions(request(platform));
 const readContent: ListLoader<AdminContentTreeNode> = (api, platform) => api.getContentTree(request(platform));
 const readSecurity: ListLoader<AdminSecurityEventItem> = (api, platform) => api.listSecurityEvents(request(platform));
 const date = (value?: string | null) => value ? new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "Unavailable";
@@ -68,15 +68,126 @@ export function AdminPaymentsPage() {
 }
 
 export function AdminSubscriptionsPage() {
-  const data = useWorkspaceRecords(readSubscriptions);
-  const [search, setSearch] = useState(""); const [status, setStatus] = useState("all"); const [selectedId, setSelectedId] = useState("");
-  const rows = data.rows.filter((row) => (status === "all" || row.status === status) && [row.owner.displayName, row.kind, row.platform.platformDisplayName].join(" ").toLowerCase().includes(search.toLowerCase()));
-  const selected = rows.find((row) => rowKey(row) === selectedId);
-  const count = (value: string) => data.loading || data.error ? "—" : data.rows.filter((row) => row.status === value).length;
-  return <section className="admin-page admin-workspace-page" aria-label="Subscriptions management"><SourceLabel {...data} /><Metrics values={[{ title: "Active subscriptions", value: count("active"), icon: UsersRound }, { title: "Pending", value: count("pending"), icon: Activity }, { title: "Past due", value: count("past_due"), icon: CreditCard }, { title: "Active seats", value: data.loading || data.error ? "—" : data.rows.reduce((sum, row) => sum + row.activeSeatCount, 0), icon: ShieldCheck }]} />
-    <div className="admin-workspace-split"><div className="admin-workspace-stack"><WorkspaceCard title="Subscription types" aside={<span className="admin-workspace-readonly">Plan pricing unavailable</span>}><div className="admin-workspace-plans">{(["individual", "duo", "group"] as const).map((kind) => <article key={kind}><span className="admin-workspace-metric__icon"><UsersRound aria-hidden="true" /></span><h3>{kind}</h3><strong>{data.loading || data.error ? "—" : data.rows.filter((row) => row.kind === kind).length}<small> loaded subscriptions</small></strong><p>{kind === "individual" ? "Individual student access" : kind === "duo" ? "Shared subscription for two" : "Group seat allocation"}</p><button type="button" disabled>Plan details unavailable</button></article>)}</div></WorkspaceCard>
-    <WorkspaceCard title="Subscriptions"><Toolbar search={search} onSearch={setSearch} status={status} onStatus={setStatus} statuses={["active", "pending", "past_due", "suspended", "cancelled", "expired"]} label="subscriptions" /><div className="admin-workspace-table-wrap"><table className="admin-workspace-table"><caption className="admin-sr-only">Subscription directory</caption><thead><tr><th>Subscriber</th><th>Brand</th><th>Type</th><th>Seats</th><th>Renews</th><th>Status</th><th>Details</th></tr></thead><tbody>{rows.map((row) => <tr key={rowKey(row)} className={selected === row ? "is-selected" : ""}><td><strong>{row.owner.displayName}</strong></td><td>{row.platform.platformDisplayName}</td><td>{row.kind}</td><td>{row.activeSeatCount}</td><td>{date(row.renewsAt)}</td><td><WorkspaceBadge value={row.status} /></td><td><button type="button" aria-label={`View subscription for ${row.owner.displayName}`} onClick={() => setSelectedId(rowKey(row))}>View</button></td></tr>)}</tbody></table></div>{!rows.length && <WorkspaceState {...data} title={search || status !== "all" ? "No matching subscriptions" : "No subscriptions yet"} onRetry={data.retry} />}<footer className="admin-workspace-table-footer">{data.error || data.loading ? "Totals unavailable" : `${rows.length} shown · ${data.total} records in this context`}</footer></WorkspaceCard></div>
-    <WorkspaceInspector title="Subscription details" selected={!!selected}>{selected && <><div className="admin-workspace-person"><span className="admin-workspace-metric__icon"><UsersRound aria-hidden="true" /></span><h3>{selected.owner.displayName}</h3><WorkspaceBadge value={selected.status} /></div><WorkspaceFields fields={[["Brand", selected.platform.platformDisplayName], ["Type", selected.kind], ["Active seats", selected.activeSeatCount], ["Starts", date(selected.startsAt)], ["Ends", date(selected.endsAt)], ["Renews", date(selected.renewsAt)], ["Plan price", "Unavailable"]]} /><div className="admin-workspace-actions"><button type="button" disabled>Manage subscription</button><p>Subscription changes are not connected.</p></div></>}</WorkspaceInspector></div>
+  const { brand, availableBrands } = useOutletContext<{ brand?: AdminBrandContext; availableBrands: readonly AdminBrandContext[] }>();
+  const api = useMemo(createAdminApiFromEnvironment, []);
+  const activeBrand = brand ?? availableBrands.find((item) => item.brandCode === "elite") ?? availableBrands[0];
+  const platform = activeBrand ? brandToPlatform(activeBrand) : undefined;
+  const [plans, setPlans] = useState<readonly ManualSubscriptionPlan[]>([]);
+  const [orders, setOrders] = useState<readonly ManualSubscriptionOrder[]>([]);
+  const [students, setStudents] = useState<readonly AdminStudentListItem[]>([]);
+  const [courses, setCourses] = useState<readonly BrandCourseOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [revision, setRevision] = useState(0);
+  const [studentForm, setStudentForm] = useState({ fullName: "", email: "", password: "", studentCode: "", programLabel: "General subject programme" });
+  const [orderForm, setOrderForm] = useState<{ studentProfileId: string; planCode: ManualPlanCode; courseIds: string[]; pricePerStudent: string; paymentMethod: "bank_transfer" | "cash" | "wallet" | "other"; paymentReference: string; paymentEvidenceNote: string }>({ studentProfileId: "", planCode: "oct10_four_subjects_individual", courseIds: [], pricePerStudent: "", paymentMethod: "bank_transfer", paymentReference: "", paymentEvidenceNote: "" });
+  const selectedPlan = plans.find((plan) => plan.code === orderForm.planCode);
+
+  useEffect(() => {
+    let active = true;
+    if (!platform || !activeBrand) return;
+    setLoading(true);
+    setError(null);
+    void Promise.all([
+      listManualSubscriptionPlans(),
+      listManualSubscriptionOrders(),
+      api.searchStudents({ ...request(platform), search: undefined }),
+      listBrandCourses(activeBrand.brandId),
+    ]).then(([planItems, orderItems, studentResponse, courseItems]) => {
+      if (!active) return;
+      setPlans(planItems);
+      setOrders(orderItems);
+      setStudents("data" in studentResponse ? studentResponse.data : []);
+      setCourses(courseItems.filter((course) => course.status === "published"));
+      setLoading(false);
+    }).catch((cause) => {
+      if (!active) return;
+      setError(cause instanceof Error ? cause.message : "Admin subscription operations are unavailable.");
+      setLoading(false);
+    });
+    return () => { active = false; };
+  }, [api, platform, activeBrand, revision]);
+
+  const refresh = () => setRevision((value) => value + 1);
+  const pending = orders.filter((order) => order.status === "pending_review").length;
+  const approved = orders.filter((order) => order.status === "approved").length;
+  const revenue = orders.filter((order) => order.status === "approved").reduce((sum, order) => sum + order.pricePerStudent, 0);
+  const toggleCourse = (courseId: string) => setOrderForm((current) => ({ ...current, courseIds: current.courseIds.includes(courseId) ? current.courseIds.filter((id) => id !== courseId) : [...current.courseIds, courseId] }));
+
+  async function submitStudent(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!activeBrand) return;
+    setMessage(null); setError(null);
+    try {
+      const result = await createAdminStudent({ fullName: studentForm.fullName, email: studentForm.email, password: studentForm.password, brandCode: activeBrand.brandCode, academicInstitutionCode: activeBrand.brandCode === "nexus" ? "delta" : "buc", academicLevelNumber: 1, academicSemesterNumber: 1, ...(studentForm.studentCode.trim() ? { studentCode: studentForm.studentCode.trim() } : {}), ...(studentForm.programLabel.trim() ? { programLabel: studentForm.programLabel.trim() } : {}) });
+      setMessage(`Student created: ${result.studentProfileId}`);
+      setStudentForm({ fullName: "", email: "", password: "", studentCode: "", programLabel: "General subject programme" });
+      refresh();
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Student creation failed."); }
+  }
+
+  async function submitOrder(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!activeBrand || !selectedPlan) return;
+    setMessage(null); setError(null);
+    try {
+      const manualPrice = selectedPlan.requiresManualPrice ? Number(orderForm.pricePerStudent) : undefined;
+      await createManualSubscriptionOrder({ studentProfileId: orderForm.studentProfileId, brandCode: activeBrand.brandCode, planCode: orderForm.planCode, courseIds: orderForm.courseIds, ...(manualPrice ? { pricePerStudent: manualPrice } : {}), paymentMethod: orderForm.paymentMethod, ...(orderForm.paymentReference.trim() ? { paymentReference: orderForm.paymentReference.trim() } : {}), ...(orderForm.paymentEvidenceNote.trim() ? { paymentEvidenceNote: orderForm.paymentEvidenceNote.trim() } : {}) });
+      setMessage("Manual subscription order created. Approve it after matching the transfer evidence.");
+      setOrderForm((current) => ({ ...current, courseIds: [], paymentReference: "", paymentEvidenceNote: "" }));
+      refresh();
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Subscription order creation failed."); }
+  }
+
+  async function review(orderId: string, action: "approve" | "reject") {
+    setMessage(null); setError(null);
+    try {
+      if (action === "approve") await approveManualSubscriptionOrder(orderId, "Manual payment evidence matched by Admin dashboard.");
+      else await rejectManualSubscriptionOrder(orderId, "Manual payment evidence rejected by Admin dashboard.");
+      setMessage(action === "approve" ? "Payment approved and selected courses enrolled." : "Payment request rejected.");
+      refresh();
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Review action failed."); }
+  }
+
+  return <section className="admin-page admin-workspace-page" aria-label="Subscriptions management">
+    <SourceLabel preview={false} label={activeBrand?.brandDisplayName ?? "Select a brand"} />
+    <Metrics values={[{ title: "Pending approvals", value: loading ? "—" : pending, icon: Activity }, { title: "Approved orders", value: loading ? "—" : approved, icon: UsersRound }, { title: "Approved revenue", value: loading ? "—" : money(revenue, "EGP"), icon: Wallet }, { title: "Available subjects", value: loading ? "—" : courses.length, icon: BookOpen, note: "Published courses" }]} />
+    {message && <div className="admin-workspace-inline-state"><ShieldCheck aria-hidden="true" /><div><h3>Done</h3><p>{message}</p></div></div>}
+    {error && <div className="admin-workspace-inline-state"><Activity aria-hidden="true" /><div><h3>Action needed</h3><p>{error}</p><button type="button" onClick={refresh}>Retry</button></div></div>}
+    <div className="admin-workspace-split"><div className="admin-workspace-stack">
+      <WorkspaceCard title="Create student account" aside={<span className="admin-workspace-readonly">Server Auth + profile</span>}>
+        <form className="admin-workspace-form" onSubmit={submitStudent}>
+          <label>Full name<input required value={studentForm.fullName} onChange={(event) => setStudentForm((current) => ({ ...current, fullName: event.target.value }))} /></label>
+          <label>Email<input required type="email" value={studentForm.email} onChange={(event) => setStudentForm((current) => ({ ...current, email: event.target.value }))} /></label>
+          <label>Password<input required type="password" minLength={8} value={studentForm.password} onChange={(event) => setStudentForm((current) => ({ ...current, password: event.target.value }))} /></label>
+          <label>Student code<input value={studentForm.studentCode} onChange={(event) => setStudentForm((current) => ({ ...current, studentCode: event.target.value }))} /></label>
+          <label>Program label<input value={studentForm.programLabel} onChange={(event) => setStudentForm((current) => ({ ...current, programLabel: event.target.value }))} /></label>
+          <p className="admin-workspace-note">Creates an Auth account plus {activeBrand?.brandDisplayName ?? "brand"} Level 1 / Semester 1 academic profile. Nexus uses Delta; Medway and Elite use BUC.</p>
+          <button type="submit" disabled={!activeBrand || loading}>Create student</button>
+        </form>
+      </WorkspaceCard>
+
+      <WorkspaceCard title="Create manual subscription order" aside={<span className="admin-workspace-readonly">External payment review</span>}>
+        <form className="admin-workspace-form" onSubmit={submitOrder}>
+          <label>Student<select required value={orderForm.studentProfileId} onChange={(event) => setOrderForm((current) => ({ ...current, studentProfileId: event.target.value }))}><option value="">Select student</option>{students.map((student) => <option key={student.id} value={student.id}>{student.displayName ?? student.emailMasked ?? student.id}</option>)}</select></label>
+          <label>Plan<select value={orderForm.planCode} onChange={(event) => setOrderForm((current) => ({ ...current, planCode: event.target.value as ManualPlanCode, courseIds: [] }))}>{plans.map((plan) => <option key={plan.code} value={plan.code}>{plan.title}</option>)}</select></label>
+          {selectedPlan?.requiresManualPrice && <label>Price per student<input required type="number" min={1} value={orderForm.pricePerStudent} onChange={(event) => setOrderForm((current) => ({ ...current, pricePerStudent: event.target.value }))} /></label>}
+          <label>Payment method<select value={orderForm.paymentMethod} onChange={(event) => setOrderForm((current) => ({ ...current, paymentMethod: event.target.value as typeof current.paymentMethod }))}><option value="bank_transfer">Bank transfer</option><option value="wallet">Wallet</option><option value="cash">Cash</option><option value="other">Other</option></select></label>
+          <label>Payment reference<input value={orderForm.paymentReference} onChange={(event) => setOrderForm((current) => ({ ...current, paymentReference: event.target.value }))} placeholder="Transfer/reference number" /></label>
+          <label>Evidence note<textarea value={orderForm.paymentEvidenceNote} onChange={(event) => setOrderForm((current) => ({ ...current, paymentEvidenceNote: event.target.value }))} placeholder="WhatsApp/chat note. Do not paste secrets." /></label>
+          <div className="admin-workspace-course-picker" aria-label="Select subscription subjects">{courses.map((course) => <label key={course.id}><input type="checkbox" checked={orderForm.courseIds.includes(course.id)} onChange={() => toggleCourse(course.id)} /> <span>{course.title}<small>{course.code}</small></span></label>)}</div>
+          <p className="admin-workspace-note">Selected {orderForm.courseIds.length} / {selectedPlan?.subjectCount ?? 0} subject(s). Approval creates course enrollments; recommended subjects stay locked until approved.</p>
+          <button type="submit" disabled={!orderForm.studentProfileId || !selectedPlan || orderForm.courseIds.length !== selectedPlan.subjectCount}>Create payment request</button>
+        </form>
+      </WorkspaceCard>
+    </div>
+
+    <WorkspaceCard title="Manual payment approvals" aside={<button type="button" onClick={refresh}>Refresh</button>}>
+      <div className="admin-workspace-plans">{plans.map((plan) => <article key={plan.code}><span className="admin-workspace-metric__icon"><UsersRound aria-hidden="true" /></span><h3>{plan.title}</h3><strong>{plan.pricePerStudent ? money(plan.pricePerStudent, plan.currency) : "Manual price"}<small> per student</small></strong><p>{plan.description}</p><WorkspaceBadge value={`${plan.subjectCount} subject${plan.subjectCount === 1 ? "" : "s"}`} /></article>)}</div>
+      <div className="admin-workspace-table-wrap"><table className="admin-workspace-table"><caption className="admin-sr-only">Manual subscription orders</caption><thead><tr><th>Student</th><th>Plan</th><th>Amount</th><th>Reference</th><th>Status</th><th>Actions</th></tr></thead><tbody>{orders.map((order) => <tr key={order.id}><td><strong>{order.studentName}</strong><small>{order.studentEmail}</small></td><td>{order.planCode.replaceAll("_", " ")}</td><td>{money(order.pricePerStudent, "EGP")}</td><td>{order.paymentReference ?? "No reference"}</td><td><WorkspaceBadge value={order.status} /></td><td>{order.status === "pending_review" ? <span className="admin-workspace-actions-inline"><button type="button" onClick={() => void review(order.id, "approve")}>Approve</button><button type="button" onClick={() => void review(order.id, "reject")}>Reject</button></span> : date(order.reviewedAt)}</td></tr>)}</tbody></table></div>
+      {!orders.length && <WorkspaceState loading={loading} error={Boolean(error)} title="No manual payment requests yet" onRetry={refresh} />}
+    </WorkspaceCard></div>
   </section>;
 }
 
