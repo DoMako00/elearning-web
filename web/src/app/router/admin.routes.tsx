@@ -8,7 +8,8 @@ import { AdminCurriculumPage } from "../pages/admin/AdminCurriculumPage";
 import { AdminCourseBuilderPage } from "../pages/admin/AdminCourseBuilderPage";
 import { AdminStudentsPage } from "../pages/admin/AdminStudentsPage";
 
-import { AdminPaymentsPage, AdminSubscriptionsPage, AdminContentPage, AdminSecurityPage } from "../pages/admin/AdminOperationsPages";
+import { AdminContentPage, AdminSecurityPage } from "../pages/admin/AdminOperationsPages";
+import { AdminPaymentsPage, AdminSubscriptionsPage } from "../pages/admin/AdminManualSubscriptions";
 
 const sections = [
   ["commercial", "Commercial", "Payment, refund, and order review read models."],

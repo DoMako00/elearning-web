@@ -265,3 +265,43 @@
   .admin-shell .admin-workspace-tree nav { max-height: 260px; }
   .admin-shell .admin-workspace-page .admin-workspace-table-wrap { max-height: 420px; }
 }
+
+.admin-workflow-backdrop { position: fixed; inset: 0; z-index: 120; display: grid; place-items: center; overflow-y: auto; background: rgba(18, 31, 23, .34); padding: 24px; }
+.admin-workflow-modal { width: min(610px, 100%); max-height: min(820px, calc(100dvh - 48px)); overflow: auto; border: 1px solid #dfe8e2; border-radius: 9px; background: #fff; box-shadow: 0 18px 60px rgba(18, 42, 27, .2); color: #26352c; }
+.admin-workflow-modal > header { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e7ede9; background: #fff; padding: 17px 20px; }
+.admin-workflow-modal > header small { color: #748179; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.admin-workflow-modal h2 { margin: 3px 0 0; color: #1e2c23; font-size: 17px; }
+.admin-workflow-modal > header button { width: 31px; height: 31px; display: grid; place-items: center; border: 1px solid #e1e9e4; border-radius: 6px; background: #fff; color: #68766e; cursor: pointer; }
+.admin-workflow-modal > header svg { width: 16px; }
+.admin-workflow-modal form { padding: 18px 20px 16px; }
+.admin-workflow-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px 14px; }
+.admin-workflow-fields label { display: grid; gap: 6px; color: #46564c; font-size: 11px; font-weight: 650; }
+.admin-workflow-fields label > span { color: #849087; font-weight: 500; }
+.admin-workflow-fields input, .admin-workflow-fields select { width: 100%; min-width: 0; height: 36px; border: 1px solid #dce5df; border-radius: 6px; outline: 0; background: #fff; color: #2b3b31; padding: 0 10px; font: inherit; font-size: 12px; }
+.admin-workflow-fields input:focus, .admin-workflow-fields select:focus { border-color: #83b993; box-shadow: 0 0 0 3px rgba(53, 143, 82, .1); }
+.admin-workflow-fields label small { color: #849087; font-size: 10px; font-weight: 500; }
+.admin-workflow-modal form > footer, .admin-workflow-result { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 20px; border-top: 1px solid #e8eeea; padding-top: 14px; }
+.admin-workflow-modal form > footer button, .admin-workflow-result button { min-height: 34px; border: 1px solid #dce5df; border-radius: 6px; background: #fff; color: #536157; padding: 0 13px; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+.admin-workflow-modal button.is-primary { border-color: #25834a; background: #25834a; color: #fff; }
+.admin-workflow-modal button:disabled { cursor: not-allowed; opacity: .55; }
+.admin-workflow-error { margin: 14px 0 0; border: 1px solid #f0d6d3; border-radius: 6px; background: #fff8f7; color: #9b4039; padding: 9px 11px; font-size: 11px; }
+.admin-workflow-result { display: grid; justify-items: start; padding: 20px; }
+.admin-workflow-result strong { color: #207443; font-size: 14px; }
+.admin-workflow-result p { margin: 0; color: #64736a; font-size: 12px; }
+.admin-workflow-result button { justify-self: end; }
+@media (max-width: 600px) { .admin-workflow-backdrop { align-items: end; padding: 10px; } .admin-workflow-modal { max-height: calc(100dvh - 20px); } .admin-workflow-fields { grid-template-columns: 1fr; } }
+
+.admin-workflow-fields textarea { width: 100%; min-height: 74px; resize: vertical; border: 1px solid #dce5df; border-radius: 6px; outline: 0; background: #fff; color: #2b3b31; padding: 9px 10px; font: inherit; font-size: 12px; }
+.admin-workflow-fields textarea:focus { border-color: #83b993; box-shadow: 0 0 0 3px rgba(53, 143, 82, .1); }
+.admin-workflow-span { grid-column: 1 / -1; }
+.admin-workflow-course-list { display: grid; gap: 8px; max-height: 190px; overflow: auto; border: 1px solid #e2eae4; border-radius: 6px; padding: 10px; }
+.admin-workflow-course-list > strong { color: #365441; font-size: 11px; }
+.admin-workflow-course { display: flex !important; grid-template-columns: auto 1fr; align-items: center; gap: 9px !important; border-top: 1px solid #edf2ee; padding-top: 7px; }
+.admin-workflow-course input { width: 14px; height: 14px; accent-color: #25834a; }
+.admin-workflow-course span { display: grid; gap: 3px; color: #304b3a; font-size: 11px; }
+.admin-workflow-validation { color: #a04d3c !important; }
+.admin-workflow-info { margin: 0; border: 1px solid #dce9df; border-radius: 6px; padding: 10px; background: #f6faf7; color: #64766a; font-size: 11px; line-height: 1.5; }
+.admin-workspace-page button.is-primary { border-color: #25834a; background: #25834a; color: white; }
+.admin-workspace-page button.is-primary:hover { border-color: #1f713f; background: #1f713f; }
+.admin-workspace-card > header button.is-primary { display: inline-flex; align-items: center; gap: 6px; }
+.admin-workspace-card > header button.is-primary svg { width: 13px; height: 13px; }

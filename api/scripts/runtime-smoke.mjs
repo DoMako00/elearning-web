@@ -177,6 +177,11 @@ async function run() {
         assertTruthy(response.body.paths?.["/v1/admin/instructors"], "Instructor contract path");
         assertTruthy(response.body.paths?.["/v1/admin/students"], "Students list contract path");
         assertTruthy(response.body.paths?.["/v1/admin/students/{studentId}"], "Student detail contract path");
+        assertTruthy(response.body.paths?.["/v1/admin/subscription-plans"]?.get?.security, "Manual subscription plan auth contract");
+        assertTruthy(response.body.paths?.["/v1/admin/subscription-orders"]?.post?.parameters?.some((parameter) => parameter.name === "Idempotency-Key"), "Manual order idempotency contract");
+        assertTruthy(response.body.paths?.["/v1/admin/subscription-orders/{orderId}/approve"]?.post, "Manual approval contract");
+        assertTruthy(response.body.paths?.["/v1/admin/subscription-orders/{orderId}/reject"]?.post, "Manual rejection contract");
+        assertTruthy(response.body.paths?.["/v1/admin/students"]?.post?.parameters?.some((parameter) => parameter.name === "Idempotency-Key"), "Admin student creation idempotency contract");
         assertTruthy(response.body.paths?.["/v1/admin/brands/{brandId}/courses/{courseId}/instructors"], "Course instructor contract path");
         assertTruthy(response.body.components?.schemas?.AcademicCatalogueChapter, "Academic chapter schema");
         assertTruthy(response.body.paths?.["/v1/admin/curriculum/modules/{moduleId}"]?.get?.summary?.includes("chapter"), "Module chapter contract path");
@@ -220,7 +225,12 @@ async function run() {
         assertTruthy(Array.isArray(response.body.data?.data) && response.body.data.data.length === 0, "Students must be empty in mock runtime");
         assertEqual(response.body.data?.pagination?.totalItems, 0, "Students empty total");
       }],
-      ["overview missing brand", async () => {
+      ["student bearer cannot access Admin subscriptions", async () => {
+        const response = await request("GET", "/v1/admin/subscription-orders?brand=elite", { authorization: "Bearer mock-auth-elite-student-001" });
+        assertEqual(response.status, 403, "Student bearer Admin denial");
+        assertEqual(response.body.ok, false, "Student bearer Admin denial body");
+        assertNoUnsafeErrorPayload(response.body);
+      }],      ["overview missing brand", async () => {
         const response = await request("GET", "/v1/admin/overview");
         assertEqual(response.status, 400, "Missing brand status");
         assertEqual(response.body.ok, false, "Missing brand response");
