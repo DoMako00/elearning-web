@@ -1,0 +1,294 @@
+/* LevelUpModal.css - Dedicated Level Upgrade Popup */
+
+.level-up-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.level-up-modal {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid rgba(32, 168, 98, 0.2);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 440px;
+  padding: 32px 28px 28px;
+  box-shadow: 
+    0 20px 40px -15px rgba(0, 0, 0, 0.25),
+    0 0 50px rgba(32, 168, 98, 0.15);
+  text-align: center;
+  overflow: hidden;
+}
+
+.level-up-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.level-up-close-btn:hover {
+  background: #e5e7eb;
+  color: #111827;
+  transform: scale(1.05);
+}
+
+.level-up-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.level-up-trophy-container {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.level-up-trophy-halo {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(32, 168, 98, 0.35) 0%, rgba(32, 168, 98, 0) 70%);
+  border-radius: 50%;
+}
+
+.level-up-trophy-icon {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #eff9f2 0%, #ffffff 100%);
+  border: 2px solid #c9f0d7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #20a862;
+  box-shadow: 0 8px 24px rgba(32, 168, 98, 0.25);
+}
+
+.level-up-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #eff9f2;
+  color: #20a862;
+  border: 1px solid #c9f0d7;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.level-up-title {
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.03em;
+  font-family: var(--font-heading, 'Montserrat', sans-serif);
+}
+
+.level-up-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.45;
+  max-width: 320px;
+}
+
+/* Level Transition */
+.level-up-transition-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: #f8faf9;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 14px 20px;
+  margin-bottom: 16px;
+}
+
+.level-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.level-node-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.level-node.previous .level-node-num {
+  font-size: 20px;
+  font-weight: 700;
+  color: #9ca3af;
+}
+
+.level-node.current {
+  position: relative;
+}
+
+.level-node.current .level-node-num {
+  font-size: 24px;
+  font-weight: 800;
+  color: #20a862;
+  font-family: var(--font-heading, 'Montserrat', sans-serif);
+}
+
+.level-node-badge {
+  position: absolute;
+  top: -8px;
+  right: -24px;
+  background: #f59e0b;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.35);
+}
+
+.level-node-arrow {
+  color: #20a862;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eff9f2;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+}
+
+.level-up-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.level-up-stat-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #4b5563;
+  background: #ffffff;
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+}
+
+.stat-icon-xp {
+  color: #f59e0b;
+}
+
+/* Perks list */
+.level-up-perks-section {
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 16px;
+  padding: 16px;
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+.level-up-perks-title {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.level-up-perks-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.level-up-perk-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.perk-check-icon {
+  color: #20a862;
+  flex-shrink: 0;
+}
+
+/* Action button */
+.level-up-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.level-up-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #20a862;
+  color: #ffffff;
+  border: none;
+  padding: 13px 24px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(32, 168, 98, 0.35);
+  transition: all 0.15s ease;
+}
+
+.level-up-primary-btn:hover {
+  background: #188a50;
+  box-shadow: 0 8px 24px rgba(32, 168, 98, 0.45);
+  transform: translateY(-1px);
+}
+
+.level-up-primary-btn:active {
+  transform: translateY(0);
+}
