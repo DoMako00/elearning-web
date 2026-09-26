@@ -9,10 +9,8 @@ import {
   ChartNoAxesCombined,
   Check,
   Clock3,
-  FlaskConical,
   Compass,
   Sparkles,
-  Microscope,
   UserRoundCheck,
 } from "lucide-react";
 import robotAsset from "../../../Assets/ai-learning-robot.webp";
@@ -26,12 +24,6 @@ const benefits = [
   { title: "Get certified", description: "Earn certificates and boost your career.", icon: Award },
 ] as const;
 
-const topics = [
-  { label: "Biochemistry", icon: FlaskConical },
-  { label: "Anatomy", icon: UserRoundCheck },
-  { label: "Physiology", icon: ChartNoAxesCombined },
-  { label: "Histology", icon: Microscope },
-] as const;
 
 const weeklyStudyHourOptions = [4, 6, 8] as const;
 const weeklyStudyGoalStorageKey = "greenlearn-weekly-study-hours";
@@ -66,7 +58,7 @@ export function LearningBenefits() {
   );
 }
 
-export function PopularTopicsCard() {
+export function PopularTopicsCard({ topics }: { topics: readonly string[] }) {
   return (
     <article className="empty-side-card empty-topics-card" aria-labelledby="popular-topics-title">
       <header className="empty-topics-card__header">
@@ -79,16 +71,16 @@ export function PopularTopicsCard() {
         </span>
       </header>
       <div className="empty-topics-card__grid" aria-label="Popular learning topics">
-        {topics.map(({ label, icon: Icon }) => (
-          <UnavailableAction className="empty-topic" ariaLabel={`${label} topic`} tooltip={label} key={label}>
-            <span className="empty-topic__icon" aria-hidden="true"><Icon /></span>
+        {topics.map((label) => (
+          <span className="empty-topic" key={label}>
+            <span className="empty-topic__icon" aria-hidden="true"><BookOpenCheck /></span>
             <span className="empty-topic__label">{label}</span>
-            {label === "Biochemistry" ? <ArrowRight className="empty-topic__arrow" aria-hidden="true" /> : null}
-          </UnavailableAction>
+          </span>
         ))}
+        {topics.length === 0 ? <p>No published subjects are available for this placement yet.</p> : null}
       </div>
       <footer className="empty-topics-card__footer">
-        <UnavailableAction className="empty-side-link"><span>View medical subjects</span><ArrowRight aria-hidden="true" /></UnavailableAction>
+        <UnavailableAction className="empty-side-link"><span>Available placement subjects</span><ArrowRight aria-hidden="true" /></UnavailableAction>
       </footer>
     </article>
   );
@@ -177,23 +169,23 @@ export function StudyPlanCard() {
   );
 }
 
-export function EmptyLearningState() {
+export function EmptyLearningState({ topics = [], isAuthenticated = false }: { topics?: readonly string[]; isAuthenticated?: boolean }) {
   return (
     <section className="empty-learning-state" aria-label="Start your learning journey">
       <article className="empty-learning-main-card">
         <div className="empty-learning-main-card__hero">
           <img className="empty-learning-main-card__art" src={journeyIllustration} alt="Green backpack with books and a small plant, ready for a new course" />
           <div className="empty-learning-main-card__copy">
-            <h1>Your learning journey is waiting</h1>
-            <p>You haven&apos;t subscribed to any courses yet.<br />Let&apos;s find the perfect course to start your growth.</p>
-            <Link className="empty-learning-main-card__primary-action" to="/auth/sign-in" state={{ from: "/" }}><Compass aria-hidden="true" /><span>Sign in to view courses</span></Link>
+            <h1>{isAuthenticated ? "Your learning journey is waiting" : "Welcome to GreenLearn"}</h1>
+            <p>{isAuthenticated ? "You are not enrolled in a course yet. Your available placement subjects are shown below." : "Sign in to view the courses and subjects available to your student account."}</p>
+            {!isAuthenticated ? <Link className="empty-learning-main-card__primary-action" to="/auth/sign-in" state={{ from: "/" }}><Compass aria-hidden="true" /><span>Sign in to view courses</span></Link> : null}
             <UnavailableAction className="empty-learning-main-card__secondary-action"><span>How learning works</span><ArrowRight aria-hidden="true" /></UnavailableAction>
           </div>
         </div>
         <LearningBenefits />
       </article>
       <aside className="empty-learning-state__aside" aria-label="Learning discovery">
-        <PopularTopicsCard />
+        <PopularTopicsCard topics={topics} />
         <AIRecommendationsCard />
         <StudyPlanCard />
       </aside>

@@ -1,5 +1,6 @@
 import { AlertCircle, LoaderCircle, RefreshCw } from "lucide-react";
 import { useDashboardEnrollment } from "../../dashboard/useDashboardEnrollment";
+import { useAuth } from "../../providers/AuthProvider";
 import { DashboardBento } from "../../../components/ui/DashboardBento";
 import { EmptyLearningState } from "../../../components/ui/EmptyLearningState";
 
@@ -30,9 +31,10 @@ function DashboardErrorState({ onRetry }: { onRetry: () => void }) {
 
 export function HomePage() {
   const { status, enrolledCourses, courses, retry } = useDashboardEnrollment();
+  const auth = useAuth();
 
   if (status === "loading") return <DashboardLoadingState />;
   if (status === "error") return <DashboardErrorState onRetry={retry} />;
 
-  return enrolledCourses.length > 0 ? <DashboardBento courses={courses} /> : <EmptyLearningState />;
+  return enrolledCourses.length > 0 ? <DashboardBento courses={courses} /> : <EmptyLearningState topics={courses.map((course) => course.title)} isAuthenticated={auth.status === "authenticated"} />;
 }

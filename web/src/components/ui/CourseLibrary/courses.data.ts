@@ -24,7 +24,7 @@ export interface StudentCourse {
   category: string;
   categoryId: string;
   level: string;
-  progress: number;
+  progress: number | null;
   lessonText: string;
   totalLessons: number;
   completedLessons: number;
@@ -38,7 +38,7 @@ export interface StudentCourse {
     initials: string;
     name: string;
     role: string;
-  };
+  } | null;
   summary: string;
   slug: string;
   access?: {

@@ -9,8 +9,8 @@ import "./YourStreak.css";
 
 export function YourStreak({
   streakDays,
-  completedMilestones = 7,
-  totalMilestones = 8,
+  completedMilestones,
+  totalMilestones,
   message = "Consistency is the key to mastery!",
   trophySrc = trophyAsset,
   onViewBadges,
@@ -20,25 +20,12 @@ export function YourStreak({
   const [showTooltip, setShowTooltip] = useState(false);
   const gamification = useContext(GamificationContext);
 
-  const effectiveStreakDays = streakDays !== undefined 
-    ? streakDays 
-    : gamification 
-    ? gamification.currentStreak 
-    : 5;
-
-  const freezePasses = gamification ? gamification.streakFreezePasses : 3;
-
-  const safeStreakDays = Math.max(0, Math.floor(effectiveStreakDays));
-  const safeTotalMilestones = Math.max(1, Math.floor(totalMilestones));
-  const safeCompletedMilestones = Math.min(
-    safeTotalMilestones,
-    Math.max(0, Math.floor(completedMilestones)),
-  );
-  const milestonesLabel =
-    safeCompletedMilestones +
-    " of " +
-    safeTotalMilestones +
-    " streak milestones completed";
+  const effectiveStreakDays = streakDays ?? gamification?.currentStreak;
+  const freezePasses = gamification?.streakFreezePasses;
+  const safeStreakDays = effectiveStreakDays === undefined ? null : Math.max(0, Math.floor(effectiveStreakDays));
+  const safeTotalMilestones = totalMilestones === undefined ? 0 : Math.max(1, Math.floor(totalMilestones));
+  const safeCompletedMilestones = completedMilestones === undefined ? 0 : Math.min(safeTotalMilestones, Math.max(0, Math.floor(completedMilestones)));
+  const milestonesLabel = totalMilestones === undefined ? "Streak milestone data unavailable" : `${safeCompletedMilestones} of ${safeTotalMilestones} streak milestones completed`;
 
   const handleBadgesClick = () => {
     if (onViewBadges) {
@@ -67,7 +54,7 @@ export function YourStreak({
                 <span>Streak Rules</span>
               </div>
               <p className="text-[11px] text-slate-200 leading-tight">
-                Study 5 more minutes today to maintain your {safeStreakDays}-day streak! {freezePasses} streak freeze{freezePasses !== 1 ? 's' : ''} remaining.
+                {safeStreakDays === null ? "Streak activity is unavailable." : `Study activity has not refreshed today. ${freezePasses === undefined ? "" : `${freezePasses} streak freezes remaining.`}`}
               </p>
               <div className="absolute -bottom-1.5 left-6 border-4 border-transparent border-t-slate-900" />
             </div>
@@ -75,8 +62,8 @@ export function YourStreak({
         </header>
 
         <div className="your-streak-stats">
-          <strong>{safeStreakDays}</strong>
-          <span>days in a row</span>
+          <strong>{safeStreakDays ?? "—"}</strong>
+          <span>{safeStreakDays === null ? "streak unavailable" : "days in a row"}</span>
         </div>
 
         <div

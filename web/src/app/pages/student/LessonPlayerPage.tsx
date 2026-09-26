@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { listStudentCourseLessons } from "../../../features/student/api/studentCoursesApi";
 import { useXPRewards, XPRewardModal } from "../../../components/ui/XPRewards";
 import type { XPRewardData } from "../../../components/ui/XPRewards";
 import { useInactivityPrompt, InactivityModal } from "../../../components/ui/InactivityPrompt";
@@ -49,7 +50,6 @@ import "./CourseOverviewPage.css";
 import "./LessonPlayerPage.css";
 
 const COURSE_PATH = "/my-courses/human-anatomy-i";
-const VIDEO_SRC = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
 const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5, 2] as const;
 
 const TABS = [
@@ -377,7 +377,6 @@ function LessonVideoPlayer({ lessonId }: { lessonId: string }) {
         <video
           ref={videoRef}
           className="lesson-player__video"
-          src={VIDEO_SRC}
           poster={anatomyArt}
           preload="metadata"
           playsInline
@@ -526,7 +525,7 @@ function MaterialsCard({ className = "", hidden = false, materials = LESSON_MATE
   );
 }
 
-export function LessonPlayerPage() {
+function StudentLessonPlayerContent() {
   const { lessonId = ALL_LESSONS[0].id } = useParams();
   const navigate = useNavigate();
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -833,4 +832,52 @@ export function LessonPlayerPage() {
       />
     </section>
   );
+}
+
+
+const STUDENT_COURSE_BRAND = "elite" as const;
+
+function LessonUnavailable({ message, isError = false }: { message: string; isError?: boolean }) {
+  return (
+    <section className="course-overview-page" aria-labelledby="lesson-unavailable-title">
+      <div className={`course-overview-panel--message${isError ? " dashboard-feedback--error" : ""}`} role={isError ? "alert" : "status"}>
+        <BookOpen aria-hidden="true" />
+        <h2 id="lesson-unavailable-title">Lesson playback unavailable</h2>
+        <p>{message}</p>
+      </div>
+    </section>
+  );
+}
+
+export function LessonPlayerPage() {
+  const { slug = "", lessonId = "" } = useParams();
+  const [state, setState] = useState<{ status: "loading" | "ready" | "unavailable" | "error"; message?: string }>({ status: "loading" });
+
+  useEffect(() => {
+    if (!slug || !lessonId) {
+      setState({ status: "unavailable", message: "This lesson is not available for this student." });
+      return;
+    }
+
+    const controller = new AbortController();
+    setState({ status: "loading" });
+    listStudentCourseLessons({ courseId: slug, brand: STUDENT_COURSE_BRAND, signal: controller.signal })
+      .then((payload) => {
+        const lesson = payload.lessons.find((item) => item.lessonId === lessonId);
+        setState(lesson?.playbackAvailable
+          ? { status: "ready" }
+          : { status: "unavailable", message: "This enrolled subject does not have released lesson media yet." });
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        setState({ status: "error", message: error instanceof Error ? error.message : "Lesson access could not be confirmed." });
+      });
+
+    return () => controller.abort();
+  }, [slug, lessonId]);
+
+  if (state.status === "loading") return <LessonUnavailable message="Checking lesson access and media release..." />;
+  if (state.status === "error") return <LessonUnavailable message={state.message ?? "Lesson access could not be confirmed."} isError />;
+  if (state.status === "unavailable") return <LessonUnavailable message={state.message ?? "Lesson media is not available."} />;
+  return <StudentLessonPlayerContent />;
 }

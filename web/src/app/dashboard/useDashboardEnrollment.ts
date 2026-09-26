@@ -3,7 +3,6 @@ import type { DashboardEnrollmentState } from "../config/env";
 import { useAuth } from "../providers/AuthProvider";
 import {
   listStudentCourses,
-  StudentCoursesApiError,
   type StudentCourseItem,
 } from "../../features/student/api/studentCoursesApi";
 
@@ -20,7 +19,7 @@ export interface DashboardEnrollmentViewModel {
 const STUDENT_DASHBOARD_BRAND = "elite" as const;
 
 function canOpenCourse(course: StudentCourseItem): boolean {
-  return course.access?.canOpen === true;
+  return course.access?.isEnrolled === true;
 }
 
 function toEnrollment(course: StudentCourseItem): DashboardEnrollment {
@@ -65,14 +64,8 @@ export function useDashboardEnrollment() {
           courses,
         });
       })
-      .catch((error: unknown) => {
+      .catch(() => {
         if (controller.signal.aborted) return;
-
-        if (error instanceof StudentCoursesApiError && error.status === 401) {
-          auth.signOut();
-          setViewModel({ status: "empty", enrolledCourses: [], courses: [] });
-          return;
-        }
 
         setViewModel({ status: "error", enrolledCourses: [], courses: [] });
       });

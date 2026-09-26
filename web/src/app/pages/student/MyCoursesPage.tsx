@@ -27,15 +27,6 @@ import { listStudentCourses, type StudentCourseItem } from "../../../features/st
 
 export type { StudentCourse };
 
-const PACE_WEEKLY_DATA = Array.from({ length: 26 }, () => 0);
-const PACE_MONTHLY_DATA = Array.from({ length: 18 }, () => 0);
-
-const WEEK_SCHEDULE = [
-  { day: "Mon", date: "12", hours: "2h planned", status: "completed" },
-  { day: "Wed", date: "14", hours: "2h planned", status: "current" },
-  { day: "Fri", date: "16", hours: "2h planned", status: "upcoming" },
-];
-
 const STUDENT_COURSE_BRAND = "elite" as const;
 
 function normalizeCategory(title: string) {
@@ -66,28 +57,24 @@ function toDisplayCourse(course: StudentCourseItem): StudentCourse {
     category: category.label,
     categoryId: category.id,
     level: course.unitLabel,
-    progress: 0,
+    progress: null,
     lessonText: `${course.lessonCount} ${course.lessonCount === 1 ? "lesson" : "lessons"}`,
     completedLessons: 0,
     totalLessons: course.lessonCount,
-    opened: mediaReady > 0 ? `${mediaReady} lessons have media metadata` : "Media coming soon",
+    opened: mediaReady > 0 ? `${mediaReady} lessons have media metadata` : "Media or release unavailable",
     art: visual.art,
     image: visual.image,
     heroOverlay: visual.heroOverlay,
     Icon: visual.Icon,
-    status: "in-progress",
-    instructor: {
-      initials: course.brand.code === "elite" ? "EL" : course.brand.name.slice(0, 2).toUpperCase(),
-      name: course.brand.name,
-      role: `${course.unitLabel}-based programme`,
-    },
+    status: course.access.enrollmentStatus === "completed" ? "completed" : "in-progress",
+    instructor: null,
     summary: `${course.chapterCount} ${course.chapterCount === 1 ? "chapter" : "chapters"} • ${course.lessonCount} lessons`,
     slug: course.courseId,
     access: course.access,
   };
 }
 function canOpenDisplayCourse(course: StudentCourse) {
-  return course.access?.canOpen === true;
+  return course.access?.isEnrolled === true;
 }
 
 function courseRouteState(course: StudentCourse) {
@@ -128,8 +115,8 @@ export function MyCoursesPage() {
   const [courses, setCourses] = useState<StudentCourse[]>([]);
   const [isCoursesLoading, setIsCoursesLoading] = useState(true);
   const [coursesError, setCoursesError] = useState<string | null>(null);
+  const [retryIndex, setRetryIndex] = useState(0);
 
-  const [activeScheduleIndex, setActiveScheduleIndex] = useState<number>(1);
   const [isPaceMonthly, setIsPaceMonthly] = useState(false);
 
   const enrolledCourses = useMemo(() => courses.filter(canOpenDisplayCourse), [courses]);
@@ -187,7 +174,7 @@ export function MyCoursesPage() {
       });
 
     return () => controller.abort();
-  }, [auth.status]);
+  }, [auth.status, retryIndex]);
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (sortRef.current && !sortRef.current.contains(e.target as Node)) {
@@ -198,7 +185,7 @@ export function MyCoursesPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const pacePoints = buildPacePoints(isPaceMonthly ? PACE_MONTHLY_DATA : PACE_WEEKLY_DATA);
+  const pacePoints: ReturnType<typeof buildPacePoints> = [];
 
   const sortLabel = {
     opened: "Last opened",
@@ -329,7 +316,10 @@ export function MyCoursesPage() {
             <button type="button" onClick={() => navigate("/auth/sign-in", { state: { from: "/" } })}>Sign in</button>
           </div>
         ) : coursesError ? (
-          <div className="dashboard-feedback dashboard-feedback--error" role="alert">{coursesError}</div>
+          <div className="dashboard-feedback dashboard-feedback--error" role="alert">
+            <span>{coursesError}</span>
+            <button type="button" onClick={() => setRetryIndex((current) => current + 1)}>Try again</button>
+          </div>
         ) : !activeFocusCourse ? (
           <div className="dashboard-feedback" role="status">No enrolled subjects are available for this student yet.</div>
         ) : (
@@ -371,29 +361,20 @@ export function MyCoursesPage() {
 
             <div className="course-focus-card__content">
               <span className={`course-focus-card__status ${activeFocusCourse.status === "completed" ? "!bg-[#16a34a]! !text-white!" : ""}`}>
-                {activeFocusCourse.status === "completed" ? "Completed" : "In progress"}
+                {activeFocusCourse.status === "completed" ? "Completed" : "Enrolled"}
               </span>
               <h2>{activeFocusCourse.title}</h2>
               <p className="course-focus-card__subtitle">{activeFocusCourse.subtitle}</p>
               <p className="course-focus-card__lesson">{activeFocusCourse.lessonText}</p>
-              <div className="course-focus-card__progress">
-                <i><b style={{ width: `${activeFocusCourse.progress}%` }} /></i>
-                <strong>{activeFocusCourse.progress}%</strong>
-              </div>
-              <div className="course-focus-card__instructor">
-                <span>{activeFocusCourse.instructor.initials}</span>
-                <div>
-                  <b>{activeFocusCourse.instructor.name}</b>
-                  <small>{activeFocusCourse.instructor.role}</small>
-                </div>
-              </div>
+              <p className="course-focus-card__availability">{activeFocusCourse.opened}</p>
             </div>
 
             <button
               type="button"
               className="course-focus-card__play cursor-pointer"
-              aria-label={`Open ${activeFocusCourse.title}`}
-              onClick={() => navigate(`/my-courses/${activeFocusCourse.slug}`, { state: courseRouteState(activeFocusCourse) })}
+              aria-label={activeFocusCourse.access?.canOpen ? `Open ${activeFocusCourse.title}` : `${activeFocusCourse.title} details unavailable`}
+              disabled={!activeFocusCourse.access?.canOpen}
+              onClick={() => { if (activeFocusCourse.access?.canOpen) navigate(`/my-courses/${activeFocusCourse.slug}`, { state: courseRouteState(activeFocusCourse) }); }}
             >
               <CirclePlay aria-hidden="true" />
             </button>
@@ -418,9 +399,10 @@ export function MyCoursesPage() {
                 <button
                   type="button"
                   className="cursor-pointer"
-                  onClick={() => navigate(`/my-courses/${activeFocusCourse.slug}`, { state: courseRouteState(activeFocusCourse) })}
+                  disabled={!activeFocusCourse.access?.canOpen}
+                  onClick={() => { if (activeFocusCourse.access?.canOpen) navigate(`/my-courses/${activeFocusCourse.slug}`, { state: courseRouteState(activeFocusCourse) }); }}
                 >
-                  {activeFocusCourse.status === "completed" ? "Review Subject" : "Open Subject"} <ArrowRight aria-hidden="true" />
+                  {activeFocusCourse.access?.canOpen ? (activeFocusCourse.status === "completed" ? "Review Subject" : "Open Subject") : "Details unavailable"} <ArrowRight aria-hidden="true" />
                 </button>
               </div>
             </footer>
@@ -432,25 +414,13 @@ export function MyCoursesPage() {
                 <h2>This week</h2>
                 <CalendarDays aria-hidden="true" />
               </header>
-              <div className="week-days" role="tablist" aria-label="Study days">
-                {WEEK_SCHEDULE.map((item, idx) => (
-                  <span
-                    key={item.day}
-                    onClick={() => setActiveScheduleIndex(idx)}
-                    className={`cursor-pointer transition-all ${idx === activeScheduleIndex ? "is-current" : ""}`}
-                    role="tab"
-                    aria-selected={idx === activeScheduleIndex}
-                  >
-                    {item.day}
-                    <b>{item.date}</b>
-                    <small>{item.hours}</small>
-                  </span>
-                ))}
+              <div className="week-days" role="status">
+                <p>A study schedule is not available yet.</p>
               </div>
               <footer>
                 <Clock3 aria-hidden="true" />
-                <b>6h planned</b>
-                <span>Focus. Learn. Grow.</span>
+                <b>Schedule unavailable</b>
+                <span>Study activity has not been provided.</span>
               </footer>
             </article>
 
@@ -458,8 +428,8 @@ export function MyCoursesPage() {
               <header className="flex justify-between items-start">
                 <div>
                   <h2>Your pace</h2>
-                  <strong>0%</strong>
-                  <small>Course completion rate</small>
+                  <strong>—</strong>
+                  <small>Progress unavailable</small>
                 </div>
                 <div className="pace-header-actions">
                   <div className="pace-switch" role="group" aria-label="Pace timeframe selector">
@@ -483,7 +453,8 @@ export function MyCoursesPage() {
                   <TrendingUp aria-hidden="true" />
                 </div>
               </header>
-              <div className="pace-chart-container">
+              <div className="pace-chart-container" role="status" aria-label="No progress data available">
+                <p>Progress data will appear after lesson completion activity is provided.</p>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
                     data={pacePoints}
@@ -516,7 +487,7 @@ export function MyCoursesPage() {
               </div>
               <p>
                 <Sparkles aria-hidden="true" />
-                Progress starts after lesson completion
+                Progress will appear when lesson completion data is available
               </p>
             </article>
           </div>

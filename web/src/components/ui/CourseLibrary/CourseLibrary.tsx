@@ -11,12 +11,12 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { COURSE_CATEGORY_TABS, INITIAL_COURSES, type StudentCourse } from "./courses.data";
+import { COURSE_CATEGORY_TABS, type StudentCourse } from "./courses.data";
 import "./CourseLibrary.css";
 
 interface CourseLibraryProps {
   title?: string;
-  courses?: readonly StudentCourse[];
+  courses: readonly StudentCourse[];
   unitLabel?: string;
   statusFilter?: "in-progress" | "completed" | "saved";
   searchQuery?: string;
@@ -32,7 +32,7 @@ interface CourseLibraryProps {
 
 export function CourseLibrary({
   title = "Course library",
-  courses = INITIAL_COURSES,
+  courses,
   unitLabel = "module",
   statusFilter = "in-progress",
   searchQuery = "",
@@ -56,10 +56,7 @@ export function CourseLibrary({
   const lockedIds = useMemo(() => new Set(lockedCourseIds), [lockedCourseIds]);
 
   const openCourse = (course: StudentCourse) => {
-    if (lockedIds.has(course.id)) {
-      window.alert(lockedMessage);
-      return;
-    }
+    if (lockedIds.has(course.id) || course.access?.isEnrolled !== true || course.access.canOpen !== true) return;
     navigate(`/my-courses/${course.slug}`, { state: { courseTitle: course.title, courseId: course.id } });
   };
 
@@ -88,7 +85,7 @@ export function CourseLibrary({
       }
       return true;
     }).sort((a, b) => {
-      if (sortBy === "progress") return b.progress - a.progress;
+      if (sortBy === "progress") return (b.progress ?? -1) - (a.progress ?? -1);
       if (sortBy === "title") return a.title.localeCompare(b.title);
       return 0;
     });
@@ -235,12 +232,13 @@ export function CourseLibrary({
 
             return (
               <article
-                className={`course-library__list-item transition-all cursor-pointer ${
+                className={`course-library__list-item transition-all ${isLocked ? "" : "cursor-pointer"} ${
                   isSelected ? "ring-2 ring-[#24ad68] bg-[#f7fdf9]" : ""
                 }`}
                 key={course.id}
                 aria-label={course.title}
-                onClick={() => onSelectCourse(course.id)}
+                aria-description={isLocked ? lockedMessage : undefined}
+                onClick={() => { if (!isLocked) onSelectCourse(course.id); }}
               >
                 <div className={`course-library__list-art course-library__art--${course.art}`}>
                   <span><course.Icon aria-hidden="true" /></span>
@@ -256,12 +254,11 @@ export function CourseLibrary({
                       <em>{course.level}</em>
                     </div>
                   </div>
-                  <p className="course-library__list-opened">{isLocked ? "Subscribe to unlock" : course.opened}</p>
+                  <p className="course-library__list-opened">{isLocked ? "Recommended. Enrol to access this subject." : course.opened}</p>
                 </div>
                 <div className="course-library__list-progress-wrap">
-                  <div className="course-library__progress">
-                    <i><b style={{ width: `${course.progress}%` }} /></i>
-                    <strong>{course.progress}%</strong>
+                  <div className="course-library__progress" aria-label={course.progress === null ? "Progress unavailable" : `${course.progress}% complete`}>
+                    {course.progress === null ? <strong>Progress unavailable</strong> : <><i><b style={{ width: `${course.progress}%` }} /></i><strong>{course.progress}%</strong></>}
                   </div>
                 </div>
                 <div className="course-library__list-actions" onClick={(e) => e.stopPropagation()}>
@@ -314,12 +311,13 @@ export function CourseLibrary({
 
                 return (
                   <article
-                    className={`course-library__card transition-all cursor-pointer ${
+                    className={`course-library__card transition-all ${isLocked ? "" : "cursor-pointer"} ${
                       isSelected ? "ring-2 ring-[#24ad68] shadow-md" : ""
                     }`}
                     key={course.id}
                     aria-label={course.title}
-                    onClick={() => onSelectCourse(course.id)}
+                    aria-description={isLocked ? lockedMessage : undefined}
+                    onClick={() => { if (!isLocked) onSelectCourse(course.id); }}
                   >
                     <div className={`course-library__art course-library__art--${course.art}`}>
                       <img src={course.image} alt="" loading="lazy" />
@@ -355,12 +353,11 @@ export function CourseLibrary({
                         )}
                       </div>
                       <p>{course.subtitle}</p>
-                      <div className="course-library__progress">
-                        <i><b style={{ width: `${course.progress}%` }} /></i>
-                        <strong>{course.progress}%</strong>
+                      <div className="course-library__progress" aria-label={course.progress === null ? "Progress unavailable" : `${course.progress}% complete`}>
+                        {course.progress === null ? <strong>Progress unavailable</strong> : <><i><b style={{ width: `${course.progress}%` }} /></i><strong>{course.progress}%</strong></>}
                       </div>
                       <footer>
-                        <span>{isLocked ? "Subscribe to unlock" : course.opened}</span>
+                        <span>{isLocked ? "Recommended. Enrol to access this subject." : course.opened}</span>
                         <button
                           type="button"
                           className="cursor-pointer"

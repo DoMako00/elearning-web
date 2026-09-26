@@ -15,9 +15,9 @@ interface CourseOption {
   id: string;
   name: string;
   subtitle: string;
-  currentLesson: number;
+  currentLesson: number | null;
   totalLessons: number;
-  progressPercentage: number;
+  progressPercentage: number | null;
   imageSrc: string;
   route: string;
 }
@@ -43,7 +43,7 @@ function isBiochemistry(course: StudentCourseItem) {
 }
 
 function canOpenCourse(course: StudentCourseItem) {
-  return course.access?.canOpen === true;
+  return course.access?.isEnrolled === true;
 }
 
 function toCourseOption(course: StudentCourseItem): CourseOption {
@@ -51,9 +51,9 @@ function toCourseOption(course: StudentCourseItem): CourseOption {
     id: course.courseId,
     name: course.title,
     subtitle: `${course.academicInstitution.name} • ${course.academicLevel.title} • ${course.academicSemester.title}`,
-    currentLesson: course.lessonCount > 0 ? 1 : 0,
+    currentLesson: null,
     totalLessons: course.lessonCount,
-    progressPercentage: 0,
+    progressPercentage: null,
     imageSrc: imageForCourse(course),
     route: `/my-courses/${course.courseId}`,
   };
@@ -223,17 +223,9 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
                 <p className="continue-learning-course-subtitle">{selectedCourse.subtitle}</p>
 
                 <div className="continue-learning-metrics mt-auto">
-                  <div className="continue-learning-progress-row flex items-center gap-3 mb-3">
-                    <div className="continue-learning-progress-track flex-1 h-2.5 bg-(--color-border-color) rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-(--primary-color) rounded-full transition-all duration-500 ease-out"
-                        style={{ width: `${selectedCourse.progressPercentage}%` }}
-                      />
-                    </div>
-                    <span className="text-progress font-medium text-(--text-color-black) min-w-10 text-right">
-                      {selectedCourse.progressPercentage}%
-                    </span>
-                  </div>
+                  <p className="continue-learning-lesson text-lesson-meta font-normal text-(--paragraphs) mb-3">
+                    {selectedCourse.progressPercentage === null ? "Progress unavailable" : `${selectedCourse.progressPercentage}% complete`}
+                  </p>
 
                   <p className="continue-learning-lesson text-lesson-meta font-normal text-(--paragraphs)">
                     {selectedCourse.totalLessons > 0

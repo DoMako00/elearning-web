@@ -6,29 +6,19 @@ import { ToastNotification } from "../ToastNotification";
 import type { WeeklyGoalCardProps } from "./weekly-goal-card.types";
 import "./WeeklyGoalCard.css";
 
-const WEEK_DAYS_INFO = [
-  { day: "S", full: "Sunday", hours: 1.5 },
-  { day: "M", full: "Monday", hours: 2.0 },
-  { day: "T", full: "Tuesday", hours: 1.5 },
-  { day: "W", full: "Wednesday", hours: 2.5 },
-  { day: "T", full: "Thursday", hours: 1.0 },
-  { day: "F", full: "Friday", hours: 0.5 },
-  { day: "S", full: "Saturday", hours: 0.0 },
-] as const;
-
-const DEFAULT_COMPLETED_DAYS = [true, true, true, true, true, true, false];
+const WEEK_DAYS_INFO = ["S", "M", "T", "W", "T", "F", "S"] as const;
 
 const RING_SIZE = 120;
 const RING_RADIUS = 50;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 interface ProgressRingProps {
-  percentage: number;
+  percentage: number | null;
   isCompletedOrExceeded: boolean;
 }
 
 function ProgressRing({ percentage, isCompletedOrExceeded }: ProgressRingProps) {
-  const progressOffset = RING_CIRCUMFERENCE * (1 - Math.min(percentage, 100) / 100);
+  const progressOffset = RING_CIRCUMFERENCE * (1 - Math.min(percentage ?? 0, 100) / 100);
 
   return (
     <div
@@ -63,10 +53,10 @@ function ProgressRing({ percentage, isCompletedOrExceeded }: ProgressRingProps) 
 
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
         <span className="text-[30px] font-semibold leading-none text-(--color-text-primary)">
-          {percentage}%
+          {percentage === null ? "—" : `${percentage}%`}
         </span>
         <span className="mt-2 text-[13px] font-normal leading-none text-(--color-text-secondary)">
-          {isCompletedOrExceeded ? "Goal Reached! 🎉" : "of weekly goal"}
+          {percentage === null ? "activity unavailable" : isCompletedOrExceeded ? "Goal Reached! 🎉" : "of weekly goal"}
         </span>
       </div>
     </div>
@@ -74,22 +64,20 @@ function ProgressRing({ percentage, isCompletedOrExceeded }: ProgressRingProps) 
 }
 
 export function WeeklyGoalCard({
-  completedHours: initialCompletedHours = 9,
+  completedHours: initialCompletedHours,
   targetHours: initialTargetHours = 12,
-  completedDays = DEFAULT_COMPLETED_DAYS,
+  completedDays,
 }: WeeklyGoalCardProps) {
   const [targetHours, setTargetHours] = useState(initialTargetHours);
-  const [completedHours] = useState(initialCompletedHours);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sliderValue, setSliderValue] = useState(initialTargetHours);
-  const [hoveredDayIndex, setHoveredDayIndex] = useState<number | null>(null);
   const { toastMessage, showToast } = useToast();
 
-  const safeCompletedHours = Math.max(0, completedHours);
+  const safeCompletedHours = initialCompletedHours === undefined ? null : Math.max(0, initialCompletedHours);
   const safeTargetHours = Math.max(1, targetHours);
-  const percentage = Math.round((safeCompletedHours / safeTargetHours) * 100);
-  const isGoalMet = percentage >= 100;
-  const progressDescription = `Weekly goal: ${safeCompletedHours} of ${safeTargetHours} hours completed, ${percentage} percent`;
+  const percentage = safeCompletedHours === null ? null : Math.round((safeCompletedHours / safeTargetHours) * 100);
+  const isGoalMet = percentage !== null && percentage >= 100;
+  const progressDescription = safeCompletedHours === null ? `Weekly goal: activity unavailable, target ${safeTargetHours} hours` : `Weekly goal: ${safeCompletedHours} of ${safeTargetHours} hours completed, ${percentage} percent`;
 
   const handleSaveGoal = () => {
     setTargetHours(sliderValue);
@@ -127,53 +115,23 @@ export function WeeklyGoalCard({
           isCompletedOrExceeded={isGoalMet}
         />
         <p className="weekly-goal-hours mt-2.5 text-[14px] font-semibold leading-5 text-(--color-text-primary)">
-          {safeCompletedHours} / {safeTargetHours} hours
+          {safeCompletedHours === null ? "—" : safeCompletedHours} / {safeTargetHours} hours
         </p>
         <p className="weekly-goal-message mt-1 text-[13px] font-normal leading-4.5 text-(--color-text-secondary)">
-          {isGoalMet ? "Goal crushed!" : "Keep it up!"}
+          {safeCompletedHours === null ? "Activity unavailable" : isGoalMet ? "Goal crushed!" : "Keep it up!"}
           <img className="weekly-goal-fire" src={fireAsset} alt="" aria-hidden="true" />
         </p>
       </div>
 
-      {/* Days with Interactive Tooltips */}
-      <div className="weekly-goal-days mt-3 grid w-full shrink-0 grid-cols-7">
-        {WEEK_DAYS_INFO.map((item, index) => {
-          const isCompleted = completedDays[index] ?? false;
-          const isHovered = hoveredDayIndex === index;
-
-          return (
-            <div
-              key={`${item.day}-${index}`}
-              className="relative flex flex-col items-center cursor-pointer group"
-              onMouseEnter={() => setHoveredDayIndex(index)}
-              onMouseLeave={() => setHoveredDayIndex(null)}
-              tabIndex={0}
-              role="button"
-              aria-label={`${item.full}: ${item.hours} hours recorded`}
-            >
-              {/* Tooltip */}
-              {isHovered && (
-                <div className="absolute -top-9 z-20 whitespace-nowrap rounded-lg bg-slate-900 px-2 py-1 text-[11px] font-medium text-white shadow-lg pointer-events-none animate-in fade-in zoom-in-95 duration-100">
-                  {item.full}: {item.hours} hrs
-                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
-                </div>
-              )}
-
-              <span
-                className={
-                  isCompleted
-                    ? "size-2.75 rounded-full bg-(--color-brand) shadow-[0_0_0_1.5px_#d1fae5] transition-transform group-hover:scale-125"
-                    : "size-2.75 rounded-full border-[1.5px] border-[#94a3b8] bg-(--color-surface) transition-transform group-hover:scale-125"
-                }
-                aria-hidden="true"
-              />
-              <span className="mt-1 text-12px font-semibold leading-4 text-[#374151]">
-                {item.day}
-              </span>
-            </div>
-          );
-        })}
+      <div className="weekly-goal-days mt-3 grid w-full shrink-0 grid-cols-7" aria-label={completedDays ? "Weekly activity" : "Weekly activity unavailable"}>
+        {WEEK_DAYS_INFO.map((day, index) => (
+          <div key={`${day}-${index}`} className="flex flex-col items-center" aria-hidden="true">
+            <span className={`size-2.75 rounded-full ${completedDays?.[index] ? "bg-(--color-brand)" : "border-[1.5px] border-[#94a3b8] bg-(--color-surface)"}`} />
+            <span className="mt-1 text-12px font-semibold leading-4 text-[#374151]">{day}</span>
+          </div>
+        ))}
       </div>
+      {completedDays ? null : <p className="sr-only" role="status">Daily study activity is unavailable.</p>}
 
       {/* Set Weekly Goal Modal */}
       {isModalOpen && (

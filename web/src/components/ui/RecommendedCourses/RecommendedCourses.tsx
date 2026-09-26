@@ -20,7 +20,7 @@ interface RecommendedCoursesProps {
 }
 
 function canOpenCourse(course: StudentCourseItem) {
-  return course.access?.canOpen === true;
+  return course.access?.isEnrolled === true;
 }
 
 function imageForCourse(course: StudentCourseItem) {
@@ -129,7 +129,7 @@ export function RecommendedCourses({ courses = [] }: RecommendedCoursesProps) {
                 onClick={() => showLockedSubjectMessage(course.title)}
                 tabIndex={0}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") showLockedSubjectMessage(course.title);
+                  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); showLockedSubjectMessage(course.title); }
                 }}
               >
                 <div className="recommended-course-media">

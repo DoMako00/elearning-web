@@ -17,7 +17,7 @@ export interface DashboardBentoProps {
 }
 
 function canOpenCourse(course: StudentCourseItem) {
-  return course.access?.canOpen === true;
+  return course.access?.isEnrolled === true;
 }
 
 function buildAvailableSubjectItems(courses: readonly StudentCourseItem[]): UpcomingItem[] {
@@ -51,12 +51,7 @@ export function DashboardBento({ courses = [] }: DashboardBentoProps) {
 
       <div className="dashboard-bento__row dashboard-bento__row--middle">
         <div className="dashboard-bento__slot dashboard-bento__slot--progress">
-          <MyProgress
-            completionPercentage={0}
-            monthlyGrowth={0}
-            growthLabel="until lesson progress starts"
-            chartData={[0, 0, 0, 0, 0, 0, 0, 0]}
-          />
+          <MyProgress />
         </div>
         <div className="dashboard-bento__slot dashboard-bento__slot--upcoming">
           <Upcoming
