@@ -39,7 +39,7 @@ export const SkeletonHeroCard: React.FC<{
 
     <div className="pt-6 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <SkeletonAvatar size={42} className="!bg-[#d8e2dc]" />
+        <SkeletonAvatar size={42} className="bg-[#d8e2dc]" />
         <div className="space-y-1.5">
           <Skeleton width={130} height={14} borderRadius={4} variant="contrast" />
           <Skeleton width={80} height={12} borderRadius={4} variant="contrast" />
@@ -585,7 +585,7 @@ export const MessagesSkeleton: React.FC = () => {
               <Skeleton width={220} height={50} borderRadius={14} />
             </div>
             <div className="flex justify-end">
-              <Skeleton width={200} height={42} borderRadius={14} className="!bg-emerald-100/60" />
+              <Skeleton width={200} height={42} borderRadius={14} className="bg-emerald-100/60" />
             </div>
             <div className="flex gap-2 items-start max-w-sm">
               <SkeletonAvatar size={28} />
@@ -796,7 +796,7 @@ export const HelpCenterSkeleton: React.FC = () => {
       <div className="relative overflow-hidden rounded-2xl bg-[#e7ede9] border border-[#d6eedf] px-6 py-8 flex flex-col items-center text-center space-y-4 shadow-2xs">
         <Skeleton width={200} height={28} borderRadius={6} variant="contrast" />
         <Skeleton width={320} height={16} borderRadius={4} variant="contrast" />
-        <Skeleton width="100%" height={48} borderRadius={16} className="max-w-xl !bg-white" />
+        <Skeleton width="100%" height={48} borderRadius={16} className="max-w-xl bg-white" />
         <div className="flex gap-2 pt-1">
           <Skeleton width={80} height={24} borderRadius={999} variant="contrast" />
           <Skeleton width={90} height={24} borderRadius={999} variant="contrast" />
@@ -861,7 +861,7 @@ export const ProfileSkeleton: React.FC<{ activeTab?: "overview" | "achievements"
       {/* Profile Header Hero (Soft greenish-grey) */}
       <div className="relative overflow-hidden rounded-2xl bg-[#e7ede9] border border-[#d6eedf] px-5 py-4 shadow-2xs space-y-4">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
-          <SkeletonAvatar size={76} className="!bg-[#d8e2dc]" />
+          <SkeletonAvatar size={76} className="bg-[#d8e2dc]" />
           <div className="flex-1 space-y-2 text-center sm:text-left">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
               <Skeleton width={150} height={24} borderRadius={6} variant="contrast" />
