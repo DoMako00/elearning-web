@@ -37,10 +37,12 @@ if (import.meta.env.DEV) {
   const { TestInactivityPromptPage } = await import("../pages/student/test-inactivity/TestInactivityPromptPage");
   const { TestStreakPage } = await import("../pages/student/test-streak/TestStreakPage");
   const { TestXPRewardsPage } = await import("../pages/student/test-xp/TestXPRewardsPage");
+  const { TestSkeletonPage } = await import("../pages/student/test-skeleton/TestSkeletonPage");
   devRoutes = [
     { path: "test-inactivity", element: <TestInactivityPromptPage /> },
     { path: "test-streak", element: <TestStreakPage /> },
     { path: "test-xp", element: <TestXPRewardsPage /> },
+    { path: "test-skeleton", element: <TestSkeletonPage /> },
   ];
 }
 

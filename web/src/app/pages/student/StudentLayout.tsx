@@ -224,7 +224,10 @@ export function StudentLayout() {
         >
           {showCenteredSearch ? (
             <div className="student-dashboard__search">
-              <SearchBar placeholder="Search courses, topics or skills..." />
+              <SearchBar
+                placeholder="Search courses, topics or skills..."
+                isLoading={auth.status === "loading"}
+              />
             </div>
           ) : (
             renderBreadcrumb()

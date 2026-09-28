@@ -2,6 +2,7 @@ import { Search } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import type { SearchBarProps } from "./search-bar.types";
 import { SearchModal } from "./SearchModal";
+import { Skeleton } from "../Skeleton";
 
 const DEFAULT_PLACEHOLDER = "Search courses, topics or skills...";
 
@@ -11,6 +12,7 @@ export function SearchBar({
   onChange,
   onSubmit,
   className = "",
+  isLoading = false,
 }: SearchBarProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [uncontrolledValue, setUncontrolledValue] = useState("");
@@ -37,6 +39,22 @@ export function SearchBar({
       setIsModalOpen(true);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div
+        aria-hidden="true"
+        aria-label="Loading search bar"
+        className={`search-bar flex h-15 w-full min-w-0 items-center justify-between rounded-2xl border border-gray-200 bg-white/70 px-4 ${className}`}
+      >
+        <div className="flex items-center gap-3 flex-1">
+          <Skeleton width={20} height={20} circle />
+          <Skeleton width="45%" height={16} borderRadius={4} />
+        </div>
+        <Skeleton width={42} height={28} borderRadius={8} />
+      </div>
+    );
+  }
 
   return (
     <>

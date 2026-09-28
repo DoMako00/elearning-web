@@ -6,6 +6,7 @@ export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   height?: string | number;
   borderRadius?: string | number;
   circle?: boolean;
+  variant?: "default" | "hero" | "contrast";
 }
 
 export const Skeleton: React.FC<SkeletonProps> = ({
@@ -13,6 +14,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   height,
   borderRadius,
   circle = false,
+  variant = "default",
   className = "",
   style,
   ...rest
@@ -24,10 +26,17 @@ export const Skeleton: React.FC<SkeletonProps> = ({
     ...style,
   };
 
+  const variantClass =
+    variant === "hero"
+      ? "skeleton-shimmer--hero"
+      : variant === "contrast"
+      ? "skeleton-shimmer--contrast"
+      : "skeleton-shimmer";
+
   return (
     <div
       aria-hidden="true"
-      className={`skeleton-shimmer ${className}`}
+      className={`${variantClass} ${className}`}
       style={inlineStyle}
       {...rest}
     />

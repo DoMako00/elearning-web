@@ -4,4 +4,5 @@ export interface SearchBarProps {
   onChange?: (value: string) => void;
   onSubmit?: (value: string) => void;
   className?: string;
+  isLoading?: boolean;
 }

@@ -1,19 +1,13 @@
-import { AlertCircle, LoaderCircle, RefreshCw } from "lucide-react";
+import { AlertCircle, RefreshCw } from "lucide-react";
 import { useDashboardEnrollment } from "../../dashboard/useDashboardEnrollment";
 import { useAuth } from "../../providers/AuthProvider";
 import { DashboardBento } from "../../../components/ui/DashboardBento";
 import { EmptyLearningState } from "../../../components/ui/EmptyLearningState";
 
+import { HomeDashboardSkeleton } from "../../../components/ui/Skeleton";
+
 function DashboardLoadingState() {
-  return (
-    <section className="dashboard-feedback dashboard-feedback--loading" aria-label="Loading learning dashboard" aria-busy="true">
-      <span className="dashboard-feedback__spinner" aria-hidden="true"><LoaderCircle /></span>
-      <div>
-        <h1>Loading your learning dashboard</h1>
-        <p>We&apos;re checking your course enrollments.</p>
-      </div>
-    </section>
-  );
+  return <HomeDashboardSkeleton />;
 }
 
 function DashboardErrorState({ onRetry }: { onRetry: () => void }) {

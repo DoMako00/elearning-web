@@ -3,8 +3,34 @@
   background-image: linear-gradient(
     90deg,
     rgba(241, 245, 243, 0) 0%,
-    rgba(255, 255, 255, 0.65) 50%,
+    rgba(255, 255, 255, 0.7) 50%,
     rgba(241, 245, 243, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.6s ease-in-out infinite;
+}
+
+/* Muted greenish-grey hero background variant for section heroes / featured cards */
+.skeleton-shimmer--hero {
+  background: #e7ede9;
+  background-image: linear-gradient(
+    90deg,
+    rgba(231, 237, 233, 0) 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(231, 237, 233, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.6s ease-in-out infinite;
+}
+
+/* Darker element contrast within light cards */
+.skeleton-shimmer--contrast {
+  background: #e2e8e5;
+  background-image: linear-gradient(
+    90deg,
+    rgba(226, 232, 229, 0) 0%,
+    rgba(255, 255, 255, 0.8) 50%,
+    rgba(226, 232, 229, 0) 100%
   );
   background-size: 200% 100%;
   animation: skeleton-sweep 1.6s ease-in-out infinite;
@@ -19,12 +45,25 @@
   }
 }
 
-/* Fallback for users requesting reduced motion: static gentle opacity pulse or no animation */
+/* Fallback for users requesting reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .skeleton-shimmer {
+  .skeleton-shimmer,
+  .skeleton-shimmer--hero,
+  .skeleton-shimmer--contrast {
     animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     background-image: none;
+  }
+
+  .skeleton-shimmer {
     background-color: #e8eee9;
+  }
+
+  .skeleton-shimmer--hero {
+    background-color: #dbe4de;
+  }
+
+  .skeleton-shimmer--contrast {
+    background-color: #d6ded9;
   }
 
   @keyframes skeleton-pulse {
@@ -36,3 +75,4 @@
     }
   }
 }
+

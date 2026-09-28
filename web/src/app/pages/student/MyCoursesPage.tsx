@@ -21,7 +21,7 @@ import { useAuth } from "../../providers/AuthProvider";
 import { CourseLibrary } from "../../../components/ui/CourseLibrary";
 import { SearchBar } from "../../../components/ui/SearchBar";
 import heroBackground from "../../../Assets/dashboard/my-courses-hero-background.webp";
-import { SkeletonCard } from "../../../components/ui/Skeleton";
+import { MyCoursesSkeleton } from "../../../components/ui/Skeleton";
 import { INITIAL_COURSES, type StudentCourse } from "../../../components/ui/CourseLibrary/courses.data";
 import { listStudentCourses, type StudentCourseItem } from "../../../features/student/api/studentCoursesApi";
 
@@ -296,20 +296,14 @@ export function MyCoursesPage() {
                 value={searchQuery}
                 placeholder="Search your courses..."
                 onChange={(val) => setSearchQuery(val)}
+                isLoading={isCoursesLoading}
               />
             </div>
           </div>
         </header>
 
         {isCoursesLoading ? (
-          <div className="space-y-4 pt-2" aria-busy="true" aria-label="Loading your courses">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard />
-            </div>
-          </div>
+          <MyCoursesSkeleton />
         ) : auth.status !== "authenticated" ? (
           <div className="dashboard-feedback" role="status">
             <strong>Sign in to view your Elite subjects.</strong>
