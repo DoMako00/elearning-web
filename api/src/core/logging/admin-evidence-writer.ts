@@ -1,0 +1,9 @@
+import type { AdminRequestContext } from "../context";
+import type { Result } from "../../shared";
+import type { AdminCoreError } from "../errors";
+
+export interface AdminAuditEvidenceInput { readonly context: AdminRequestContext; readonly action: string; readonly targetType: string; readonly targetId: string; readonly targetBrandId?: string; /** @deprecated Compatibility alias for brand scope. */ readonly targetPlatformId?: string; readonly reason?: string; readonly metadata?: Readonly<Record<string, unknown>>; }
+export interface AdminActionEvidenceInput { readonly context: AdminRequestContext; readonly commandName: string; readonly targetType: string; readonly targetId: string; readonly targetBrandId?: string; /** @deprecated Compatibility alias for brand scope. */ readonly targetPlatformId?: string; readonly outcome: "succeeded" | "failed" | "denied"; readonly reason?: string; readonly metadata?: Readonly<Record<string, unknown>>; }
+export interface AdminSecurityEvidenceInput { readonly context: AdminRequestContext; readonly eventType: string; readonly severity: "info" | "warning" | "critical"; readonly targetType: string; readonly targetId: string; readonly targetBrandId?: string; /** @deprecated Compatibility alias for brand scope. */ readonly targetPlatformId?: string; readonly reason?: string; readonly metadata?: Readonly<Record<string, unknown>>; }
+export interface AdminEvidenceWriteResult { readonly id: string; readonly correlationId: string; readonly writtenAt: string; }
+export interface AdminEvidenceWriter { writeAuditLog(input: AdminAuditEvidenceInput): Promise<Result<AdminEvidenceWriteResult, AdminCoreError>>; writeAdminAction(input: AdminActionEvidenceInput): Promise<Result<AdminEvidenceWriteResult, AdminCoreError>>; writeSecurityEvent(input: AdminSecurityEvidenceInput): Promise<Result<AdminEvidenceWriteResult, AdminCoreError>>; }

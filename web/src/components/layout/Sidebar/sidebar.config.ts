@@ -1,14 +1,14 @@
 import {
-  BadgeCheck,
-  BookOpen,
+  // BadgeCheck,
+  LibraryBig,
   CalendarDays,
   CircleHelp,
-  ClipboardList,
+  ClipboardCheck,
   Compass,
   Home,
   MessageSquare,
   Settings,
-  Users,
+  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -28,34 +28,33 @@ export interface SidebarProfile {
 
 export const primarySidebarItems: SidebarItem[] = [
   { label: "Home", icon: Home, href: "/", enabled: true },
-  { label: "My Courses", icon: BookOpen, href: "/courses", enabled: false },
-  { label: "Explore", icon: Compass, href: "/explore", enabled: false },
-  { label: "Calendar", icon: CalendarDays, href: "/calendar", enabled: false },
+  { label: "My Courses", icon: LibraryBig, href: "/my-courses", enabled: true },
+  { label: "Explore", icon: Compass, href: "/explore", enabled: true },
+  { label: "Calendar", icon: CalendarDays, href: "/calendar", enabled: true },
   {
     label: "Assignments",
-    icon: ClipboardList,
+    icon: ClipboardCheck,
     href: "/assignments",
-    enabled: false,
+    enabled: true,
   },
-  {
-    label: "Certificates",
-    icon: BadgeCheck,
-    href: "/certificates",
-    enabled: false,
-  },
+  // {
+  //   label: "Certificates",
+  //   icon: BadgeCheck,
+  //   href: "/certificates",
+  //   enabled: false,
+  // },
   {
     label: "Messages",
     icon: MessageSquare,
     href: "/messages",
-    badge: 3,
-    enabled: false,
+    enabled: true,
   },
-  { label: "Community", icon: Users, href: "/community", enabled: false },
+  { label: "Community", icon: UsersRound, href: "/community", enabled: true },
 ];
 
 export const secondarySidebarItems: SidebarItem[] = [
-  { label: "Settings", icon: Settings, href: "/settings", enabled: false },
-  { label: "Help Center", icon: CircleHelp, href: "/help", enabled: false },
+  { label: "Settings", icon: Settings, href: "/settings", enabled: true },
+  { label: "Help Center", icon: CircleHelp, href: "/help", enabled: true },
 ];
 
 export const sidebarProfile: SidebarProfile = {

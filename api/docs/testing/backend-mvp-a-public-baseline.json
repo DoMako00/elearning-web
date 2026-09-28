@@ -1,0 +1,61 @@
+{
+  "suite": "backend_mvp_a_public_baseline",
+  "generatedAt": "2026-09-19T11:48:31.221Z",
+  "evidence": "existing_deployment_public_http_only",
+  "deploymentOfThisBranchConfirmed": false,
+  "authenticatedAcceptance": "not_run",
+  "databaseAcceptance": "not_run",
+  "testSpriteExecution": "not_run",
+  "acceptanceComplete": false,
+  "productionMutationsAttempted": 0,
+  "results": [
+    {
+      "id": "health",
+      "status": "passed",
+      "httpStatus": 200,
+      "failedAssertions": []
+    },
+    {
+      "id": "ready",
+      "status": "passed",
+      "httpStatus": 200,
+      "failedAssertions": []
+    },
+    {
+      "id": "versioned_health",
+      "status": "passed",
+      "httpStatus": 200,
+      "failedAssertions": []
+    },
+    {
+      "id": "versioned_ready",
+      "status": "passed",
+      "httpStatus": 200,
+      "failedAssertions": []
+    },
+    {
+      "id": "openapi",
+      "status": "passed",
+      "httpStatus": 200,
+      "failedAssertions": []
+    },
+    {
+      "id": "docs",
+      "status": "passed",
+      "httpStatus": 200,
+      "failedAssertions": []
+    },
+    {
+      "id": "student_no_bearer",
+      "status": "passed",
+      "httpStatus": 401,
+      "failedAssertions": []
+    },
+    {
+      "id": "admin_no_bearer",
+      "status": "passed",
+      "httpStatus": 401,
+      "failedAssertions": []
+    }
+  ]
+}

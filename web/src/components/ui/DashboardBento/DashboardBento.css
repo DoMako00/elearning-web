@@ -1,0 +1,369 @@
+.dashboard-bento {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows:
+    minmax(0, 1.22fr) minmax(0, 0.98fr) minmax(0, 1.3fr);
+  gap: clamp(10px, 0.8vw, 16px);
+  overflow: hidden;
+}
+
+.dashboard-bento__row {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  gap: clamp(10px, 0.8vw, 16px);
+  overflow: hidden;
+}
+
+.dashboard-bento__row--top {
+  grid-template-columns:
+    minmax(0, 1.25fr) minmax(0, 1.55fr) minmax(0, 1fr);
+  grid-template-areas: "continue ai goal";
+}
+
+.dashboard-bento__row--middle {
+  grid-template-columns:
+    minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1.58fr);
+  grid-template-areas: "progress upcoming streak";
+}
+
+.dashboard-bento__row--bottom {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "recommended";
+}
+
+.dashboard-bento__slot,
+.dashboard-bento__placeholder {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.dashboard-bento__slot {
+  container: bento-slot / size;
+}
+
+.dashboard-bento__slot--continue {
+  grid-area: continue;
+}
+
+.dashboard-bento__slot--ai {
+  grid-area: ai;
+}
+
+.dashboard-bento__slot--weekly {
+  grid-area: goal;
+}
+
+.dashboard-bento__slot--progress {
+  grid-area: progress;
+}
+
+.dashboard-bento__slot--upcoming {
+  grid-area: upcoming;
+}
+
+.dashboard-bento__slot--streak {
+  grid-area: streak;
+}
+
+.dashboard-bento__slot--recommended {
+  grid-area: recommended;
+}
+
+.dashboard-bento__placeholder {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 16px;
+  background: var(--color-surface);
+}
+
+.dashboard-bento__slot>* {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+  overflow: hidden;
+}
+
+.dashboard-bento__slot--continue>section>div {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+}
+
+.dashboard-bento .my-progress-card,
+.dashboard-bento .upcoming-card {
+  height: 100%;
+  min-height: 0;
+}
+
+@media (max-height: 850px) {
+
+  .dashboard-bento,
+  .dashboard-bento__row {
+    gap: 10px;
+  }
+}
+
+@media (max-height: 760px) {
+
+  .dashboard-bento,
+  .dashboard-bento__row {
+    gap: 8px;
+  }
+}
+
+/* Floating AI Guide Button (hidden on desktop) */
+.ai-guide-floating-btn,
+.ai-guide-modal-overlay {
+  display: none;
+}
+
+/* 4-row bento layout for tablet viewports */
+@media (max-width: 1199px) {
+  .dashboard-bento {
+    height: auto;
+    display: grid;
+    grid-template-columns: repeat(24, minmax(0, 1fr));
+    grid-template-rows:
+      340px 290px 280px 260px;
+    gap: 14px;
+    overflow: visible;
+  }
+
+  .dashboard-bento__row {
+    display: contents;
+  }
+
+  .dashboard-bento__slot {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 16px;
+  }
+
+  /* Continue Learning takes full width row 1 */
+  .dashboard-bento__slot--continue {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    height: 100%;
+  }
+
+  /* AI Guide inline slot is hidden on tablet */
+  .dashboard-bento__slot--ai {
+    display: none;
+  }
+
+  /* Row 2: Weekly Goal & My Progress */
+  .dashboard-bento__slot--weekly {
+    grid-column: 1 / 13;
+    grid-row: 2;
+  }
+
+  .dashboard-bento__slot--progress {
+    grid-column: 13 / -1;
+    grid-row: 2;
+  }
+
+  /* Row 3: Upcoming (37.5%) & Your Streak (62.5%) */
+  .dashboard-bento__slot--upcoming {
+    grid-column: 1 / 10;
+    grid-row: 3;
+  }
+
+  .dashboard-bento__slot--streak {
+    grid-column: 10 / -1;
+    grid-row: 3;
+  }
+
+  /* Row 4: Recommended for you (full width) */
+  .dashboard-bento__slot--recommended {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+
+  /* Floating Circular AI Guide Button (Bottom Right) */
+  .ai-guide-floating-btn {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 150;
+    display: flex;
+    width: 62px;
+    height: 62px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 2px solid #b8e8cc;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffffff 0%, #eefbf4 100%);
+    box-shadow: 0 8px 24px rgba(21, 148, 85, 0.28), 0 2px 6px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: transform 200ms ease, box-shadow 200ms ease;
+    animation: ai-float-pulse 3s ease-in-out infinite;
+  }
+
+  .ai-guide-floating-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 12px 28px rgba(21, 148, 85, 0.38);
+  }
+
+  .ai-guide-floating-btn:active {
+    transform: scale(0.95);
+  }
+
+  .ai-guide-floating-robot {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  }
+
+  .ai-guide-floating-sparkle {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    display: grid;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+    border-radius: 50%;
+    background: #20a862;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(32, 168, 98, 0.4);
+  }
+
+  .ai-guide-floating-sparkle svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .ai-guide-floating-badge {
+    position: absolute;
+    bottom: -5px;
+    display: inline-block;
+    padding: 1px 7px;
+    border: 1px solid #b8e8cc;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #159455;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  }
+
+  @keyframes ai-float-pulse {
+
+    0%,
+    100% {
+      transform: translateY(0);
+      box-shadow: 0 8px 24px rgba(21, 148, 85, 0.28);
+    }
+
+    50% {
+      transform: translateY(-5px);
+      box-shadow: 0 14px 28px rgba(21, 148, 85, 0.35);
+    }
+  }
+
+  /* Modal Overlay */
+  .ai-guide-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+    animation: ai-fade-in 200ms ease;
+  }
+
+  .ai-guide-modal-content {
+    position: relative;
+    width: min(92vw, 680px);
+    max-height: 90vh;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    animation: ai-pop-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .ai-guide-modal-inner {
+    width: 100%;
+    height: 380px;
+    padding: 8px;
+  }
+
+  .ai-guide-modal-inner .ai-guide-suggestion-btn:nth-child(3) {
+    width: 156%;
+  }
+
+  .ai-guide-modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 10;
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #64748b;
+    cursor: pointer;
+    transition: background 150ms ease, color 150ms ease;
+  }
+
+  .ai-guide-modal-close:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+  }
+
+  .ai-guide-modal-close svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  @keyframes ai-fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes ai-pop-in {
+    from {
+      transform: scale(0.92) translateY(12px);
+      opacity: 0;
+    }
+
+    to {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+  }
+}
+
+@media (max-width: 780px) {
+  .dashboard-bento {
+    grid-template-rows:
+      260px 280px 270px 240px;
+    gap: 10px;
+  }
+}
