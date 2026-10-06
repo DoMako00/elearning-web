@@ -80,3 +80,7 @@ Read-only ELITE inspection confirmed that the owner account resolves to an activ
 An owner-authorized, narrow transaction added only that mapping to the existing platform_owner role and retained an immutable command receipt and audit event (correlation launch02-owner-media-permission-20261006). A follow-up database query verified the active permission mapping and audit evidence. No normal Admin assignment, brand assignment, identity, student record, schema or migration was changed. The frontend's generic 403 message now distinguishes required permission and target-brand authorization rather than asserting that brand scope alone is the cause.
 
 This verifies the persisted permission repair; it does not claim a successful real lecture upload or replace the pending shadow media-read contract deployment gate.
+
+## Live media-contract diagnostic
+
+The authenticated Super Admin read-only upload-access check now passes the authorization boundary but returns HTTP 405 on the lesson-media GET collection route. The shadow public OpenAPI still advertises POST only for that path. This confirms the missing deployment contract rather than a remaining brand denial. The uploader exposes a read-only Check upload access action, and HTTP 405 has a specific deployment-version message. No file upload, asset creation or publication was submitted during this diagnostic. Deploy backend merge ae24f94e590cf5c99517e92bc3b90e0aeef86f0a before resuming media acceptance.

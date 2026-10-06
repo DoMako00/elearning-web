@@ -173,6 +173,8 @@ function messageForStatus(status: number): string {
     return "This action is not permitted. Your account needs the required permission and authorization for the target brand.";
   if (status === 404)
     return "This course or its parent structure is no longer available.";
+  if (status === 405)
+    return "The deployed backend does not support this operation yet (HTTP 405). Deploy the current backend version before retrying.";
   if (status === 409)
     return "The structure changed. Reload it before trying again.";
   if (status === 426)

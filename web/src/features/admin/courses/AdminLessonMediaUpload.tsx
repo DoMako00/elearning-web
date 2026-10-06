@@ -5,7 +5,10 @@ import {
   type DeliveryCourse,
   type DeliveryResource,
 } from "../api/adminDelivery.http";
-import { adminLessonMediaPath, inspectAdminLessonMedia } from "../api/adminMedia.http";
+import {
+  adminLessonMediaPath,
+  inspectAdminLessonMedia,
+} from "../api/adminMedia.http";
 
 type MediaType = "video" | "document";
 type DocumentDeliveryMode =
@@ -107,17 +110,25 @@ async function uploadSignedPut(
     request.onload = () => {
       if (request.status >= 200 && request.status < 300) resolve();
       else {
-        reject(new Error(
-          "The storage provider rejected the upload. Retry or replace the upload.",
-        ));
+        reject(
+          new Error(
+            "The storage provider rejected the upload. Retry or replace the upload.",
+          ),
+        );
       }
     };
-    request.onerror = () => reject(new Error(
-      "The direct storage upload could not be reached. Retry the upload.",
-    ));
-    request.onabort = () => reject(new Error(
-      "The direct storage upload was interrupted. Retry the upload.",
-    ));
+    request.onerror = () =>
+      reject(
+        new Error(
+          "The direct storage upload could not be reached. Retry the upload.",
+        ),
+      );
+    request.onabort = () =>
+      reject(
+        new Error(
+          "The direct storage upload was interrupted. Retry the upload.",
+        ),
+      );
     request.send(file);
   });
 }
@@ -143,6 +154,7 @@ export function AdminLessonMediaUpload({
   const [state, setState] = useState<UploadState>("idle");
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
+  const [accessStatus, setAccessStatus] = useState("");
   const [isBusyState, setIsBusyState] = useState(false);
   const [retryAllowed, setRetryAllowed] = useState(true);
 
@@ -234,6 +246,31 @@ export function AdminLessonMediaUpload({
     activeMultipartId.current = undefined;
   }
 
+  async function checkUploadAccess(): Promise<void> {
+    if (busy.current) return;
+    busy.current = true;
+    setIsBusyState(true);
+    setError("");
+    setAccessStatus("");
+    try {
+      const { uploadPolicy } = await inspectAdminLessonMedia(course, lessonId);
+      setAccessStatus(
+        uploadPolicy.namespace === "production"
+          ? "Upload access verified. No file was uploaded by this check."
+          : "Upload access verified, but storage is still configured for acceptance objects. Switch the backend media namespace before uploading real content.",
+      );
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Could not check upload access.",
+      );
+    } finally {
+      busy.current = false;
+      setIsBusyState(false);
+    }
+  }
+
   async function upload() {
     if (!file || busy.current || state === "published" || !retryAllowed) return;
     if (file.type !== uploadFilePolicy.contentType) {
@@ -266,10 +303,17 @@ export function AdminLessonMediaUpload({
     try {
       const { uploadPolicy } = await inspectAdminLessonMedia(course, lessonId);
       if (uploadPolicy.namespace !== "production") {
-        throw new Error("Storage is configured for acceptance objects. Switch the backend to its production media namespace before uploading real course content.");
+        throw new Error(
+          "Storage is configured for acceptance objects. Switch the backend to its production media namespace before uploading real course content.",
+        );
       }
-      if (uploadPolicy.maxUploadBytes !== null && file.size > uploadPolicy.maxUploadBytes) {
-        throw new Error("This file exceeds the backend's configured upload size limit.");
+      if (
+        uploadPolicy.maxUploadBytes !== null &&
+        file.size > uploadPolicy.maxUploadBytes
+      ) {
+        throw new Error(
+          "This file exceeds the backend's configured upload size limit.",
+        );
       }
       let assetId = activeAssetId.current;
 
@@ -398,6 +442,13 @@ export function AdminLessonMediaUpload({
 
   return (
     <div className="admin-media-upload" aria-busy={isBusyState}>
+      <button
+        type="button"
+        disabled={isBusyState}
+        onClick={() => void checkUploadAccess()}
+      >
+        Check upload access
+      </button>{" "}
       {state !== "published" && (
         <label>
           {uploadMediaType === "video" ? "MP4 video" : "PDF document"}
@@ -418,7 +469,6 @@ export function AdminLessonMediaUpload({
           />
         </label>
       )}
-
       {uploadMediaType === "document" && state !== "published" && (
         <label>
           PDF delivery policy
@@ -436,7 +486,6 @@ export function AdminLessonMediaUpload({
           </select>
         </label>
       )}
-
       {state !== "published" && (
         <label>
           <input
@@ -448,12 +497,12 @@ export function AdminLessonMediaUpload({
           Watermark required
         </label>
       )}
-
       {state === "uploading" && (
         <progress aria-label="Media upload progress" max={100} value={progress}>
           {progress}%
         </progress>
       )}
+      {accessStatus && <span role="status">{accessStatus}</span>}
       {file && state !== "published" && (
         <span className="admin-media-file-summary">
           {file.name} · {(file.size / MEBIBYTE).toFixed(1)} MB
