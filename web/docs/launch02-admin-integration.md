@@ -84,3 +84,9 @@ This verifies the persisted permission repair; it does not claim a successful re
 ## Live media-contract diagnostic
 
 The authenticated Super Admin read-only upload-access check now passes the authorization boundary but returns HTTP 405 on the lesson-media GET collection route. The shadow public OpenAPI still advertises POST only for that path. This confirms the missing deployment contract rather than a remaining brand denial. The uploader exposes a read-only Check upload access action, and HTTP 405 has a specific deployment-version message. No file upload, asset creation or publication was submitted during this diagnostic. Deploy backend merge ae24f94e590cf5c99517e92bc3b90e0aeef86f0a before resuming media acceptance.
+
+## Shadow deployment update
+
+The owner requested a manual deployment while unavailable. The Dokploy Deploy action started, and public runtime verification now confirms the merged Admin media-read contract is active. Shadow health, readiness, OpenAPI and docs return HTTP 200; the existing old API health/readiness and old frontend root also return HTTP 200. The exact runtime commit SHA was not independently visible without opening the sensitive Deployments view, so it is recorded as not independently verified.
+
+Authenticated, read-only Admin Check upload access now succeeds for the Elite Biochemistry lesson. The policy response reports the storage namespace is still set to acceptance. No media file has been uploaded. Before a real lecture upload, change only MEDIA_OBJECT_KEY_PREFIX to the production namespace `media` through a safe Dokploy mechanism; do not expose existing environment values. The Deployments page exposed the deployment webhook in its automatic snapshot, so owner rotation is required. Autodeploy was observed disabled on the app's General page.
