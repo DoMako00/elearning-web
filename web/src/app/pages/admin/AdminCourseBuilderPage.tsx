@@ -548,9 +548,8 @@ export function AdminCourseBuilderPage() {
       <div className="admin-course-builder__notice" role="status">
         <Layers3 aria-hidden="true" />
         <span>
-          <strong>Course structure workspace</strong>{" "}
-          Manage chapters, lessons, and resources against the approved academic
-          module.
+          <strong>Course structure workspace</strong> Manage chapters, lessons,
+          and resources against the approved academic module.
         </span>
       </div>
 
@@ -601,38 +600,38 @@ export function AdminCourseBuilderPage() {
             aria-label="Chapters and lessons"
             tabIndex={0}
           >
-          {chapters.map((chapterItem) => (
-            <div className="builder-chapter" key={chapterItem.id}>
-              <button
-                className={
-                  chapterItem.id === activeChapter?.id ? "is-active" : ""
-                }
-                type="button"
-                onClick={() => {
-                  setActiveChapterId(chapterItem.id);
-                  setActiveLessonId(chapterItem.lessons[0]?.id);
-                }}
-              >
-                <span>{chapterItem.title}</span>
-                <small>{chapterItem.lessons.length}</small>
-              </button>
-              {chapterItem.id === activeChapter?.id &&
-                chapterItem.lessons.map((lessonItem) => (
-                  <button
-                    className={
-                      "builder-lesson" +
-                      (lessonItem.id === activeLesson?.id ? " is-active" : "")
-                    }
-                    key={lessonItem.id}
-                    type="button"
-                    onClick={() => setActiveLessonId(lessonItem.id)}
-                  >
-                    <span>{lessonItem.title}</span>
-                    <small>{lessonItem.resources.length}</small>
-                  </button>
-                ))}
-            </div>
-          ))}
+            {chapters.map((chapterItem) => (
+              <div className="builder-chapter" key={chapterItem.id}>
+                <button
+                  className={
+                    chapterItem.id === activeChapter?.id ? "is-active" : ""
+                  }
+                  type="button"
+                  onClick={() => {
+                    setActiveChapterId(chapterItem.id);
+                    setActiveLessonId(chapterItem.lessons[0]?.id);
+                  }}
+                >
+                  <span>{chapterItem.title}</span>
+                  <small>{chapterItem.lessons.length}</small>
+                </button>
+                {chapterItem.id === activeChapter?.id &&
+                  chapterItem.lessons.map((lessonItem) => (
+                    <button
+                      className={
+                        "builder-lesson" +
+                        (lessonItem.id === activeLesson?.id ? " is-active" : "")
+                      }
+                      key={lessonItem.id}
+                      type="button"
+                      onClick={() => setActiveLessonId(lessonItem.id)}
+                    >
+                      <span>{lessonItem.title}</span>
+                      <small>{lessonItem.resources.length}</small>
+                    </button>
+                  ))}
+              </div>
+            ))}
           </div>
 
           <div className="builder-inline-form">
@@ -667,108 +666,30 @@ export function AdminCourseBuilderPage() {
               <GraduationCap aria-hidden="true" />
             </header>
 
-            {activeChapter && (
-              <div className="builder-edit-row">
-                {editingChapter ? (
-                  <>
-                    <input
-                      aria-label="Chapter title"
-                      value={editChapterTitle}
-                      maxLength={240}
-                      disabled={saving}
-                      onChange={(event) =>
-                        setEditChapterTitle(event.target.value)
-                      }
-                    />
-                    <button
-                      type="button"
-                      disabled={
-                        saving || !editChapterTitle.trim() || !reason.trim()
-                      }
-                      onClick={() =>
-                        void updateExisting(
-                          "chapters",
-                          activeChapter.id,
-                          activeChapter.version,
-                          { title: editChapterTitle.trim() },
-                        )
-                      }
-                    >
-                      Save chapter
-                    </button>
-                    <button
-                      type="button"
-                      disabled={saving}
-                      onClick={() => setEditingChapter(false)}
-                    >
-                      Cancel
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditChapterTitle(activeChapter.title);
-                      setEditingChapter(true);
-                    }}
-                  >
-                    Edit chapter
-                  </button>
-                )}
-              </div>
-            )}
-
-            {activeLesson && (
-              <div className="builder-edit-row">
-                {editingLesson ? (
-                  <>
-                    <input
-                      aria-label="Lesson title"
-                      value={editLessonTitle}
-                      maxLength={240}
-                      disabled={saving}
-                      onChange={(event) =>
-                        setEditLessonTitle(event.target.value)
-                      }
-                    />
-                    <button
-                      type="button"
-                      disabled={
-                        saving || !editLessonTitle.trim() || !reason.trim()
-                      }
-                      onClick={() =>
-                        void updateExisting(
-                          "lessons",
-                          activeLesson.id,
-                          activeLesson.version,
-                          { title: editLessonTitle.trim() },
-                        )
-                      }
-                    >
-                      Save lesson
-                    </button>
-                    <button
-                      type="button"
-                      disabled={saving}
-                      onClick={() => setEditingLesson(false)}
-                    >
-                      Cancel
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditLessonTitle(activeLesson.title);
-                      setEditingLesson(true);
-                    }}
-                  >
-                    Edit lesson
-                  </button>
-                )}
-              </div>
-            )}
-
+            <div className="builder-edit-row">
+              {activeChapter && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditChapterTitle(activeChapter.title);
+                    setEditingChapter(true);
+                  }}
+                >
+                  Edit chapter
+                </button>
+              )}
+              {activeLesson && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditLessonTitle(activeLesson.title);
+                    setEditingLesson(true);
+                  }}
+                >
+                  Edit lesson
+                </button>
+              )}
+            </div>
             {activeLesson ? (
               <div className="builder-resources">
                 <div className="builder-section-label">
@@ -968,6 +889,73 @@ export function AdminCourseBuilderPage() {
         </section>
       ) : null}
 
+      <AdminSideDrawer
+        open={editingChapter || editingLesson}
+        eyebrow="Course structure"
+        title={editingChapter ? "Edit chapter" : "Edit lesson"}
+        dismissible={!saving}
+        onClose={() => {
+          setEditingChapter(false);
+          setEditingLesson(false);
+        }}
+      >
+        <form
+          className="admin-course-template"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const entity = editingChapter ? activeChapter : activeLesson;
+            if (!entity) return;
+            void updateExisting(
+              editingChapter ? "chapters" : "lessons",
+              entity.id,
+              entity.version,
+              {
+                title: (editingChapter
+                  ? editChapterTitle
+                  : editLessonTitle
+                ).trim(),
+              },
+            );
+          }}
+        >
+          <label>
+            {editingChapter ? "Chapter title" : "Lesson title"}
+            <input
+              value={editingChapter ? editChapterTitle : editLessonTitle}
+              maxLength={240}
+              disabled={saving}
+              onChange={(event) => {
+                if (editingChapter) setEditChapterTitle(event.target.value);
+                else setEditLessonTitle(event.target.value);
+              }}
+            />
+          </label>
+          <label>
+            Reason for change
+            <textarea
+              value={reason}
+              disabled={saving}
+              onChange={(event) => setReason(event.target.value)}
+            />
+          </label>
+          {error && <p role="alert">{error}</p>}
+          <button
+            className="is-primary"
+            type="submit"
+            disabled={
+              saving ||
+              !reason.trim() ||
+              !(editingChapter ? editChapterTitle : editLessonTitle).trim()
+            }
+          >
+            {saving
+              ? "Saving…"
+              : editingChapter
+                ? "Save chapter"
+                : "Save lesson"}
+          </button>
+        </form>
+      </AdminSideDrawer>
       {course ? (
         <AdminSideDrawer
           open={courseDetailsOpen}

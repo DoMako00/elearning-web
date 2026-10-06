@@ -62,3 +62,13 @@ Use the existing Elite `ELT-BIO` course and its existing Carbohydrates lesson. D
 Mohamed Salah currently appears pending in Elite, without a live session/device in the observed Admin read. Do not report revocation or protected-delivery acceptance without establishing the required controlled state through the supported flows.
 
 Launch-01 and Phase 08 remain complete. Main, PR #11, Google configuration and the old stack are outside this change.
+
+## Final layout follow-up
+
+Chapter and lesson editing now reuse the existing right-side action drawer instead of expanding the course card. The existing drawer animation, backdrop blur, mutation version checks and idempotency handling remain intact.
+
+Authenticated browser layout checks passed at a 1366 x 768 desktop viewport and a 390 x 844 mobile override: no document or drawer horizontal overflow was observed. Desktop drawer width was 546.39 px (40% of 1366 px). Temporary viewport overrides were reset afterward. No course or lesson mutation was submitted during these checks.
+
+Typecheck, production build and git diff --check passed after this change. The existing large-bundle warning remains.
+
+Live media acceptance remains pending deployment of backend merge ae24f94e590cf5c99517e92bc3b90e0aeef86f0a. The public shadow OpenAPI still lacks the authorized lesson-media GET contract at the time of this check. No owner-approved lecture file has been selected or uploaded.
