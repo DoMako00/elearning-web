@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   adminDeliveryRequest,
   deliveryCoursePath,
@@ -8,6 +8,7 @@ import {
 import {
   adminLessonMediaPath,
   inspectAdminLessonMedia,
+  type AdminMediaAsset,
 } from "../api/adminMedia.http";
 
 type MediaType = "video" | "document";
@@ -157,6 +158,8 @@ export function AdminLessonMediaUpload({
   const [accessStatus, setAccessStatus] = useState("");
   const [isBusyState, setIsBusyState] = useState(false);
   const [retryAllowed, setRetryAllowed] = useState(true);
+  const [existingPublishedAsset, setExistingPublishedAsset] =
+    useState<AdminMediaAsset>();
 
   const busy = useRef(false);
   const pendingAssetCommand = useRef<PendingAssetCommand | undefined>(
@@ -164,6 +167,27 @@ export function AdminLessonMediaUpload({
   );
   const activeAssetId = useRef<string | undefined>(undefined);
   const activeMultipartId = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    let current = true;
+    void inspectAdminLessonMedia(course, lessonId)
+      .then(({ assets }) => {
+        if (!current) return;
+        setExistingPublishedAsset(
+          assets.find(
+            (asset) =>
+              asset.resourceId === resource.id &&
+              asset.status === "published",
+          ),
+        );
+      })
+      .catch(() => {
+        if (current) setExistingPublishedAsset(undefined);
+      });
+    return () => {
+      current = false;
+    };
+  }, [course, lessonId, resource.id]);
 
   if (!mediaType || !filePolicy) {
     return <span>Binary upload is not used for this resource type.</span>;
@@ -440,6 +464,42 @@ export function AdminLessonMediaUpload({
     }
   }
 
+  async function publishExistingAsset() {
+    if (!existingPublishedAsset || busy.current) return;
+    busy.current = true;
+    setIsBusyState(true);
+    setError("");
+    setState("publishing");
+    try {
+      await adminDeliveryRequest(
+        deliveryCoursePath(course.brandId, course.id) +
+          "/resources/" +
+          encodeURIComponent(resource.id),
+        {
+          method: "PATCH",
+          key: createRequestKey(),
+          body: {
+            status: "published",
+            reason: "Publish lesson resource for its verified media asset.",
+            expectedVersion: resource.version,
+          },
+        },
+      );
+      setState("published");
+      onPublished();
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "The saved media could not be published to this lesson.",
+      );
+      setState("failed");
+    } finally {
+      busy.current = false;
+      setIsBusyState(false);
+    }
+  }
+
   return (
     <div className="admin-media-upload" aria-busy={isBusyState}>
       <button
@@ -503,6 +563,15 @@ export function AdminLessonMediaUpload({
         </progress>
       )}
       {accessStatus && <span role="status">{accessStatus}</span>}
+      {existingPublishedAsset && state !== "published" && (
+        <button
+          type="button"
+          disabled={isBusyState}
+          onClick={() => void publishExistingAsset()}
+        >
+          Publish existing verified upload
+        </button>
+      )}
       {file && state !== "published" && (
         <span className="admin-media-file-summary">
           {file.name} · {(file.size / MEBIBYTE).toFixed(1)} MB
