@@ -1,0 +1,64 @@
+# Launch-02 Admin integration
+
+## Source and scope
+
+- Frontend base: `4066ca5346622612ad05b8a62d78e9c6a076d697`.
+- Frontend branch: `launch/02-admin-live-integration`.
+- Backend media-read correction: PR #24, normal merge `ae24f94e590cf5c99517e92bc3b90e0aeef86f0a`.
+- Only frontend files under `web/` are included in this frontend change.
+- Instructor management is an Admin capability; an instructor portal is deferred.
+
+## Page/API inventory
+
+| Admin surface | API mode | Integration |
+| --- | --- | --- |
+| Sign-in | Real API | Supabase email OTP followed by backend session/device establishment |
+| Overview | Partial API | Available live counts only; unsupported analytics are not fabricated |
+| Students | Real API | Search/list, provisioning, detail, subscription summary, supported security actions |
+| Subscriptions | Real API | Manual orders, approval/rejection, subscription detail/cancellation |
+| Payments | Real API | Existing manual-payment review contracts |
+| Courses | Real API | Brand catalogue, course metadata and instructor assignments |
+| Course builder | Real API | Chapters, lessons, resources, direct private media upload/verification/publication |
+| Published media management | Real API | Safe saved-media inventory and confirmed withdrawal; requires backend PR #24 deployment |
+| Instructors | Real API | Persisted directory, creation, detail and supported brand/course assignments |
+| Content and Security | Partial API | Current supported operations and truthful unavailable states |
+| Assessments, audit, role management and future commercial engines | Not launch required | Deferred; no new product implementation |
+
+API mode does not fall back to mock responses when an API request fails. Development preview modules remain in the repository. The Student frontend is outside this integration scope.
+
+## UI and flow changes
+
+- Preserve the existing Admin shell, palette and animations.
+- Use the shared right-side action drawer, 40% width on desktop, with a blurred backdrop.
+- Keep long content scrolling within drawers/outline panels; contain table overflow within the table region.
+- Use real loading, empty, error and permission states.
+- Require confirmed backend success for mutations and refresh persisted data afterwards.
+- Show the one-time setup credential returned by provisioning. It is a setup/claim code, **not a password**.
+- Preserve optional Student code semantics.
+- Upload file bytes directly to private R2; do not proxy them through the API server.
+- Use the backend multipart threshold and maximum-size policy. Show actual browser upload progress for small PUTs.
+- Reject real-content uploads while the backend uses its acceptance object namespace.
+- Retrieve saved asset IDs after refresh for media withdrawal. Preserve stored files and audit history.
+- Do not display or log signed delivery/upload URLs.
+
+## Runtime configuration
+
+Required frontend configuration: `VITE_ADMIN_DATA_SOURCE=api`, `VITE_API_BASE_URL`, `VITE_SUPABASE_URL`, and `VITE_SUPABASE_PUBLISHABLE_KEY`.
+
+Server secrets, service-role credentials, DB connection strings, R2 credentials and SMTP passwords must never be included in frontend configuration.
+
+## Validation and remaining acceptance
+
+- Dependency install, TypeScript and production build passed locally.
+- The repository has no frontend test script; no automated frontend test-suite count is claimed.
+- Live authenticated Elite Students list, name search and Mohamed Salah detail were observed.
+- Student detail drawer at 2528px viewport measured 1011px, with no horizontal page or drawer overflow.
+- Backend correction passed 40 suites, zero failed/skipped, boundaries, runtime smoke and Docker build; GitHub CI passed.
+
+The complete Launch-02 acceptance is **pending**. Remaining gates include exact shadow deployment verification of the media-read correction, the owner-selected real Biochemistry video upload/verification/publication, remaining commercial/security browser operations, and exact frontend staging deployment.
+
+Use the existing Elite `ELT-BIO` course and its existing Carbohydrates lesson. Do not generate dummy media or clean up real course content. An optional PDF is not a blocker.
+
+Mohamed Salah currently appears pending in Elite, without a live session/device in the observed Admin read. Do not report revocation or protected-delivery acceptance without establishing the required controlled state through the supported flows.
+
+Launch-01 and Phase 08 remain complete. Main, PR #11, Google configuration and the old stack are outside this change.

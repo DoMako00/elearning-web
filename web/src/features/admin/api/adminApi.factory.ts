@@ -3,7 +3,7 @@ import { createHttpAdminApi } from "./adminApi.http";
 import { createMockAdminApi } from "./adminApi.mock";
 import type { AdminApi } from "./adminApi";
 
-/** API mode is a development/staging skeleton only; selected frontend brand is never authorization. */
+/** The selected brand is a request context; the backend remains the authority for access. */
 export function getAdminDataSource(): AdminDataSource {
   return env.adminDataSource;
 }

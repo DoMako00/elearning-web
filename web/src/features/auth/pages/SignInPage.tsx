@@ -2,13 +2,10 @@ import { useState, type FormEvent } from "react";
 import {
   ArrowRight,
   BarChart3,
+  Building2,
   Check,
-  Eye,
-  EyeOff,
-  Lock,
   Mail,
   ShieldCheck,
-  X,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../app/providers/AuthProvider";
@@ -21,20 +18,20 @@ export function SignInPage() {
   const auth = useAuth();
 
   const [identifier, setIdentifier] = useState("");
-  const [password, setPassword] = useState("");
+  const [brand, setBrand] = useState<"medway" | "elite" | "nexus">("medway");
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState<"email" | "otp">("email");
   const [remember, setRemember] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [forgotModalOpen, setForgotModalOpen] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotSent, setForgotSent] = useState(false);
+  const [notice, setNotice] = useState("");
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextErrors: Record<string, string> = {};
     if (!identifier.trim()) nextErrors.identifier = "Enter your email address.";
-    if (!password) nextErrors.password = "Enter your password.";
+    if (step === "otp" && !/^\d{8}$/.test(otp))
+      nextErrors.otp = "Enter the 8-digit code from your email.";
     if (!auth.configured) {
       nextErrors.form =
         "This web build is missing its Supabase public authentication configuration.";
@@ -44,13 +41,27 @@ export function SignInPage() {
     if (Object.keys(nextErrors).length > 0) return;
 
     setSubmitting(true);
-    const result = await auth.signInWithPassword({
+    if (step === "email") {
+      const result = await auth.requestEmailOtp(identifier, brand);
+      setSubmitting(false);
+      if (!result.success) {
+        setErrors({ form: result.message });
+        return;
+      }
+      setStep("otp");
+      setNotice(
+        "A sign-in code was sent if this account is eligible. Check your inbox.",
+      );
+      return;
+    }
+
+    const result = await auth.verifyEmailOtp({
       email: identifier,
-      password,
+      token: otp,
+      brand,
       remember,
     });
     setSubmitting(false);
-
     if (!result.success) {
       setErrors({ form: result.message });
       return;
@@ -58,22 +69,9 @@ export function SignInPage() {
 
     const redirect = (location.state as { from?: unknown } | null)?.from;
     navigate(
-      typeof redirect === "string" && redirect.startsWith("/")
-        ? redirect
-        : "/",
-      { replace: true }
+      typeof redirect === "string" && redirect.startsWith("/") ? redirect : "/",
+      { replace: true },
     );
-  };
-
-  const handleForgotPassword = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!forgotEmail.trim()) return;
-    setForgotSent(true);
-    setTimeout(() => {
-      setForgotModalOpen(false);
-      setForgotSent(false);
-      setForgotEmail("");
-    }, 2500);
   };
 
   return (
@@ -88,7 +86,11 @@ export function SignInPage() {
         {/* Left Column: Sign-in Form */}
         <div className="signin-form-col">
           {/* Logo */}
-          <a href="/auth/sign-in" className="signin-logo" aria-label="GreenLearn home">
+          <a
+            href="/auth/sign-in"
+            className="signin-logo"
+            aria-label="GreenLearn home"
+          >
             {/* GreenLearn Two-Leaf Mark SVG */}
             <svg
               className="w-10 h-10 shrink-0"
@@ -98,10 +100,7 @@ export function SignInPage() {
               aria-hidden="true"
             >
               {/* Left darker leaf */}
-              <path
-                d="M8 28C8 17 18 8 26 8C26 19 19 28 8 28Z"
-                fill="#166534"
-              />
+              <path d="M8 28C8 17 18 8 26 8C26 19 19 28 8 28Z" fill="#166534" />
               {/* Right lighter leaf */}
               <path
                 d="M17 34C17 22 28 14 36 14C36 26 29 34 17 34Z"
@@ -138,8 +137,23 @@ export function SignInPage() {
                   placeholder="you@company.com"
                   value={identifier}
                   onChange={(e) => {
-                    setIdentifier(e.target.value);
-                    setErrors((prev) => ({ ...prev, identifier: "", form: "" }));
+                    const nextEmail = e.target.value;
+                    if (
+                      step === "otp" &&
+                      nextEmail.trim().toLowerCase() !==
+                        identifier.trim().toLowerCase()
+                    ) {
+                      auth.cancelPendingLogin();
+                      setStep("email");
+                      setOtp("");
+                      setNotice("");
+                    }
+                    setIdentifier(nextEmail);
+                    setErrors((prev) => ({
+                      ...prev,
+                      identifier: "",
+                      form: "",
+                    }));
                   }}
                   className="signin-input"
                   aria-invalid={Boolean(errors.identifier)}
@@ -152,52 +166,90 @@ export function SignInPage() {
               )}
             </div>
 
-            {/* Password Field */}
             <div className="signin-field-group">
-              <label htmlFor="signin-password" className="signin-field-label">
-                Password
+              <label htmlFor="signin-brand" className="signin-field-label">
+                Brand workspace
               </label>
-              <div
-                className={`signin-input-wrapper ${
-                  errors.password ? "has-error" : ""
-                }`}
-              >
-                <Lock className="signin-input-icon" aria-hidden="true" />
-                <input
-                  id="signin-password"
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  autoComplete="current-password"
-                  placeholder="••••••••••••"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    setErrors((prev) => ({ ...prev, password: "", form: "" }));
-                  }}
+              <div className="signin-input-wrapper">
+                <Building2 className="signin-input-icon" aria-hidden="true" />
+                <select
+                  id="signin-brand"
+                  name="brand"
                   className="signin-input"
-                  aria-invalid={Boolean(errors.password)}
-                />
-                <button
-                  type="button"
-                  className="signin-password-toggle"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  value={brand}
+                  disabled={submitting}
+                  onChange={(event) => {
+                    const nextBrand = event.target.value as typeof brand;
+                    if (nextBrand !== brand) {
+                      auth.cancelPendingLogin();
+                      setBrand(nextBrand);
+                      setStep("email");
+                      setOtp("");
+                      setErrors({});
+                      setNotice("");
+                    }
+                  }}
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" aria-hidden="true" />
-                  ) : (
-                    <Eye className="w-5 h-5" aria-hidden="true" />
-                  )}
-                </button>
+                  <option value="medway">Medway</option>
+                  <option value="elite">Elite</option>
+                  <option value="nexus">Nexus</option>
+                </select>
               </div>
-              {errors.password && (
-                <span className="signin-field-error" role="alert">
-                  {errors.password}
-                </span>
-              )}
+              <p className="signin-subtitle">
+                The backend checks your account’s access to this workspace.
+              </p>
             </div>
 
-            {/* Utilities: Remember me + Forgot password */}
+            {step === "otp" && (
+              <div className="signin-field-group">
+                <label htmlFor="signin-otp" className="signin-field-label">
+                  8-digit email code
+                </label>
+                <div
+                  className={`signin-input-wrapper ${errors.otp ? "has-error" : ""}`}
+                >
+                  <Mail className="signin-input-icon" aria-hidden="true" />
+                  <input
+                    id="signin-otp"
+                    type="text"
+                    name="one-time-code"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    pattern="[0-9]{8}"
+                    maxLength={8}
+                    placeholder="Enter code"
+                    value={otp}
+                    onChange={(event) => {
+                      setOtp(event.target.value.replace(/\D/g, "").slice(0, 8));
+                      setErrors((current) => ({
+                        ...current,
+                        otp: "",
+                        form: "",
+                      }));
+                    }}
+                    className="signin-input"
+                    aria-invalid={Boolean(errors.otp)}
+                    aria-describedby={
+                      errors.otp ? "signin-otp-error" : undefined
+                    }
+                  />
+                </div>
+                {errors.otp && (
+                  <span
+                    id="signin-otp-error"
+                    className="signin-field-error"
+                    role="alert"
+                  >
+                    {errors.otp}
+                  </span>
+                )}
+                <p className="signin-subtitle">
+                  Enter the latest code sent to {identifier}.
+                </p>
+              </div>
+            )}
+
+            {/* Keep the existing remember-me behavior for provider session storage. */}
             <div className="signin-utilities">
               <button
                 type="button"
@@ -207,26 +259,40 @@ export function SignInPage() {
                 aria-checked={remember}
               >
                 <div
-                  className={`signin-checkbox-box ${
-                    remember ? "checked" : ""
-                  }`}
+                  className={`signin-checkbox-box ${remember ? "checked" : ""}`}
                 >
                   {remember && <Check className="w-3.5 h-3.5 stroke-3" />}
                 </div>
                 <span>Remember me</span>
               </button>
 
-              <button
-                type="button"
-                className="signin-forgot-link"
-                onClick={() => {
-                  setForgotEmail(identifier);
-                  setForgotModalOpen(true);
-                }}
-              >
-                Forgot password?
-              </button>
+              {step === "otp" && (
+                <button
+                  type="button"
+                  className="signin-forgot-link"
+                  disabled={submitting}
+                  onClick={async () => {
+                    setSubmitting(true);
+                    setErrors({});
+                    const result = await auth.resendEmailOtp(identifier, brand);
+                    setSubmitting(false);
+                    if (!result.success) setErrors({ form: result.message });
+                    else
+                      setNotice(
+                        "A new sign-in code was requested. Use the newest email.",
+                      );
+                  }}
+                >
+                  Resend code
+                </button>
+              )}
             </div>
+
+            {notice && (
+              <p className="signin-subtitle" role="status">
+                {notice}
+              </p>
+            )}
 
             {/* Form Error Notification */}
             {errors.form && (
@@ -249,6 +315,23 @@ export function SignInPage() {
               </div>
             )}
 
+            {step === "otp" && (
+              <button
+                type="button"
+                className="signin-forgot-link"
+                disabled={submitting}
+                onClick={() => {
+                  auth.cancelPendingLogin();
+                  setStep("email");
+                  setOtp("");
+                  setErrors({});
+                  setNotice("");
+                }}
+              >
+                Use a different email
+              </button>
+            )}
+
             {/* Submit Button */}
             <button
               type="submit"
@@ -256,10 +339,18 @@ export function SignInPage() {
               className="signin-submit-btn"
             >
               {submitting ? (
-                <span>Signing in…</span>
+                <span>
+                  {step === "email"
+                    ? "Sending code…"
+                    : "Verifying and establishing session…"}
+                </span>
               ) : (
                 <>
-                  <span>Continue</span>
+                  <span>
+                    {step === "email"
+                      ? "Send sign-in code"
+                      : "Verify and continue"}
+                  </span>
                   <ArrowRight className="w-4 h-4" aria-hidden="true" />
                 </>
               )}
@@ -270,11 +361,7 @@ export function SignInPage() {
         {/* Right Column: 3D Botanical Art & Floating Cards */}
         <aside className="signin-art-col" aria-hidden="true">
           {/* Background image */}
-          <img
-            src={authBotanicalBg}
-            alt=""
-            className="signin-art-background"
-          />
+          <img src={authBotanicalBg} alt="" className="signin-art-background" />
 
           {/* Smooth blend gradient on the left edge */}
           <div className="signin-art-overlay-gradient" />
@@ -295,9 +382,18 @@ export function SignInPage() {
                   strokeLinejoin="round"
                 >
                   <path d="M12 2L12 22" />
-                  <path d="M12 6C15 6 18 8 18 11C15 11 12 9 12 6Z" fill="#bbf7d0" />
-                  <path d="M12 12C9 12 6 14 6 17C9 17 12 15 12 12Z" fill="#bbf7d0" />
-                  <path d="M12 15C15 15 17 16.5 17 19C15 19 12 17.5 12 15Z" fill="#86efac" />
+                  <path
+                    d="M12 6C15 6 18 8 18 11C15 11 12 9 12 6Z"
+                    fill="#bbf7d0"
+                  />
+                  <path
+                    d="M12 12C9 12 6 14 6 17C9 17 12 15 12 12Z"
+                    fill="#bbf7d0"
+                  />
+                  <path
+                    d="M12 15C15 15 17 16.5 17 19C15 19 12 17.5 12 15Z"
+                    fill="#86efac"
+                  />
                 </svg>
               </div>
               <div>
@@ -337,82 +433,6 @@ export function SignInPage() {
           </div>
         </aside>
       </div>
-
-      {/* Forgot Password Modal */}
-      {forgotModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in duration-200"
-          onClick={() => setForgotModalOpen(false)}
-        >
-          <div
-            className="w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-slate-100"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-slate-900">
-                Reset your password
-              </h3>
-              <button
-                type="button"
-                onClick={() => setForgotModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {forgotSent ? (
-              <div className="py-4 text-center">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center mb-3">
-                  <Check className="w-6 h-6 stroke-[2.5]" />
-                </div>
-                <h4 className="text-base font-semibold text-slate-900 mb-1">
-                  Reset link sent
-                </h4>
-                <p className="text-sm text-slate-500">
-                  If an account exists for {forgotEmail}, you will receive a
-                  password reset email shortly.
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleForgotPassword}>
-                <p className="text-sm text-slate-500 mb-4">
-                  Enter your email address and we'll send you a link to reset
-                  your password.
-                </p>
-                <div className="mb-4">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Email address
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="you@company.com"
-                    value={forgotEmail}
-                    onChange={(e) => setForgotEmail(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10"
-                  />
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setForgotModalOpen(false)}
-                    className="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 rounded-xl text-sm font-medium bg-[#1d6e41] text-white hover:bg-[#165834]"
-                  >
-                    Send reset link
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
