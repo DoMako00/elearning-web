@@ -169,7 +169,8 @@ function messageForStatus(status: number): string {
   if (status === 400)
     return "The request was rejected. Check the form fields and try again.";
   if (status === 401) return "Your session has expired. Sign in again.";
-  if (status === 403) return "You do not have permission to manage this brand.";
+  if (status === 403)
+    return "This action is not permitted. Your account needs the required permission and authorization for the target brand.";
   if (status === 404)
     return "This course or its parent structure is no longer available.";
   if (status === 409)

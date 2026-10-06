@@ -72,3 +72,11 @@ Authenticated browser layout checks passed at a 1366 x 768 desktop viewport and 
 Typecheck, production build and git diff --check passed after this change. The existing large-bundle warning remains.
 
 Live media acceptance remains pending deployment of backend merge ae24f94e590cf5c99517e92bc3b90e0aeef86f0a. The public shadow OpenAPI still lacks the authorized lesson-media GET contract at the time of this check. No owner-approved lecture file has been selected or uploaded.
+
+## Super Admin media permission correction
+
+Read-only ELITE inspection confirmed that the owner account resolves to an active app user, active Admin profile and effective platform_owner assignment. Its existing global-brand authorization was correct; the role-to-permission mapping for admin.media.manage was missing.
+
+An owner-authorized, narrow transaction added only that mapping to the existing platform_owner role and retained an immutable command receipt and audit event (correlation launch02-owner-media-permission-20261006). A follow-up database query verified the active permission mapping and audit evidence. No normal Admin assignment, brand assignment, identity, student record, schema or migration was changed. The frontend's generic 403 message now distinguishes required permission and target-brand authorization rather than asserting that brand scope alone is the cause.
+
+This verifies the persisted permission repair; it does not claim a successful real lecture upload or replace the pending shadow media-read contract deployment gate.
