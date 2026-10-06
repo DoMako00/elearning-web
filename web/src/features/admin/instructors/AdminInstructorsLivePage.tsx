@@ -61,7 +61,6 @@ export function AdminInstructorsLivePage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<"all" | InstructorStatus>("all");
   const [selectedId, setSelectedId] = useState("");
-  const [detailsOpen, setDetailsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -227,6 +226,12 @@ export function AdminInstructorsLivePage() {
       return scopeMatches && statusMatches && textMatches;
     });
   }, [brand, brandAssignments, instructors, search, status]);
+
+  useEffect(() => {
+    if (!filteredInstructors.some((instructor) => instructor.id === selectedId)) {
+      setSelectedId(filteredInstructors[0]?.id ?? "");
+    }
+  }, [filteredInstructors, selectedId]);
 
   function commandId(signature: string): string {
     const existing = pendingCommands.current.get(signature);
@@ -581,7 +586,6 @@ export function AdminInstructorsLivePage() {
                             type="button"
                             onClick={() => {
                               setSelectedId(instructor.id);
-                              setDetailsOpen(true);
                               setError("");
                               setNotice("");
                             }}
@@ -610,16 +614,8 @@ export function AdminInstructorsLivePage() {
           )}
         </article>
 
-        <AdminSideDrawer
-          open={detailsOpen}
-          title="Instructor details"
-          eyebrow="Identity and assignments"
-          className="admin-instructor-edit-drawer"
-          dismissible={!saving}
-          onClose={() => setDetailsOpen(false)}
-        >
         <aside
-          className="admin-workspace-card"
+          className="admin-workspace-card admin-workspace-inspector admin-instructor-detail"
           aria-label="Selected instructor details"
         >
           {error && <p role="alert">{error}</p>}
@@ -829,7 +825,6 @@ export function AdminInstructorsLivePage() {
             </>
           )}
         </aside>
-        </AdminSideDrawer>
       </div>
     </section>
   );

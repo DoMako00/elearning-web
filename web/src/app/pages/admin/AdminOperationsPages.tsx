@@ -1,18 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import { AdminSideDrawer } from "../../../features/admin/components/AdminSideDrawer";
 import {
   Activity,
   BookOpen,
+  ChevronRight,
   CreditCard,
   FileText,
-  FolderTree,
   KeyRound,
   Laptop,
+  Layers3,
   Search,
   ShieldCheck,
   UsersRound,
   Wallet,
+  Video,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -20,7 +22,7 @@ import {
   getAdminDataSource,
   type AdminApi,
   type AdminBrandContext,
-  type AdminContentTreeNode,
+  type AdminBrandView,
   type AdminPaymentListItem,
   type AdminSecurityEventItem,
   type AdminStudentListItem,
@@ -54,6 +56,11 @@ import {
 import {
   adminDeliveryRequest,
   catalogueBrandAccessPath,
+  deliveryCoursePath,
+  type DeliveryChapter,
+  type DeliveryCourse,
+  type DeliveryLesson,
+  type DeliveryResource,
   type CatalogueBrand,
 } from "../../../features/admin/api/adminDelivery.http";
 import { AdminSubscriptionDetailDialog } from "../../../features/admin/subscriptions/AdminSubscriptionDetailDialog";
@@ -74,8 +81,6 @@ const request = (platform: AdminPlatformContext) => ({
 });
 const readPayments: ListLoader<AdminPaymentListItem> = (api, platform) =>
   api.listPayments(request(platform));
-const readContent: ListLoader<AdminContentTreeNode> = (api, platform) =>
-  api.getContentTree(request(platform));
 const readSecurity: ListLoader<AdminSecurityEventItem> = (api, platform) =>
   api.listSecurityEvents(request(platform));
 const date = (value?: string | null) =>
@@ -725,7 +730,7 @@ export function AdminSubscriptionsPage() {
   if (!activeBrand) {
     return (
       <section
-        className="admin-page admin-workspace-page"
+        className="admin-page admin-workspace-page admin-subscriptions-live"
         aria-label="Subscriptions management"
       >
         <SourceLabel preview={false} label="Select a brand" />
@@ -741,7 +746,7 @@ export function AdminSubscriptionsPage() {
 
   return (
     <section
-      className="admin-page admin-workspace-page"
+      className="admin-page admin-workspace-page admin-subscriptions-live"
       aria-label="Subscriptions management"
     >
       <SourceLabel preview={false} label={activeBrand.brandDisplayName} />
@@ -1234,174 +1239,199 @@ export function AdminSubscriptionsPage() {
   );
 }
 
-function flattenContent(
-  nodes: readonly AdminContentTreeNode[],
-  depth = 0,
-): { node: AdminContentTreeNode; depth: number }[] {
-  return nodes.flatMap((node) => [
-    { node, depth },
-    ...flattenContent(node.children ?? [], depth + 1),
-  ]);
+interface ContentCourseEntry {
+  readonly course: DeliveryCourse;
+  readonly brandLabel: string;
 }
+
+type ContentSelection =
+  | { readonly kind: "course"; readonly id: string }
+  | { readonly kind: "chapter"; readonly id: string }
+  | { readonly kind: "lesson"; readonly id: string }
+  | { readonly kind: "resource"; readonly id: string };
+
+const contentSelectionKey = (selection: ContentSelection) => `${selection.kind}:${selection.id}`;
+
 export function AdminContentPage() {
-  const data = useWorkspaceRecords(readContent);
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("all");
-  const [selectedId, setSelectedId] = useState("");
-  const tree = useMemo(() => flattenContent(data.rows), [data.rows]);
-  const rows = tree.filter(
-    ({ node }) =>
-      (status === "all" || node.status === status) &&
-      node.title.toLowerCase().includes(search.toLowerCase()),
-  );
-  const selected = tree.find(({ node }) => rowKey(node) === selectedId)?.node;
+  const { brand, availableBrands } = useOutletContext<{
+    brand?: AdminBrandContext;
+    brandView: AdminBrandView;
+    availableBrands: readonly AdminBrandContext[];
+  }>();
+  const targets = useMemo(() => brand ? [brand] : availableBrands, [brand, availableBrands]);
+  const [courses, setCourses] = useState<readonly ContentCourseEntry[]>([]);
+  const [selectedCourseKey, setSelectedCourseKey] = useState("");
+  const [chapters, setChapters] = useState<readonly DeliveryChapter[]>([]);
+  const [lessons, setLessons] = useState<readonly DeliveryLesson[]>([]);
+  const [resources, setResources] = useState<readonly DeliveryResource[]>([]);
+  const [selection, setSelection] = useState<ContentSelection>();
+  const [loadingCourses, setLoadingCourses] = useState(true);
+  const [loadingStructure, setLoadingStructure] = useState(false);
+  const [error, setError] = useState("");
+  const [revision, setRevision] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoadingCourses(true);
+    setError("");
+    void Promise.all(targets.map(async (target) => {
+      const rows = await adminDeliveryRequest<DeliveryCourse[]>(
+        `/v1/admin/brands/${encodeURIComponent(target.brandId)}/courses`,
+        { signal: controller.signal },
+      );
+      if (!Array.isArray(rows)) throw new Error("A brand course response is invalid.");
+      return rows.map((course) => ({ course, brandLabel: target.brandDisplayName }));
+    }))
+      .then((groups) => {
+        if (controller.signal.aborted) return;
+        const next = groups.flat();
+        setCourses(next);
+        setSelectedCourseKey((current) => next.some((entry) => `${entry.course.brandId}:${entry.course.id}` === current)
+          ? current
+          : next[0] ? `${next[0].course.brandId}:${next[0].course.id}` : "");
+      })
+      .catch((cause: unknown) => {
+        if (controller.signal.aborted) return;
+        setCourses([]);
+        setSelectedCourseKey("");
+        setError(cause instanceof Error ? cause.message : "Courses could not be loaded.");
+      })
+      .finally(() => { if (!controller.signal.aborted) setLoadingCourses(false); });
+    return () => controller.abort();
+  }, [targets, revision]);
+
+  const selectedEntry = courses.find((entry) => `${entry.course.brandId}:${entry.course.id}` === selectedCourseKey);
+  const selectedCourse = selectedEntry?.course;
+
+  useEffect(() => {
+    if (!selectedCourse) {
+      setChapters([]);
+      setLessons([]);
+      setResources([]);
+      setSelection(undefined);
+      setLoadingStructure(false);
+      return;
+    }
+    const controller = new AbortController();
+    const path = deliveryCoursePath(selectedCourse.brandId, selectedCourse.id);
+    setLoadingStructure(true);
+    setError("");
+    void Promise.all([
+      adminDeliveryRequest<DeliveryChapter[]>(path + "/chapters", { signal: controller.signal }),
+      adminDeliveryRequest<DeliveryLesson[]>(path + "/lessons", { signal: controller.signal }),
+      adminDeliveryRequest<DeliveryResource[]>(path + "/resources", { signal: controller.signal }),
+    ])
+      .then(([chapterRows, lessonRows, resourceRows]) => {
+        if (controller.signal.aborted) return;
+        if (![chapterRows, lessonRows, resourceRows].every(Array.isArray)) throw new Error("The course content response is invalid.");
+        setChapters(chapterRows);
+        setLessons(lessonRows);
+        setResources(resourceRows);
+        setSelection((current) => {
+          const keys = new Set([
+            ...chapterRows.map((item) => `chapter:${item.id}`),
+            ...lessonRows.map((item) => `lesson:${item.id}`),
+            ...resourceRows.map((item) => `resource:${item.id}`),
+          ]);
+          if (current && keys.has(contentSelectionKey(current))) return current;
+          const firstResource = resourceRows[0];
+          const firstLesson = lessonRows[0];
+          const firstChapter = chapterRows[0];
+          return firstResource ? { kind: "resource", id: firstResource.id }
+            : firstLesson ? { kind: "lesson", id: firstLesson.id }
+              : firstChapter ? { kind: "chapter", id: firstChapter.id }
+                : { kind: "course", id: selectedCourse.id };
+        });
+      })
+      .catch((cause: unknown) => {
+        if (controller.signal.aborted) return;
+        setChapters([]);
+        setLessons([]);
+        setResources([]);
+        setError(cause instanceof Error ? cause.message : "Course content could not be loaded.");
+      })
+      .finally(() => { if (!controller.signal.aborted) setLoadingStructure(false); });
+    return () => controller.abort();
+  }, [selectedCourse]);
+
+  const selectedChapter = selection?.kind === "chapter" ? chapters.find((item) => item.id === selection.id) : undefined;
+  const selectedLesson = selection?.kind === "lesson" ? lessons.find((item) => item.id === selection.id) : undefined;
+  const selectedResource = selection?.kind === "resource" ? resources.find((item) => item.id === selection.id) : undefined;
+  const selectedTitle = selectedResource?.title ?? selectedLesson?.title ?? selectedChapter?.title ?? selectedCourse?.title ?? "Select course content";
+  const selectedStatus = selectedResource?.status ?? selectedLesson?.status ?? selectedChapter?.status ?? selectedCourse?.status ?? "";
+  const selectedType = selectedResource?.resourceKind ?? (selectedLesson ? "lesson" : selectedChapter ? "chapter" : selectedCourse ? "course" : "");
+  const courseBuilderUrl = selectedCourse ? `/admin/courses/${encodeURIComponent(selectedCourse.id)}/builder?brandId=${encodeURIComponent(selectedCourse.brandId)}` : "/admin/courses";
+
   return (
-    <section
-      className="admin-page admin-workspace-page"
-      aria-label="Content management"
-    >
-      <SourceLabel {...data} />
-      <div className="admin-workspace-content">
-        <WorkspaceCard title="Content library" className="admin-workspace-tree">
-          <div className="admin-workspace-tree-label">
-            <FolderTree aria-hidden="true" />
-            Academic structure
-          </div>
-          {tree.length ? (
-            <nav aria-label="Content hierarchy">
-              {tree.map(({ node, depth }) => (
-                <button
-                  type="button"
-                  key={rowKey(node)}
-                  className={selected === node ? "is-selected" : ""}
-                  style={{ paddingLeft: 12 + Math.min(depth, 5) * 12 }}
-                  onClick={() => setSelectedId(rowKey(node))}
-                >
-                  <BookOpen aria-hidden="true" />
-                  <span>
-                    {node.title}
-                    <small>{node.nodeType.replaceAll("_", " ")}</small>
-                  </span>
-                </button>
-              ))}
-            </nav>
-          ) : (
-            <p className="admin-workspace-note">
-              The content hierarchy will appear when records are available.
-            </p>
-          )}
-        </WorkspaceCard>
-        <WorkspaceCard
-          title="Learning content"
-          aside={
-            <span className="admin-workspace-readonly">
-              Resources & lessons
-            </span>
-          }
-        >
-          <Toolbar
-            search={search}
-            onSearch={setSearch}
-            status={status}
-            onStatus={setStatus}
-            statuses={["draft", "published", "withdrawn", "archived"]}
-            label="content"
-          />
-          <div className="admin-workspace-table-wrap">
-            <table className="admin-workspace-table">
-              <caption className="admin-sr-only">Learning content</caption>
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Type</th>
-                  <th>Brand</th>
-                  <th>Status</th>
-                  <th>Details</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map(({ node }) => (
-                  <tr
-                    key={rowKey(node)}
-                    className={selected === node ? "is-selected" : ""}
-                  >
-                    <td>
-                      <span className="admin-workspace-cell">
-                        <FileText aria-hidden="true" />
-                        <strong>{node.title}</strong>
-                      </span>
-                    </td>
-                    <td>{node.nodeType.replaceAll("_", " ")}</td>
-                    <td>{node.platform.platformDisplayName}</td>
-                    <td>
-                      <WorkspaceBadge value={node.status} />
-                    </td>
-                    <td>
-                      <button
-                        type="button"
-                        aria-label={`Inspect ${node.title}`}
-                        onClick={() => setSelectedId(rowKey(node))}
-                      >
-                        Inspect
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {!rows.length && (
-            <WorkspaceState
-              {...data}
-              title={
-                search || status !== "all"
-                  ? "No matching content"
-                  : "No learning content yet"
-              }
-              onRetry={data.retry}
-            />
-          )}
-          <div className="admin-workspace-upload">
-            <FileText aria-hidden="true" />
-            <strong>Add learning resources</strong>
-            <p>Upload is unavailable in this workspace.</p>
-            <button type="button" disabled>
-              Upload resource
-            </button>
-          </div>
-        </WorkspaceCard>
-        <WorkspaceInspector title="Content inspector" selected={!!selected}>
-          {selected && (
-            <>
-              <div className="admin-workspace-person">
-                <FileText aria-hidden="true" />
-                <h3>{selected.title}</h3>
-                <WorkspaceBadge value={selected.status} />
-              </div>
-              <WorkspaceFields
-                fields={[
-                  ["Type", selected.nodeType.replaceAll("_", " ")],
-                  ["Brand", selected.platform.platformDisplayName],
-                  ["Code", selected.code],
-                  ["Sequence", selected.sequence],
-                  ["Child items", selected.children?.length ?? 0],
-                  ["Media", "Unavailable"],
-                ]}
-              />
-              <div className="admin-workspace-actions">
-                <button type="button" disabled>
-                  Publish content
-                </button>
-                <p>Publishing and file uploads are not connected.</p>
-              </div>
-            </>
-          )}
-        </WorkspaceInspector>
+    <section className="admin-page admin-workspace-page admin-content-live" aria-label="Course content management">
+      <div className="admin-content-live__toolbar">
+        <div className="admin-content-live__summary"><strong>{courses.length}</strong><span>{courses.length === 1 ? "course" : "courses"} in this context</span></div>
+        <span className="admin-content-live__context">{brand?.brandDisplayName ?? "All authorized brands"}</span>
+        <Link to="/admin/courses" className="admin-content-live__link">Manage courses <ChevronRight aria-hidden="true" /></Link>
       </div>
+      {error ? (
+        <div className="admin-content-live__error" role="alert"><strong>Course content is unavailable</strong><p>{error}</p><button type="button" onClick={() => setRevision((value) => value + 1)}>Retry</button></div>
+      ) : loadingCourses ? (
+        <WorkspaceState loading title="Loading course content" />
+      ) : !courses.length ? (
+        <WorkspaceState title="No courses in this brand context" />
+      ) : (
+        <div className="admin-content-live__workspace">
+          <WorkspaceCard title="Courses" className="admin-content-live__tree">
+            <nav aria-label="Courses and content">
+              {courses.map((entry) => {
+                const key = `${entry.course.brandId}:${entry.course.id}`;
+                return <button key={key} type="button" className={key === selectedCourseKey ? "is-selected" : ""} aria-pressed={key === selectedCourseKey} onClick={() => { setSelectedCourseKey(key); setSelection(undefined); }}>
+                  <BookOpen aria-hidden="true" /><span><strong>{entry.course.title}</strong><small>{entry.brandLabel} · {entry.course.code}</small></span><WorkspaceBadge value={entry.course.status} />
+                </button>;
+              })}
+            </nav>
+          </WorkspaceCard>
+
+          <WorkspaceCard title={selectedCourse?.title ?? "Course structure"} className="admin-content-live__outline" aside={<span className="admin-workspace-readonly">Live course structure</span>}>
+            {loadingStructure ? <WorkspaceState loading title="Loading chapters, lessons, and resources" /> : selectedCourse && (
+              <div className="admin-content-live__items">
+                <div className="admin-content-live__course-summary"><span>{selectedEntry?.brandLabel}</span><strong>{selectedCourse.code}</strong><WorkspaceBadge value={selectedCourse.status} /></div>
+                {chapters.map((chapter) => (
+                  <section className="admin-content-live__chapter" key={chapter.id}>
+                    <button type="button" className={selection?.kind === "chapter" && selection.id === chapter.id ? "is-selected" : ""} onClick={() => setSelection({ kind: "chapter", id: chapter.id })}><Layers3 aria-hidden="true" /><span><strong>{chapter.title}</strong><small>Chapter · {chapter.status}</small></span><WorkspaceBadge value={chapter.status} /></button>
+                    {lessons.filter((lesson) => lesson.courseChapterId === chapter.id).map((lesson) => (
+                      <div className="admin-content-live__lesson" key={lesson.id}>
+                        <button type="button" className={selection?.kind === "lesson" && selection.id === lesson.id ? "is-selected" : ""} onClick={() => setSelection({ kind: "lesson", id: lesson.id })}><BookOpen aria-hidden="true" /><span><strong>{lesson.title}</strong><small>Lesson · {lesson.status}</small></span><WorkspaceBadge value={lesson.status} /></button>
+                        {resources.filter((resource) => resource.courseLessonId === lesson.id).map((resource) => (
+                          <button className={`admin-content-live__resource${selection?.kind === "resource" && selection.id === resource.id ? " is-selected" : ""}`} key={resource.id} type="button" onClick={() => setSelection({ kind: "resource", id: resource.id })}>
+                            {resource.resourceKind === "video" ? <Video aria-hidden="true" /> : <FileText aria-hidden="true" />}
+                            <span><strong>{resource.title}</strong><small>{resource.resourceKind.replaceAll("_", " ")}</small></span><WorkspaceBadge value={resource.status} />
+                          </button>
+                        ))}
+                      </div>
+                    ))}
+                  </section>
+                ))}
+                {!chapters.length && <WorkspaceState title="No chapters yet" />}
+              </div>
+            )}
+          </WorkspaceCard>
+
+          <aside className="admin-content-live__inspector">
+            <header><span>Selected content</span><WorkspaceBadge value={selectedStatus || "unavailable"} /></header>
+            <div className="admin-content-live__identity"><span>{selectedType.replaceAll("_", " ") || "Content"}</span><h2>{selectedTitle}</h2><p>{selectedEntry?.brandLabel} · {selectedCourse?.code}</p></div>
+            <dl>
+              <div><dt>Status</dt><dd>{selectedStatus || "Unavailable"}</dd></div>
+              <div><dt>Course</dt><dd>{selectedCourse?.title ?? "Unavailable"}</dd></div>
+              <div><dt>Resource type</dt><dd>{selectedResource?.resourceKind ?? "—"}</dd></div>
+              <div><dt>Sort order</dt><dd>{selectedResource?.sortOrder ?? selectedLesson?.sortOrder ?? selectedChapter?.sortOrder ?? "—"}</dd></div>
+            </dl>
+            <div className="admin-content-live__action">
+              <Link to={courseBuilderUrl}>Open course builder <ChevronRight aria-hidden="true" /></Link>
+              <p>Upload, verify, and publish lesson media in the course builder. Files upload directly to private storage.</p>
+            </div>
+          </aside>
+        </div>
+      )}
     </section>
   );
 }
-
 export function AdminSecurityPage() {
   const data = useWorkspaceRecords(readSecurity);
   const [search, setSearch] = useState("");

@@ -1,9 +1,8 @@
 import { lazy, Suspense } from "react";
-import { Navigate, type RouteObject } from "react-router-dom";
+import { type RouteObject } from "react-router-dom";
 import { AdminLayout } from "../pages/admin/AdminLayout";
 import { RouteErrorBoundary } from "../../components/layout/RouteErrorBoundary";
 import { RouteLoadingFallback } from "../../components/layout/RouteLoadingFallback";
-import { env } from "../config/env";
 
 const AdminOverviewPage = lazy(() =>
   import("../pages/admin/AdminOverviewPage").then((m) => ({
@@ -119,15 +118,7 @@ export const adminRoutes: RouteObject[] = [
         element: withAdminSuspense(AdminCourseBuilderPage),
       },
       { path: "instructors", element: withAdminSuspense(AdminInstructorsPage) },
-      {
-        path: "curriculum",
-        element:
-          env.adminDataSource === "api" ? (
-            <Navigate to="/admin/courses" replace />
-          ) : (
-            withAdminSuspense(AdminCurriculumPage)
-          ),
-      },
+      { path: "curriculum", element: withAdminSuspense(AdminCurriculumPage) },
       { path: "students", element: withAdminSuspense(AdminStudentsPage) },
       ...sections.map(([path, title, description]) => ({
         path,

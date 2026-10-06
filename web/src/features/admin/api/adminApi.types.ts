@@ -39,7 +39,7 @@ export interface EvidenceReferenceSummary { evidenceId: EntityId; label: string;
 
 export type AdminPermissionCode =
   | "admin.students.read" | "admin.students.suspend" | "admin.students.restore" | "admin.sessions.revoke" | "admin.devices.revoke"
-  | "admin.payments.read" | "admin.payments.review" | "admin.refunds.read" | "admin.refunds.decide" | "admin.subscriptions.read"
+  | "admin.payments.read" | "admin.payments.review" | "admin.refunds.read" | "admin.refunds.decide" | "admin.subscriptions.read" | "admin.curriculum.read"
   | "admin.seats.manage" | "admin.grants.read" | "admin.grants.issue_exception" | "admin.grants.revoke" | "admin.content.read"
   | "admin.content.publish" | "admin.content.withdraw" | "admin.media.read" | "admin.media.manage" | "admin.assessments.read"
   | "admin.assessments.review" | "admin.audit.read" | "admin.security.read" | "admin.roles.read" | "admin.roles.manage"

@@ -10,7 +10,6 @@ import {
   UserRound,
   type LucideIcon,
 } from "lucide-react";
-import { env } from "../../config/env";
 import type { AdminPermissionCode } from "../../../features/admin/api";
 
 export interface AdminNavigationItem {
@@ -31,25 +30,26 @@ const allAdminNavigation: readonly AdminNavigationItem[] = [
       "Welcome back, Admin. Here's what's happening with your platform today.",
   },
   {
-    label: "Curriculum",
-    path: "/admin/curriculum",
-    icon: BookOpen,
-    description:
-      "Manage university academic levels, semesters, and shared module references.",
-  },
-  {
-    label: "Courses",
-    path: "/admin/courses",
-    icon: LibraryBig,
-    description:
-      "Manage brand-owned courses, map them to curriculum modules, and manage teaching assignments.",
-  },
-  {
     label: "Instructors",
     path: "/admin/instructors",
     icon: UserRound,
     description:
       "Manage your global instructor directory, brand assignments, and course allocations.",
+  },
+  {
+    label: "Subscriptions",
+    path: "/admin/subscriptions",
+    icon: CalendarDays,
+    permission: "admin.subscriptions.read",
+    description: "Plans, seats, and subscription lifecycle.",
+  },
+  {
+    label: "Curriculum",
+    path: "/admin/curriculum",
+    icon: BookOpen,
+    permission: "admin.curriculum.read",
+    description:
+      "Review university academic levels, semesters, and shared module references.",
   },
   {
     label: "Students",
@@ -59,18 +59,18 @@ const allAdminNavigation: readonly AdminNavigationItem[] = [
     description: "Student identity, enrollment, and access summaries.",
   },
   {
+    label: "Courses",
+    path: "/admin/courses",
+    icon: LibraryBig,
+    description:
+      "Manage brand-owned courses, map them to curriculum modules, and manage teaching assignments.",
+  },
+  {
     label: "Payments",
     path: "/admin/payments",
     icon: CreditCard,
     permission: "admin.payments.read",
     description: "Payments, orders, and review status.",
-  },
-  {
-    label: "Subscriptions",
-    path: "/admin/subscriptions",
-    icon: CalendarDays,
-    permission: "admin.subscriptions.read",
-    description: "Plans, seats, and subscription lifecycle.",
   },
   {
     label: "Content",
@@ -88,10 +88,7 @@ const allAdminNavigation: readonly AdminNavigationItem[] = [
   },
 ];
 
-export const adminNavigation =
-  env.adminDataSource === "api"
-    ? allAdminNavigation.filter((item) => item.path !== "/admin/curriculum")
-    : allAdminNavigation;
+export const adminNavigation = allAdminNavigation;
 
 const additionalRouteMetadata: readonly Omit<AdminNavigationItem, "icon">[] = [
   {

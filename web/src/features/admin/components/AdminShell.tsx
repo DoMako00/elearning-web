@@ -6,6 +6,7 @@ import "../styles/admin.css";
 import "../styles/admin-curriculum.css";
 import "../styles/admin-polish.css";
 import "../styles/admin-fit.css";
+import "../styles/admin-reference.css";
 
 interface AdminShellProps {
   readonly children: ReactNode;

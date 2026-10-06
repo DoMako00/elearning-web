@@ -1,16 +1,15 @@
 import {
   Bell,
   BookOpen,
-  ChevronDown,
   Crown,
   Layers3,
   LogOut,
   Search,
   ShieldCheck,
 } from "lucide-react";
-import { useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useMemo, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getAdminRouteMetadata } from "../../../app/pages/admin/adminNavigation";
+import { adminNavigation, getAdminRouteMetadata } from "../../../app/pages/admin/adminNavigation";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import type { AdminBrandContext, AdminBrandView } from "../api";
 
@@ -62,8 +61,24 @@ export function AdminTopbar({
   const auth = useAuth();
   const metadata = getAdminRouteMetadata(pathname);
   const isCurriculum = pathname === "/admin/curriculum";
-  const [notice, setNotice] = useState<string>();
+  const [quickSearch, setQuickSearch] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
   const brandViews = getBrandViews(availableBrands);
+  const searchResults = useMemo(() => {
+    const query = quickSearch.trim().toLocaleLowerCase();
+    if (!query) return [];
+    return adminNavigation
+      .filter((item) => `${item.label} ${item.description}`.toLocaleLowerCase().includes(query))
+      .slice(0, 5);
+  }, [quickSearch]);
+
+  function openFirstSearchResult(): void {
+    const first = searchResults[0];
+    if (!first) return;
+    navigate(first.path);
+    setQuickSearch("");
+    setSearchOpen(false);
+  }
 
   function moveBrandView(
     event: ReactKeyboardEvent<HTMLButtonElement>,
@@ -99,19 +114,61 @@ export function AdminTopbar({
         <p>{metadata.description}</p>
       </div>
 
-      <label className="admin-search">
-        <span className="admin-sr-only">Search the Admin Console</span>
-        <Search aria-hidden="true" />
-        <input
-          type="search"
-          placeholder="Global search unavailable"
-          disabled
-          aria-describedby="admin-search-unavailable"
-        />
-        <span className="admin-sr-only" id="admin-search-unavailable">
-          Global search is not available yet.
-        </span>
-      </label>
+      <div className="admin-search-wrap">
+        <label className="admin-search">
+          <span className="admin-sr-only">Find an Admin section</span>
+          <Search aria-hidden="true" />
+          <input
+            type="search"
+            placeholder="Find an Admin section"
+            value={quickSearch}
+            aria-autocomplete="list"
+            aria-expanded={searchOpen && searchResults.length > 0}
+            aria-controls="admin-section-search-results"
+            onFocus={() => setSearchOpen(true)}
+            onChange={(event) => {
+              setQuickSearch(event.target.value);
+              setSearchOpen(true);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                openFirstSearchResult();
+              }
+              if (event.key === "Escape") {
+                setQuickSearch("");
+                setSearchOpen(false);
+              }
+            }}
+            onBlur={() => window.setTimeout(() => setSearchOpen(false), 120)}
+          />
+          <kbd aria-hidden="true">↵</kbd>
+        </label>
+        {searchOpen && searchResults.length > 0 && (
+          <div className="admin-search-results" id="admin-section-search-results" role="listbox" aria-label="Admin sections">
+            {searchResults.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.path}
+                  type="button"
+                  role="option"
+                  aria-selected={false}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => {
+                    navigate(item.path);
+                    setQuickSearch("");
+                    setSearchOpen(false);
+                  }}
+                >
+                  <Icon aria-hidden="true" />
+                  <span><strong>{item.label}</strong><small>{item.description}</small></span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       <div className="admin-topbar__controls">
         {isCurriculum ? (
@@ -159,14 +216,7 @@ export function AdminTopbar({
           </div>
         )}
 
-        <button
-          className="admin-icon-button"
-          type="button"
-          aria-label="Open notifications preview"
-          onClick={() =>
-            setNotice("Notifications are preview-only in this milestone.")
-          }
-        >
+        <button className="admin-icon-button" type="button" aria-label="Notifications are not available yet" title="Notifications are not available yet" disabled>
           <Bell aria-hidden="true" />
         </button>
         <button
@@ -180,16 +230,7 @@ export function AdminTopbar({
         >
           <LogOut aria-hidden="true" />
         </button>
-        <button
-          className="admin-profile"
-          type="button"
-          aria-label="Authenticated administrator"
-          onClick={() =>
-            setNotice(
-              "This dashboard is protected by your active Supabase session.",
-            )
-          }
-        >
+        <div className="admin-profile" aria-label="Authenticated administrator">
           <span className="admin-profile__avatar">
             {(auth.user?.name ?? "AU").slice(0, 2).toUpperCase()}
           </span>
@@ -199,13 +240,9 @@ export function AdminTopbar({
               Authenticated session · {brand?.brandDisplayName ?? "All Brands"}
             </small>
           </span>
-          <ChevronDown aria-hidden="true" />
-        </button>
+        </div>
       </div>
 
-      <span className="admin-sr-only" role="status" aria-live="polite">
-        {notice}
-      </span>
     </header>
   );
 }
