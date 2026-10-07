@@ -322,7 +322,7 @@ export async function listAdminStudents(
 
 export async function changeAdminStudentStatus(
   studentId: string,
-  status: "active" | "suspended",
+  status: "active" | "suspended" | "disabled",
   reason: string,
   idempotencyKey?: string,
 ): Promise<void> {

@@ -138,7 +138,7 @@ interface DetailPanelProps {
   readonly mutating: boolean;
   readonly onTab: (tab: DetailTab) => void;
   readonly onClose: () => void;
-  readonly onStatusChange: (status: "active" | "suspended") => void;
+  readonly onStatusChange: (status: "active" | "suspended" | "disabled") => void;
   readonly onRevokeSession: (sessionId: string, appUserId: string) => void;
   readonly onRevokeDevice: (deviceId: string, appUserId: string) => void;
 }
@@ -255,7 +255,27 @@ function DetailPanel({
             <section>
               <h3>Account status</h3>
               <div className="admin-students-quick-actions">
-                {row.status === "suspended" ? (
+                {row.status === "pending" ? (
+                  <>
+                    <p>This provisioned account is pending brand approval. Approval activates its pending membership; rejection disables the account and revokes that membership.</p>
+                    <button
+                      type="button"
+                      disabled={mutating}
+                      onClick={() => onStatusChange("active")}
+                    >
+                      <ShieldCheck aria-hidden="true" />
+                      Approve student
+                    </button>
+                    <button
+                      type="button"
+                      disabled={mutating}
+                      onClick={() => onStatusChange("disabled")}
+                    >
+                      <X aria-hidden="true" />
+                      Reject student
+                    </button>
+                  </>
+                ) : row.status === "suspended" ? (
                   <button
                     type="button"
                     disabled={mutating}
@@ -572,14 +592,18 @@ export function AdminStudentsPage() {
     }
   }
 
-  function changeStatus(nextStatus: "active" | "suspended"): void {
+  function changeStatus(nextStatus: "active" | "suspended" | "disabled"): void {
     if (!selectedStudent) return;
 
     const studentId = selectedStudent.id;
     void confirmAndRunAction(
-      nextStatus === "suspended"
-        ? "Suspend this Student account? Active backend sessions will be revoked."
-        : "Restore this Student account?",
+      nextStatus === "disabled"
+        ? "Reject this pending Student? The account will be disabled and its brand membership revoked."
+        : nextStatus === "suspended"
+          ? "Suspend this Student account? Active backend sessions will be revoked."
+          : selectedStudent.status === "pending"
+            ? "Approve this pending Student and activate the brand membership?"
+            : "Restore this Student account?",
       (reason) =>
         "student-status:" + studentId + ":" + nextStatus + ":" + reason,
       (reason, key) =>

@@ -158,8 +158,7 @@ export function AdminLessonMediaUpload({
   const [accessStatus, setAccessStatus] = useState("");
   const [isBusyState, setIsBusyState] = useState(false);
   const [retryAllowed, setRetryAllowed] = useState(true);
-  const [existingPublishedAsset, setExistingPublishedAsset] =
-    useState<AdminMediaAsset>();
+  const [existingAsset, setExistingAsset] = useState<AdminMediaAsset>();
 
   const busy = useRef(false);
   const pendingAssetCommand = useRef<PendingAssetCommand | undefined>(
@@ -173,16 +172,18 @@ export function AdminLessonMediaUpload({
     void inspectAdminLessonMedia(course, lessonId)
       .then(({ assets }) => {
         if (!current) return;
-        setExistingPublishedAsset(
+        setExistingAsset(
           assets.find(
             (asset) =>
               asset.resourceId === resource.id &&
-              asset.status === "published",
+              (asset.status === "uploaded" ||
+                asset.status === "verified" ||
+                asset.status === "published"),
           ),
         );
       })
       .catch(() => {
-        if (current) setExistingPublishedAsset(undefined);
+        if (current) setExistingAsset(undefined);
       });
     return () => {
       current = false;
@@ -465,12 +466,30 @@ export function AdminLessonMediaUpload({
   }
 
   async function publishExistingAsset() {
-    if (!existingPublishedAsset || busy.current) return;
+    if (!existingAsset || busy.current) return;
     busy.current = true;
     setIsBusyState(true);
     setError("");
     setState("publishing");
     try {
+      const assetPath =
+        adminLessonMediaPath(course, lessonId) +
+        "/" +
+        encodeURIComponent(existingAsset.id);
+      if (existingAsset.status === "uploaded") {
+        setState("verifying");
+        await adminDeliveryRequest(assetPath + "/verify", {
+          method: "POST",
+          key: createRequestKey(),
+        });
+      }
+      if (existingAsset.status !== "published") {
+        setState("publishing");
+        await adminDeliveryRequest(assetPath + "/publish", {
+          method: "POST",
+          key: createRequestKey(),
+        });
+      }
       await adminDeliveryRequest(
         deliveryCoursePath(course.brandId, course.id) +
           "/resources/" +
@@ -563,13 +582,15 @@ export function AdminLessonMediaUpload({
         </progress>
       )}
       {accessStatus && <span role="status">{accessStatus}</span>}
-      {existingPublishedAsset && state !== "published" && (
+      {existingAsset && state !== "published" && (
         <button
           type="button"
           disabled={isBusyState}
           onClick={() => void publishExistingAsset()}
         >
-          Publish existing verified upload
+          {existingAsset.status === "uploaded"
+            ? "Verify and publish existing upload"
+            : "Publish existing verified upload"}
         </button>
       )}
       {file && state !== "published" && (
