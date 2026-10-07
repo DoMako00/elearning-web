@@ -1,16 +1,21 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { Plus, Search, UserRoundCog } from "lucide-react";
-import { useOutletContext } from "react-router-dom";
+import {
+  BookOpen,
+  Plus,
+  Search,
+  ShieldCheck,
+  UserRoundCog,
+} from "lucide-react";
+import { Link, useOutletContext } from "react-router-dom";
+import { WorkspaceBadge } from "../components/AdminWorkspacePrimitives";
 import { AdminSideDrawer } from "../components/AdminSideDrawer";
 import type { AdminBrandContext, AdminBrandView } from "../api";
 import {
   adminDeliveryRequest,
   type DeliveryCourse,
 } from "../api/adminDelivery.http";
-
 type InstructorStatus = "active" | "inactive" | "archived";
 type AssignmentStatus = "active" | "inactive";
-
 interface InstructorRecord {
   readonly id: string;
   readonly code: string;
@@ -21,7 +26,6 @@ interface InstructorRecord {
   readonly createdAt: string;
   readonly updatedAt: string;
 }
-
 interface InstructorBrandAssignment {
   readonly id: string;
   readonly brandId: string;
@@ -67,6 +71,12 @@ export function AdminInstructorsLivePage() {
   const [notice, setNotice] = useState("");
   const [revision, setRevision] = useState(0);
   const [showCreate, setShowCreate] = useState(false);
+  const [showManage, setShowManage] = useState(false);
+  const [detailTab, setDetailTab] = useState<
+    "overview" | "schedule" | "performance" | "activity"
+  >("overview");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
   const [displayName, setDisplayName] = useState("");
   const [code, setCode] = useState("");
   const [editDisplayName, setEditDisplayName] = useState("");
@@ -80,12 +90,10 @@ export function AdminInstructorsLivePage() {
   const [courseLoading, setCourseLoading] = useState(false);
   const commandLock = useRef(false);
   const pendingCommands = useRef(new Map<string, string>());
-
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
     setError("");
-
     void Promise.all([
       adminDeliveryRequest<InstructorRecord[]>("/v1/admin/instructors", {
         signal: controller.signal,
@@ -127,10 +135,8 @@ export function AdminInstructorsLivePage() {
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);
       });
-
     return () => controller.abort();
   }, [availableBrands, revision]);
-
   useEffect(() => {
     if (brand?.brandId) {
       setCourseBrandId(brand.brandId);
@@ -143,14 +149,12 @@ export function AdminInstructorsLivePage() {
       setCourseBrandId(availableBrands[0]?.brandId ?? "");
     }
   }, [availableBrands, brand?.brandId, brandView, courseBrandId]);
-
   useEffect(() => {
     if (!courseBrandId) {
       setCourseOptions([]);
       setCourseId("");
       return;
     }
-
     const controller = new AbortController();
     setCourseLoading(true);
     setError("");
@@ -178,10 +182,8 @@ export function AdminInstructorsLivePage() {
       .finally(() => {
         if (!controller.signal.aborted) setCourseLoading(false);
       });
-
     return () => controller.abort();
   }, [courseBrandId]);
-
   const selected = instructors.find((item) => item.id === selectedId);
   const selectedAssignments = brandAssignments.filter(
     (item) => item.instructorId === selectedId,
@@ -191,8 +193,8 @@ export function AdminInstructorsLivePage() {
       .filter((item) => item.status === "active")
       .map((item) => item.brandId),
   );
-
   useEffect(() => {
+    setDetailTab("overview");
     setEditDisplayName(selected?.displayName ?? "");
     setEditCode(selected?.instructorCode ?? selected?.code ?? "");
   }, [
@@ -226,13 +228,26 @@ export function AdminInstructorsLivePage() {
       return scopeMatches && statusMatches && textMatches;
     });
   }, [brand, brandAssignments, instructors, search, status]);
-
   useEffect(() => {
-    if (!filteredInstructors.some((instructor) => instructor.id === selectedId)) {
+    if (
+      !filteredInstructors.some((instructor) => instructor.id === selectedId)
+    ) {
       setSelectedId(filteredInstructors[0]?.id ?? "");
     }
   }, [filteredInstructors, selectedId]);
-
+  useEffect(() => setPage(1), [brandView, search, status]);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredInstructors.length / pageSize),
+  );
+  const currentPage = Math.min(page, totalPages);
+  const selectedCourses = courseOptions.filter((course) =>
+    course.instructorAssignments.some(
+      (assignment) =>
+        assignment.instructorId === selectedId &&
+        assignment.status === "active",
+    ),
+  );
   function commandId(signature: string): string {
     const existing = pendingCommands.current.get(signature);
     if (existing) return existing;
@@ -240,7 +255,6 @@ export function AdminInstructorsLivePage() {
     pendingCommands.current.set(signature, next);
     return next;
   }
-
   async function saveCommand(
     signature: string,
     path: string,
@@ -252,7 +266,6 @@ export function AdminInstructorsLivePage() {
     setSaving(true);
     setError("");
     setNotice("");
-
     try {
       await adminDeliveryRequest(path, {
         method,
@@ -276,7 +289,6 @@ export function AdminInstructorsLivePage() {
       setSaving(false);
     }
   }
-
   async function createInstructor(
     event: FormEvent<HTMLFormElement>,
   ): Promise<void> {
@@ -303,7 +315,6 @@ export function AdminInstructorsLivePage() {
     setReason("");
     setShowCreate(false);
   }
-
   async function changeGlobalStatus(
     nextStatus: InstructorStatus,
   ): Promise<void> {
@@ -326,7 +337,6 @@ export function AdminInstructorsLivePage() {
       body,
     );
   }
-
   async function changeBrandAssignment(
     targetBrandId: string,
     nextStatus: AssignmentStatus,
@@ -365,7 +375,6 @@ export function AdminInstructorsLivePage() {
       body,
     );
   }
-
   async function assignCourse(
     event: FormEvent<HTMLFormElement>,
   ): Promise<void> {
@@ -393,7 +402,6 @@ export function AdminInstructorsLivePage() {
     if (!saved) return;
     setCourseId("");
   }
-
   const visibleCourseOptions = courseOptions.filter(
     (course) =>
       !course.instructorAssignments.some(
@@ -402,7 +410,6 @@ export function AdminInstructorsLivePage() {
           assignment.status === "active",
       ),
   );
-
   return (
     <section
       className="admin-page admin-instructors-live"
@@ -412,8 +419,8 @@ export function AdminInstructorsLivePage() {
         <div>
           <h1>Instructors</h1>
           <p>
-            Manage instructor profiles, brand access and course assignments.
-            Instructor-facing workspaces can be added later.
+            Manage the instructor directory, brand affiliations and course
+            assignments.
           </p>
         </div>
         <button
@@ -424,7 +431,6 @@ export function AdminInstructorsLivePage() {
           <Plus aria-hidden="true" /> Add instructor
         </button>
       </header>
-
       <p className="admin-workspace-context">
         <span>
           <UserRoundCog aria-hidden="true" />
@@ -433,7 +439,6 @@ export function AdminInstructorsLivePage() {
         </span>
         <span className="admin-workspace-readonly">Live backend records</span>
       </p>
-
       {notice && (
         <p className="admin-workspace-inline-state" role="status">
           {notice}
@@ -444,7 +449,6 @@ export function AdminInstructorsLivePage() {
           {error}
         </p>
       )}
-
       <AdminSideDrawer
         open={showCreate}
         title="Create instructor"
@@ -508,7 +512,6 @@ export function AdminInstructorsLivePage() {
           </div>
         </form>
       </AdminSideDrawer>
-
       <div className="admin-workspace-toolbar">
         <label>
           <Search aria-hidden="true" />
@@ -538,7 +541,6 @@ export function AdminInstructorsLivePage() {
           Refresh
         </button>
       </div>
-
       <div className="admin-workspace-split admin-instructors-live__split">
         <article className="admin-workspace-card">
           <header>
@@ -568,52 +570,78 @@ export function AdminInstructorsLivePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredInstructors.map((instructor) => {
-                    const assignments = brandAssignments.filter(
-                      (item) =>
-                        item.instructorId === instructor.id &&
-                        item.status === "active",
-                    );
-                    return (
-                      <tr
-                        key={instructor.id}
-                        className={
-                          selectedId === instructor.id ? "is-selected" : ""
-                        }
-                      >
-                        <td>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedId(instructor.id);
-                              setError("");
-                              setNotice("");
-                            }}
-                          >
-                            <UserRoundCog aria-hidden="true" />
-                            <strong>{instructor.displayName}</strong>
-                          </button>
-                        </td>
-                        <td>{instructor.instructorCode || instructor.code}</td>
-                        <td>
-                          {assignments.length
-                            ? assignments
-                                .map((item) =>
-                                  brandName(availableBrands, item.brandId),
-                                )
-                                .join(", ")
-                            : "No active brand"}
-                        </td>
-                        <td>{instructor.status}</td>
-                      </tr>
-                    );
-                  })}
+                  {filteredInstructors
+                    .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+                    .map((instructor) => {
+                      const assignments = brandAssignments.filter(
+                        (item) =>
+                          item.instructorId === instructor.id &&
+                          item.status === "active",
+                      );
+                      return (
+                        <tr
+                          key={instructor.id}
+                          className={
+                            selectedId === instructor.id ? "is-selected" : ""
+                          }
+                        >
+                          <td>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedId(instructor.id);
+                                setError("");
+                                setNotice("");
+                              }}
+                            >
+                              <UserRoundCog aria-hidden="true" />
+                              <strong>{instructor.displayName}</strong>
+                            </button>
+                          </td>
+                          <td>
+                            {instructor.instructorCode || instructor.code}
+                          </td>
+                          <td>
+                            {assignments.length
+                              ? assignments
+                                  .map((item) =>
+                                    brandName(availableBrands, item.brandId),
+                                  )
+                                  .join(", ")
+                              : "No active brand"}
+                          </td>
+                          <td>
+                            <WorkspaceBadge value={instructor.status} />
+                          </td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
             </div>
           )}
+          {!loading && filteredInstructors.length > 0 && (
+            <footer className="admin-course-pagination">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setPage(currentPage - 1)}
+              >
+                Previous
+              </button>
+              <span>
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() => setPage(currentPage + 1)}
+              >
+                Next
+              </button>
+            </footer>
+          )}
         </article>
-
         <aside
           className="admin-workspace-card admin-workspace-inspector admin-instructor-detail"
           aria-label="Selected instructor details"
@@ -649,179 +677,307 @@ export function AdminInstructorsLivePage() {
                   <dd>{selected.version}</dd>
                 </div>
               </dl>
-
-              <form
-                className="admin-workspace-form"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  const body = {
-                    displayName: editDisplayName.trim(),
-                    code: editCode.trim(),
-                    expectedVersion: selected.version,
-                    reason: reason.trim(),
-                  };
-                  const path = `/v1/admin/instructors/${encodeURIComponent(selected.id)}`;
-                  void saveCommand(
-                    "update-instructor:" + JSON.stringify({ path, body }),
-                    path,
-                    "PATCH",
-                    body,
-                  );
-                }}
+              <div
+                className="admin-instructor-tabs"
+                role="tablist"
+                aria-label="Instructor details"
               >
-                <h3>Edit instructor identity</h3>
-                <label>
-                  Display name
-                  <input
-                    required
-                    maxLength={160}
-                    value={editDisplayName}
-                    onChange={(event) => setEditDisplayName(event.target.value)}
-                  />
-                </label>
-                <label>
-                  Instructor code
-                  <input
-                    required
-                    maxLength={80}
-                    value={editCode}
-                    onChange={(event) => setEditCode(event.target.value)}
-                  />
-                </label>
-                <label>
-                  Reason
-                  <textarea
-                    value={reason}
-                    onChange={(event) => setReason(event.target.value)}
-                  />
-                </label>
-                <button
-                  type="submit"
-                  disabled={
-                    saving ||
-                    !reason.trim() ||
-                    !editDisplayName.trim() ||
-                    !editCode.trim()
-                  }
-                >
-                  Save identity
-                </button>
-              </form>
-
+                {(
+                  ["overview", "schedule", "performance", "activity"] as const
+                ).map((tab) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    role="tab"
+                    aria-selected={detailTab === tab}
+                    aria-controls={`live-instructor-${tab}`}
+                    id={`live-instructor-tab-${tab}`}
+                    onClick={() => setDetailTab(tab)}
+                  >
+                    {tab[0].toUpperCase() + tab.slice(1)}
+                  </button>
+                ))}
+              </div>
               <section
-                className="admin-workspace-form"
-                aria-label="Brand assignments"
+                id={`live-instructor-${detailTab}`}
+                role="tabpanel"
+                aria-labelledby={`live-instructor-tab-${detailTab}`}
+                className="admin-instructor-detail__body"
               >
-                <h3>Brand assignments</h3>
-                {availableBrands.map((availableBrand) => {
-                  const assignment = selectedAssignments.find(
-                    (item) => item.brandId === availableBrand.brandId,
-                  );
-                  const active = assignment?.status === "active";
-                  return (
-                    <div
-                      className="admin-workspace-actions-inline"
-                      key={availableBrand.brandId}
+                {detailTab === "overview" ? (
+                  <>
+                    <section
+                      className="admin-instructor-affiliations"
+                      aria-label="Brand affiliations"
                     >
-                      <span>
-                        {availableBrand.brandDisplayName} ·{" "}
-                        {assignment?.status ?? "not assigned"}
-                      </span>
+                      <h3>Brand affiliations</h3>
+                      {selectedAssignments.length ? (
+                        selectedAssignments.map((assignment) => (
+                          <div
+                            key={assignment.id}
+                            className="admin-workspace-actions-inline"
+                          >
+                            <span>
+                              <ShieldCheck aria-hidden="true" />
+                              {brandName(availableBrands, assignment.brandId)}
+                            </span>
+                            <WorkspaceBadge value={assignment.status} />
+                          </div>
+                        ))
+                      ) : (
+                        <p>No brand affiliations yet.</p>
+                      )}
+                    </section>
+                    <section
+                      className="admin-course-instructor-summary"
+                      aria-label="Current course assignments"
+                    >
+                      <header>
+                        <h3>Current course assignments</h3>
+                      </header>
+                      <label className="admin-instructor-assignment-context">
+                        Brand context
+                        <select
+                          value={courseBrandId}
+                          onChange={(event) =>
+                            setCourseBrandId(event.target.value)
+                          }
+                        >
+                          {availableBrands.map((item) => (
+                            <option key={item.brandId} value={item.brandId}>
+                              {item.brandDisplayName}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      {courseLoading ? (
+                        <p role="status">Loading assignments…</p>
+                      ) : selectedCourses.length ? (
+                        <ul>
+                          {selectedCourses.map((course) => (
+                            <li key={course.id}>
+                              <BookOpen aria-hidden="true" />
+                              <Link
+                                to={`/admin/courses?courseId=${encodeURIComponent(course.id)}`}
+                              >
+                                {course.title}
+                              </Link>
+                              <WorkspaceBadge value={course.status} />
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p>No active course assignments in this brand.</p>
+                      )}
+                    </section>
+                    <div className="admin-workspace-actions admin-instructor-manage-actions">
                       <button
                         type="button"
-                        disabled={saving || !reason.trim()}
-                        onClick={() =>
-                          void changeBrandAssignment(
-                            availableBrand.brandId,
-                            active ? "inactive" : "active",
-                          )
-                        }
+                        onClick={() => {
+                          setReason("");
+                          setShowManage(true);
+                        }}
                       >
-                        {active
-                          ? "Deactivate"
-                          : assignment
-                            ? "Reactivate"
-                            : "Assign"}
+                        Edit instructor
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setReason("");
+                          setShowManage(true);
+                        }}
+                      >
+                        Manage brand / course assignments
                       </button>
                     </div>
-                  );
-                })}
+                  </>
+                ) : (
+                  <div className="admin-workspace-state">
+                    <h3>
+                      {detailTab[0].toUpperCase() + detailTab.slice(1)}{" "}
+                      unavailable
+                    </h3>
+                    <p>No {detailTab} data is available for this instructor.</p>
+                  </div>
+                )}
               </section>
-
-              <form
-                className="admin-workspace-form"
-                onSubmit={(event) => void assignCourse(event)}
+              <AdminSideDrawer
+                open={showManage}
+                title="Manage instructor"
+                eyebrow={selected.displayName}
+                dismissible={!saving}
+                onClose={() => setShowManage(false)}
               >
-                <h3>Assign to course</h3>
-                <label>
-                  Brand
-                  <select
-                    value={courseBrandId}
-                    onChange={(event) => setCourseBrandId(event.target.value)}
+                {error && <p role="alert">{error}</p>}
+                {notice && <p role="status">{notice}</p>}
+                <form
+                  className="admin-workspace-form"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    const body = {
+                      displayName: editDisplayName.trim(),
+                      code: editCode.trim(),
+                      expectedVersion: selected.version,
+                      reason: reason.trim(),
+                    };
+                    const path = `/v1/admin/instructors/${encodeURIComponent(selected.id)}`;
+                    void saveCommand(
+                      "update-instructor:" + JSON.stringify({ path, body }),
+                      path,
+                      "PATCH",
+                      body,
+                    );
+                  }}
+                >
+                  <h3>Edit instructor identity</h3>
+                  <label>
+                    Display name
+                    <input
+                      required
+                      maxLength={160}
+                      value={editDisplayName}
+                      onChange={(event) =>
+                        setEditDisplayName(event.target.value)
+                      }
+                    />
+                  </label>
+                  <label>
+                    Instructor code
+                    <input
+                      required
+                      maxLength={80}
+                      value={editCode}
+                      onChange={(event) => setEditCode(event.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Reason
+                    <textarea
+                      value={reason}
+                      onChange={(event) => setReason(event.target.value)}
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    disabled={
+                      saving ||
+                      !reason.trim() ||
+                      !editDisplayName.trim() ||
+                      !editCode.trim()
+                    }
                   >
-                    <option value="">Select an assigned brand</option>
-                    {availableBrands
-                      .filter((item) => activeBrandIds.has(item.brandId))
-                      .map((item) => (
-                        <option key={item.brandId} value={item.brandId}>
-                          {item.brandDisplayName}
+                    Save identity
+                  </button>
+                </form>
+                <section
+                  className="admin-workspace-form"
+                  aria-label="Brand assignments"
+                >
+                  <h3>Brand assignments</h3>
+                  {availableBrands.map((availableBrand) => {
+                    const assignment = selectedAssignments.find(
+                      (item) => item.brandId === availableBrand.brandId,
+                    );
+                    const active = assignment?.status === "active";
+                    return (
+                      <div
+                        className="admin-workspace-actions-inline"
+                        key={availableBrand.brandId}
+                      >
+                        <span>
+                          {availableBrand.brandDisplayName} ·{" "}
+                          {assignment?.status ?? "not assigned"}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={saving || !reason.trim()}
+                          onClick={() =>
+                            void changeBrandAssignment(
+                              availableBrand.brandId,
+                              active ? "inactive" : "active",
+                            )
+                          }
+                        >
+                          {active
+                            ? "Deactivate"
+                            : assignment
+                              ? "Reactivate"
+                              : "Assign"}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </section>
+                <form
+                  className="admin-workspace-form"
+                  onSubmit={(event) => void assignCourse(event)}
+                >
+                  <h3>Assign to course</h3>
+                  <label>
+                    Brand
+                    <select
+                      value={courseBrandId}
+                      onChange={(event) => setCourseBrandId(event.target.value)}
+                    >
+                      <option value="">Select an assigned brand</option>
+                      {availableBrands
+                        .filter((item) => activeBrandIds.has(item.brandId))
+                        .map((item) => (
+                          <option key={item.brandId} value={item.brandId}>
+                            {item.brandDisplayName}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                  <label>
+                    Course
+                    <select
+                      required
+                      value={courseId}
+                      disabled={
+                        !courseBrandId ||
+                        courseLoading ||
+                        !visibleCourseOptions.length
+                      }
+                      onChange={(event) => setCourseId(event.target.value)}
+                    >
+                      <option value="">
+                        {courseLoading ? "Loading courses…" : "Select a course"}
+                      </option>
+                      {visibleCourseOptions.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.title} · {item.code}
                         </option>
                       ))}
-                  </select>
-                </label>
-                <label>
-                  Course
-                  <select
-                    required
-                    value={courseId}
+                    </select>
+                  </label>
+                  <button
+                    type="submit"
                     disabled={
-                      !courseBrandId ||
-                      courseLoading ||
-                      !visibleCourseOptions.length
+                      saving || courseLoading || !courseId || !reason.trim()
                     }
-                    onChange={(event) => setCourseId(event.target.value)}
                   >
-                    <option value="">
-                      {courseLoading ? "Loading courses…" : "Select a course"}
-                    </option>
-                    {visibleCourseOptions.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.title} · {item.code}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                    Assign course
+                  </button>
+                </form>
                 <button
-                  type="submit"
-                  disabled={
-                    saving || courseLoading || !courseId || !reason.trim()
+                  type="button"
+                  className="is-secondary"
+                  disabled={saving || !reason.trim()}
+                  onClick={() =>
+                    void changeGlobalStatus(
+                      selected.status === "active" ? "inactive" : "active",
+                    )
                   }
                 >
-                  Assign course
+                  {selected.status === "active"
+                    ? "Deactivate instructor"
+                    : "Activate instructor"}
                 </button>
-              </form>
-
-              <button
-                type="button"
-                className="is-secondary"
-                disabled={saving || !reason.trim()}
-                onClick={() =>
-                  void changeGlobalStatus(
-                    selected.status === "active" ? "inactive" : "active",
-                  )
-                }
-              >
-                {selected.status === "active"
-                  ? "Deactivate instructor"
-                  : "Activate instructor"}
-              </button>
+              </AdminSideDrawer>
               {!availableBrands.length && (
                 <p role="alert">No authorized brand context is available.</p>
               )}
-              <p className="admin-workspace-note">
-                Email, schedule and performance screens are not available in the
-                current backend contract.
-              </p>
             </>
           )}
         </aside>

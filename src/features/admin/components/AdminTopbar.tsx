@@ -1,25 +1,29 @@
 import {
   Bell,
-  BookOpen,
   Crown,
   Layers3,
   LogOut,
   Search,
   ShieldCheck,
 } from "lucide-react";
-import { useMemo, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import {
+  useMemo,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { adminNavigation, getAdminRouteMetadata } from "../../../app/pages/admin/adminNavigation";
+import {
+  adminNavigation,
+  getAdminRouteMetadata,
+} from "../../../app/pages/admin/adminNavigation";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import type { AdminBrandContext, AdminBrandView } from "../api";
-
 interface AdminTopbarProps {
   readonly brand?: AdminBrandContext;
   readonly brandView: AdminBrandView;
   readonly availableBrands: readonly AdminBrandContext[];
   readonly setBrandView: (view: AdminBrandView) => void;
 }
-
 interface BrandViewOption {
   readonly code: AdminBrandView;
   readonly label: string;
@@ -33,7 +37,6 @@ function getBrandViews(
     brands.length > 1
       ? [{ code: "all" as const, label: "All Brands", shortLabel: "All" }]
       : [];
-
   return [
     ...allBrandsOption,
     ...brands.map((item) => ({
@@ -60,7 +63,6 @@ export function AdminTopbar({
   const navigate = useNavigate();
   const auth = useAuth();
   const metadata = getAdminRouteMetadata(pathname);
-  const isCurriculum = pathname === "/admin/curriculum";
   const [quickSearch, setQuickSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const brandViews = getBrandViews(availableBrands);
@@ -68,10 +70,11 @@ export function AdminTopbar({
     const query = quickSearch.trim().toLocaleLowerCase();
     if (!query) return [];
     return adminNavigation
-      .filter((item) => `${item.label} ${item.description}`.toLocaleLowerCase().includes(query))
+      .filter((item) =>
+        `${item.label} ${item.description}`.toLocaleLowerCase().includes(query),
+      )
       .slice(0, 5);
   }, [quickSearch]);
-
   function openFirstSearchResult(): void {
     const first = searchResults[0];
     if (!first) return;
@@ -79,29 +82,24 @@ export function AdminTopbar({
     setQuickSearch("");
     setSearchOpen(false);
   }
-
   function moveBrandView(
     event: ReactKeyboardEvent<HTMLButtonElement>,
     currentIndex: number,
   ): void {
     const lastIndex = brandViews.length - 1;
     let nextIndex = currentIndex;
-
     if (event.key === "ArrowLeft") nextIndex = Math.max(0, currentIndex - 1);
     if (event.key === "ArrowRight")
       nextIndex = Math.min(lastIndex, currentIndex + 1);
     if (event.key === "Home") nextIndex = 0;
     if (event.key === "End") nextIndex = lastIndex;
-
     if (nextIndex === currentIndex) return;
-
     event.preventDefault();
     setBrandView(brandViews[nextIndex].code);
     event.currentTarget.parentElement
       ?.querySelectorAll<HTMLButtonElement>("button")
       [nextIndex]?.focus();
   }
-
   return (
     <header
       className={
@@ -113,7 +111,6 @@ export function AdminTopbar({
         <h1>{metadata.label}</h1>
         <p>{metadata.description}</p>
       </div>
-
       <div className="admin-search-wrap">
         <label className="admin-search">
           <span className="admin-sr-only">Find an Admin section</span>
@@ -145,7 +142,12 @@ export function AdminTopbar({
           <kbd aria-hidden="true">↵</kbd>
         </label>
         {searchOpen && searchResults.length > 0 && (
-          <div className="admin-search-results" id="admin-section-search-results" role="listbox" aria-label="Admin sections">
+          <div
+            className="admin-search-results"
+            id="admin-section-search-results"
+            role="listbox"
+            aria-label="Admin sections"
+          >
             {searchResults.map((item) => {
               const Icon = item.icon;
               return (
@@ -162,61 +164,57 @@ export function AdminTopbar({
                   }}
                 >
                   <Icon aria-hidden="true" />
-                  <span><strong>{item.label}</strong><small>{item.description}</small></span>
+                  <span>
+                    <strong>{item.label}</strong>
+                    <small>{item.description}</small>
+                  </span>
                 </button>
               );
             })}
           </div>
         )}
       </div>
-
       <div className="admin-topbar__controls">
-        {isCurriculum ? (
-          <div
-            className="admin-curriculum-scope"
-            aria-label="Academic catalogue scope"
-          >
-            <BookOpen aria-hidden="true" />
-            <span>Academic Catalogues</span>
-          </div>
-        ) : (
-          <div
-            className="admin-brand-selector"
-            aria-label="Admin brand viewing context"
-          >
-            {brandViews.map((item, index) => {
-              const icon =
-                item.code === "all" ? (
-                  <Layers3 aria-hidden="true" />
-                ) : item.code === "elite" ? (
-                  <Crown aria-hidden="true" />
-                ) : (
-                  <ShieldCheck aria-hidden="true" />
-                );
-
-              return (
-                <button
-                  key={item.code}
-                  type="button"
-                  aria-label={
-                    item.code === "all"
-                      ? "View all authorized brands"
-                      : "View " + item.label
-                  }
-                  aria-pressed={brandView === item.code}
-                  className={getBrandClass(item.code)}
-                  onKeyDown={(event) => moveBrandView(event, index)}
-                  onClick={() => setBrandView(item.code)}
-                >
-                  {icon}
-                  <span data-short={item.shortLabel}>{item.label}</span>
-                </button>
+        <div
+          className="admin-brand-selector"
+          aria-label="Admin brand viewing context"
+        >
+          {brandViews.map((item, index) => {
+            const icon =
+              item.code === "all" ? (
+                <Layers3 aria-hidden="true" />
+              ) : item.code === "elite" ? (
+                <Crown aria-hidden="true" />
+              ) : (
+                <ShieldCheck aria-hidden="true" />
               );
-            })}
-          </div>
-        )}
-
-        <button className="admin-icon-button" type="button" aria-label="Notifications are not available yet" title="Notifications are not available yet" disabled>
+            return (
+              <button
+                key={item.code}
+                type="button"
+                aria-label={
+                  item.code === "all"
+                    ? "View all authorized brands"
+                    : "View " + item.label
+                }
+                aria-pressed={brandView === item.code}
+                className={getBrandClass(item.code)}
+                onKeyDown={(event) => moveBrandView(event, index)}
+                onClick={() => setBrandView(item.code)}
+              >
+                {icon}
+                <span data-short={item.shortLabel}>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+        <button
+          className="admin-icon-button"
+          type="button"
+          aria-label="Notifications are not available yet"
+          title="Notifications are not available yet"
+          disabled
+        >
           <Bell aria-hidden="true" />
         </button>
         <button
@@ -242,7 +240,6 @@ export function AdminTopbar({
           </span>
         </div>
       </div>
-
     </header>
   );
 }

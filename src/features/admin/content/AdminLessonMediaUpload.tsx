@@ -10,7 +10,6 @@ import {
   inspectAdminLessonMedia,
   type AdminMediaAsset,
 } from "../api/adminMedia.http";
-
 type MediaType = "video" | "document";
 type DocumentDeliveryMode =
   | "view_only"
@@ -25,32 +24,26 @@ type UploadState =
   | "publishing"
   | "published"
   | "failed";
-
 interface MediaAsset {
   readonly id: string;
   readonly status: string;
 }
-
 interface SignedUpload {
   readonly url: string;
   readonly expiresAt: string;
 }
-
 interface MediaPutAuthorization {
   readonly asset: MediaAsset;
   readonly upload: SignedUpload;
   readonly requiredHeaders: Readonly<Record<string, string>>;
 }
-
 interface MultipartStart {
   readonly upload: { readonly id: string };
   readonly thresholdBytes: number;
 }
-
 interface MultipartPartAuthorization {
   readonly signed: SignedUpload;
 }
-
 interface PendingAssetCommand {
   readonly signature: string;
   readonly key: string;
@@ -65,7 +58,6 @@ function createRequestKey(): string {
   ) {
     return crypto.randomUUID();
   }
-
   return "media-" + Date.now() + "-" + Math.random().toString(36).slice(2);
 }
 
@@ -76,7 +68,6 @@ function getMediaType(resource: DeliveryResource): MediaType | undefined {
   ) {
     return resource.resourceKind;
   }
-
   return undefined;
 }
 
@@ -86,10 +77,8 @@ function getFilePolicy(
   if (type === "video") {
     return { contentType: "video/mp4", accept: "video/mp4,.mp4" };
   }
-
   return { contentType: "application/pdf", accept: "application/pdf,.pdf" };
 }
-
 async function uploadSignedPut(
   signed: SignedUpload,
   headers: Readonly<Record<string, string>>,
@@ -147,7 +136,6 @@ export function AdminLessonMediaUpload({
 }>) {
   const mediaType = getMediaType(resource);
   const filePolicy = mediaType ? getFilePolicy(mediaType) : undefined;
-
   const [file, setFile] = useState<File>();
   const [deliveryMode, setDeliveryMode] =
     useState<DocumentDeliveryMode>("view_only");
@@ -159,14 +147,12 @@ export function AdminLessonMediaUpload({
   const [isBusyState, setIsBusyState] = useState(false);
   const [retryAllowed, setRetryAllowed] = useState(true);
   const [existingAsset, setExistingAsset] = useState<AdminMediaAsset>();
-
   const busy = useRef(false);
   const pendingAssetCommand = useRef<PendingAssetCommand | undefined>(
     undefined,
   );
   const activeAssetId = useRef<string | undefined>(undefined);
   const activeMultipartId = useRef<string | undefined>(undefined);
-
   useEffect(() => {
     let current = true;
     void inspectAdminLessonMedia(course, lessonId)
@@ -189,11 +175,9 @@ export function AdminLessonMediaUpload({
       current = false;
     };
   }, [course, lessonId, resource.id]);
-
   if (!mediaType || !filePolicy) {
     return <span>Binary upload is not used for this resource type.</span>;
   }
-
   const uploadMediaType = mediaType;
   const uploadFilePolicy = filePolicy;
   const stateLabels: Record<UploadState, string> = {
@@ -205,19 +189,16 @@ export function AdminLessonMediaUpload({
     published: "Published",
     failed: "Upload failed",
   };
-
   async function uploadMultipartParts(
     assetPath: string,
     multipartId: string,
   ): Promise<void> {
     if (!file) throw new Error("Choose a file before uploading.");
-
     const partSize = Math.max(5 * MEBIBYTE, Math.ceil(file.size / 10_000));
     const partCount = Math.ceil(file.size / partSize);
     const uploadedParts: { partNumber: number; etag: string }[] = [];
     let uploadedBytes = 0;
     setState("uploading");
-
     for (let index = 0; index < partCount; index += 1) {
       const partNumber = index + 1;
       const startByte = index * partSize;
@@ -231,7 +212,6 @@ export function AdminLessonMediaUpload({
             partNumber,
           { method: "POST", key: createRequestKey() },
         );
-
       let response: Response;
       try {
         response = await fetch(partAuthorization.signed.url, {
@@ -243,23 +223,19 @@ export function AdminLessonMediaUpload({
           "A direct multipart upload could not be reached. Retry or abort it.",
         );
       }
-
       if (!response.ok) {
         throw new Error("The storage provider rejected an upload part.");
       }
-
       const etag = response.headers.get("ETag");
       if (!etag) {
         throw new Error(
           "The upload response did not expose its ETag. Check the bucket CORS policy.",
         );
       }
-
       uploadedParts.push({ partNumber, etag });
       uploadedBytes += endByte - startByte;
       setProgress(Math.round((uploadedBytes / file.size) * 100));
     }
-
     await adminDeliveryRequest(
       assetPath + "/multipart/" + encodeURIComponent(multipartId) + "/complete",
       {
@@ -270,7 +246,6 @@ export function AdminLessonMediaUpload({
     );
     activeMultipartId.current = undefined;
   }
-
   async function checkUploadAccess(): Promise<void> {
     if (busy.current) return;
     busy.current = true;
@@ -295,7 +270,6 @@ export function AdminLessonMediaUpload({
       setIsBusyState(false);
     }
   }
-
   async function upload() {
     if (!file || busy.current || state === "published" || !retryAllowed) return;
     if (file.type !== uploadFilePolicy.contentType) {
@@ -306,13 +280,11 @@ export function AdminLessonMediaUpload({
       );
       return;
     }
-
     busy.current = true;
     setIsBusyState(true);
     setError("");
     setProgress(0);
     setState("preparing");
-
     const mediaPath = adminLessonMediaPath(course, lessonId);
     let uploadMayHaveCompleted = false;
     const assetSignature = JSON.stringify({
@@ -324,7 +296,6 @@ export function AdminLessonMediaUpload({
       deliveryMode,
       watermarkRequired,
     });
-
     try {
       const { uploadPolicy } = await inspectAdminLessonMedia(course, lessonId);
       if (uploadPolicy.namespace !== "production") {
@@ -341,7 +312,6 @@ export function AdminLessonMediaUpload({
         );
       }
       let assetId = activeAssetId.current;
-
       if (!assetId) {
         if (pendingAssetCommand.current?.signature !== assetSignature) {
           pendingAssetCommand.current = {
@@ -349,7 +319,6 @@ export function AdminLessonMediaUpload({
             key: createRequestKey(),
           };
         }
-
         const created = await adminDeliveryRequest<{
           readonly asset: MediaAsset;
         }>(mediaPath, {
@@ -367,11 +336,9 @@ export function AdminLessonMediaUpload({
             watermarkRequired,
           },
         });
-
         assetId = created.asset.id;
         activeAssetId.current = assetId;
       }
-
       const assetPath = mediaPath + "/" + encodeURIComponent(assetId);
       if (file.size < uploadPolicy.multipartThresholdBytes) {
         const authorization = await adminDeliveryRequest<MediaPutAuthorization>(
@@ -396,19 +363,16 @@ export function AdminLessonMediaUpload({
         await uploadMultipartParts(assetPath, multipart.upload.id);
         uploadMayHaveCompleted = true;
       }
-
       setState("verifying");
       await adminDeliveryRequest(assetPath + "/verify", {
         method: "POST",
         key: createRequestKey(),
       });
-
       setState("publishing");
       await adminDeliveryRequest(assetPath + "/publish", {
         method: "POST",
         key: createRequestKey(),
       });
-
       await adminDeliveryRequest(
         deliveryCoursePath(course.brandId, course.id) +
           "/resources/" +
@@ -423,7 +387,6 @@ export function AdminLessonMediaUpload({
           },
         },
       );
-
       setState("published");
       activeAssetId.current = undefined;
       pendingAssetCommand.current = undefined;
@@ -446,7 +409,6 @@ export function AdminLessonMediaUpload({
         }
         activeMultipartId.current = undefined;
       }
-
       const message =
         cause instanceof Error
           ? cause.message
@@ -464,7 +426,6 @@ export function AdminLessonMediaUpload({
       setIsBusyState(false);
     }
   }
-
   async function publishExistingAsset() {
     if (!existingAsset || busy.current) return;
     busy.current = true;
@@ -518,7 +479,6 @@ export function AdminLessonMediaUpload({
       setIsBusyState(false);
     }
   }
-
   return (
     <div className="admin-media-upload" aria-busy={isBusyState}>
       <button

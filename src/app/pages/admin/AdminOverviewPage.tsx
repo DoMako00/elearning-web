@@ -1,11 +1,9 @@
 import {
   ArrowRight,
-  BarChart3,
   BookOpen,
   CreditCard,
   FileText,
   GraduationCap,
-  Megaphone,
   Plus,
   Settings,
   ShieldCheck,
@@ -42,12 +40,14 @@ import {
 } from "../../../features/admin/components/AdminWorkspacePrimitives";
 
 const number = new Intl.NumberFormat("en-EG");
+
 const metricIcons: Record<AdminOverviewMetricId, LucideIcon> = {
   students: UsersRound,
   courses: BookOpen,
   instructors: UserRound,
   revenue: CreditCard,
 };
+
 const activityIcons: Record<AdminOverviewActivity["kind"], LucideIcon> = {
   student: GraduationCap,
   course: BookOpen,
@@ -55,14 +55,35 @@ const activityIcons: Record<AdminOverviewActivity["kind"], LucideIcon> = {
   payment: CreditCard,
   content: FileText,
 };
+
 const quickLinks = [
-  { label: "Add New Course", icon: BookOpen, path: "/admin/courses" },
-  { label: "Add New Instructor", icon: UserPlus, path: "/admin/instructors" },
-  { label: "Manage Students", icon: GraduationCap, path: "/admin/students" },
-  { label: "Create Announcement", icon: Megaphone },
-  { label: "Reports & Analytics", icon: BarChart3 },
-  { label: "System Settings", icon: Settings },
+  { label: "Add Student", icon: GraduationCap, path: "/admin/students" },
+  { label: "Add Course", icon: BookOpen, path: "/admin/courses?action=create" },
+  { label: "Add Instructor", icon: UserPlus, path: "/admin/instructors" },
+  { label: "Review Payments", icon: CreditCard, path: "/admin/payments" },
+  {
+    label: "Manage Subscriptions",
+    icon: UsersRound,
+    path: "/admin/subscriptions",
+  },
+  { label: "Open Content Library", icon: FileText, path: "/admin/content" },
+  { label: "Manage Devices", icon: ShieldCheck, path: "/admin/security" },
+  { label: "Configure Curriculum", icon: Settings, path: "/admin/curriculum" },
 ] as const;
+
+function QuickLinks() {
+  return (
+    <nav className="admin-overview-destinations" aria-label="Admin quick links">
+      {quickLinks.map(({ label, icon: Icon, path }) => (
+        <Link key={path} to={path}>
+          <Icon aria-hidden="true" />
+          {label}
+          <ArrowRight aria-hidden="true" />
+        </Link>
+      ))}
+    </nav>
+  );
+}
 
 function CardHeader({
   title,
@@ -314,7 +335,6 @@ function ApiOverviewContent({ overview }: { overview: AdminOverview }) {
       icon: BookOpen,
     },
   ] as const;
-
   const recentActivity = [
     ...overview.recentAdminActions.map((item) => ({
       id: "action-" + item.id,
@@ -337,7 +357,6 @@ function ApiOverviewContent({ overview }: { overview: AdminOverview }) {
   ]
     .sort((first, second) => second.occurredAt.localeCompare(first.occurredAt))
     .slice(0, 8);
-
   return (
     <div className="admin-api-overview">
       <div className="admin-workspace-metrics">
@@ -372,24 +391,8 @@ function ApiOverviewContent({ overview }: { overview: AdminOverview }) {
           </p>
         )}
       </WorkspaceCard>
-      <WorkspaceCard title="Manage your platform">
-        <nav
-          className="admin-overview-destinations"
-          aria-label="Admin quick links"
-        >
-          <Link to="/admin/students">
-            Manage students <ArrowRight aria-hidden="true" />
-          </Link>
-          <Link to="/admin/courses">
-            Manage courses <ArrowRight aria-hidden="true" />
-          </Link>
-          <Link to="/admin/instructors">
-            Manage instructors <ArrowRight aria-hidden="true" />
-          </Link>
-          <Link to="/admin/subscriptions">
-            Orders and subscriptions <ArrowRight aria-hidden="true" />
-          </Link>
-        </nav>
+      <WorkspaceCard title="Quick Links">
+        <QuickLinks />
       </WorkspaceCard>
       <p className="admin-api-overview__note">
         Counts without a backend read model are not shown. Trends, revenue
@@ -488,13 +491,8 @@ export function AdminOverviewPage() {
                 title="Payment totals unavailable"
               />
             </WorkspaceCard>
-            <WorkspaceCard title="Workspace">
-              <div className="admin-overview-destinations">
-                <a href="/admin/courses">Manage courses →</a>
-                <a href="/admin/students">View students →</a>
-                <a href="/admin/instructors">View instructors →</a>
-                <a href="/admin/payments">Review payments →</a>
-              </div>
+            <WorkspaceCard title="Quick Links">
+              <QuickLinks />
             </WorkspaceCard>
           </div>
         </>

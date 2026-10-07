@@ -19,18 +19,14 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import type {
   AdminBrandContext,
   AdminBrandView,
   AdminStudentDetail,
   AdminStudentStatus,
 } from "../../../features/admin/api";
-import {
-  changeAdminStudentStatus,
-  revokeAdminStudentDevice,
-  revokeAdminStudentSession,
-} from "../../../features/admin/api/adminOperationsApi";
+import { changeAdminStudentStatus } from "../../../features/admin/api/adminOperationsApi";
 import {
   loadAdminStudentDetail,
   studentStatusLabel,
@@ -40,15 +36,12 @@ import {
 import { AdminStudentProvisioningForm } from "../../../features/admin/students/AdminStudentProvisioningForm";
 import { AdminStudentSubscriptionsPanel } from "../../../features/admin/students/AdminStudentSubscriptionsPanel";
 import { AdminSideDrawer } from "../../../features/admin/components/AdminSideDrawer";
-
 type DetailTab = "profile" | "access" | "devices" | "sessions";
-
 interface AdminStudentsOutletContext {
   readonly brand?: AdminBrandContext;
   readonly brandView: AdminBrandView;
   readonly availableBrands: readonly AdminBrandContext[];
 }
-
 interface StudentStatCard {
   readonly title: string;
   readonly value?: number;
@@ -56,6 +49,7 @@ interface StudentStatCard {
 }
 
 const number = new Intl.NumberFormat("en-EG");
+
 const PAGE_SIZE = 8;
 
 function createRequestKey(): string {
@@ -65,7 +59,6 @@ function createRequestKey(): string {
   ) {
     return crypto.randomUUID();
   }
-
   return (
     "admin-student-" + Date.now() + "-" + Math.random().toString(36).slice(2)
   );
@@ -95,7 +88,6 @@ function relativeTime(value?: string | null): string {
   if (!value) return "No activity";
   const timestamp = new Date(value).getTime();
   if (Number.isNaN(timestamp)) return "No activity";
-
   const hoursAgo = Math.round((timestamp - Date.now()) / 3_600_000);
   return new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(
     hoursAgo,
@@ -128,7 +120,6 @@ function BrandBadge({ row }: Readonly<{ row: AdminStudentRow }>) {
     </span>
   );
 }
-
 interface DetailPanelProps {
   readonly row?: AdminStudentRow;
   readonly detail?: AdminStudentDetail;
@@ -138,7 +129,9 @@ interface DetailPanelProps {
   readonly mutating: boolean;
   readonly onTab: (tab: DetailTab) => void;
   readonly onClose: () => void;
-  readonly onStatusChange: (status: "active" | "suspended" | "disabled") => void;
+  readonly onStatusChange: (
+    status: "active" | "suspended" | "disabled",
+  ) => void;
   readonly onRevokeSession: (sessionId: string, appUserId: string) => void;
   readonly onRevokeDevice: (deviceId: string, appUserId: string) => void;
 }
@@ -168,7 +161,6 @@ function DetailPanel({
       </aside>
     );
   }
-
   const term = splitTerm(row.academicTermOrYear);
   const tabs: readonly DetailTab[] = [
     "profile",
@@ -192,7 +184,6 @@ function DetailPanel({
     ["Expected graduation", shortDate(row.expectedGraduationDate)],
     ["Brand", row.platform.platformDisplayName],
   ];
-
   return (
     <aside
       className="admin-students-detail"
@@ -219,7 +210,6 @@ function DetailPanel({
           <X aria-hidden="true" />
         </button>
       </header>
-
       <div
         className="admin-students-tabs"
         role="tablist"
@@ -237,7 +227,6 @@ function DetailPanel({
           </button>
         ))}
       </div>
-
       <div className="admin-students-detail__body">
         {tab === "profile" && (
           <>
@@ -257,7 +246,11 @@ function DetailPanel({
               <div className="admin-students-quick-actions">
                 {row.status === "pending" ? (
                   <>
-                    <p>This provisioned account is pending brand approval. Approval activates its pending membership; rejection disables the account and revokes that membership.</p>
+                    <p>
+                      This provisioned account is pending brand approval.
+                      Approval activates its pending membership; rejection
+                      disables the account and revokes that membership.
+                    </p>
                     <button
                       type="button"
                       disabled={mutating}
@@ -313,7 +306,6 @@ function DetailPanel({
             </section>
           </>
         )}
-
         {tab === "access" &&
           (preview ? (
             <section className="admin-students-tab-empty">
@@ -334,7 +326,6 @@ function DetailPanel({
               studentProfileId={row.id}
             />
           ))}
-
         {tab === "devices" && (
           <section>
             <h3>Devices</h3>
@@ -359,14 +350,13 @@ function DetailPanel({
                     disabled={mutating}
                     onClick={() => onRevokeDevice(device.id, device.userId)}
                   >
-                    Revoke device
+                    Manage in Security
                   </button>
                 )}
               </article>
             ))}
           </section>
         )}
-
         {tab === "sessions" && (
           <section>
             <h3>Sessions</h3>
@@ -389,7 +379,7 @@ function DetailPanel({
                     disabled={mutating}
                     onClick={() => onRevokeSession(session.id, session.userId)}
                   >
-                    Revoke session
+                    Manage in Security
                   </button>
                 )}
               </article>
@@ -402,6 +392,7 @@ function DetailPanel({
 }
 
 export function AdminStudentsPage() {
+  const navigate = useNavigate();
   const { brand, brandView, availableBrands } =
     useOutletContext<AdminStudentsOutletContext>();
   const [createOpen, setCreateOpen] = useState(false);
@@ -425,7 +416,6 @@ export function AdminStudentsPage() {
   const [actionReason, setActionReason] = useState("");
   const [tab, setTab] = useState<DetailTab>("profile");
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
-
   const { dataset, loading, error, retry, api } = useAdminStudents(
     brand,
     availableBrands,
@@ -435,12 +425,10 @@ export function AdminStudentsPage() {
   const mutationLock = useRef(false);
   const detailRequest = useRef(0);
   const pendingMutationKeys = useRef(new Map<string, string>());
-
   useEffect(() => {
     setBrandFilter(brandView);
     setPage(1);
   }, [brandView]);
-
   const rows = dataset?.rows ?? [];
   const levels = useMemo(
     () => [
@@ -467,11 +455,9 @@ export function AdminStudentsPage() {
         brandFilter === "all" || student.platform.platformCode === brandFilter;
       const matchesLevel = level === "all" || term.level === level;
       const matchesStatus = status === "all" || student.status === status;
-
       return matchesSearch && matchesBrand && matchesLevel && matchesStatus;
     });
   }, [brandFilter, level, rows, search, status]);
-
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const selectedStudent = rows.find((item) => item.id === selectedId);
@@ -482,7 +468,6 @@ export function AdminStudentsPage() {
     visible.length > 0 && visible.every((item) => selectedRows.has(item.id));
   const someSelected =
     visible.some((item) => selectedRows.has(item.id)) && !allSelected;
-
   const stats: readonly StudentStatCard[] = [
     {
       title: "Active students",
@@ -505,15 +490,12 @@ export function AdminStudentsPage() {
       icon: UsersRound,
     },
   ];
-
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
-
   useEffect(() => {
     if (allCheckbox.current) allCheckbox.current.indeterminate = someSelected;
   }, [someSelected]);
-
   async function chooseStudent(student: AdminStudentRow): Promise<void> {
     const requestId = detailRequest.current + 1;
     detailRequest.current = requestId;
@@ -522,7 +504,6 @@ export function AdminStudentsPage() {
     setDetailLoading(true);
     setDetailOpen(true);
     setTab("profile");
-
     try {
       const resolved = await loadAdminStudentDetail(api, student);
       if (detailRequest.current === requestId) setDetail(resolved);
@@ -530,7 +511,6 @@ export function AdminStudentsPage() {
       if (detailRequest.current === requestId) setDetailLoading(false);
     }
   }
-
   function resetFilters(): void {
     setSearch("");
     setBrandFilter(brandView);
@@ -538,16 +518,13 @@ export function AdminStudentsPage() {
     setStatus("all");
     setPage(1);
   }
-
   function getMutationKey(signature: string): string {
     const existing = pendingMutationKeys.current.get(signature);
     if (existing) return existing;
-
     const key = createRequestKey();
     pendingMutationKeys.current.set(signature, key);
     return key;
   }
-
   async function confirmAndRunAction(
     title: string,
     getSignature: (reason: string) => string,
@@ -558,9 +535,14 @@ export function AdminStudentsPage() {
     setActionError("");
     setPendingAction({ title, getSignature, execute: action });
   }
-
   async function executePendingAction(): Promise<void> {
-    if (!selectedStudent || !pendingAction || mutationLock.current || !actionReason.trim()) return;
+    if (
+      !selectedStudent ||
+      !pendingAction ||
+      mutationLock.current ||
+      !actionReason.trim()
+    )
+      return;
     const normalizedReason = actionReason.trim();
     const signature = pendingAction.getSignature(normalizedReason);
     const idempotencyKey = getMutationKey(signature);
@@ -568,7 +550,6 @@ export function AdminStudentsPage() {
     setMutating(true);
     setActionError("");
     setNotice("");
-
     try {
       await pendingAction.execute(normalizedReason, idempotencyKey);
       pendingMutationKeys.current.delete(signature);
@@ -591,10 +572,8 @@ export function AdminStudentsPage() {
       setMutating(false);
     }
   }
-
   function changeStatus(nextStatus: "active" | "suspended" | "disabled"): void {
     if (!selectedStudent) return;
-
     const studentId = selectedStudent.id;
     void confirmAndRunAction(
       nextStatus === "disabled"
@@ -610,34 +589,12 @@ export function AdminStudentsPage() {
         changeAdminStudentStatus(studentId, nextStatus, reason, key),
     );
   }
-
-  function revokeSession(sessionId: string, appUserId: string): void {
-    if (!selectedStudent) return;
-
-    const brandId = selectedStudent.platform.platformId;
-    void confirmAndRunAction(
-      "Revoke this backend session? The action will be recorded in the audit trail.",
-      (reason) => "session:" + brandId + ":" + sessionId + ":" + reason,
-      (reason, key) =>
-        revokeAdminStudentSession(
-          { brandId, appUserId, sessionId, reason },
-          key,
-        ),
-    );
+  function openSecurity(): void {
+    if (selectedStudent)
+      navigate(
+        `/admin/security?studentId=${encodeURIComponent(selectedStudent.id)}`,
+      );
   }
-
-  function revokeDevice(deviceId: string, appUserId: string): void {
-    if (!selectedStudent) return;
-
-    const brandId = selectedStudent.platform.platformId;
-    void confirmAndRunAction(
-      "Revoke this registered device? The action will be recorded in the audit trail.",
-      (reason) => "device:" + brandId + ":" + deviceId + ":" + reason,
-      (reason, key) =>
-        revokeAdminStudentDevice({ brandId, appUserId, deviceId, reason }, key),
-    );
-  }
-
   function toggleRow(studentId: string): void {
     setSelectedRows((current) => {
       const next = new Set(current);
@@ -646,7 +603,6 @@ export function AdminStudentsPage() {
       return next;
     });
   }
-
   function toggleVisibleRows(): void {
     setSelectedRows((current) => {
       const next = new Set(current);
@@ -657,14 +613,12 @@ export function AdminStudentsPage() {
       return next;
     });
   }
-
   function handleStudentCreated(): void {
     setNotice(
       "The account and academic placement were saved. Review and securely share the one-time setup details before closing the drawer.",
     );
     void retry();
   }
-
   return (
     <section
       className="admin-page admin-students-page"
@@ -681,7 +635,6 @@ export function AdminStudentsPage() {
           <span className="admin-students-preview">Local preview data</span>
         )}
       </header>
-
       {notice && (
         <div className="admin-workspace-inline-state" role="status">
           <ShieldCheck aria-hidden="true" />
@@ -700,7 +653,6 @@ export function AdminStudentsPage() {
           </div>
         </div>
       )}
-
       <AdminSideDrawer
         open={createOpen}
         eyebrow="Student provisioning"
@@ -716,7 +668,6 @@ export function AdminStudentsPage() {
           />
         )}
       </AdminSideDrawer>
-
       <div className="admin-students-stats">
         {stats.map((stat) => {
           const Icon = stat.icon;
@@ -724,7 +675,6 @@ export function AdminStudentsPage() {
             loading || error || stat.value === undefined
               ? "—"
               : number.format(stat.value);
-
           return (
             <article key={stat.title}>
               <span>
@@ -743,7 +693,6 @@ export function AdminStudentsPage() {
           );
         })}
       </div>
-
       <div
         className={
           "admin-students-workspace" + (detailOpen ? " has-detail" : "")
@@ -765,7 +714,6 @@ export function AdminStudentsPage() {
                 placeholder="Search students…"
               />
             </label>
-
             <label>
               <span className="admin-sr-only">Filter by brand</span>
               <select
@@ -785,7 +733,6 @@ export function AdminStudentsPage() {
                 ))}
               </select>
             </label>
-
             <label>
               <span className="admin-sr-only">Filter by academic level</span>
               <select
@@ -801,7 +748,6 @@ export function AdminStudentsPage() {
                 ))}
               </select>
             </label>
-
             <label>
               <span className="admin-sr-only">Filter by account status</span>
               <select
@@ -819,7 +765,6 @@ export function AdminStudentsPage() {
                 ))}
               </select>
             </label>
-
             <button
               type="button"
               className="admin-students-button"
@@ -850,7 +795,6 @@ export function AdminStudentsPage() {
               Add student
             </button>
           </div>
-
           <div className="admin-students-table-wrap">
             <table className="admin-students-table">
               <caption className="admin-sr-only">Students directory</caption>
@@ -938,7 +882,6 @@ export function AdminStudentsPage() {
                   const selected = student.id === selectedId && detailOpen;
                   const accessibleName =
                     student.displayName ?? "student profile";
-
                   return (
                     <tr
                       key={student.id}
@@ -1006,7 +949,6 @@ export function AdminStudentsPage() {
               </tbody>
             </table>
           </div>
-
           <footer className="admin-students-pagination">
             <span>
               {filtered.length
@@ -1041,15 +983,8 @@ export function AdminStudentsPage() {
             </div>
           </footer>
         </article>
-
-        <AdminSideDrawer
-          open={detailOpen && Boolean(selectedStudent)}
-          eyebrow="Student account"
-          title={selectedStudent?.displayName ?? "Student details"}
-          onClose={() => setDetailOpen(false)}
-        >
         <DetailPanel
-          row={selectedStudent}
+          row={detailOpen ? selectedStudent : undefined}
           detail={detail}
           detailLoading={detailLoading}
           tab={tab}
@@ -1058,22 +993,33 @@ export function AdminStudentsPage() {
           onTab={setTab}
           onClose={() => setDetailOpen(false)}
           onStatusChange={changeStatus}
-          onRevokeSession={revokeSession}
-          onRevokeDevice={revokeDevice}
+          onRevokeSession={openSecurity}
+          onRevokeDevice={openSecurity}
         />
-        </AdminSideDrawer>
       </div>
-      <AdminSideDrawer open={Boolean(pendingAction)} eyebrow="Account security"
-        title="Confirm account action" dismissible={!mutating}
-        onClose={() => setPendingAction(undefined)}>
-        <form className="admin-workspace-form" onSubmit={(event) => {
-          event.preventDefault();
-          void executePendingAction();
-        }}>
+      <AdminSideDrawer
+        open={Boolean(pendingAction)}
+        eyebrow="Account security"
+        title="Confirm account action"
+        dismissible={!mutating}
+        onClose={() => setPendingAction(undefined)}
+      >
+        <form
+          className="admin-workspace-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void executePendingAction();
+          }}
+        >
           <p>{pendingAction?.title}</p>
-          <label>Reason for the audit record
-            <textarea value={actionReason} maxLength={1000} disabled={mutating}
-              onChange={(event) => setActionReason(event.target.value)} />
+          <label>
+            Reason for the audit record
+            <textarea
+              value={actionReason}
+              maxLength={1000}
+              disabled={mutating}
+              onChange={(event) => setActionReason(event.target.value)}
+            />
           </label>
           {actionError && <p role="alert">{actionError}</p>}
           <button type="submit" disabled={mutating || !actionReason.trim()}>

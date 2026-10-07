@@ -1,15 +1,12 @@
-import {
-  ArrowLeft,
-  BookOpen,
-  Layers3,
-  Plus,
-  Search,
-  ShieldCheck,
-  X,
-} from "lucide-react";
+import { BookOpen, Layers3, Plus, Search, ShieldCheck, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link, useOutletContext } from "react-router-dom";
-import { WorkspaceInspector } from "../../../features/admin/components/AdminWorkspacePrimitives";
+import { Link, useOutletContext, useSearchParams } from "react-router-dom";
+import {
+  WorkspaceBadge,
+  WorkspaceInspector,
+} from "../../../features/admin/components/AdminWorkspacePrimitives";
+import { AdminSideDrawer } from "../../../features/admin/components/AdminSideDrawer";
+import { AdminCourseTemplateForm } from "../../../features/admin/courses/AdminCourseTemplateForm";
 import { AdminCourseInstructorAssignments } from "../../../features/admin/courses/AdminCourseInstructorAssignments";
 import type { AdminBrandView } from "../../../features/admin/api";
 import {
@@ -22,13 +19,11 @@ import {
   type CatalogueSemester,
   type DeliveryCourse,
 } from "../../../features/admin/api/adminDelivery.http";
-
 type CourseAcademicContext = {
   institution: CatalogueInstitution;
   level: CatalogueLevel;
   semester: CatalogueSemester;
 };
-
 type CourseDirectoryRow = {
   id: string;
   course: DeliveryCourse;
@@ -66,6 +61,10 @@ function rowSortKey(row: CourseDirectoryRow) {
 
 export function AdminCoursesPage() {
   const { brandView } = useOutletContext<{ brandView: AdminBrandView }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [action, setAction] = useState<
+    "create" | "edit" | "instructors" | null
+  >(searchParams.get("action") === "create" ? "create" : null);
   const [brands, setBrands] = useState<CatalogueBrand[]>([]);
   const [institutions, setInstitutions] = useState<CatalogueInstitution[]>([]);
   const [courses, setCourses] = useState<DeliveryCourse[]>([]);
@@ -75,13 +74,14 @@ export function AdminCoursesPage() {
   const [semesterId, setSemesterId] = useState("");
   const [status, setStatus] = useState("all");
   const [search, setSearch] = useState("");
-  const [selectedId, setSelectedId] = useState("");
+  const [selectedId, setSelectedId] = useState(
+    searchParams.get("courseId") ?? "",
+  );
   const [catalogueLoading, setCatalogueLoading] = useState(true);
   const [coursesLoading, setCoursesLoading] = useState(false);
   const [error, setError] = useState("");
   const [revision, setRevision] = useState(0);
   const [page, setPage] = useState(1);
-
   useEffect(() => {
     const controller = new AbortController();
     setCatalogueLoading(true);
@@ -89,7 +89,6 @@ export function AdminCoursesPage() {
     setCourses([]);
     setBrands([]);
     setInstitutions([]);
-    setSelectedId("");
     void Promise.all([
       adminDeliveryRequest<CatalogueBrand[]>(catalogueBrandAccessPath, {
         signal: controller.signal,
@@ -126,7 +125,6 @@ export function AdminCoursesPage() {
       });
     return () => controller.abort();
   }, [brandView, revision]);
-
   useEffect(() => {
     if (!brands.length) {
       setCourses([]);
@@ -162,17 +160,14 @@ export function AdminCoursesPage() {
       });
     return () => controller.abort();
   }, [brands, brandId]);
-
   useEffect(
     () => setPage(1),
     [brandId, institutionId, levelId, semesterId, status, search],
   );
-
   const selectedBrands = useMemo(() => {
     const active = brands.filter((item) => item.status === "active");
     return brandId ? active.filter((item) => item.id === brandId) : active;
   }, [brandId, brands]);
-
   const moduleContextById = useMemo(() => {
     const map = new Map<string, CourseAcademicContext>();
     for (const institution of institutions) {
@@ -186,7 +181,6 @@ export function AdminCoursesPage() {
     }
     return map;
   }, [institutions]);
-
   const allowedInstitutions = useMemo(() => {
     const allowedIds = new Set(
       selectedBrands.flatMap((brand) =>
@@ -197,7 +191,6 @@ export function AdminCoursesPage() {
       (item) => item.status === "active" && allowedIds.has(item.id),
     );
   }, [institutions, selectedBrands]);
-
   const levels = useMemo(() => {
     const source = institutionId
       ? allowedInstitutions.filter((item) => item.id === institutionId)
@@ -212,7 +205,6 @@ export function AdminCoursesPage() {
       ).values(),
     ].sort((a, b) => a.levelNumber - b.levelNumber);
   }, [allowedInstitutions, institutionId]);
-
   const semesters = useMemo(() => {
     const source = institutionId
       ? allowedInstitutions.filter((item) => item.id === institutionId)
@@ -229,7 +221,6 @@ export function AdminCoursesPage() {
       ).values(),
     ].sort((a, b) => a.semesterNumber - b.semesterNumber);
   }, [allowedInstitutions, institutionId, levelId]);
-
   const rows = useMemo<CourseDirectoryRow[]>(
     () =>
       courses.map((course) => ({
@@ -241,7 +232,6 @@ export function AdminCoursesPage() {
       })),
     [courses, moduleContextById],
   );
-
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
     return rows
@@ -257,21 +247,31 @@ export function AdminCoursesPage() {
       })
       .sort((a, b) => rowSortKey(a).localeCompare(rowSortKey(b)));
   }, [institutionId, levelId, rows, search, semesterId, status]);
-
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const selected =
     selectedId === "closed"
       ? undefined
       : (filtered.find((row) => row.id === selectedId) ?? filtered[0]);
-  const newCourse = `/admin/courses/new/builder${brandId ? `?brandId=${encodeURIComponent(brandId)}` : ""}`;
+  function closeAction() {
+    setAction(null);
+    if (searchParams.has("action")) {
+      const next = new URLSearchParams(searchParams);
+      next.delete("action");
+      setSearchParams(next, { replace: true });
+    }
+  }
+  function courseSaved(result: { brandId: string; courseId: string }) {
+    setSelectedId(result.courseId);
+    closeAction();
+    setRevision((value) => value + 1);
+  }
   const loading = catalogueLoading || coursesLoading;
   const rowCountLabel = loading
     ? "Loading courses…"
     : error
       ? "Courses unavailable"
       : `${filtered.length} courses`;
-
   return (
     <section
       className="admin-page admin-courses admin-courses-page"
@@ -285,10 +285,13 @@ export function AdminCoursesPage() {
             track delivery readiness.
           </p>
         </div>
-        <Link className="is-primary" to={newCourse}>
-          <Plus aria-hidden="true" />
-          Create course
-        </Link>
+        <button
+          className="is-primary"
+          type="button"
+          onClick={() => setAction("create")}
+        >
+          <Plus aria-hidden="true" /> Create course
+        </button>
       </header>
       <div className="admin-course-filterbar">
         <label>
@@ -413,10 +416,13 @@ export function AdminCoursesPage() {
               <BookOpen aria-hidden="true" />
               <h3>No courses yet</h3>
               <p>Create a course to add a brand-owned learning offering.</p>
-              <Link className="is-primary" to={newCourse}>
-                <Plus aria-hidden="true" />
-                Create course
-              </Link>
+              <button
+                className="is-primary"
+                type="button"
+                onClick={() => setAction("create")}
+              >
+                <Plus aria-hidden="true" /> Create course
+              </button>
             </div>
           ) : (
             <>
@@ -517,9 +523,9 @@ export function AdminCoursesPage() {
                             <td>
                               <Link
                                 className="admin-course-action-link"
-                                to={`/admin/courses/${encodeURIComponent(row.course.id)}/builder?brandId=${encodeURIComponent(row.course.brandId)}`}
+                                to={`/admin/content?courseId=${encodeURIComponent(row.course.id)}&brandId=${encodeURIComponent(row.course.brandId)}`}
                               >
-                                Build
+                                Open content
                               </Link>
                             </td>
                           </tr>
@@ -557,12 +563,49 @@ export function AdminCoursesPage() {
           <CourseDetailPanel
             row={selected}
             onClose={() => setSelectedId("closed")}
-            onCourseChanged={() => setRevision((value) => value + 1)}
+            onEdit={() => setAction("edit")}
+            onManageInstructors={() => setAction("instructors")}
           />
         ) : (
           <WorkspaceInspector title="Course details" selected={false} />
         )}
       </div>
+      <AdminSideDrawer
+        open={action !== null}
+        title={
+          action === "create"
+            ? "Create course"
+            : action === "instructors"
+              ? "Course instructors"
+              : "Edit course"
+        }
+        eyebrow={
+          action === "create"
+            ? "Course offering"
+            : (selected?.course.title ?? "Course offering")
+        }
+        onClose={closeAction}
+      >
+        {action === "create" ? (
+          <AdminCourseTemplateForm
+            initialBrandId={brandId || searchParams.get("brandId") || ""}
+            initialInstitutionId={institutionId}
+            initialLevelId={levelId}
+            initialSemesterId={semesterId}
+            onSaved={courseSaved}
+          />
+        ) : action === "edit" && selected ? (
+          <AdminCourseTemplateForm
+            course={selected.course}
+            onSaved={courseSaved}
+          />
+        ) : action === "instructors" && selected ? (
+          <AdminCourseInstructorAssignments
+            course={selected.course}
+            onChanged={() => setRevision((value) => value + 1)}
+          />
+        ) : null}
+      </AdminSideDrawer>
     </section>
   );
 }
@@ -570,25 +613,21 @@ export function AdminCoursesPage() {
 function CourseDetailPanel({
   row,
   onClose,
-  onCourseChanged,
+  onEdit,
+  onManageInstructors,
 }: {
   row: CourseDirectoryRow;
   onClose: () => void;
-  onCourseChanged: () => void;
+  onEdit: () => void;
+  onManageInstructors: () => void;
 }) {
   return (
     <aside className="admin-course-detail" aria-label="Course details">
       <div className="admin-course-detail__top">
-        <Link to="/admin/courses">
-          <ArrowLeft aria-hidden="true" />
-          Back to courses
-        </Link>
-        <Link
-          className="admin-course-new"
-          to={`/admin/courses/${encodeURIComponent(row.course.id)}/builder?brandId=${encodeURIComponent(row.course.brandId)}`}
-        >
-          Build course
-        </Link>
+        <strong>Course details</strong>
+        <button type="button" className="admin-course-new" onClick={onEdit}>
+          Edit course
+        </button>
       </div>
       <div className="admin-course-detail__identity">
         <div className={`admin-course-cover is-${row.course.brand.code}`}>
@@ -650,27 +689,55 @@ function CourseDetailPanel({
             <dd>{row.course.brand.name}</dd>
           </div>
           <div>
-            <dt>Version</dt>
-            <dd>{row.course.version}</dd>
+            <dt>Academic level</dt>
+            <dd>{row.context?.level.displayTitle ?? "Not assigned"}</dd>
+          </div>
+          <div>
+            <dt>Semester</dt>
+            <dd>{row.context?.semester.displayTitle ?? "Not assigned"}</dd>
           </div>
           <div>
             <dt>Last updated</dt>
             <dd>{new Date(row.course.updatedAt).toLocaleDateString()}</dd>
           </div>
         </dl>
-        <AdminCourseInstructorAssignments
-          course={row.course}
-          onChanged={onCourseChanged}
-        />
+        <section
+          className="admin-course-instructor-summary"
+          aria-label="Assigned instructors"
+        >
+          <header>
+            <h3>Course instructor assignments</h3>
+            <button type="button" onClick={onManageInstructors}>
+              Manage
+            </button>
+          </header>
+          {row.course.instructorAssignments.length ? (
+            <ul>
+              {row.course.instructorAssignments.map((assignment) => (
+                <li key={assignment.instructorId}>
+                  <span>{assignment.displayName}</span>
+                  <WorkspaceBadge value={assignment.status} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No instructors assigned.</p>
+          )}
+        </section>
         <div className="admin-course-actions">
-          <Link
-            to={`/admin/courses/${encodeURIComponent(row.course.id)}/builder?brandId=${encodeURIComponent(row.course.brandId)}`}
-          >
+          <button type="button" onClick={onEdit}>
             <Layers3 aria-hidden="true" />
-            <span>Edit course template and structure</span>
+            <span>Edit course / map to curriculum</span>
             <small>
-              Manage the course shell, chapters, lessons, and metadata.
+              Course identity, academic reference and archive state.
             </small>
+          </button>
+          <Link
+            to={`/admin/content?courseId=${encodeURIComponent(row.course.id)}&brandId=${encodeURIComponent(row.course.brandId)}`}
+          >
+            <BookOpen aria-hidden="true" />
+            <span>Open content</span>
+            <small>Manage chapters, lessons, videos and documents.</small>
           </Link>
         </div>
       </div>

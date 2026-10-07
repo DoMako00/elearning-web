@@ -19,7 +19,6 @@ export interface AdminNavigationItem {
   permission?: AdminPermissionCode;
   description: string;
 }
-
 // Navigation visibility is presentation only; the backend remains authoritative for permissions.
 const allAdminNavigation: readonly AdminNavigationItem[] = [
   {
@@ -41,7 +40,8 @@ const allAdminNavigation: readonly AdminNavigationItem[] = [
     path: "/admin/subscriptions",
     icon: CalendarDays,
     permission: "admin.subscriptions.read",
-    description: "Plans, seats, and subscription lifecycle.",
+    description:
+      "Subscription dates, course access, capacity, and cancellation.",
   },
   {
     label: "Curriculum",
@@ -70,7 +70,7 @@ const allAdminNavigation: readonly AdminNavigationItem[] = [
     path: "/admin/payments",
     icon: CreditCard,
     permission: "admin.payments.read",
-    description: "Payments, orders, and review status.",
+    description: "Review manual payment evidence, approve or reject orders.",
   },
   {
     label: "Content",
@@ -84,11 +84,25 @@ const allAdminNavigation: readonly AdminNavigationItem[] = [
     path: "/admin/security",
     icon: ShieldCheck,
     permission: "admin.security.read",
-    description: "Security events and account risk.",
+    description: "Manage registered devices, sessions, and security activity.",
   },
 ];
 
-export const adminNavigation = allAdminNavigation;
+const routeOrder = [
+  "/admin",
+  "/admin/curriculum",
+  "/admin/courses",
+  "/admin/instructors",
+  "/admin/students",
+  "/admin/payments",
+  "/admin/subscriptions",
+  "/admin/content",
+  "/admin/security",
+] as const;
+
+export const adminNavigation = routeOrder.map(
+  (path) => allAdminNavigation.find((item) => item.path === path)!,
+);
 
 const additionalRouteMetadata: readonly Omit<AdminNavigationItem, "icon">[] = [
   {
