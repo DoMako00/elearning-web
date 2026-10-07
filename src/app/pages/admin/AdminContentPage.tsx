@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useOutletContext, useSearchParams } from "react-router-dom";
+import { useOutletContext, useSearchParams } from "react-router-dom";
 import type { AdminBrandContext } from "../../../features/admin/api";
 import {
   adminDeliveryRequest,
@@ -116,11 +116,23 @@ export function AdminContentPage() {
       className="admin-page admin-workspace-page admin-content-live"
       aria-label="Content management"
     >
-      <div className="admin-content-live__toolbar">
-        <strong>Content library</strong>
-        <span>{brand?.brandDisplayName ?? "All authorized brands"}</span>
-        <Link to="/admin/courses">Manage course offerings →</Link>
-      </div>
+      <nav className="admin-content-live__tabs" aria-label="Content sections">
+        <button type="button" aria-current="page">
+          Content Library
+        </button>
+        <button type="button" disabled aria-disabled="true">
+          Media Library
+        </button>
+        <button type="button" disabled aria-disabled="true">
+          Question Bank
+        </button>
+        <button type="button" disabled aria-disabled="true">
+          Categories
+        </button>
+        <button type="button" disabled aria-disabled="true">
+          Tags
+        </button>
+      </nav>
       {loadingCourses || error ? (
         <WorkspaceState
           loading={loadingCourses}

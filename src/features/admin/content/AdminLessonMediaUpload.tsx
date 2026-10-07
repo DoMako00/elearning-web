@@ -544,6 +544,7 @@ export function AdminLessonMediaUpload({
       {accessStatus && <span role="status">{accessStatus}</span>}
       {existingAsset && state !== "published" && (
         <button
+          className="admin-media-upload__publish-existing"
           type="button"
           disabled={isBusyState}
           onClick={() => void publishExistingAsset()}

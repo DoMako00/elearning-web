@@ -8,6 +8,7 @@ import {
 import {
   BookOpen,
   CheckCircle2,
+  ChevronRight,
   FileText,
   Link2,
   Plus,
@@ -100,6 +101,8 @@ export function AdminContentEditor({
   const [editingLesson, setEditingLesson] = useState(false);
   const [editingResource, setEditingResource] = useState(false);
   const [editResourceTitle, setEditResourceTitle] = useState("");
+  const [editResourceStatus, setEditResourceStatus] =
+    useState<DeliveryResource["status"]>("draft");
   const [reason, setReason] = useState("");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
@@ -367,9 +370,9 @@ export function AdminContentEditor({
       status: isBinaryResource ? "draft" : resourceStatus,
     });
   }
-  const selectedResource = activeLesson?.resources.find(
-    (item) => item.id === selectedResourceId,
-  );
+  const selectedResource =
+    activeLesson?.resources.find((item) => item.id === selectedResourceId) ??
+    activeLesson?.resources[0];
   if (loading || !course)
     return (
       <WorkspaceCard title="Course content">
@@ -404,6 +407,7 @@ export function AdminContentEditor({
                   setSelectedResourceId("");
                 }}
               >
+                <ChevronRight aria-hidden="true" />
                 <BookOpen aria-hidden="true" />
                 <span>{chapter.title}</span>
                 <small>{chapter.lessons.length}</small>
@@ -442,29 +446,73 @@ export function AdminContentEditor({
         </footer>
       </WorkspaceCard>
       <WorkspaceCard
-        title={activeLesson?.title ?? course.title}
+        title="Lesson resources"
         className="admin-content-editor__resources"
-        aside={<WorkspaceBadge value={activeLesson?.status ?? course.status} />}
       >
-        <div className="admin-content-editor__breadcrumb">
-          {course.brand.name} / {course.title} /{" "}
-          {activeChapter?.title ?? "Course outline"}
+        <div className="admin-content-editor__lesson-header">
+          <div className="admin-content-editor__breadcrumb">
+            {course.title} / {activeChapter?.title ?? "Course outline"}
+          </div>
+          <div className="admin-content-editor__lesson-title">
+            <div>
+              <h2>{activeLesson?.title ?? course.title}</h2>
+              <p>
+                {activeLesson
+                  ? `Lesson · ${selectedResource ? RESOURCE_LABELS[selectedResource.kind] : "No resources"} · Course updated ${new Date(course.updatedAt).toLocaleDateString()}`
+                  : `Course · ${course.code} · ${course.brand.name}`}
+              </p>
+            </div>
+            <WorkspaceBadge value={activeLesson?.status ?? course.status} />
+          </div>
         </div>
-        <div className="admin-workspace-toolbar">
-          <strong>Lesson resources</strong>
+        <nav
+          className="admin-content-editor__tabs"
+          aria-label="Lesson workspace sections"
+        >
+          <button type="button" aria-current="page">
+            Resources
+          </button>
+          <button type="button" disabled aria-disabled="true">
+            Details
+          </button>
+          <button type="button" disabled aria-disabled="true">
+            Settings
+          </button>
+          <button type="button" disabled aria-disabled="true">
+            Analytics
+          </button>
+        </nav>
+        <div className="admin-workspace-toolbar admin-content-editor__resource-toolbar">
+          <div>
+            <strong>Lesson resources</strong>
+            <small>Upload and publish lesson materials.</small>
+          </div>
           <button
             type="button"
             disabled={!activeLesson || saving}
             onClick={() => setCreateKind("resource")}
           >
             <Plus aria-hidden="true" />
-            Add video / PDF
+            Add resource
           </button>
           <button
+            type="button"
+            disabled={!activeLesson || saving}
+            onClick={() => {
+              setResourceKind("quiz");
+              setCreateKind("resource");
+            }}
+          >
+            <CheckCircle2 aria-hidden="true" />
+            Create quiz
+          </button>
+          <button
+            className="is-primary"
             type="button"
             disabled={!activeChapter || saving}
             onClick={() => setCreateKind("lesson")}
           >
+            <Plus aria-hidden="true" />
             Add lesson
           </button>
         </div>
@@ -529,6 +577,41 @@ export function AdminContentEditor({
             />
           )}
         </div>
+        {selectedResource &&
+          activeLesson &&
+          (selectedResource.kind === "video" ||
+            selectedResource.kind === "document") && (
+            <section className="admin-content-editor__media" aria-label="Media upload and publication">
+              <header>
+                <div>
+                  <h3>Media upload &amp; publication</h3>
+                  <p>
+                    {selectedResource.status === "published"
+                      ? "Published media can be withdrawn from this resource."
+                      : "Upload and verify the file, or publish an existing verified upload."}
+                  </p>
+                </div>
+                <WorkspaceBadge value={selectedResource.status} />
+              </header>
+              {selectedResource.status === "published" ? (
+                <AdminLessonMediaManagement
+                  key={selectedResource.id}
+                  course={course}
+                  lessonId={activeLesson.id}
+                  resource={selectedResource}
+                  onChanged={() => setRevision((value) => value + 1)}
+                />
+              ) : (
+                <AdminLessonMediaUpload
+                  key={selectedResource.id}
+                  course={course}
+                  lessonId={activeLesson.id}
+                  resource={selectedResource}
+                  onPublished={() => setRevision((value) => value + 1)}
+                />
+              )}
+            </section>
+          )}
         <footer className="admin-content-editor__footer">
           <span>Course and resource publication are separate.</span>
           <button
@@ -581,6 +664,7 @@ export function AdminContentEditor({
               disabled={saving}
               onClick={() => {
                 setEditResourceTitle(selectedResource.title);
+                setEditResourceStatus(selectedResource.status);
                 setEditingResource(true);
               }}
             >
@@ -610,37 +694,34 @@ export function AdminContentEditor({
             </button>
           </div>
         </section>
-        {selectedResource &&
-          activeLesson &&
-          (selectedResource.kind === "video" ||
-            selectedResource.kind === "document") && (
-            <section className="admin-inspector-section">
-              <h3>Upload & publication</h3>
-              {selectedResource.status === "published" ? (
-                <AdminLessonMediaManagement
-                  key={selectedResource.id}
-                  course={course}
-                  lessonId={activeLesson.id}
-                  resource={selectedResource}
-                  onChanged={() => setRevision((value) => value + 1)}
-                />
-              ) : (
-                <AdminLessonMediaUpload
-                  key={selectedResource.id}
-                  course={course}
-                  lessonId={activeLesson.id}
-                  resource={selectedResource}
-                  onPublished={() => setRevision((value) => value + 1)}
-                />
-              )}
-            </section>
-          )}
-        <section className="admin-inspector-section">
-          <h3>Scheduling & visibility</h3>
+
+        <section className="admin-inspector-section admin-content-editor__settings-card">
+          <div className="admin-content-editor__section-heading">
+            <h3>Scheduling &amp; release</h3>
+            <span>Unavailable</span>
+          </div>
           <p>
-            Delivery follows the published course release and effective access
-            rules. Release scheduling controls are unavailable in this frontend
-            contract.
+            Release scheduling is not exposed by the current API contract.
+            Published course release rules still govern delivery.
+          </p>
+        </section>
+        <section className="admin-inspector-section admin-content-editor__settings-card">
+          <div className="admin-content-editor__section-heading">
+            <h3>Visibility &amp; access</h3>
+            <span>Backend controlled</span>
+          </div>
+          <p>
+            Student access follows the effective grant and enrollment checks.
+            This page does not override access rules.
+          </p>
+        </section>
+        <section className="admin-inspector-section admin-content-editor__settings-card">
+          <div className="admin-content-editor__section-heading">
+            <h3>Lesson progress</h3>
+            <span>Unavailable</span>
+          </div>
+          <p>
+            Progress analytics are not included in the current Admin read model.
           </p>
         </section>
         {module?.chapters?.length ? (
@@ -705,11 +786,47 @@ export function AdminContentEditor({
                         ? editChapterTitle
                         : editLessonTitle
                     ).trim(),
+                    ...(editingResource &&
+                    selectedResource &&
+                    selectedResource.kind !== "video" &&
+                    selectedResource.kind !== "document"
+                      ? { status: editResourceStatus }
+                      : {}),
                   },
                 );
             }
           }}
         >
+          {editingResource &&
+            selectedResource &&
+            selectedResource.kind !== "video" &&
+            selectedResource.kind !== "document" && (
+              <label>
+                Publication status
+                <select
+                  disabled={saving}
+                  value={editResourceStatus}
+                  onChange={(event) =>
+                    setEditResourceStatus(
+                      event.target.value as DeliveryResource["status"],
+                    )
+                  }
+                >
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </label>
+            )}
+          {editingResource &&
+            selectedResource &&
+            (selectedResource.kind === "video" ||
+              selectedResource.kind === "document") && (
+              <p>
+                Media resources can only be published after the upload is
+                verified. Use the Media upload &amp; publication panel.
+              </p>
+            )}
           <label>
             Title
             <input
