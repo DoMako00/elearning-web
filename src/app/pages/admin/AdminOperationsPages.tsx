@@ -64,6 +64,8 @@ import {
   type CatalogueBrand,
 } from "../../../features/admin/api/adminDelivery.http";
 import { AdminSubscriptionDetailDialog } from "../../../features/admin/subscriptions/AdminSubscriptionDetailDialog";
+import { AdminLessonMediaManagement } from "../../../features/admin/courses/AdminLessonMediaManagement";
+import { AdminLessonMediaUpload } from "../../../features/admin/courses/AdminLessonMediaUpload";
 
 type ReadResult<T> = AdminListResponse<T> | { success: false };
 type ListLoader<T> = (
@@ -434,6 +436,10 @@ export function AdminSubscriptionsPage() {
   const [error, setError] = useState<string | null>(null);
   const [revision, setRevision] = useState(0);
   const [reviewReason, setReviewReason] = useState("");
+  const [reviewTarget, setReviewTarget] = useState<{
+    readonly order: ManualSubscriptionOrder;
+    readonly action: "approve" | "reject";
+  } | null>(null);
   const [cancelTarget, setCancelTarget] = useState<AdminSubscription | null>(
     null,
   );
@@ -676,6 +682,7 @@ export function AdminSubscriptionsPage() {
       }
       pendingOperationKeys.current.delete(signature);
       setReviewReason("");
+      setReviewTarget(null);
       refresh();
     } catch (cause) {
       setError(
@@ -992,16 +999,6 @@ export function AdminSubscriptionsPage() {
             ))}
           </div>
         )}
-        <label className="admin-workspace-form">
-          Review reason
-          <input
-            required
-            maxLength={500}
-            value={reviewReason}
-            onChange={(event) => setReviewReason(event.target.value)}
-            placeholder="Record why you approve or reject the evidence"
-          />
-        </label>
         <Toolbar
           search={orderSearch}
           onSearch={setOrderSearch}
@@ -1052,15 +1049,21 @@ export function AdminSubscriptionsPage() {
                       <span className="admin-workspace-actions-inline">
                         <button
                           type="button"
-                          disabled={saving || !reviewReason.trim()}
-                          onClick={() => void review(order.id, "approve")}
+                          disabled={saving}
+                          onClick={() => {
+                            setReviewReason("");
+                            setReviewTarget({ order, action: "approve" });
+                          }}
                         >
                           Approve
                         </button>
                         <button
                           type="button"
-                          disabled={saving || !reviewReason.trim()}
-                          onClick={() => void review(order.id, "reject")}
+                          disabled={saving}
+                          onClick={() => {
+                            setReviewReason("");
+                            setReviewTarget({ order, action: "reject" });
+                          }}
                         >
                           Reject
                         </button>
@@ -1087,6 +1090,57 @@ export function AdminSubscriptionsPage() {
           />
         )}
       </WorkspaceCard>
+
+      {reviewTarget && (
+        <AdminSideDrawer
+          open
+          eyebrow="Manual order review"
+          title={reviewTarget.action === "approve" ? "Approve order" : "Reject order"}
+          dismissible={!saving}
+          onClose={() => setReviewTarget(null)}
+        >
+          <form
+            className="admin-workspace-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void review(reviewTarget.order.id, reviewTarget.action);
+            }}
+          >
+            <dl className="admin-workspace-fields">
+              <div><dt>Student</dt><dd>{reviewTarget.order.studentName ?? "Student"}</dd></div>
+              <div><dt>Brand</dt><dd>{reviewTarget.order.brandCode}</dd></div>
+              <div><dt>Plan</dt><dd>{reviewTarget.order.planCode.replaceAll("_", " ")}</dd></div>
+              <div><dt>Courses</dt><dd>{reviewTarget.order.courseCount}</dd></div>
+              <div><dt>Payment method</dt><dd>{reviewTarget.order.paymentMethod?.replaceAll("_", " ") ?? "Not recorded"}</dd></div>
+            </dl>
+            <p>
+              {reviewTarget.action === "approve"
+                ? "Approval creates the subscription and its access records. Confirm the payment evidence before continuing."
+                : "Reject this pending order. No subscription or course access will be created."}
+            </p>
+            <label>
+              Review reason
+              <textarea
+                required
+                maxLength={500}
+                value={reviewReason}
+                disabled={saving}
+                onChange={(event) => setReviewReason(event.target.value)}
+                placeholder="Record why this order is approved or rejected"
+              />
+            </label>
+            {error && <p role="alert">{error}</p>}
+            <div className="admin-workspace-actions">
+              <button type="button" disabled={saving} onClick={() => setReviewTarget(null)}>
+                Keep pending
+              </button>
+              <button type="submit" disabled={saving || !reviewReason.trim()}>
+                {saving ? "Saving…" : reviewTarget.action === "approve" ? "Confirm approval" : "Confirm rejection"}
+              </button>
+            </div>
+          </form>
+        </AdminSideDrawer>
+      )}
 
       <WorkspaceCard
         title="Subscriptions"
@@ -1357,6 +1411,7 @@ export function AdminContentPage() {
   const selectedChapter = selection?.kind === "chapter" ? chapters.find((item) => item.id === selection.id) : undefined;
   const selectedLesson = selection?.kind === "lesson" ? lessons.find((item) => item.id === selection.id) : undefined;
   const selectedResource = selection?.kind === "resource" ? resources.find((item) => item.id === selection.id) : undefined;
+  const selectedResourceLesson = selectedResource ? lessons.find((item) => item.id === selectedResource.courseLessonId) : undefined;
   const selectedTitle = selectedResource?.title ?? selectedLesson?.title ?? selectedChapter?.title ?? selectedCourse?.title ?? "Select course content";
   const selectedStatus = selectedResource?.status ?? selectedLesson?.status ?? selectedChapter?.status ?? selectedCourse?.status ?? "";
   const selectedType = selectedResource?.resourceKind ?? (selectedLesson ? "lesson" : selectedChapter ? "chapter" : selectedCourse ? "course" : "");
@@ -1420,11 +1475,40 @@ export function AdminContentPage() {
               <div><dt>Status</dt><dd>{selectedStatus || "Unavailable"}</dd></div>
               <div><dt>Course</dt><dd>{selectedCourse?.title ?? "Unavailable"}</dd></div>
               <div><dt>Resource type</dt><dd>{selectedResource?.resourceKind ?? "—"}</dd></div>
+              <div><dt>Course status</dt><dd>{selectedCourse?.status ?? "Unavailable"}</dd></div>
+              {selectedResource && <div><dt>Media workflow</dt><dd>{selectedResource.status === "published" ? "Published to lesson" : "Needs media verification or publishing"}</dd></div>}
               <div><dt>Sort order</dt><dd>{selectedResource?.sortOrder ?? selectedLesson?.sortOrder ?? selectedChapter?.sortOrder ?? "—"}</dd></div>
             </dl>
             <div className="admin-content-live__action">
-              <Link to={courseBuilderUrl}>Open course builder <ChevronRight aria-hidden="true" /></Link>
-              <p>Upload, verify, and publish lesson media in the course builder. Files upload directly to private storage.</p>
+              {selectedResource && selectedResourceLesson && selectedCourse && (selectedResource.resourceKind === "video" || selectedResource.resourceKind === "document") ? (
+                <>
+                  <strong>Lesson media</strong>
+                  <p>Course publication and lesson media publication are separate. This resource is <b>{selectedResource.status}</b>; the course is <b>{selectedCourse.status}</b>.</p>
+                  {selectedResource.status === "published" ? (
+                    <AdminLessonMediaManagement
+                      key={selectedResource.id}
+                      course={selectedCourse}
+                      lessonId={selectedResourceLesson.id}
+                      resource={selectedResource}
+                      onChanged={() => setRevision((value) => value + 1)}
+                    />
+                  ) : (
+                    <AdminLessonMediaUpload
+                      key={selectedResource.id}
+                      course={selectedCourse}
+                      lessonId={selectedResourceLesson.id}
+                      resource={selectedResource}
+                      onPublished={() => setRevision((value) => value + 1)}
+                    />
+                  )}
+                  <Link to={courseBuilderUrl}>Open course builder <ChevronRight aria-hidden="true" /></Link>
+                </>
+              ) : (
+                <>
+                  <Link to={courseBuilderUrl}>Open course builder <ChevronRight aria-hidden="true" /></Link>
+                  <p>Select a video or PDF lesson resource to verify, publish, or withdraw its media here.</p>
+                </>
+              )}
             </div>
           </aside>
         </div>
