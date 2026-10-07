@@ -3245,3 +3245,183 @@
     flex-direction: column;
   }
 }
+
+/* Content resource publishing: keep the real upload action clear and near the resource list. */
+.admin-shell .admin-content-editor__resources .admin-workspace-table-wrap {
+  flex: 0 1 auto;
+  max-height: min(38vh, 320px);
+}
+
+.admin-shell .admin-content-editor__media {
+  min-height: 0;
+  flex: 1 1 auto;
+  justify-content: flex-start;
+  margin: 12px 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload {
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 9px;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__actions,
+.admin-shell .admin-content-editor__media .admin-media-upload__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__actions {
+  flex-wrap: wrap;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__dropzone {
+  position: relative;
+  display: grid;
+  min-height: 116px;
+  flex: 1 1 auto;
+  align-content: center;
+  justify-items: center;
+  gap: 7px;
+  overflow: hidden;
+  padding: 16px;
+  border: 1px dashed #cbd8ce;
+  border-radius: 8px;
+  background: #fcfdfc;
+  color: #42564a;
+  text-align: center;
+  cursor: pointer;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__dropzone:hover,
+.admin-shell .admin-content-editor__media .admin-media-upload__dropzone.is-dragging {
+  border-color: #27894a;
+  background: #f4faf5;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__dropzone:focus-within {
+  outline: 2px solid #3a8d53;
+  outline-offset: -3px;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__dropzone > svg {
+  width: 20px;
+  height: 20px;
+  color: #27894a;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__dropzone strong {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: #34463a;
+  font-size: 11px;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__dropzone small,
+.admin-shell .admin-content-editor__media .admin-media-upload__status {
+  color: #758279;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__dropzone
+  input[type="file"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px 16px;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__options
+  > label:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__options select {
+  min-height: 32px;
+  font-size: 10px;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__watermark {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  gap: 6px;
+  color: #65746a;
+  font-size: 9px;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__lookup-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #f0d6d6;
+  border-radius: 6px;
+  background: #fff8f8;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__lookup-error
+  [role="alert"],
+.admin-shell .admin-content-editor__media .admin-media-upload__error {
+  color: #9f3d3d;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__footer > button,
+.admin-shell .admin-content-editor__media .admin-media-upload__publish-existing {
+  min-height: 34px;
+  border-color: #27894a;
+  border-radius: 6px;
+  background: #27894a;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__footer
+  > button:disabled,
+.admin-shell .admin-content-editor__media
+  .admin-media-upload__publish-existing:disabled {
+  border-color: #e2e8e3;
+  background: #f5f7f5;
+  color: #8a958d;
+}
+
+.admin-shell .admin-content-editor .admin-inspector-section
+  .admin-content-editor__media-guidance {
+  margin: 8px 0 0;
+  padding: 8px 9px;
+  border-left: 2px solid #27894a;
+  border-radius: 0 5px 5px 0;
+  background: #f5faf6;
+  color: #68766d;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.admin-shell .admin-content-editor .admin-inspector-section
+  .admin-content-editor__media-guidance strong {
+  color: #394b40;
+}

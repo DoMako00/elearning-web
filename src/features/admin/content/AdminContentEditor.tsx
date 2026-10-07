@@ -97,6 +97,12 @@ export function AdminContentEditor({
   const [resourceStatus] = useState<"draft" | "published">("draft");
   const [editChapterTitle, setEditChapterTitle] = useState("");
   const [editLessonTitle, setEditLessonTitle] = useState("");
+  const [editChapterStatus, setEditChapterStatus] = useState<
+    DeliveryChapter["status"]
+  >("draft");
+  const [editLessonStatus, setEditLessonStatus] = useState<
+    DeliveryLesson["status"]
+  >("draft");
   const [editingChapter, setEditingChapter] = useState(false);
   const [editingLesson, setEditingLesson] = useState(false);
   const [editingResource, setEditingResource] = useState(false);
@@ -341,6 +347,12 @@ export function AdminContentEditor({
       setSaving(false);
     }
   }
+  function openCreateDrawer(kind: "chapter" | "lesson" | "resource"): void {
+    setReason("");
+    setError("");
+    setNotice("");
+    setCreateKind(kind);
+  }
   function addChapter(): void {
     if (!chapterTitle.trim()) return;
     void saveNew("chapters", {
@@ -435,7 +447,7 @@ export function AdminContentEditor({
           <button
             type="button"
             disabled={saving}
-            onClick={() => setCreateKind("chapter")}
+            onClick={() => openCreateDrawer("chapter")}
           >
             <Plus aria-hidden="true" />
             Add chapter
@@ -462,7 +474,13 @@ export function AdminContentEditor({
                   : `Course · ${course.code} · ${course.brand.name}`}
               </p>
             </div>
-            <WorkspaceBadge value={activeLesson?.status ?? course.status} />
+            <WorkspaceBadge
+              value={
+                selectedResource?.status ??
+                activeLesson?.status ??
+                course.status
+              }
+            />
           </div>
         </div>
         <nav
@@ -490,7 +508,10 @@ export function AdminContentEditor({
           <button
             type="button"
             disabled={!activeLesson || saving}
-            onClick={() => setCreateKind("resource")}
+            onClick={() => {
+              setResourceKind("document");
+              openCreateDrawer("resource");
+            }}
           >
             <Plus aria-hidden="true" />
             Add resource
@@ -500,7 +521,7 @@ export function AdminContentEditor({
             disabled={!activeLesson || saving}
             onClick={() => {
               setResourceKind("quiz");
-              setCreateKind("resource");
+              openCreateDrawer("resource");
             }}
           >
             <CheckCircle2 aria-hidden="true" />
@@ -510,7 +531,7 @@ export function AdminContentEditor({
             className="is-primary"
             type="button"
             disabled={!activeChapter || saving}
-            onClick={() => setCreateKind("lesson")}
+            onClick={() => openCreateDrawer("lesson")}
           >
             <Plus aria-hidden="true" />
             Add lesson
@@ -663,20 +684,36 @@ export function AdminContentEditor({
               type="button"
               disabled={saving}
               onClick={() => {
+                setReason("");
+                setError("");
                 setEditResourceTitle(selectedResource.title);
                 setEditResourceStatus(selectedResource.status);
                 setEditingResource(true);
               }}
             >
-              Edit resource details
+              {selectedResource.kind === "video" ||
+              selectedResource.kind === "document"
+                ? "Edit resource title"
+                : "Edit resource details and status"}
             </button>
+          )}
+          {(selectedResource?.kind === "video" ||
+            selectedResource?.kind === "document") && (
+            <p className="admin-content-editor__media-guidance">
+              This {RESOURCE_LABELS[selectedResource.kind].toLowerCase()} is{" "}
+              <strong>{selectedResource.status}</strong>. Publish it from the
+              media panel after its linked file is verified.
+            </p>
           )}
           <div className="admin-workspace-actions">
             <button
               type="button"
               disabled={!activeChapter || saving}
               onClick={() => {
+                setReason("");
+                setError("");
                 setEditChapterTitle(activeChapter?.title ?? "");
+                setEditChapterStatus(activeChapter?.status ?? "draft");
                 setEditingChapter(true);
               }}
             >
@@ -686,7 +723,10 @@ export function AdminContentEditor({
               type="button"
               disabled={!activeLesson || saving}
               onClick={() => {
+                setReason("");
+                setError("");
                 setEditLessonTitle(activeLesson?.title ?? "");
+                setEditLessonStatus(activeLesson?.status ?? "draft");
                 setEditingLesson(true);
               }}
             >
@@ -792,11 +832,49 @@ export function AdminContentEditor({
                     selectedResource.kind !== "document"
                       ? { status: editResourceStatus }
                       : {}),
+                    ...(editingChapter ? { status: editChapterStatus } : {}),
+                    ...(editingLesson ? { status: editLessonStatus } : {}),
                   },
                 );
             }
           }}
         >
+          {editingChapter && (
+            <label>
+              Chapter status
+              <select
+                disabled={saving}
+                value={editChapterStatus}
+                onChange={(event) =>
+                  setEditChapterStatus(
+                    event.target.value as DeliveryChapter["status"],
+                  )
+                }
+              >
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+                <option value="archived">Archived</option>
+              </select>
+            </label>
+          )}
+          {editingLesson && (
+            <label>
+              Lesson status
+              <select
+                disabled={saving}
+                value={editLessonStatus}
+                onChange={(event) =>
+                  setEditLessonStatus(
+                    event.target.value as DeliveryLesson["status"],
+                  )
+                }
+              >
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+                <option value="archived">Archived</option>
+              </select>
+            </label>
+          )}
           {editingResource &&
             selectedResource &&
             selectedResource.kind !== "video" &&

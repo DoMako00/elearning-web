@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { UploadCloud } from "lucide-react";
 import {
   adminDeliveryRequest,
   deliveryCoursePath,
@@ -147,6 +148,10 @@ export function AdminLessonMediaUpload({
   const [isBusyState, setIsBusyState] = useState(false);
   const [retryAllowed, setRetryAllowed] = useState(true);
   const [existingAsset, setExistingAsset] = useState<AdminMediaAsset>();
+  const [assetLookupLoading, setAssetLookupLoading] = useState(true);
+  const [assetLookupError, setAssetLookupError] = useState("");
+  const [assetLookupRevision, setAssetLookupRevision] = useState(0);
+  const [isDragOver, setIsDragOver] = useState(false);
   const busy = useRef(false);
   const pendingAssetCommand = useRef<PendingAssetCommand | undefined>(
     undefined,
@@ -155,6 +160,8 @@ export function AdminLessonMediaUpload({
   const activeMultipartId = useRef<string | undefined>(undefined);
   useEffect(() => {
     let current = true;
+    setAssetLookupLoading(true);
+    setAssetLookupError("");
     void inspectAdminLessonMedia(course, lessonId)
       .then(({ assets }) => {
         if (!current) return;
@@ -168,13 +175,34 @@ export function AdminLessonMediaUpload({
           ),
         );
       })
-      .catch(() => {
-        if (current) setExistingAsset(undefined);
+      .catch((cause: unknown) => {
+        if (!current) return;
+        setExistingAsset(undefined);
+        setAssetLookupError(
+          cause instanceof Error
+            ? cause.message
+            : "Saved media status could not be loaded.",
+        );
+      })
+      .finally(() => {
+        if (current) setAssetLookupLoading(false);
       });
     return () => {
       current = false;
     };
-  }, [course, lessonId, resource.id]);
+  }, [course, lessonId, resource.id, assetLookupRevision]);
+  function selectFile(nextFile: File | undefined): void {
+    if (!nextFile) return;
+    setFile(nextFile);
+    setError("");
+    setAccessStatus("");
+    setProgress(0);
+    setState("idle");
+    setRetryAllowed(true);
+    activeAssetId.current = undefined;
+    activeMultipartId.current = undefined;
+    pendingAssetCommand.current = undefined;
+  }
   if (!mediaType || !filePolicy) {
     return <span>Binary upload is not used for this resource type.</span>;
   }
@@ -479,54 +507,128 @@ export function AdminLessonMediaUpload({
       setIsBusyState(false);
     }
   }
+  const fileLabel =
+    uploadMediaType === "video" ? "MP4 video" : "PDF document";
+  const existingAssetAction =
+    existingAsset?.status === "uploaded"
+      ? "Verify and publish saved upload"
+      : existingAsset?.status === "verified"
+        ? "Publish verified upload"
+        : "Publish linked media";
   return (
-    <div className="admin-media-upload" aria-busy={isBusyState}>
-      <button
-        type="button"
-        disabled={isBusyState}
-        onClick={() => void checkUploadAccess()}
-      >
-        Check upload access
-      </button>{" "}
+    <div
+      className="admin-media-upload"
+      aria-busy={isBusyState || assetLookupLoading}
+    >
+      <div className="admin-media-upload__actions">
+        <button
+          type="button"
+          disabled={isBusyState}
+          onClick={() => void checkUploadAccess()}
+        >
+          Check upload access
+        </button>
+        {existingAsset && state !== "published" && (
+          <button
+            className="admin-media-upload__publish-existing"
+            type="button"
+            disabled={isBusyState || assetLookupLoading}
+            onClick={() => void publishExistingAsset()}
+          >
+            {existingAssetAction}
+          </button>
+        )}
+      </div>
+      {assetLookupLoading && (
+        <span className="admin-media-upload__status" role="status">
+          Checking for a saved upload…
+        </span>
+      )}
+      {assetLookupError && (
+        <div className="admin-media-upload__lookup-error">
+          <span role="alert">Saved media could not be checked: {assetLookupError}</span>
+          <button
+            type="button"
+            disabled={isBusyState}
+            onClick={() => setAssetLookupRevision((value) => value + 1)}
+          >
+            Retry media check
+          </button>
+        </div>
+      )}
+      {!assetLookupLoading && !assetLookupError && !existingAsset && (
+        <span className="admin-media-upload__status">
+          No saved upload is linked to this resource yet. Choose a file below to
+          upload and publish it.
+        </span>
+      )}
       {state !== "published" && (
-        <label>
-          {uploadMediaType === "video" ? "MP4 video" : "PDF document"}
+        <label
+          className={
+            `admin-media-upload__dropzone${isDragOver ? " is-dragging" : ""}`
+          }
+          onDragEnter={(event) => {
+            event.preventDefault();
+            setIsDragOver(true);
+          }}
+          onDragOver={(event) => event.preventDefault()}
+          onDragLeave={() => setIsDragOver(false)}
+          onDrop={(event) => {
+            event.preventDefault();
+            setIsDragOver(false);
+            selectFile(event.dataTransfer.files.item(0) ?? undefined);
+          }}
+        >
+          <UploadCloud aria-hidden="true" />
+          <strong>
+            {file
+              ? file.name
+              : `Drop ${fileLabel} here or choose a file`}
+          </strong>
+          <small>
+            {file
+              ? `${(file.size / MEBIBYTE).toFixed(1)} MB · verification is required before publishing`
+              : `${fileLabel} · verified before student delivery`}
+          </small>
           <input
             type="file"
             accept={uploadFilePolicy.accept}
+            aria-label={`Choose ${fileLabel}`}
             disabled={isBusyState || Boolean(activeAssetId.current)}
-            onChange={(event) => {
-              setFile(event.target.files?.[0]);
-              setError("");
-              setProgress(0);
-              setState("idle");
-              setRetryAllowed(true);
-              activeAssetId.current = undefined;
-              activeMultipartId.current = undefined;
-              pendingAssetCommand.current = undefined;
-            }}
+            onChange={(event) => selectFile(event.target.files?.[0])}
           />
         </label>
       )}
       {uploadMediaType === "document" && state !== "published" && (
-        <label>
-          PDF delivery policy
-          <select
-            value={deliveryMode}
-            disabled={isBusyState || Boolean(activeAssetId.current)}
-            onChange={(event) =>
-              setDeliveryMode(event.target.value as DocumentDeliveryMode)
-            }
-          >
-            <option value="view_only">View only</option>
-            <option value="download_allowed">Download allowed</option>
-            <option value="watermarked_view">Watermarked view</option>
-            <option value="watermarked_download">Watermarked download</option>
-          </select>
-        </label>
+        <div className="admin-media-upload__options">
+          <label>
+            PDF delivery policy
+            <select
+              value={deliveryMode}
+              disabled={isBusyState || Boolean(activeAssetId.current)}
+              onChange={(event) =>
+                setDeliveryMode(event.target.value as DocumentDeliveryMode)
+              }
+            >
+              <option value="view_only">View only</option>
+              <option value="download_allowed">Download allowed</option>
+              <option value="watermarked_view">Watermarked view</option>
+              <option value="watermarked_download">Watermarked download</option>
+            </select>
+          </label>
+          <label className="admin-media-upload__watermark">
+            <input
+              type="checkbox"
+              checked={watermarkRequired}
+              disabled={isBusyState || Boolean(activeAssetId.current)}
+              onChange={(event) => setWatermarkRequired(event.target.checked)}
+            />
+            Watermark required
+          </label>
+        </div>
       )}
-      {state !== "published" && (
-        <label>
+      {uploadMediaType === "video" && state !== "published" && (
+        <label className="admin-media-upload__watermark">
           <input
             type="checkbox"
             checked={watermarkRequired}
@@ -541,39 +643,42 @@ export function AdminLessonMediaUpload({
           {progress}%
         </progress>
       )}
-      {accessStatus && <span role="status">{accessStatus}</span>}
-      {existingAsset && state !== "published" && (
-        <button
-          className="admin-media-upload__publish-existing"
-          type="button"
-          disabled={isBusyState}
-          onClick={() => void publishExistingAsset()}
-        >
-          {existingAsset.status === "uploaded"
-            ? "Verify and publish existing upload"
-            : "Publish existing verified upload"}
-        </button>
-      )}
-      {file && state !== "published" && (
-        <span className="admin-media-file-summary">
-          {file.name} · {(file.size / MEBIBYTE).toFixed(1)} MB
+      {accessStatus && (
+        <span className="admin-media-upload__status" role="status">
+          {accessStatus}
         </span>
       )}
-      <span role={error ? "alert" : "status"}>
-        {error || stateLabels[state]}
-      </span>
+      {error && (
+        <span className="admin-media-upload__error" role="alert">
+          {error}
+        </span>
+      )}
       {state !== "published" && (
-        <button
-          type="button"
-          disabled={!file || isBusyState || !retryAllowed}
-          onClick={() => void upload()}
-        >
-          {state === "failed"
-            ? retryAllowed
-              ? "Retry upload"
-              : "Reload course before retrying"
-            : "Upload, verify and publish"}
-        </button>
+        <div className="admin-media-upload__footer">
+          {!error && (
+            <span className="admin-media-upload__status" role="status">
+              {stateLabels[state]}
+            </span>
+          )}
+          <button
+            className="admin-media-upload__start"
+            type="button"
+            disabled={
+              !file ||
+              isBusyState ||
+              !retryAllowed ||
+              assetLookupLoading ||
+              Boolean(assetLookupError)
+            }
+            onClick={() => void upload()}
+          >
+            {state === "failed"
+              ? retryAllowed
+                ? "Retry upload"
+                : "Reload course before retrying"
+              : `Upload, verify and publish ${uploadMediaType}`}
+          </button>
+        </div>
       )}
     </div>
   );
