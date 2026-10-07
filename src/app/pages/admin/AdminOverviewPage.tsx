@@ -370,7 +370,73 @@ function ApiOverviewContent({ overview }: { overview: AdminOverview }) {
           />
         ))}
       </div>
-      <WorkspaceCard title="Recent activity">
+      <WorkspaceCard
+        title="Access overview"
+        className="admin-api-overview__access"
+      >
+        <ul className="admin-api-overview__stat-list">
+          {[
+            { label: "Active subscriptions", value: overview.activeSubscriptionsCount },
+            { label: "Expired subscriptions", value: overview.expiredSubscriptionsCount },
+            { label: "Active access grants", value: overview.activeGrantsCount },
+            { label: "Revoked access grants", value: overview.revokedGrantsCount },
+          ].map((item) => (
+            <li key={item.label}>
+              <span>{item.label}</span>
+              <strong>{number.format(item.value)}</strong>
+            </li>
+          ))}
+        </ul>
+      </WorkspaceCard>
+      <WorkspaceCard
+        title="Operational queue"
+        className="admin-api-overview__queue"
+      >
+        <ul className="admin-api-overview__queue-list">
+          {[
+            {
+              label: "Payment reviews",
+              value: overview.pendingPaymentReviewsCount,
+              path: "/admin/payments",
+            },
+            {
+              label: "Refund reviews",
+              value: overview.pendingRefundsCount,
+              path: "/admin/payments",
+            },
+            {
+              label: "Assessments to review",
+              value: overview.assessmentsAwaitingReviewCount,
+              path: "/admin/content",
+            },
+          ].map((item) => (
+            <li key={item.label}>
+              <Link to={item.path}>
+                <span>{item.label}</span>
+                <strong>{number.format(item.value)}</strong>
+                <ArrowRight aria-hidden="true" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </WorkspaceCard>
+      <WorkspaceCard
+        title="Content readiness"
+        className="admin-api-overview__content"
+      >
+        <div className="admin-api-overview__highlight">
+          <BookOpen aria-hidden="true" />
+          <strong>{number.format(overview.contentAwaitingReleaseCount)}</strong>
+          <span>items awaiting release</span>
+        </div>
+        <Link className="admin-api-overview__card-link" to="/admin/content">
+          Open content <ArrowRight aria-hidden="true" />
+        </Link>
+      </WorkspaceCard>
+      <WorkspaceCard
+        title="Recent activity"
+        className="admin-api-overview__recent"
+      >
         {recentActivity.length ? (
           <ul className="admin-api-overview__activity">
             {recentActivity.map((item) => (
@@ -380,7 +446,12 @@ function ApiOverviewContent({ overview }: { overview: AdminOverview }) {
                   <small>{item.detail}</small>
                 </span>
                 <time dateTime={item.occurredAt}>
-                  {new Date(item.occurredAt).toLocaleString()}
+                  {new Date(item.occurredAt).toLocaleString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
                 </time>
               </li>
             ))}
@@ -391,7 +462,37 @@ function ApiOverviewContent({ overview }: { overview: AdminOverview }) {
           </p>
         )}
       </WorkspaceCard>
-      <WorkspaceCard title="Quick Links">
+      <WorkspaceCard
+        title="Security signals"
+        className="admin-api-overview__security"
+      >
+        <div className="admin-api-overview__security-summary">
+          <ShieldCheck aria-hidden="true" />
+          <span>Suspicious events</span>
+          <strong>{number.format(overview.suspiciousSecurityEventsCount)}</strong>
+        </div>
+        {overview.recentSecurityEvents.length ? (
+          <ul className="admin-api-overview__security-list">
+            {overview.recentSecurityEvents.slice(0, 4).map((event) => (
+              <li key={event.id}>
+                <span>{event.eventType.replaceAll("_", " ")}</span>
+                <small>{event.severity}</small>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="admin-api-overview__compact-empty">
+            No security events recorded.
+          </p>
+        )}
+        <Link className="admin-api-overview__card-link" to="/admin/security">
+          Open security <ArrowRight aria-hidden="true" />
+        </Link>
+      </WorkspaceCard>
+      <WorkspaceCard
+        title="Quick links"
+        className="admin-api-overview__quick"
+      >
         <QuickLinks />
       </WorkspaceCard>
       <p className="admin-api-overview__note">
