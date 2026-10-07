@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { UploadCloud } from "lucide-react";
 import {
   adminDeliveryRequest,
@@ -128,11 +128,13 @@ export function AdminLessonMediaUpload({
   course,
   lessonId,
   resource,
+  publishRequest,
   onPublished,
 }: Readonly<{
   course: DeliveryCourse;
   lessonId: string;
   resource: DeliveryResource;
+  publishRequest?: number;
   onPublished: () => void;
 }>) {
   const mediaType = getMediaType(resource);
@@ -153,6 +155,8 @@ export function AdminLessonMediaUpload({
   const [assetLookupRevision, setAssetLookupRevision] = useState(0);
   const [isDragOver, setIsDragOver] = useState(false);
   const busy = useRef(false);
+  const lastHandledPublishRequest = useRef(0);
+
   const pendingAssetCommand = useRef<PendingAssetCommand | undefined>(
     undefined,
   );
@@ -191,6 +195,7 @@ export function AdminLessonMediaUpload({
       current = false;
     };
   }, [course, lessonId, resource.id, assetLookupRevision]);
+
   function selectFile(nextFile: File | undefined): void {
     if (!nextFile) return;
     setFile(nextFile);
@@ -203,6 +208,95 @@ export function AdminLessonMediaUpload({
     activeMultipartId.current = undefined;
     pendingAssetCommand.current = undefined;
   }
+  const publishExistingAsset = useCallback(async () => {
+    if (!existingAsset || busy.current) return;
+    busy.current = true;
+    setIsBusyState(true);
+    setError("");
+    setState("publishing");
+    try {
+      const assetPath =
+        adminLessonMediaPath(course, lessonId) +
+        "/" +
+        encodeURIComponent(existingAsset.id);
+      if (existingAsset.status === "uploaded") {
+        setState("verifying");
+        await adminDeliveryRequest(assetPath + "/verify", {
+          method: "POST",
+          key: createRequestKey(),
+        });
+      }
+      if (existingAsset.status !== "published") {
+        setState("publishing");
+        await adminDeliveryRequest(assetPath + "/publish", {
+          method: "POST",
+          key: createRequestKey(),
+        });
+      }
+      await adminDeliveryRequest(
+        deliveryCoursePath(course.brandId, course.id) +
+          "/resources/" +
+          encodeURIComponent(resource.id),
+        {
+          method: "PATCH",
+          key: createRequestKey(),
+          body: {
+            status: "published",
+            reason: "Publish lesson resource for its verified media asset.",
+            expectedVersion: resource.version,
+          },
+        },
+      );
+      setState("published");
+      onPublished();
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "The saved media could not be published to this lesson.",
+      );
+      setState("failed");
+    } finally {
+      busy.current = false;
+      setIsBusyState(false);
+    }
+  }, [
+    course,
+    existingAsset,
+    lessonId,
+    onPublished,
+    resource.id,
+    resource.version,
+  ]);
+  useEffect(() => {
+    if (
+      !publishRequest ||
+      publishRequest <= lastHandledPublishRequest.current ||
+      assetLookupLoading
+    ) {
+      return;
+    }
+    if (assetLookupError) {
+      setError(
+        "Saved media status could not be loaded. Retry the media check before publishing.",
+      );
+      return;
+    }
+    if (!existingAsset) {
+      setError(
+        "No uploaded media is linked to this resource yet. Choose the file below, then upload and verify it.",
+      );
+      return;
+    }
+    lastHandledPublishRequest.current = publishRequest;
+    void publishExistingAsset();
+  }, [
+    assetLookupError,
+    assetLookupLoading,
+    existingAsset,
+    publishExistingAsset,
+    publishRequest,
+  ]);
   if (!mediaType || !filePolicy) {
     return <span>Binary upload is not used for this resource type.</span>;
   }
@@ -454,67 +548,13 @@ export function AdminLessonMediaUpload({
       setIsBusyState(false);
     }
   }
-  async function publishExistingAsset() {
-    if (!existingAsset || busy.current) return;
-    busy.current = true;
-    setIsBusyState(true);
-    setError("");
-    setState("publishing");
-    try {
-      const assetPath =
-        adminLessonMediaPath(course, lessonId) +
-        "/" +
-        encodeURIComponent(existingAsset.id);
-      if (existingAsset.status === "uploaded") {
-        setState("verifying");
-        await adminDeliveryRequest(assetPath + "/verify", {
-          method: "POST",
-          key: createRequestKey(),
-        });
-      }
-      if (existingAsset.status !== "published") {
-        setState("publishing");
-        await adminDeliveryRequest(assetPath + "/publish", {
-          method: "POST",
-          key: createRequestKey(),
-        });
-      }
-      await adminDeliveryRequest(
-        deliveryCoursePath(course.brandId, course.id) +
-          "/resources/" +
-          encodeURIComponent(resource.id),
-        {
-          method: "PATCH",
-          key: createRequestKey(),
-          body: {
-            status: "published",
-            reason: "Publish lesson resource for its verified media asset.",
-            expectedVersion: resource.version,
-          },
-        },
-      );
-      setState("published");
-      onPublished();
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : "The saved media could not be published to this lesson.",
-      );
-      setState("failed");
-    } finally {
-      busy.current = false;
-      setIsBusyState(false);
-    }
-  }
+
   const fileLabel =
     uploadMediaType === "video" ? "MP4 video" : "PDF document";
   const existingAssetAction =
     existingAsset?.status === "uploaded"
-      ? "Verify and publish saved upload"
-      : existingAsset?.status === "verified"
-        ? "Publish verified upload"
-        : "Publish linked media";
+      ? "Verify and publish " + fileLabel.toLowerCase()
+      : "Publish " + fileLabel.toLowerCase();
   return (
     <div
       className="admin-media-upload"
@@ -546,7 +586,9 @@ export function AdminLessonMediaUpload({
       )}
       {assetLookupError && (
         <div className="admin-media-upload__lookup-error">
-          <span role="alert">Saved media could not be checked: {assetLookupError}</span>
+          <span role="alert">
+            Saved media could not be checked: {assetLookupError}
+          </span>
           <button
             type="button"
             disabled={isBusyState}

@@ -3425,3 +3425,100 @@
   .admin-content-editor__media-guidance strong {
   color: #394b40;
 }
+
+/* Draft media actions in the resource list */
+.admin-shell .admin-content-editor__resource-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.admin-shell .admin-content-editor__resource-actions > button {
+  min-height: 28px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 9px;
+}
+
+.admin-shell .admin-content-editor__resource-actions
+  > .admin-content-editor__publish-row {
+  border: 1px solid #c9dfcf;
+  background: #f1f8f3;
+  color: #18753b;
+  font-weight: 650;
+}
+
+.admin-shell .admin-content-editor__resource-actions
+  > .admin-content-editor__publish-row:hover:not(:disabled) {
+  border-color: #9fc7a9;
+  background: #e7f3ea;
+}
+
+@media (max-width: 900px) {
+  .admin-shell .admin-content-editor__resource-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
+/* Content section links are real anchors, with the same visual treatment as the active tab. */
+.admin-shell .admin-content-live__tabs a {
+  position: relative;
+  display: inline-flex;
+  min-height: 46px;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 0 2px;
+  color: #68756d;
+  font: inherit;
+  font-size: 12px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.admin-shell .admin-content-live__tabs a:hover {
+  color: #247b43;
+}
+
+.admin-shell .admin-content-live__tabs a:focus-visible {
+  outline: 2px solid #2d9450;
+  outline-offset: 2px;
+}
+
+.admin-shell .admin-content-live__tabs a[aria-current="page"] {
+  color: #247b43;
+  font-weight: 650;
+}
+
+.admin-shell .admin-content-live__tabs a[aria-current="page"]::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  background: #2d9450;
+  content: "";
+}
+
+.admin-shell .admin-content-editor__resource-label {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.admin-shell .admin-content-editor__resource-label small {
+  overflow: hidden;
+  color: #7a867e;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 1199px) {
+  .admin-shell .admin-content-live__tabs a {
+    min-height: 40px;
+    font-size: 11px;
+  }
+}

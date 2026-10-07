@@ -80,10 +80,12 @@ export function AdminContentEditor({
   courseId,
   brandId,
   coursePicker,
+  section = "library",
 }: {
   courseId: string;
   brandId: string;
   coursePicker: React.ReactNode;
+  section?: "library" | "media";
 }) {
   const [course, setCourse] = useState<DeliveryCourse>();
   const [module, setModule] = useState<DeliveryModule>();
@@ -116,6 +118,11 @@ export function AdminContentEditor({
   const [saving, setSaving] = useState(false);
   const [revision, setRevision] = useState(0);
   const [selectedResourceId, setSelectedResourceId] = useState("");
+  const [publishRequest, setPublishRequest] = useState<{
+    resourceId: string;
+    requestId: number;
+  }>();
+  const publishRequestId = useRef(0);
   const [createKind, setCreateKind] = useState<
     "chapter" | "lesson" | "resource" | null
   >(null);
@@ -130,6 +137,60 @@ export function AdminContentEditor({
   const activeLesson =
     activeChapter?.lessons.find((item) => item.id === activeLessonId) ??
     activeChapter?.lessons[0];
+  const mediaResourceEntries = useMemo(
+    () =>
+      chapters.flatMap((chapter) =>
+        chapter.lessons.flatMap((lesson) =>
+          lesson.resources
+            .filter(
+              (resource) =>
+                resource.kind === "video" || resource.kind === "document",
+            )
+            .map((resource) => ({ chapter, lesson, resource })),
+        ),
+      ),
+    [chapters],
+  );
+  const selectedMediaEntry =
+    mediaResourceEntries.find(
+      (entry) => entry.resource.id === selectedResourceId,
+    ) ??
+    mediaResourceEntries.find(
+      (entry) => entry.lesson.id === activeLesson?.id,
+    );
+  const workspaceChapter =
+    section === "media" ? selectedMediaEntry?.chapter : activeChapter;
+  const workspaceLesson =
+    section === "media" ? selectedMediaEntry?.lesson : activeLesson;
+  const selectedResource =
+    section === "media"
+      ? selectedMediaEntry?.resource
+      : activeLesson?.resources.find((item) => item.id === selectedResourceId) ??
+        activeLesson?.resources[0];
+  const resourceRows =
+    section === "media"
+      ? mediaResourceEntries
+      : activeChapter && activeLesson
+        ? activeLesson.resources.map((resource) => ({
+            chapter: activeChapter,
+            lesson: activeLesson,
+            resource,
+          }))
+        : [];
+  const mediaSelectionInitialized = useRef(false);
+  useEffect(() => {
+    if (section !== "media") {
+      mediaSelectionInitialized.current = false;
+      return;
+    }
+    if (mediaSelectionInitialized.current || !mediaResourceEntries.length) return;
+
+    const firstEntry = mediaResourceEntries[0];
+    setActiveChapterId(firstEntry.chapter.id);
+    setActiveLessonId(firstEntry.lesson.id);
+    setSelectedResourceId(firstEntry.resource.id);
+    mediaSelectionInitialized.current = true;
+  }, [section, mediaResourceEntries]);
   const totals = useMemo(
     () => ({
       lessons: chapters.reduce(
@@ -353,6 +414,28 @@ export function AdminContentEditor({
     setNotice("");
     setCreateKind(kind);
   }
+  function selectResourceEntry(
+    entry: (typeof mediaResourceEntries)[number],
+  ): void {
+    setActiveChapterId(entry.chapter.id);
+    setActiveLessonId(entry.lesson.id);
+    setSelectedResourceId(entry.resource.id);
+  }
+  function requestResourcePublish(resourceId: string): void {
+    const entry = mediaResourceEntries.find(
+      (item) => item.resource.id === resourceId,
+    );
+    if (entry) {
+      setActiveChapterId(entry.chapter.id);
+      setActiveLessonId(entry.lesson.id);
+    }
+    setSelectedResourceId(resourceId);
+    publishRequestId.current += 1;
+    setPublishRequest({
+      resourceId,
+      requestId: publishRequestId.current,
+    });
+  }
   function addChapter(): void {
     if (!chapterTitle.trim()) return;
     void saveNew("chapters", {
@@ -362,29 +445,27 @@ export function AdminContentEditor({
     });
   }
   function addLesson(): void {
-    if (!activeChapter || !lessonTitle.trim()) return;
+    if (!workspaceChapter || !lessonTitle.trim()) return;
     void saveNew("lessons", {
       title: lessonTitle.trim(),
-      courseChapterId: activeChapter.id,
-      sortOrder: nextSortOrder(activeChapter.lessons),
+      courseChapterId: workspaceChapter.id,
+      sortOrder: nextSortOrder(workspaceChapter.lessons),
       status: "draft",
     });
   }
   function addResource(): void {
-    if (!activeLesson || !resourceTitle.trim()) return;
+    if (!workspaceLesson || !resourceTitle.trim()) return;
     const isBinaryResource =
       resourceKind === "video" || resourceKind === "document";
     void saveNew("resources", {
       title: resourceTitle.trim(),
-      courseLessonId: activeLesson.id,
+      courseLessonId: workspaceLesson.id,
       resourceKind,
-      sortOrder: nextSortOrder(activeLesson.resources),
+      sortOrder: nextSortOrder(workspaceLesson.resources),
       status: isBinaryResource ? "draft" : resourceStatus,
     });
   }
-  const selectedResource =
-    activeLesson?.resources.find((item) => item.id === selectedResourceId) ??
-    activeLesson?.resources[0];
+
   if (loading || !course)
     return (
       <WorkspaceCard title="Course content">
@@ -400,13 +481,17 @@ export function AdminContentEditor({
   return (
     <div className="admin-content-editor" aria-label="Content editor">
       <WorkspaceCard
-        title="Content library"
+        title={section === "media" ? "Media library" : "Content library"}
         className="admin-content-editor__tree"
       >
         {coursePicker}
         <nav
           className="builder-outline-list"
-          aria-label="Course chapters and lessons"
+          aria-label={
+            section === "media"
+              ? "Course media and lesson hierarchy"
+              : "Course chapters and lessons"
+          }
         >
           {chapters.map((chapter) => (
             <div className="builder-chapter" key={chapter.id}>
@@ -458,56 +543,72 @@ export function AdminContentEditor({
         </footer>
       </WorkspaceCard>
       <WorkspaceCard
-        title="Lesson resources"
+        title={section === "media" ? "Media library" : "Lesson resources"}
         className="admin-content-editor__resources"
       >
         <div className="admin-content-editor__lesson-header">
           <div className="admin-content-editor__breadcrumb">
-            {course.title} / {activeChapter?.title ?? "Course outline"}
+            {course.title} / {workspaceChapter?.title ?? "Course outline"}
           </div>
           <div className="admin-content-editor__lesson-title">
             <div>
-              <h2>{activeLesson?.title ?? course.title}</h2>
+              <h2>
+                {section === "media"
+                  ? "Media library"
+                  : workspaceLesson?.title ?? course.title}
+              </h2>
               <p>
-                {activeLesson
-                  ? `Lesson · ${selectedResource ? RESOURCE_LABELS[selectedResource.kind] : "No resources"} · Course updated ${new Date(course.updatedAt).toLocaleDateString()}`
-                  : `Course · ${course.code} · ${course.brand.name}`}
+                {section === "media"
+                  ? `${mediaResourceEntries.length} video and PDF resources · ${course.brand.name}`
+                  : workspaceLesson
+                    ? `Lesson · ${selectedResource ? RESOURCE_LABELS[selectedResource.kind] : "No resources"} · Course updated ${new Date(course.updatedAt).toLocaleDateString()}`
+                    : `Course · ${course.code} · ${course.brand.name}`}
               </p>
             </div>
             <WorkspaceBadge
               value={
                 selectedResource?.status ??
-                activeLesson?.status ??
+                workspaceLesson?.status ??
                 course.status
               }
             />
           </div>
         </div>
-        <nav
-          className="admin-content-editor__tabs"
-          aria-label="Lesson workspace sections"
-        >
-          <button type="button" aria-current="page">
-            Resources
-          </button>
-          <button type="button" disabled aria-disabled="true">
-            Details
-          </button>
-          <button type="button" disabled aria-disabled="true">
-            Settings
-          </button>
-          <button type="button" disabled aria-disabled="true">
-            Analytics
-          </button>
-        </nav>
+        {section !== "media" && (
+          <nav
+            className="admin-content-editor__tabs"
+            aria-label="Lesson workspace sections"
+          >
+            <button type="button" aria-current="page">
+              Resources
+            </button>
+            <button type="button" disabled aria-disabled="true">
+              Details
+            </button>
+            <button type="button" disabled aria-disabled="true">
+              Settings
+            </button>
+            <button type="button" disabled aria-disabled="true">
+              Analytics
+            </button>
+          </nav>
+        )}
         <div className="admin-workspace-toolbar admin-content-editor__resource-toolbar">
           <div>
-            <strong>Lesson resources</strong>
-            <small>Upload and publish lesson materials.</small>
+            <strong>
+              {section === "media"
+                ? "Video and PDF resources"
+                : "Lesson resources"}
+            </strong>
+            <small>
+              {section === "media"
+                ? "Review, manage, and publish course media."
+                : "Upload and publish lesson materials."}
+            </small>
           </div>
           <button
             type="button"
-            disabled={!activeLesson || saving}
+            disabled={!workspaceLesson || saving}
             onClick={() => {
               setResourceKind("document");
               openCreateDrawer("resource");
@@ -516,26 +617,30 @@ export function AdminContentEditor({
             <Plus aria-hidden="true" />
             Add resource
           </button>
-          <button
-            type="button"
-            disabled={!activeLesson || saving}
-            onClick={() => {
-              setResourceKind("quiz");
-              openCreateDrawer("resource");
-            }}
-          >
-            <CheckCircle2 aria-hidden="true" />
-            Create quiz
-          </button>
-          <button
-            className="is-primary"
-            type="button"
-            disabled={!activeChapter || saving}
-            onClick={() => openCreateDrawer("lesson")}
-          >
-            <Plus aria-hidden="true" />
-            Add lesson
-          </button>
+          {section !== "media" && (
+            <button
+              type="button"
+              disabled={!workspaceLesson || saving}
+              onClick={() => {
+                setResourceKind("quiz");
+                openCreateDrawer("resource");
+              }}
+            >
+              <CheckCircle2 aria-hidden="true" />
+              Create quiz
+            </button>
+          )}
+          {section !== "media" && (
+            <button
+              className="is-primary"
+              type="button"
+              disabled={!workspaceChapter || saving}
+              onClick={() => openCreateDrawer("lesson")}
+            >
+              <Plus aria-hidden="true" />
+              Add lesson
+            </button>
+          )}
         </div>
         {error && (
           <p className="admin-workspace-note" role="alert">
@@ -549,7 +654,11 @@ export function AdminContentEditor({
         )}
         <div className="admin-workspace-table-wrap">
           <table className="admin-workspace-table">
-            <caption className="admin-sr-only">Lesson resources</caption>
+            <caption className="admin-sr-only">
+              {section === "media"
+                ? "Course video and PDF resources"
+                : "Lesson resources"}
+            </caption>
             <thead>
               <tr>
                 <th>Title</th>
@@ -559,50 +668,81 @@ export function AdminContentEditor({
               </tr>
             </thead>
             <tbody>
-              {activeLesson?.resources.map((resource) => (
-                <tr
-                  key={resource.id}
-                  className={
-                    selectedResource?.id === resource.id ? "is-selected" : ""
-                  }
-                >
-                  <td>
-                    <span className="admin-workspace-cell">
-                      {getResourceIcon(resource.kind)}
-                      <strong>{resource.title}</strong>
-                    </span>
-                  </td>
-                  <td>{RESOURCE_LABELS[resource.kind]}</td>
-                  <td>
-                    <WorkspaceBadge value={resource.status} />
-                  </td>
-                  <td>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedResourceId(resource.id)}
-                    >
-                      Manage
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {resourceRows.map((entry) => {
+                const { chapter, lesson, resource } = entry;
+                return (
+                  <tr
+                    key={resource.id}
+                    className={
+                      selectedResource?.id === resource.id ? "is-selected" : ""
+                    }
+                  >
+                    <td>
+                      <span className="admin-workspace-cell">
+                        {getResourceIcon(resource.kind)}
+                        <span className="admin-content-editor__resource-label">
+                          <strong>{resource.title}</strong>
+                          {section === "media" && (
+                            <small>
+                              {chapter.title} · {lesson.title}
+                            </small>
+                          )}
+                        </span>
+                      </span>
+                    </td>
+                    <td>{RESOURCE_LABELS[resource.kind]}</td>
+                    <td>
+                      <WorkspaceBadge value={resource.status} />
+                    </td>
+                    <td>
+                      <div className="admin-content-editor__resource-actions">
+                        {(resource.kind === "video" ||
+                          resource.kind === "document") &&
+                          resource.status === "draft" && (
+                            <button
+                              className="admin-content-editor__publish-row"
+                              type="button"
+                              title="Verify the saved media and publish this resource."
+                              onClick={() =>
+                                requestResourcePublish(resource.id)
+                              }
+                            >
+                              Publish
+                            </button>
+                          )}
+                        <button
+                          type="button"
+                          onClick={() => selectResourceEntry(entry)}
+                        >
+                          Manage
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
-          {!activeLesson?.resources.length && (
+          {!resourceRows.length && (
             <WorkspaceState
               title={
-                activeLesson
-                  ? "No resources in this lesson"
-                  : "Select or add a lesson"
+                section === "media"
+                  ? "No video or PDF resources in this course"
+                  : workspaceLesson
+                    ? "No resources in this lesson"
+                    : "Select or add a lesson"
               }
             />
           )}
         </div>
         {selectedResource &&
-          activeLesson &&
+          workspaceLesson &&
           (selectedResource.kind === "video" ||
             selectedResource.kind === "document") && (
-            <section className="admin-content-editor__media" aria-label="Media upload and publication">
+            <section
+              className="admin-content-editor__media"
+              aria-label="Media upload and publication"
+            >
               <header>
                 <div>
                   <h3>Media upload &amp; publication</h3>
@@ -618,7 +758,7 @@ export function AdminContentEditor({
                 <AdminLessonMediaManagement
                   key={selectedResource.id}
                   course={course}
-                  lessonId={activeLesson.id}
+                  lessonId={workspaceLesson.id}
                   resource={selectedResource}
                   onChanged={() => setRevision((value) => value + 1)}
                 />
@@ -626,9 +766,17 @@ export function AdminContentEditor({
                 <AdminLessonMediaUpload
                   key={selectedResource.id}
                   course={course}
-                  lessonId={activeLesson.id}
+                  lessonId={workspaceLesson.id}
                   resource={selectedResource}
-                  onPublished={() => setRevision((value) => value + 1)}
+                  publishRequest={
+                    publishRequest?.resourceId === selectedResource.id
+                      ? publishRequest.requestId
+                      : undefined
+                  }
+                  onPublished={() => {
+                    setPublishRequest(undefined);
+                    setRevision((value) => value + 1);
+                  }}
                 />
               )}
             </section>
@@ -650,11 +798,11 @@ export function AdminContentEditor({
       >
         <section className="admin-inspector-section">
           <h3>
-            {selectedResource?.title ?? activeLesson?.title ?? course.title}
+            {selectedResource?.title ?? workspaceLesson?.title ?? course.title}
           </h3>
           <WorkspaceBadge
             value={
-              selectedResource?.status ?? activeLesson?.status ?? course.status
+              selectedResource?.status ?? workspaceLesson?.status ?? course.status
             }
           />
         </section>
@@ -662,15 +810,15 @@ export function AdminContentEditor({
           fields={[
             ["Brand", course.brand.name],
             ["Course", course.title],
-            ["Chapter", activeChapter?.title],
-            ["Lesson", activeLesson?.title],
+            ["Chapter", workspaceChapter?.title],
+            ["Lesson", workspaceLesson?.title],
             [
               "Resource type",
               selectedResource
                 ? RESOURCE_LABELS[selectedResource.kind]
                 : "Select a resource",
             ],
-            ["Order", selectedResource?.sortOrder ?? activeLesson?.sortOrder],
+            ["Order", selectedResource?.sortOrder ?? workspaceLesson?.sortOrder],
             [
               "Curriculum reference",
               module?.sourceDisplayLabel ?? "Standalone course",
@@ -708,12 +856,12 @@ export function AdminContentEditor({
           <div className="admin-workspace-actions">
             <button
               type="button"
-              disabled={!activeChapter || saving}
+              disabled={!workspaceChapter || saving}
               onClick={() => {
                 setReason("");
                 setError("");
-                setEditChapterTitle(activeChapter?.title ?? "");
-                setEditChapterStatus(activeChapter?.status ?? "draft");
+                setEditChapterTitle(workspaceChapter?.title ?? "");
+                setEditChapterStatus(workspaceChapter?.status ?? "draft");
                 setEditingChapter(true);
               }}
             >
@@ -721,12 +869,12 @@ export function AdminContentEditor({
             </button>
             <button
               type="button"
-              disabled={!activeLesson || saving}
+              disabled={!workspaceLesson || saving}
               onClick={() => {
                 setReason("");
                 setError("");
-                setEditLessonTitle(activeLesson?.title ?? "");
-                setEditLessonStatus(activeLesson?.status ?? "draft");
+                setEditLessonTitle(workspaceLesson?.title ?? "");
+                setEditLessonStatus(workspaceLesson?.status ?? "draft");
                 setEditingLesson(true);
               }}
             >
@@ -808,8 +956,8 @@ export function AdminContentEditor({
               const entity = editingResource
                 ? selectedResource
                 : editingChapter
-                  ? activeChapter
-                  : activeLesson;
+                  ? workspaceChapter
+                  : workspaceLesson;
               if (entity)
                 void updateExisting(
                   editingResource

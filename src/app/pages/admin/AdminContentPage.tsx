@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useOutletContext, useSearchParams } from "react-router-dom";
+import { Link, useOutletContext, useSearchParams } from "react-router-dom";
 import type { AdminBrandContext } from "../../../features/admin/api";
 import {
   adminDeliveryRequest,
@@ -31,6 +31,14 @@ export function AdminContentPage() {
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [error, setError] = useState("");
   const [revision, setRevision] = useState(0);
+  const activeSection = query.get("view") === "media" ? "media" : "library";
+  function sectionSearch(section: "library" | "media"): string {
+    const next = new URLSearchParams(query);
+    if (section === "media") next.set("view", "media");
+    else next.delete("view");
+    const search = next.toString();
+    return search ? "?" + search : "";
+  }
   useEffect(() => {
     const controller = new AbortController();
     setLoadingCourses(true);
@@ -95,7 +103,12 @@ export function AdminContentPage() {
           );
           if (entry)
             setQuery(
-              { courseId: entry.course.id, brandId: entry.course.brandId },
+              (current) => {
+                const next = new URLSearchParams(current);
+                next.set("courseId", entry.course.id);
+                next.set("brandId", entry.course.brandId);
+                return next;
+              },
               { replace: true },
             );
         }}
@@ -116,13 +129,22 @@ export function AdminContentPage() {
       className="admin-page admin-workspace-page admin-content-live"
       aria-label="Content management"
     >
-      <nav className="admin-content-live__tabs" aria-label="Content sections">
-        <button type="button" aria-current="page">
+      <nav
+        className="admin-content-live__tabs"
+        aria-label="Content sections"
+      >
+        <Link
+          to={sectionSearch("library")}
+          aria-current={activeSection === "library" ? "page" : undefined}
+        >
           Content Library
-        </button>
-        <button type="button" disabled aria-disabled="true">
+        </Link>
+        <Link
+          to={sectionSearch("media")}
+          aria-current={activeSection === "media" ? "page" : undefined}
+        >
           Media Library
-        </button>
+        </Link>
         <button type="button" disabled aria-disabled="true">
           Question Bank
         </button>
@@ -145,6 +167,7 @@ export function AdminContentPage() {
           courseId={selected.course.id}
           brandId={selected.course.brandId}
           coursePicker={picker}
+          section={activeSection}
         />
       ) : (
         <WorkspaceState title="No courses in this context" />
