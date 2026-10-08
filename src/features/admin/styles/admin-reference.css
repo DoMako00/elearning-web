@@ -3522,3 +3522,189 @@
     font-size: 11px;
   }
 }
+
+
+/* Media Library owns upload, verification, and publication. */
+.admin-shell .admin-content-editor__open-media {
+  border-color: #c8dfcf;
+  background: #f1f8f3;
+  color: #1f7d41;
+  font-weight: 650;
+}
+
+.admin-shell .admin-content-editor__open-media:hover {
+  border-color: #9fc7a9;
+  background: #e7f3ea;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__summary {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e2e8e3;
+  border-radius: 8px;
+  background: #fbfcfb;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__summary-icon {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #edf7f0;
+  color: #218846;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__summary-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__summary > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__summary strong {
+  overflow: hidden;
+  color: #26382d;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__summary small {
+  color: #78847c;
+  font-size: 9px;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__media-state {
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: #eef7f0;
+  color: #247b43;
+  font-size: 9px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__dropzone {
+  min-height: 128px;
+  max-height: 164px;
+  flex: 0 0 148px;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__dropzone.has-file {
+  min-height: 82px;
+  max-height: 92px;
+  flex-basis: 88px;
+  grid-template-columns: 28px minmax(0, 1fr);
+  justify-items: start;
+  align-content: center;
+  text-align: left;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__dropzone.has-file > svg {
+  grid-row: 1 / span 2;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__lifecycle {
+  padding: 10px 12px;
+  border: 1px solid #e2e8e3;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__lifecycle h4 {
+  margin: 0 0 7px;
+  color: #304238;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__lifecycle ol {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__lifecycle li {
+  display: flex;
+  min-height: 29px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid #eef1ef;
+  color: #68766d;
+  font-size: 9px;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__lifecycle li:first-child {
+  border-top: 0;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__lifecycle li strong {
+  color: #68766d;
+  font-size: 9px;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__lifecycle li[data-state="complete"] strong {
+  color: #218846;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__lifecycle li[data-state="current"] strong {
+  color: #996b0b;
+}
+
+.admin-shell .admin-content-editor__media .admin-media-upload__lifecycle li[data-state="error"] strong {
+  color: #a23b3b;
+}
+
+@media (max-width: 1100px) {
+  .admin-shell .admin-content-editor__media .admin-media-upload__summary {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .admin-shell .admin-content-editor__media .admin-media-upload__media-state {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+
+.admin-shell .admin-content-editor__media-status {
+  display: inline-flex;
+  min-height: 22px;
+  align-items: center;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #f1f3f2;
+  color: #65736a;
+  font-size: 9px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.admin-shell .admin-content-editor__media-status[data-status="verified"],
+.admin-shell .admin-content-editor__media-status[data-status="published"] {
+  background: #edf7f0;
+  color: #218846;
+}
+
+.admin-shell .admin-content-editor__media-status[data-status="uploaded"],
+.admin-shell .admin-content-editor__media-status[data-status="pending_upload"] {
+  background: #fff7e8;
+  color: #8a6418;
+}
+
+.admin-shell .admin-content-editor__media-status[data-status="failed"] {
+  background: #fff0f0;
+  color: #a23b3b;
+}

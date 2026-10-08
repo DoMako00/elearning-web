@@ -32,12 +32,32 @@ export function AdminContentPage() {
   const [error, setError] = useState("");
   const [revision, setRevision] = useState(0);
   const activeSection = query.get("view") === "media" ? "media" : "library";
+  const selectedResourceId = query.get("resourceId") ?? "";
   function sectionSearch(section: "library" | "media"): string {
     const next = new URLSearchParams(query);
     if (section === "media") next.set("view", "media");
-    else next.delete("view");
+    else {
+      next.delete("view");
+      next.delete("resourceId");
+    }
     const search = next.toString();
     return search ? "?" + search : "";
+  }
+  function openMediaLibrary(resourceId: string): void {
+    setQuery((current) => {
+      const next = new URLSearchParams(current);
+      next.set("view", "media");
+      next.set("resourceId", resourceId);
+      return next;
+    });
+  }
+  function openContentLibrary(resourceId: string): void {
+    setQuery((current) => {
+      const next = new URLSearchParams(current);
+      next.delete("view");
+      next.set("resourceId", resourceId);
+      return next;
+    });
   }
   useEffect(() => {
     const controller = new AbortController();
@@ -168,6 +188,9 @@ export function AdminContentPage() {
           brandId={selected.course.brandId}
           coursePicker={picker}
           section={activeSection}
+          initialResourceId={selectedResourceId}
+          onOpenMediaLibrary={openMediaLibrary}
+          onOpenContentLibrary={openContentLibrary}
         />
       ) : (
         <WorkspaceState title="No courses in this context" />
