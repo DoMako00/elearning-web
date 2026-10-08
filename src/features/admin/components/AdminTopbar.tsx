@@ -223,7 +223,7 @@ export function AdminTopbar({
           aria-label="Sign out"
           onClick={() => {
             auth.signOut();
-            navigate("/auth/sign-in", { replace: true });
+            navigate("/auth/sign-in?mode=admin", { replace: true });
           }}
         >
           <LogOut aria-hidden="true" />

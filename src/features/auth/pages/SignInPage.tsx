@@ -16,6 +16,7 @@ export function SignInPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const auth = useAuth();
+  const adminMode = new URLSearchParams(location.search).get("mode") === "admin" || (location.state as { from?: unknown } | null)?.from === "/admin";
 
   const [identifier, setIdentifier] = useState("");
   const [brand, setBrand] = useState<"medway" | "elite" | "nexus">("medway");
@@ -29,8 +30,8 @@ export function SignInPage() {
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextErrors: Record<string, string> = {};
-    if (!identifier.trim()) nextErrors.identifier = "Enter your email address.";
-    if (step === "otp" && !/^\d{8}$/.test(otp))
+    if (adminMode && !identifier.trim()) nextErrors.identifier = "Enter your email address.";
+    if (adminMode && step === "otp" && !/^\d{8}$/.test(otp))
       nextErrors.otp = "Enter the 8-digit code from your email.";
     if (!auth.configured) {
       nextErrors.form =
@@ -41,6 +42,10 @@ export function SignInPage() {
     if (Object.keys(nextErrors).length > 0) return;
 
     setSubmitting(true);
+    if (!adminMode) {
+      try { await auth.beginStudentGoogleLogin(brand, remember); } catch (cause) { setSubmitting(false); setErrors({ form: cause instanceof Error ? cause.message : "Google sign-in could not be started." }); }
+      return;
+    }
     if (step === "email") {
       const result = await auth.requestEmailOtp(identifier, brand);
       setSubmitting(false);
@@ -118,6 +123,7 @@ export function SignInPage() {
 
           {/* Form */}
           <form className="signin-form" onSubmit={submit} noValidate>
+            {adminMode && (<>
             {/* Email Field */}
             <div className="signin-field-group">
               <label htmlFor="signin-email" className="signin-field-label">
@@ -166,6 +172,7 @@ export function SignInPage() {
               )}
             </div>
 
+            </>)}
             <div className="signin-field-group">
               <label htmlFor="signin-brand" className="signin-field-label">
                 Brand workspace
@@ -200,7 +207,7 @@ export function SignInPage() {
               </p>
             </div>
 
-            {step === "otp" && (
+            {adminMode && step === "otp" && (
               <div className="signin-field-group">
                 <label htmlFor="signin-otp" className="signin-field-label">
                   8-digit email code
@@ -266,7 +273,7 @@ export function SignInPage() {
                 <span>Remember me</span>
               </button>
 
-              {step === "otp" && (
+              {adminMode && step === "otp" && (
                 <button
                   type="button"
                   className="signin-forgot-link"
@@ -315,7 +322,7 @@ export function SignInPage() {
               </div>
             )}
 
-            {step === "otp" && (
+            {adminMode && step === "otp" && (
               <button
                 type="button"
                 className="signin-forgot-link"
@@ -340,21 +347,22 @@ export function SignInPage() {
             >
               {submitting ? (
                 <span>
-                  {step === "email"
-                    ? "Sending code…"
-                    : "Verifying and establishing session…"}
+                  {adminMode
+                    ? step === "email" ? "Sending code…" : "Verifying and establishing session…"
+                    : "Opening Google…"}
                 </span>
               ) : (
                 <>
                   <span>
-                    {step === "email"
-                      ? "Send sign-in code"
-                      : "Verify and continue"}
+                    {adminMode
+                      ? step === "email" ? "Send sign-in code" : "Verify and continue"
+                      : "Continue with Google"}
                   </span>
                   <ArrowRight className="w-4 h-4" aria-hidden="true" />
                 </>
               )}
             </button>
+            {!adminMode && <a className="signin-forgot-link" href="/auth/activate">First time here? Activate account</a>}
           </form>
         </div>
 

@@ -4,6 +4,7 @@ const persistentStorageKey = "buc-elearning-auth-session";
 const temporaryStorageKey = "buc-elearning-auth-session-tab";
 const deviceKeyStorageKey = "buc-elearning-device-key";
 const refreshLeewayMs = 60_000;
+const googleContinuationStorageKey = "buc-elearning-google-continuation";
 
 export type AuthBrand = "medway" | "elite" | "nexus";
 
@@ -553,6 +554,114 @@ export async function verifySupabaseEmailOtp(
   return session.user;
 }
 
+interface GoogleContinuation {
+  readonly kind: "login" | "claim";
+  readonly brand: AuthBrand;
+  readonly remember: boolean;
+  readonly verifier: string;
+  readonly state: string;
+  readonly claimTicket?: string;
+  readonly linkNonce?: string;
+}
+
+function base64Url(bytes: Uint8Array): string {
+  let value = "";
+  bytes.forEach((byte) => { value += String.fromCharCode(byte); });
+  return btoa(value).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function randomBase64Url(size = 32): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(size));
+  return base64Url(bytes);
+}
+
+async function pkceChallenge(verifier: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
+  return base64Url(new Uint8Array(digest));
+}
+
+function saveGoogleContinuation(continuation: GoogleContinuation): void {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(googleContinuationStorageKey, JSON.stringify(continuation));
+}
+
+function readGoogleContinuation(): GoogleContinuation | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const value = JSON.parse(window.sessionStorage.getItem(googleContinuationStorageKey) ?? "null") as Partial<GoogleContinuation> | null;
+    if (!value || (value.kind !== "login" && value.kind !== "claim") || !isAuthBrand(value.brand) || typeof value.verifier !== "string" || typeof value.state !== "string" || typeof value.remember !== "boolean") return null;
+    if (value.kind === "claim" && (typeof value.claimTicket !== "string" || typeof value.linkNonce !== "string")) return null;
+    return value as GoogleContinuation;
+  } catch { return null; }
+}
+
+function clearGoogleContinuation(): void {
+  if (typeof window !== "undefined") window.sessionStorage.removeItem(googleContinuationStorageKey);
+}
+
+function isAuthBrand(value: unknown): value is AuthBrand {
+  return value === "medway" || value === "elite" || value === "nexus";
+}
+
+async function startGoogleOAuth(continuation: Omit<GoogleContinuation, "verifier" | "state">): Promise<void> {
+  if (!canUseSupabaseAuth() || typeof window === "undefined" || !crypto.subtle) throw new SupabaseAuthClientError("Supabase Google authentication is not configured for this web build.");
+  const verifier = randomBase64Url(48);
+  const state = randomBase64Url(24);
+  const challenge = await pkceChallenge(verifier);
+  saveGoogleContinuation({ ...continuation, verifier, state });
+  const callback = `${window.location.origin}/auth/callback`;
+  const authorize = new URL(`${env.supabaseUrl}/auth/v1/authorize`);
+  authorize.searchParams.set("provider", "google");
+  authorize.searchParams.set("redirect_to", callback);
+  authorize.searchParams.set("code_challenge", challenge);
+  authorize.searchParams.set("code_challenge_method", "s256");
+  authorize.searchParams.set("state", state);
+  window.location.assign(authorize.toString());
+}
+
+async function exchangeGoogleCode(code: string, verifier: string): Promise<StoredSession> {
+  let response: Response;
+  try {
+    response = await fetch(`${env.supabaseUrl}/auth/v1/token?grant_type=pkce`, {
+      method: "POST",
+      headers: { apikey: env.supabasePublishableKey, "content-type": "application/json", accept: "application/json" },
+      body: JSON.stringify({ auth_code: code, code_verifier: verifier }),
+    });
+  } catch { throw new SupabaseAuthClientError("The authentication service could not be reached."); }
+  if (!response.ok) throw new SupabaseAuthClientError("Google sign-in could not be completed. Start again and choose your Google account.", response.status);
+  return toSession((await response.json().catch(() => ({}))) as SupabaseTokenResponse);
+}
+
+export async function beginStudentGoogleLogin(brand: AuthBrand, remember = true): Promise<void> {
+  await startGoogleOAuth({ kind: "login", brand, remember });
+}
+
+export async function beginStudentAccountClaim(input: Readonly<{ brand: AuthBrand; accountIdentifier: string; setupCode: string; remember?: boolean }>): Promise<void> {
+  const claim = await requestPlatformApi<{ readonly claimTicket?: unknown }>("/v1/auth/account-claim", { body: { brand: input.brand, accountIdentifier: input.accountIdentifier.trim(), setupCode: input.setupCode.trim() } });
+  if (typeof claim.data.claimTicket !== "string") throw new SupabaseAuthClientError("The account activation service returned an invalid claim context.");
+  const linked = await requestPlatformApi<{ readonly linkNonce?: unknown }>("/v1/auth/account-claim/google/initiate", { body: { claimTicket: claim.data.claimTicket } });
+  if (typeof linked.data.linkNonce !== "string") throw new SupabaseAuthClientError("The account activation service returned an invalid Google link context.");
+  await startGoogleOAuth({ kind: "claim", brand: input.brand, remember: input.remember ?? true, claimTicket: claim.data.claimTicket, linkNonce: linked.data.linkNonce });
+}
+
+export async function completeStudentGoogleCallback(): Promise<SupabaseAuthenticatedUser> {
+  if (typeof window === "undefined") throw new SupabaseAuthClientError("Google sign-in must finish in a browser.");
+  const continuation = readGoogleContinuation();
+  const query = new URLSearchParams(window.location.search);
+  const code = query.get("code");
+  const state = query.get("state");
+  if (!continuation || !code || state !== continuation.state) { clearGoogleContinuation(); throw new SupabaseAuthClientError("This Google sign-in callback is invalid or expired. Start again.", 409); }
+  const session = await exchangeGoogleCode(code, continuation.verifier);
+  if (continuation.kind === "claim") {
+    await requestPlatformApi("/v1/auth/account-claim/google/complete", { body: { claimTicket: continuation.claimTicket!, linkNonce: continuation.linkNonce!, deviceKey: getDeviceKey(), platform: platformFamily(), browser: browserFamily() }, accessToken: session.accessToken });
+  } else {
+    await requestPlatformApi("/v1/auth/google/session", { body: { brand: continuation.brand, deviceKey: getDeviceKey(), platform: platformFamily(), browser: browserFamily() }, accessToken: session.accessToken });
+  }
+  persistSession(session, continuation.remember);
+  clearGoogleContinuation();
+  window.history.replaceState({}, document.title, "/");
+  return session.user;
+}
 export async function getSupabaseAccessToken(): Promise<string | null> {
   const session = readStoredSession();
   if (!session) return null;

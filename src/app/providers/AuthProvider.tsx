@@ -7,7 +7,10 @@ import {
   type PropsWithChildren,
 } from "react";
 import {
+  beginStudentAccountClaim,
+  beginStudentGoogleLogin,
   clearSupabaseSession,
+  completeStudentGoogleCallback,
   cancelPendingSupabaseLogin,
   isSupabaseAuthConfigured,
   resendSupabaseEmailOtp,
@@ -45,6 +48,9 @@ export interface AuthState {
       remember: boolean;
     }>,
   ): Promise<{ success: true } | { success: false; message: string }>;
+  beginStudentGoogleLogin(brand: AuthBrand, remember?: boolean): Promise<void>;
+  beginStudentAccountClaim(input: Readonly<{ brand: AuthBrand; accountIdentifier: string; setupCode: string; remember?: boolean }>): Promise<void>;
+  completeStudentGoogleCallback(): Promise<{ success: true } | { success: false; message: string }>;
   signOut(): void;
 }
 
@@ -131,6 +137,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
                 ? error.message
                 : "Sign in could not be completed.",
           };
+        }
+      },
+      beginStudentGoogleLogin,
+      beginStudentAccountClaim,
+      async completeStudentGoogleCallback() {
+        try {
+          const authenticated = await completeStudentGoogleCallback();
+          setUser(toAuthUser(authenticated));
+          setStatus("authenticated");
+          return { success: true };
+        } catch (error) {
+          return { success: false, message: error instanceof Error ? error.message : "Google sign-in could not be completed." };
         }
       },
       signOut() {

@@ -15,7 +15,7 @@ export function AdminLayout() {
   if (auth.status !== "authenticated") {
     return (
       <Navigate
-        to="/auth/sign-in"
+        to="/auth/sign-in?mode=admin"
         replace
         state={{ from: location.pathname + location.search }}
       />

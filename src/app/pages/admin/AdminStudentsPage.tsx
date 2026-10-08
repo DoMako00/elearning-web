@@ -26,7 +26,7 @@ import type {
   AdminStudentDetail,
   AdminStudentStatus,
 } from "../../../features/admin/api";
-import { changeAdminStudentStatus } from "../../../features/admin/api/adminOperationsApi";
+import { bootstrapAdminStudentClaim, changeAdminStudentStatus, resetAdminStudentClaim } from "../../../features/admin/api/adminOperationsApi";
 import {
   loadAdminStudentDetail,
   studentStatusLabel,
@@ -34,6 +34,7 @@ import {
   type AdminStudentRow,
 } from "../../../features/admin/students/adminStudents.adapter";
 import { AdminStudentProvisioningForm } from "../../../features/admin/students/AdminStudentProvisioningForm";
+import { AdminStudentSetupCredential, type StudentSetupCredential } from "../../../features/admin/students/AdminStudentSetupCredential";
 import { AdminStudentSubscriptionsPanel } from "../../../features/admin/students/AdminStudentSubscriptionsPanel";
 import { AdminSideDrawer } from "../../../features/admin/components/AdminSideDrawer";
 type DetailTab = "profile" | "access" | "devices" | "sessions";
@@ -112,6 +113,30 @@ function StatusBadge({ status }: Readonly<{ status: AdminStudentStatus }>) {
   );
 }
 
+function LifecycleBadge({
+  label,
+  value,
+}: Readonly<{ label: string; value: string }>) {
+  return (
+    <span className={"admin-students-lifecycle is-" + value.replace(/_/g, "-")}>
+      <small>{label}</small>
+      <strong>{value.replace(/_/g, " ")}</strong>
+    </span>
+  );
+}
+
+function AccessBadge({ row }: Readonly<{ row: AdminStudentRow }>) {
+  const subscription = (row.activeSubscriptionCount ?? 0) > 0 ? "active" : "none";
+  const grants = row.activeGrantCount ?? 0;
+  return (
+    <span className={"admin-students-lifecycle is-" + subscription}>
+      <small>Subscription</small>
+      <strong>{subscription}</strong>
+      <em>{grants} active {grants === 1 ? "grant" : "grants"}</em>
+    </span>
+  );
+}
+
 function BrandBadge({ row }: Readonly<{ row: AdminStudentRow }>) {
   return (
     <span className={"admin-students-brand is-" + row.platform.platformCode}>
@@ -134,6 +159,8 @@ interface DetailPanelProps {
   ) => void;
   readonly onRevokeSession: (sessionId: string, appUserId: string) => void;
   readonly onRevokeDevice: (deviceId: string, appUserId: string) => void;
+  readonly onResetClaim: () => void;
+  readonly onBootstrapClaim: () => void;
 }
 
 function DetailPanel({
@@ -148,6 +175,8 @@ function DetailPanel({
   onStatusChange,
   onRevokeSession,
   onRevokeDevice,
+  onResetClaim,
+  onBootstrapClaim,
 }: DetailPanelProps) {
   if (!row) {
     return (
@@ -240,6 +269,23 @@ function DetailPanel({
                   </div>
                 ))}
               </dl>
+            </section>
+                        <section>
+              <h3>Identity lifecycle</h3>
+              <p>
+                Account: {row.claimStatus ?? "unavailable"} · Brand membership: {row.brandMembershipStatus ?? "unavailable"} · Subscription: {(row.activeSubscriptionCount ?? 0) > 0 ? "active" : "none"}
+              </p>
+              {row.claimStatus !== "claimed" && (
+                <button
+                  type="button"
+                  disabled={mutating}
+                  onClick={row.claimBootstrapRequired ? onBootstrapClaim : onResetClaim}
+                >
+                  {row.claimBootstrapRequired
+                    ? "Create activation credential"
+                    : "Reset setup code"}
+                </button>
+              )}
             </section>
             <section>
               <h3>Account status</h3>
@@ -396,6 +442,7 @@ export function AdminStudentsPage() {
   const { brand, brandView, availableBrands } =
     useOutletContext<AdminStudentsOutletContext>();
   const [createOpen, setCreateOpen] = useState(false);
+  const [claimCredential, setClaimCredential] = useState<StudentSetupCredential | null>(null);
   const [notice, setNotice] = useState("");
   const [actionError, setActionError] = useState("");
   const [mutating, setMutating] = useState(false);
@@ -572,6 +619,8 @@ export function AdminStudentsPage() {
       setMutating(false);
     }
   }
+  function resetClaim(): void { if (!selectedStudent) return; void confirmAndRunAction("Reset this unclaimed Student setup code? The previous code will immediately stop working.", (reason) => "student-claim-reset:" + selectedStudent.id + ":" + reason, async (reason, key) => { const credential = await resetAdminStudentClaim(selectedStudent.id, reason, key); setClaimCredential(credential); }); }
+  function bootstrapClaim(): void { if (!selectedStudent) return; void confirmAndRunAction("Create a first activation credential for this legacy unclaimed Student? This does not create another Student or replace an identity.", (reason) => "student-claim-bootstrap:" + selectedStudent.id + ":" + reason, async (reason, key) => { const credential = await bootstrapAdminStudentClaim(selectedStudent.id, reason, key); setClaimCredential(credential); }); }
   function changeStatus(nextStatus: "active" | "suspended" | "disabled"): void {
     if (!selectedStudent) return;
     const studentId = selectedStudent.id;
@@ -814,7 +863,10 @@ export function AdminStudentsPage() {
                   <th>Brand</th>
                   <th>Academic level</th>
                   <th>Semester</th>
-                  <th>Status</th>
+                  <th>Account</th>
+                  <th>Membership</th>
+                  <th>Subscription</th>
+                  <th>Record</th>
                   <th>Devices</th>
                   <th>Last activity</th>
                   <th>Actions</th>
@@ -823,7 +875,7 @@ export function AdminStudentsPage() {
               <tbody>
                 {loading && (
                   <tr>
-                    <td colSpan={10}>
+                    <td colSpan={13}>
                       <div className="admin-students-table-state">
                         <LoaderCircle aria-hidden="true" />
                         Loading student records…
@@ -833,7 +885,7 @@ export function AdminStudentsPage() {
                 )}
                 {error && (
                   <tr>
-                    <td colSpan={10}>
+                    <td colSpan={13}>
                       <div className="admin-students-table-state is-error">
                         <strong>Student records are unavailable.</strong>
                         <span>{error.message}</span>
@@ -846,7 +898,7 @@ export function AdminStudentsPage() {
                 )}
                 {!loading && !error && rows.length === 0 && (
                   <tr>
-                    <td colSpan={10}>
+                    <td colSpan={13}>
                       <div className="admin-students-table-state">
                         <UsersRound aria-hidden="true" />
                         <strong>No students yet</strong>
@@ -863,7 +915,7 @@ export function AdminStudentsPage() {
                   rows.length > 0 &&
                   filtered.length === 0 && (
                     <tr>
-                      <td colSpan={10}>
+                      <td colSpan={13}>
                         <div className="admin-students-table-state">
                           <Search aria-hidden="true" />
                           <strong>No matching students</strong>
@@ -915,6 +967,15 @@ export function AdminStudentsPage() {
                       </td>
                       <td>{term.level}</td>
                       <td>{term.semester}</td>
+                      <td>
+                        <LifecycleBadge label="Account" value={student.claimStatus ?? "unavailable"} />
+                      </td>
+                      <td>
+                        <LifecycleBadge label="Membership" value={student.brandMembershipStatus ?? "unavailable"} />
+                      </td>
+                      <td>
+                        <AccessBadge row={student} />
+                      </td>
                       <td>
                         <StatusBadge status={student.status} />
                       </td>
@@ -995,8 +1056,23 @@ export function AdminStudentsPage() {
           onStatusChange={changeStatus}
           onRevokeSession={openSecurity}
           onRevokeDevice={openSecurity}
+          onResetClaim={resetClaim}
+          onBootstrapClaim={bootstrapClaim}
         />
       </div>
+      <AdminSideDrawer
+        open={Boolean(claimCredential)}
+        eyebrow="Account activation"
+        title="One-time Student setup details"
+        onClose={() => setClaimCredential(null)}
+      >
+        {claimCredential && (
+          <AdminStudentSetupCredential
+            credential={claimCredential}
+            onDone={() => setClaimCredential(null)}
+          />
+        )}
+      </AdminSideDrawer>
       <AdminSideDrawer
         open={Boolean(pendingAction)}
         eyebrow="Account security"

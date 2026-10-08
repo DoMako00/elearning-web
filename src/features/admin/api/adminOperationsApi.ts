@@ -73,7 +73,7 @@ export interface AdminSubscription {
 }
 
 export interface CreateStudentPayload {
-  readonly email: string;
+  readonly phone: string;
   readonly fullName: string;
   readonly brandCode: AdminBrandCode;
   readonly academicInstitutionCode: "buc" | "delta";
@@ -87,6 +87,7 @@ export interface CreatedAdminStudent {
   readonly appUserId?: string;
   readonly brandCode?: AdminBrandCode;
   readonly academicInstitutionCode?: "buc" | "delta";
+  readonly platformEmail?: string;
   readonly accountIdentifier?: string;
   readonly setupCode?: string;
   readonly setupExpiresAt?: string;
@@ -320,6 +321,35 @@ export async function listAdminStudents(
   };
 }
 
+export interface AdminStudentClaimCredential {
+  readonly accountIdentifier: string;
+  readonly setupCode: string;
+  readonly setupExpiresAt: string;
+}
+
+export async function resetAdminStudentClaim(
+  studentId: string,
+  reason: string,
+  idempotencyKey?: string,
+): Promise<AdminStudentClaimCredential> {
+  return request(`/v1/admin/students/${encodeURIComponent(studentId)}/claim/reset`, {
+    method: "POST",
+    body: { reason },
+    idempotencyKey,
+  });
+}
+
+export async function bootstrapAdminStudentClaim(
+  studentId: string,
+  reason: string,
+  idempotencyKey?: string,
+): Promise<AdminStudentClaimCredential> {
+  return request(`/v1/admin/students/${encodeURIComponent(studentId)}/claim/bootstrap`, {
+    method: "POST",
+    body: { reason },
+    idempotencyKey,
+  });
+}
 export async function changeAdminStudentStatus(
   studentId: string,
   status: "active" | "suspended" | "disabled",

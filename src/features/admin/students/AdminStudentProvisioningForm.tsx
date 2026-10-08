@@ -21,7 +21,7 @@ interface AdminStudentProvisioningFormProps {
 
 interface ProvisioningValues {
   readonly fullName: string;
-  readonly emailUsername: string;
+  readonly phone: string;
   readonly brandCode: AdminBrandCode | "";
   readonly institutionCode: string;
   readonly levelNumber: string;
@@ -31,38 +31,13 @@ interface ProvisioningValues {
 
 const emptyValues: ProvisioningValues = {
   fullName: "",
-  emailUsername: "",
+  phone: "",
   brandCode: "",
   institutionCode: "",
   levelNumber: "",
   semesterNumber: "",
   studentCode: "",
 };
-
-const platformEmailDomains: Record<AdminBrandCode, string> = {
-  medway: "medway.edu",
-  elite: "elite.edu",
-  nexus: "nexus.edu",
-};
-
-function platformEmailDomain(brandCode: string): string | undefined {
-  switch (brandCode) {
-    case "medway":
-    case "elite":
-    case "nexus":
-      return platformEmailDomains[brandCode];
-    default:
-      return undefined;
-  }
-}
-
-function suggestEmailUsername(fullName: string): string {
-  return fullName
-    .normalize("NFKD")
-    .replace(/\p{M}/gu, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "");
-}
 
 function requestKey(signature: string): string {
   if (
@@ -96,7 +71,6 @@ export function AdminStudentProvisioningForm({
   const pendingRequest = useRef<{ signature: string; key: string } | undefined>(
     undefined,
   );
-  const emailUsernameEdited = useRef(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -140,12 +114,6 @@ export function AdminStudentProvisioningForm({
   }, []);
 
   const selectedBrand = brands.find((item) => item.code === values.brandCode);
-  const selectedEmailDomain = selectedBrand
-    ? platformEmailDomain(selectedBrand.code)
-    : undefined;
-  const platformEmail = selectedEmailDomain && values.emailUsername
-    ? `${values.emailUsername}@${selectedEmailDomain}`
-    : "";
   const allowedInstitutionCodes = useMemo(
     () =>
       new Set(
@@ -172,8 +140,7 @@ export function AdminStudentProvisioningForm({
     level?.semesters.filter((item) => item.status === "active") ?? [];
   const canSubmit = Boolean(
     values.fullName.trim() &&
-    /^[a-z0-9._-]{1,64}$/i.test(values.emailUsername) &&
-    platformEmail &&
+    /^\+[1-9][0-9]{7,14}$/.test(values.phone.trim()) &&
     selectedBrand &&
     institution &&
     level &&
@@ -190,19 +157,7 @@ export function AdminStudentProvisioningForm({
     setError("");
   }
 
-  function updateFullName(fullName: string) {
-    setValues((current) => ({
-      ...current,
-      fullName,
-      ...(!emailUsernameEdited.current
-        ? { emailUsername: suggestEmailUsername(fullName) }
-        : {}),
-    }));
-    setError("");
-  }
-
   function resetForm() {
-    emailUsernameEdited.current = false;
     setValues({ ...emptyValues, brandCode: initialBrandCode ?? "" });
   }
 
@@ -213,7 +168,7 @@ export function AdminStudentProvisioningForm({
 
     const body = {
       fullName: values.fullName.trim(),
-      email: platformEmail,
+      phone: values.phone.trim(),
       brandCode: selectedBrand.code as AdminBrandCode,
       academicInstitutionCode: institution.code as "buc" | "delta",
       academicLevelNumber: level.levelNumber,
@@ -235,7 +190,7 @@ export function AdminStudentProvisioningForm({
       pendingRequest.current = undefined;
       if (created.accountIdentifier && created.setupCode) {
         setCreatedCredential({
-          platformEmail,
+          platformEmail: created.platformEmail,
           accountIdentifier: created.accountIdentifier,
           setupCode: created.setupCode,
           setupExpiresAt: created.setupExpiresAt,
@@ -300,29 +255,21 @@ export function AdminStudentProvisioningForm({
               required
               maxLength={160}
               value={values.fullName}
-              onChange={(event) => updateFullName(event.target.value)}
+              onChange={(event) => update("fullName", event.target.value)}
             />
           </label>
           <label>
-            Student platform email
-            <span className="admin-student-platform-email">
-              <input
-                required
-                type="text"
-                autoComplete="off"
-                aria-label="Student email username"
-                maxLength={64}
-                pattern="[a-zA-Z0-9._-]+"
-                value={values.emailUsername}
-                onChange={(event) => {
-                  emailUsernameEdited.current = true;
-                  update("emailUsername", event.target.value);
-                }}
-              />
-              <span aria-hidden="true">
-                @{selectedEmailDomain ?? "brand.edu"}
-              </span>
-            </span>
+            Phone
+            <input
+              required
+              type="tel"
+              autoComplete="tel"
+              inputMode="tel"
+              placeholder="+201234567890"
+              maxLength={16}
+              value={values.phone}
+              onChange={(event) => update("phone", event.target.value)}
+            />
           </label>
           <label>
             Brand
@@ -418,9 +365,9 @@ export function AdminStudentProvisioningForm({
             />
           </label>
           <p className="admin-workspace-note">
-            This provisions the platform Student account and academic placement.
-            The platform address uses the selected brand domain; the student
-            verifies a separate email address for sign-in.
+            This provisions an unclaimed Student account and academic placement.
+            The backend generates the internal platform identity. The Student uses
+            the one-time setup code to activate the account with Google.
           </p>
           <button type="submit" disabled={loading || saving || !canSubmit}>
             {saving ? "Creating student…" : "Create student"}

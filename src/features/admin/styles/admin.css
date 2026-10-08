@@ -5898,3 +5898,42 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.admin-students-lifecycle {
+  display: inline-grid;
+  gap: 1px;
+  min-width: 76px;
+  border-left: 2px solid #d9e8dd;
+  padding-left: 6px;
+  text-transform: capitalize;
+}
+.admin-students-lifecycle small,
+.admin-students-lifecycle em {
+  color: #859188;
+  font-size: 8px;
+  font-style: normal;
+  line-height: 1.2;
+}
+.admin-students-lifecycle strong {
+  color: #2e3e34;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.admin-students-lifecycle.is-active {
+  border-color: #31935a;
+}
+.admin-students-lifecycle.is-pending,
+.admin-students-lifecycle.is-unclaimed,
+.admin-students-lifecycle.is-setup-expired {
+  border-color: #d5a840;
+}
+.admin-students-lifecycle.is-suspended,
+.admin-students-lifecycle.is-revoked,
+.admin-students-lifecycle.is-locked {
+  border-color: #cf6a5d;
+}
+.admin-students-lifecycle.is-none,
+.admin-students-lifecycle.is-unavailable {
+  border-color: #c8d0ca;
+}
