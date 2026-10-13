@@ -116,7 +116,7 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
         if (pathname === "/admin/content") operational = await loadAdminContentData(loaded.courses);
         if (pathname === "/admin/security") operational = await loadAdminSecurityData(brand);
         if (pathname === "/admin/instructors") operational = { auditEvents: await loadAdminSecurityEvents(brand) };
-        if (pathname === "/admin/overview") { const result = await loadAdminOverviewData(brand, loaded.courses); operational = result.data; overviewResult = result.overview; }
+        if (pathname === "/admin" || pathname === "/admin/overview") { const result = await loadAdminOverviewData(brand, loaded.courses); operational = result.data; overviewResult = result.overview; }
         if (!controller.signal.aborted) { setServerDomains({ ...loaded, ...operational } as ServerDomainData); setOverview(overviewResult); setDomainError(""); }
       } catch (error: unknown) {
         if (!controller.signal.aborted) { setServerDomains(emptyAdminV2ServerDomainData()); setOverview(null); setDomainError(error instanceof Error ? error.message : "Admin data could not be loaded."); }
