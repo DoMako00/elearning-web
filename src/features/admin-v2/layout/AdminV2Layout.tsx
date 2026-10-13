@@ -1,6 +1,6 @@
-import { Bell, BookOpen, ChevronDown, Crown, GraduationCap, LayoutDashboard, LibraryBig, Search, ShieldCheck, CreditCard, Files, UserRound, CalendarDays, Layers3, RotateCcw } from "lucide-react";
+import { Bell, BookOpen, ChevronDown, Crown, GraduationCap, LayoutDashboard, LibraryBig, Search, ShieldCheck, CreditCard, Files, UserRound, CalendarDays, Layers3, RotateCcw, LogOut } from "lucide-react";
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type Dispatch, type PropsWithChildren, type SetStateAction } from "react";
-import { Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
+import { Navigate, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import { getAdminOverview } from "../api/adminOperationsApi";
 import { adminNavigation } from "../../../app/pages/admin/adminNavigation";
@@ -47,6 +47,7 @@ export function AdminV2DomainStatus() {
 
 export function AdminV2Layout({ children }: PropsWithChildren) {
   const auth = useAuth();
+  const navigate = useNavigate();
   const localData = useAdminV2Store();
   const { pathname } = useLocation();
   const [adminAccess, setAdminAccess] = useState<"checking" | "allowed" | "denied" | "error">("checking");
@@ -151,7 +152,8 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
           <div className="admin-v2__top-actions">
             <div className="admin-v2__brand-switch" role="group" aria-label="Brand filter">{brandChoices.map((choice) => <button key={choice} type="button" aria-pressed={brand === choice} title={choice === "all" ? "Show all brands across Admin" : `Filter Admin by ${brandName(choice)}`} className={choice === "all" ? "is-all" : `is-${choice}`} onClick={() => setBrand(choice)}>{choice === "all" ? <Layers3 aria-hidden="true" /> : choice === "elite" ? <Crown aria-hidden="true" /> : <ShieldCheck aria-hidden="true" />}<span>{choice === "all" ? "All brands" : brandName(choice)}</span></button>)}</div>
             <div className="admin-v2__notice-wrap"><button className="admin-v2__icon-btn" aria-label="Notifications" aria-expanded={noticeOpen} onClick={() => setNoticeOpen((value) => !value)}><Bell aria-hidden="true" /></button>{noticeOpen && <div className="admin-v2__notice-popover"><strong>Notifications</strong><span>Notifications are not available from the current Admin API.</span></div>}</div>
-            <button className="admin-v2__profile"><span className="admin-v2__avatar">AD</span><span><strong>Admin User</strong><small>Administrator</small></span><ChevronDown aria-hidden="true" /></button>
+            <div className="admin-v2__profile" aria-label="Signed-in Admin"><span className="admin-v2__avatar">{(auth.user?.name ?? "A").slice(0, 2).toUpperCase()}</span><span><strong>{auth.user?.name ?? "Authenticated Admin"}</strong><small>Admin session</small></span></div>
+            <button type="button" className="admin-v2__logout" onClick={() => { auth.signOut(); navigate("/auth/sign-in", { replace: true }); }}><LogOut aria-hidden="true" /><span>Log out</span></button>
           </div>
         </header>
         <main className="admin-v2__main"><div className="admin-v2__content">{children ?? <Outlet context={{ brandView: brand === "all" ? "all" : brand }} />}</div></main>

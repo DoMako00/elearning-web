@@ -68,6 +68,10 @@
 .admin-v2__profile { display: flex; align-items: center; gap: 8px; border: 0; background: transparent; text-align: left; white-space: nowrap; }
 .admin-v2__avatar { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: #dcece1; color: #23633c; font-size: 10px; font-weight: 750; }
 .admin-v2__profile strong, .admin-v2__profile small { display: block; }.admin-v2__profile strong { color: #33443a; font-size: 10px; }.admin-v2__profile small { margin-top: 3px; color: #87928b; font-size: 9px; }.admin-v2__profile > svg { width: 13px; color: #7a867f; }
+.admin-v2__profile strong { max-width: 190px; overflow: hidden; text-overflow: ellipsis; }
+.admin-v2__logout { min-height: 33px; display: inline-flex; align-items: center; gap: 6px; padding: 0 9px; border: 1px solid #e3e9e5; border-radius: 5px; background: #fff; color: #516057; font-size: 10px; font-weight: 650; white-space: nowrap; }
+.admin-v2__logout:hover { background: #f7faf8; border-color: #cbdad0; }
+.admin-v2__logout svg { width: 14px; height: 14px; }
 .admin-v2__main { min-width: 0; min-height: 0; overflow: auto; }
 .admin-v2__content { min-width: 0; min-height: 100%; }
 .admin-v2__page { min-width: 0; min-height: 100%; display: flex; flex-direction: column; gap: 14px; padding: 16px 20px 18px; }
