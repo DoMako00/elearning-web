@@ -86,7 +86,8 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
   const reportDomainError = (message: string) => setDomainError(message);
   const context = useMemo(() => ({ data, setData, brand, setBrand, globalSearch, setGlobalSearch, domainLoading, domainError, refreshServerDomains, reportDomainError, overview }), [data, brand, globalSearch, domainLoading, domainError, overview]);
   useEffect(() => {
-    if (auth.status !== "authenticated") { setAdminAccess("denied"); return; }
+    if (auth.status === "loading") return;
+    if (auth.status === "unauthenticated") { setAdminAccess("denied"); return; }
     let active = true;
     setAdminAccess("checking");
     void (async () => {
