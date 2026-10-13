@@ -5,7 +5,7 @@ export type AuthStepId =
   | "choose-brand"
   | "access-granted";
 
-export type SignInMode = "password" | "otp";
+export type SignInMode = "activation" | "otp";
 export type BrandId = "medway" | "elite";
 
 export interface AuthProgressStep {

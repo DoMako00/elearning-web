@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   SettingsLayout,
   ProfileTab,
@@ -19,6 +19,7 @@ import {
 import { useSettingsForm } from "./hooks/useSettingsForm";
 import { ToastNotification } from "../../components/ui/ToastNotification";
 import { useToast } from "../../hooks/useToast";
+import { completeStudentEmailLink, getStudentAuthMethods, initiateOtpLogin, initiateStudentEmailLink, verifyOtpProof } from "../auth/api/identityApi";
 
 export const Settings: React.FC = () => {
   const {
@@ -52,13 +53,52 @@ export const Settings: React.FC = () => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
   const [isDevicesModalOpen, setIsDevicesModalOpen] = useState(false);
+  const [linkedEmail, setLinkedEmail] = useState("");
+  const [emailStage,setEmailStage]=useState<"idle"|"current"|"new">("idle");
+  const [emailCode,setEmailCode]=useState("");
+  const [emailChallengeId,setEmailChallengeId]=useState("");
+  const [emailLinkTicket,setEmailLinkTicket]=useState("");
+  const [studentBrand,setStudentBrand]=useState<"medway"|"elite"|"nexus">("elite");
 
-  const handleSendVerificationCode = () => {
+  useEffect(()=>{void getStudentAuthMethods().then(methods=>{setLinkedEmail(methods.verifiedEmail??"");if(methods.brandCode)setStudentBrand(methods.brandCode);}).catch(()=>undefined);},[]);
+
+  const handleSendVerificationCode = async () => {
     if (!newContactValue.trim()) {
       showToast(`Please enter a valid new ${contactSubTab}.`);
       return;
     }
-    showToast(`Verification code sent to ${newContactValue}!`);
+    if(contactSubTab==="phone") { showToast("Phone is optional contact information only; it is not a sign-in or OTP method."); return; }
+    try {
+      const methods=await getStudentAuthMethods();
+      setLinkedEmail(methods.verifiedEmail??"");if(methods.brandCode)setStudentBrand(methods.brandCode);
+      if(methods.verifiedEmail){
+        if(methods.verifiedEmail.toLowerCase()===newContactValue.trim().toLowerCase()){showToast("Enter a different email address to change your login email.");return;}
+        const challenge=await initiateOtpLogin({email:methods.verifiedEmail,brand:methods.brandCode??studentBrand});
+        setEmailChallengeId(challenge.challengeId);setEmailStage("current");setEmailCode("");
+        showToast("A confirmation code was sent to your current verified email.");
+      }else{
+        const link=await initiateStudentEmailLink(newContactValue);
+        setEmailLinkTicket(link.linkTicket);setEmailStage("new");setEmailCode("");
+        showToast("A verification code was sent to the new email address.");
+      }
+    } catch(error) { showToast(error instanceof Error?error.message:"Unable to start email verification."); }
+  };
+
+  const handleVerifyEmail=async()=>{
+    if(!/^\d{8}$/.test(emailCode.trim())){showToast("Enter the 8-digit verification code from your email.");return;}
+    try{
+      if(emailStage==="current"){
+        const proof=await verifyOtpProof({challengeId:emailChallengeId,code:emailCode});
+        const link=await initiateStudentEmailLink(newContactValue,proof.accessToken);
+        setEmailLinkTicket(link.linkTicket);setEmailStage("new");setEmailCode("");
+        showToast("Your new email has a verification code. Enter it to finish changing your login email.");
+      }else if(emailStage==="new"){
+        await completeStudentEmailLink({linkTicket:emailLinkTicket,code:emailCode});
+        setEmailStage("idle");setEmailCode("");setEmailLinkTicket("");
+        setLinkedEmail(newContactValue.trim());showToast("Your email is verified and is now your login email.");
+        window.location.reload();
+      }
+    }catch(error){showToast(error instanceof Error?error.message:"Email verification failed. Check the code and try again.");}
   };
 
   // Right sidebar widget for Devices & Access, Subscription, and Quick actions
@@ -77,6 +117,11 @@ export const Settings: React.FC = () => {
       onManageDevicesClick={() => setIsDevicesModalOpen(true)}
       onCloseAccountClick={() => setIsCloseModalOpen(true)}
       onSendVerificationCode={handleSendVerificationCode}
+      onVerifyEmail={handleVerifyEmail}
+      emailCode={emailCode}
+      setEmailCode={setEmailCode}
+      emailFlowStep={emailStage}
+      linkedEmail={linkedEmail}
       onDownloadDataClick={() => showToast("Preparing your learning data export...")}
       onSwitchAccountClick={() => showToast("Redirecting to account switcher...")}
       onViewPlansClick={() => showToast("Opening subscription plans...")}
@@ -97,6 +142,7 @@ export const Settings: React.FC = () => {
         {activeTab === "profile" && (
           <ProfileTab
             profile={profile}
+            verifiedEmail={linkedEmail}
             onUpdateProfile={updateProfileField}
             onChangePhotoClick={() => setIsPhotoModalOpen(true)}
             onSave={() => showToast("Profile changes saved successfully!")}

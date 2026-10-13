@@ -43,6 +43,11 @@ interface ProfileTabContentProps {
   onManageDevicesClick: () => void;
   onCloseAccountClick: () => void;
   onSendVerificationCode: () => void;
+  onVerifyEmail: () => void;
+  emailCode: string;
+  setEmailCode: (code:string) => void;
+  emailFlowStep: "idle" | "current" | "new";
+  linkedEmail?: string;
   onDownloadDataClick: () => void;
   onSwitchAccountClick: () => void;
   onViewPlansClick: () => void;
@@ -64,6 +69,11 @@ export const ProfileTabContent: React.FC<ProfileTabContentProps> = ({
   onManageDevicesClick,
   onCloseAccountClick,
   onSendVerificationCode,
+  onVerifyEmail,
+  emailCode,
+  setEmailCode,
+  emailFlowStep,
+  linkedEmail,
   onDownloadDataClick,
   onSwitchAccountClick,
   onViewPlansClick,
@@ -164,12 +174,13 @@ export const ProfileTabContent: React.FC<ProfileTabContentProps> = ({
               {/* Email Address */}
               <div>
                 <label className="block text-[11px] font-semibold text-gray-700 mb-1">
-                  Email address
+                  Verified login email
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   disabled
-                  value={profile.email}
+                  value={linkedEmail ?? ""}
+                  placeholder="No verified email linked"
                   className="w-full h-9 px-3 text-xs bg-gray-50/50 border border-gray-200/90 rounded-xl text-gray-500 cursor-not-allowed shadow-2xs"
                 />
               </div>
@@ -274,8 +285,9 @@ export const ProfileTabContent: React.FC<ProfileTabContentProps> = ({
                 Change Email or Phone
               </h3>
               <p className="text-[11px] text-gray-500">
-                For security, we'll send a verification code to your new contact information.
+                Email becomes a login method only after you verify ownership. Phone is optional contact information and never receives sign-in codes.
               </p>
+              {contactSubTab === "email" && <p className="text-[11px] text-gray-600 mt-1">Verified login email: {linkedEmail || "Not linked yet"}</p>}
             </div>
           </div>
 
@@ -313,6 +325,10 @@ export const ProfileTabContent: React.FC<ProfileTabContentProps> = ({
 
           {/* Form Input + CTA */}
           <div className="flex flex-col sm:flex-row items-center gap-2.5">
+            {contactSubTab === "email" && emailFlowStep !== "idle" ? <>
+            <input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={emailCode} onChange={e=>setEmailCode(e.target.value.replace(/\D/g,""))} placeholder={emailFlowStep === "current" ? "Code sent to your current verified email" : "Code sent to the new email"} className="flex-1 w-full h-9.5 px-3.5 text-xs bg-gray-50/70 border border-gray-200/90 rounded-xl text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white placeholder-gray-400 shadow-2xs transition-all" />
+            <button type="button" onClick={onVerifyEmail} className="w-full sm:w-auto h-9.5 px-4 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-xl shadow-xs transition-all cursor-pointer whitespace-nowrap">{emailFlowStep === "current" ? "Continue securely" : "Verify new email"}</button>
+            </> : <>
             <input
               type={contactSubTab === "email" ? "email" : "tel"}
               value={newContactValue}
@@ -331,6 +347,7 @@ export const ProfileTabContent: React.FC<ProfileTabContentProps> = ({
             >
               Send verification code
             </button>
+            </>}
           </div>
         </div>
 

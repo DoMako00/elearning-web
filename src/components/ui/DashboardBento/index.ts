@@ -1,1 +1,1 @@
-export { DashboardBento } from "./DashboardBento";
+export * from "../../../features/student/components/DashboardBento";

@@ -1,0 +1,19 @@
+/**
+ * GreenLearn LMS — Canonical Breakpoint System (CSS Reference)
+ *
+ * Single source of truth for responsive thresholds across the application:
+ * - Mobile:               < 768px       (phone viewports)
+ * - iPad / Tablet:        768px–1399px  (iPad Mini 768px, iPad Air 820px, iPad Pro 1024px/1366px)
+ * - Desktop Zero-Scroll:  >= 1400px     (strict zero-scroll 1920x1080 and 1920x822 viewports)
+ *
+ * Usage in CSS media queries:
+ *   @media (max-width: 1399px) { ... iPad / Tablet fluid scroll overrides ... }
+ *   @media (min-width: 1400px) { ... Strict Desktop zero-scroll rules ... }
+ */
+
+:root {
+  --breakpoint-mobile-max: 767px;
+  --breakpoint-tablet-min: 768px;
+  --breakpoint-tablet-max: 1399px;
+  --breakpoint-desktop-min: 1400px;
+}

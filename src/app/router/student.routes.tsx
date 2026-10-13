@@ -1,25 +1,25 @@
 import { lazy, Suspense } from "react";
 import type { RouteObject } from "react-router-dom";
-import { StudentLayout } from "../pages/student/StudentLayout";
+import { StudentLayout } from "../../features/student/pages/StudentLayout";
 import { RouteErrorBoundary } from "../../components/layout/RouteErrorBoundary";
 import { RouteLoadingFallback } from "../../components/layout/RouteLoadingFallback";
 import "./student-dashboard.css";
 
-// Lazy-loaded student pages for route-level code splitting
-const HomePage = lazy(() => import("../pages/student/HomePage").then((m) => ({ default: m.HomePage })));
-const ProfilePage = lazy(() => import("../pages/student/ProfilePage").then((m) => ({ default: m.ProfilePage })));
-const InstructorProfilePage = lazy(() => import("../pages/student/InstructorProfilePage").then((m) => ({ default: m.InstructorProfilePage })));
-const MyCoursesPage = lazy(() => import("../pages/student/MyCoursesPage").then((m) => ({ default: m.MyCoursesPage })));
-const CourseOverviewPage = lazy(() => import("../pages/student/CourseOverviewPage").then((m) => ({ default: m.CourseOverviewPage })));
-const LessonPlayerPage = lazy(() => import("../pages/student/LessonPlayerPage").then((m) => ({ default: m.LessonPlayerPage })));
-const ExplorePage = lazy(() => import("../pages/student/ExplorePage").then((m) => ({ default: m.ExplorePage })));
-const CalendarPage = lazy(() => import("../pages/student/CalendarPage").then((m) => ({ default: m.CalendarPage })));
-const AssignmentsPage = lazy(() => import("../pages/student/AssignmentsPage").then((m) => ({ default: m.AssignmentsPage })));
+// Lazy-loaded student pages — all sourced from the canonical feature location
+const HomePage = lazy(() => import("../../features/student/pages/HomePage").then((m) => ({ default: m.HomePage })));
+const ProfilePage = lazy(() => import("../../features/student/pages/ProfilePage").then((m) => ({ default: m.ProfilePage })));
+const InstructorProfilePage = lazy(() => import("../../features/student/pages/InstructorProfilePage").then((m) => ({ default: m.InstructorProfilePage })));
+const MyCoursesPage = lazy(() => import("../../features/student/pages/MyCoursesPage").then((m) => ({ default: m.MyCoursesPage })));
+const CourseOverviewPage = lazy(() => import("../../features/student/pages/CourseOverviewPage").then((m) => ({ default: m.CourseOverviewPage })));
+const LessonPlayerPage = lazy(() => import("../../features/student/pages/LessonPlayerPage").then((m) => ({ default: m.LessonPlayerPage })));
+const ExplorePage = lazy(() => import("../../features/student/pages/ExplorePage").then((m) => ({ default: m.ExplorePage })));
+const CalendarPage = lazy(() => import("../../features/student/pages/CalendarPage").then((m) => ({ default: m.CalendarPage })));
+const AssignmentsPage = lazy(() => import("../../features/student/pages/AssignmentsPage").then((m) => ({ default: m.AssignmentsPage })));
 const AssignmentDetailPage = lazy(() => import("../../components/ui/Assignments/AssignmentDetailPage").then((m) => ({ default: m.AssignmentDetailPage })));
-const MessagesPage = lazy(() => import("../pages/student/MessagesPage").then((m) => ({ default: m.MessagesPage })));
-const CommunityPage = lazy(() => import("../pages/student/CommunityPage").then((m) => ({ default: m.CommunityPage })));
-const HelpCenterPage = lazy(() => import("../pages/student/HelpCenterPage").then((m) => ({ default: m.HelpCenterPage })));
-const SettingsPage = lazy(() => import("../pages/student/SettingsPage").then((m) => ({ default: m.SettingsPage })));
+const MessagesPage = lazy(() => import("../../features/student/pages/MessagesPage").then((m) => ({ default: m.MessagesPage })));
+const CommunityPage = lazy(() => import("../../features/student/pages/CommunityPage").then((m) => ({ default: m.CommunityPage })));
+const HelpCenterPage = lazy(() => import("../../features/student/pages/HelpCenterPage").then((m) => ({ default: m.HelpCenterPage })));
+const SettingsPage = lazy(() => import("../../features/student/pages/SettingsPage").then((m) => ({ default: m.SettingsPage })));
 
 function withSuspense(Component: React.ComponentType) {
   return (
@@ -34,10 +34,10 @@ function withSuspense(Component: React.ComponentType) {
 // Dev-only test pages — tree-shaken from production builds
 let devRoutes: RouteObject[] = [];
 if (import.meta.env.DEV) {
-  const { TestInactivityPromptPage } = await import("../pages/student/test-inactivity/TestInactivityPromptPage");
-  const { TestStreakPage } = await import("../pages/student/test-streak/TestStreakPage");
-  const { TestXPRewardsPage } = await import("../pages/student/test-xp/TestXPRewardsPage");
-  const { TestSkeletonPage } = await import("../pages/student/test-skeleton/TestSkeletonPage");
+  const { TestInactivityPromptPage } = await import("../../features/student/pages/test-inactivity/TestInactivityPromptPage");
+  const { TestStreakPage } = await import("../../features/student/pages/test-streak/TestStreakPage");
+  const { TestXPRewardsPage } = await import("../../features/student/pages/test-xp/TestXPRewardsPage");
+  const { TestSkeletonPage } = await import("../../features/student/pages/test-skeleton/TestSkeletonPage");
   devRoutes = [
     { path: "test-inactivity", element: <TestInactivityPromptPage /> },
     { path: "test-streak", element: <TestStreakPage /> },

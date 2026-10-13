@@ -1,7 +1,2 @@
-import { InstructorProfile } from "../../../features/instructor";
-
-export function InstructorProfilePage() {
-  return <InstructorProfile />;
-}
-
-export default InstructorProfilePage;
+// Forwarded to canonical location in the student feature module.
+export { InstructorProfilePage, default } from "../../../features/student/pages/InstructorProfilePage";

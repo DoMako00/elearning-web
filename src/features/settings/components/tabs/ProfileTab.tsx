@@ -11,6 +11,7 @@ import { SettingsCard } from "../common/SettingsCard";
 
 interface ProfileTabProps {
   profile: StudentProfileData;
+  verifiedEmail?: string;
   onUpdateProfile: <K extends keyof StudentProfileData>(
     field: K,
     value: StudentProfileData[K]
@@ -21,6 +22,7 @@ interface ProfileTabProps {
 
 export const ProfileTab: React.FC<ProfileTabProps> = ({
   profile,
+  verifiedEmail = "",
   onUpdateProfile,
   onChangePhotoClick,
   onSave,
@@ -110,7 +112,8 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               <input
                 type="email"
                 disabled
-                value={profile.email}
+                value={verifiedEmail}
+                placeholder="No verified login email linked"
                 className="w-full h-9 px-3 text-xs bg-gray-50/50 border border-gray-200/90 rounded-xl text-gray-500 cursor-not-allowed shadow-2xs"
               />
             </div>
@@ -118,7 +121,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             {/* Phone Number with Mock Country Code Dropdown */}
             <div>
               <label className="block text-[11px] font-semibold text-gray-700 mb-1">
-                Phone number
+              Phone number (optional)
               </label>
               <div className="flex items-center gap-1.5">
                 <div className="relative shrink-0">
@@ -150,7 +153,6 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                   onChange={(e) => onUpdateProfile("phoneNumber", e.target.value)}
                   placeholder="112 345 6789"
                   className="flex-1 h-9 px-3 text-xs bg-gray-50/80 border border-gray-200/90 rounded-xl text-gray-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white transition-all min-w-0 shadow-2xs"
-                  required
                 />
               </div>
             </div>

@@ -1,5 +1,5 @@
 /**
- * These frontend-local types temporarily mirror the backend admin contract.
+ * These frontend-local types temporarily mirror api/src/contracts/admin/.
  * The frontend has no safe shared/generated contract package boundary yet.
  * Replace this file with imports from a shared/generated package later.
  * These types do not authorize anything; backend runtime must validate

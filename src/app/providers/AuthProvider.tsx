@@ -6,7 +6,7 @@ import {
   useState,
   type PropsWithChildren,
 } from "react";
-import { clearSupabaseSession, isSupabaseAuthConfigured, restoreSupabaseSession, signInWithSupabasePassword, type SupabaseAuthenticatedUser } from "../../features/auth/api/supabaseAuth";
+import { clearSupabaseSession, isSupabaseAuthConfigured, restoreSupabaseSession, type SupabaseAuthenticatedUser } from "../../features/auth/api/supabaseAuth";
 
 export interface AuthUser {
   id: string;
@@ -18,7 +18,6 @@ export interface AuthState {
   status: "loading" | "authenticated" | "unauthenticated";
   user: AuthUser | null;
   configured: boolean;
-  signInWithPassword(input: Readonly<{ email: string; password: string; remember: boolean }>): Promise<{ success: true } | { success: false; message: string }>;
   signOut(): void;
 }
 
@@ -51,18 +50,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
     status,
     user,
     configured,
-    async signInWithPassword(input) {
-      try {
-        const authenticated = await signInWithSupabasePassword(input);
-        setUser(toAuthUser(authenticated));
-        setStatus("authenticated");
-        return { success: true };
-      } catch (error) {
-        setUser(null);
-        setStatus("unauthenticated");
-        return { success: false, message: error instanceof Error ? error.message : "Sign in could not be completed." };
-      }
-    },
     signOut() {
       clearSupabaseSession();
       setUser(null);

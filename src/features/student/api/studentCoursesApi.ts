@@ -1,5 +1,6 @@
 import { env } from "../../../app/config/env";
-import { getSupabaseAccessToken } from "../../auth/api/supabaseAuth";
+// [AUTH-BACKEND DISABLED] Supabase token import commented out
+// import { getSupabaseAccessToken } from "../../auth/api/supabaseAuth";
 
 export type StudentCommercialBrand = "medway" | "elite" | "nexus";
 export type CataloguePresentation = "subject_based" | "module_based";
@@ -96,7 +97,10 @@ function apiBaseUrl() {
 }
 
 async function studentRequest<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const token = await getSupabaseAccessToken();
+  // [AUTH-BACKEND DISABLED] Supabase token fetch commented out — will always be unauthenticated
+  // const token = await getSupabaseAccessToken();
+  // if (!token) throw new StudentCoursesApiError("Sign in to view your courses.", 401, "unauthenticated");
+  const token: string | null = null;
   if (!token) throw new StudentCoursesApiError("Sign in to view your courses.", 401, "unauthenticated");
 
   let response: Response;

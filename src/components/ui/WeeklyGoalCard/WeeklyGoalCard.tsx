@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SlidersHorizontal, X, Check, Clock } from "lucide-react";
+import { SlidersHorizontal, X, Check, Clock, Target, Zap } from "lucide-react";
 import fireAsset from "../../../Assets/fire.webp";
 import { useToast } from "../../../hooks/useToast";
 import { ToastNotification } from "../ToastNotification";
@@ -11,6 +11,13 @@ const WEEK_DAYS_INFO = ["S", "M", "T", "W", "T", "F", "S"] as const;
 const RING_SIZE = 120;
 const RING_RADIUS = 50;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+
+const PRESETS = [
+  { hours: 6,  label: "6h",  sublabel: "Light" },
+  { hours: 10, label: "10h", sublabel: "Moderate" },
+  { hours: 15, label: "15h", sublabel: "Recommended" },
+  { hours: 20, label: "20h", sublabel: "Intensive" },
+];
 
 interface ProgressRingProps {
   percentage: number | null;
@@ -63,12 +70,72 @@ function ProgressRing({ percentage, isCompletedOrExceeded }: ProgressRingProps) 
   );
 }
 
+/** First-time "Set your goal" CTA shown when no goal has been configured. */
+function SetGoalPrompt({ onSet }: { onSet: (hours: number) => void }) {
+  const [selected, setSelected] = useState(15);
+
+  return (
+    <div className="weekly-goal-setup">
+      <div className="weekly-goal-setup__icon" aria-hidden="true">
+        <Target strokeWidth={1.5} />
+      </div>
+      <h3 className="weekly-goal-setup__heading">Set your weekly goal</h3>
+      <p className="weekly-goal-setup__sub">Choose how many hours you want to study each week.</p>
+
+      <div className="weekly-goal-setup__presets">
+        {PRESETS.map((p) => (
+          <button
+            key={p.hours}
+            type="button"
+            className={`weekly-goal-setup__preset${selected === p.hours ? " weekly-goal-setup__preset--active" : ""}`}
+            onClick={() => setSelected(p.hours)}
+            aria-pressed={selected === p.hours}
+          >
+            <span className="weekly-goal-setup__preset-hours">{p.label}</span>
+            <span className="weekly-goal-setup__preset-sub">{p.sublabel}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="weekly-goal-setup__slider-wrap">
+        <input
+          type="range"
+          min="4"
+          max="35"
+          step="1"
+          value={selected}
+          onChange={(e) => setSelected(Number(e.target.value))}
+          className="weekly-goal-setup__slider"
+          aria-label={`Weekly goal: ${selected} hours`}
+        />
+        <div className="weekly-goal-setup__slider-labels">
+          <span>4h</span>
+          <span className="weekly-goal-setup__slider-val">{selected}h / week</span>
+          <span>35h</span>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        className="weekly-goal-setup__cta"
+        onClick={() => onSet(selected)}
+      >
+        <Zap size={14} aria-hidden="true" />
+        <span>Start tracking</span>
+      </button>
+    </div>
+  );
+}
+
 export function WeeklyGoalCard({
   completedHours: initialCompletedHours,
   targetHours: initialTargetHours = 12,
   completedDays,
+  goalSet: initialGoalSet = false,
+  onGoalSet,
 }: WeeklyGoalCardProps) {
   const [targetHours, setTargetHours] = useState(initialTargetHours);
+  const [goalSet, setGoalSet] = useState(initialGoalSet);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sliderValue, setSliderValue] = useState(initialTargetHours);
   const { toastMessage, showToast } = useToast();
@@ -85,10 +152,17 @@ export function WeeklyGoalCard({
     showToast(`Weekly goal updated to ${sliderValue} hours/week!`);
   };
 
+  const handleFirstGoalSet = (hours: number) => {
+    setTargetHours(hours);
+    setGoalSet(true);
+    onGoalSet?.(hours);
+    showToast(`Weekly goal set to ${hours} hours/week! 🎯`);
+  };
+
   return (
     <article
       className="weekly-goal-card relative flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-(--color-border-subtle) bg-(--color-surface) p-4 sm:p-5"
-      aria-label={progressDescription}
+      aria-label={goalSet ? progressDescription : "Set your weekly study goal"}
     >
       <ToastNotification message={toastMessage} />
 
@@ -96,44 +170,55 @@ export function WeeklyGoalCard({
         <h2 className="text-base font-semibold leading-[1.2] text-(--color-text-primary)">
           Weekly Goal
         </h2>
-        <button
-          type="button"
-          onClick={() => {
-            setSliderValue(targetHours);
-            setIsModalOpen(true);
-          }}
-          className="weekly-goal-options grid size-8.5 place-items-center rounded-(--border-radius-media) border border-(--color-border-subtle) bg-(--color-surface) text-(--color-text-primary) hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-focus-ring) focus-visible:ring-offset-2 cursor-pointer"
-          aria-label="Set weekly goal"
-        >
-          <SlidersHorizontal size={16} strokeWidth={2} aria-hidden="true" />
-        </button>
+        {goalSet && (
+          <button
+            type="button"
+            onClick={() => {
+              setSliderValue(targetHours);
+              setIsModalOpen(true);
+            }}
+            className="weekly-goal-options grid size-8.5 place-items-center rounded-(--border-radius-media) border border-(--color-border-subtle) bg-(--color-surface) text-(--color-text-primary) hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-focus-ring) focus-visible:ring-offset-2 cursor-pointer"
+            aria-label="Edit weekly goal"
+          >
+            <SlidersHorizontal size={16} strokeWidth={2} aria-hidden="true" />
+          </button>
+        )}
       </header>
 
-      <div className="weekly-goal-body flex min-h-0 flex-1 flex-col items-center pt-3">
-        <ProgressRing
-          percentage={percentage}
-          isCompletedOrExceeded={isGoalMet}
-        />
-        <p className="weekly-goal-hours mt-2.5 text-[14px] font-semibold leading-5 text-(--color-text-primary)">
-          {safeCompletedHours === null ? "—" : safeCompletedHours} / {safeTargetHours} hours
-        </p>
-        <p className="weekly-goal-message mt-1 text-[13px] font-normal leading-4.5 text-(--color-text-secondary)">
-          {safeCompletedHours === null ? "Activity unavailable" : isGoalMet ? "Goal crushed!" : "Keep it up!"}
-          <img className="weekly-goal-fire" src={fireAsset} alt="" aria-hidden="true" />
-        </p>
-      </div>
-
-      <div className="weekly-goal-days mt-3 grid w-full shrink-0 grid-cols-7" aria-label={completedDays ? "Weekly activity" : "Weekly activity unavailable"}>
-        {WEEK_DAYS_INFO.map((day, index) => (
-          <div key={`${day}-${index}`} className="flex flex-col items-center" aria-hidden="true">
-            <span className={`size-2.75 rounded-full ${completedDays?.[index] ? "bg-(--color-brand)" : "border-[1.5px] border-[#94a3b8] bg-(--color-surface)"}`} />
-            <span className="mt-1 text-12px font-semibold leading-4 text-[#374151]">{day}</span>
+      {/* ── First-time state ── */}
+      {!goalSet ? (
+        <div className="weekly-goal-body flex min-h-0 flex-1 flex-col items-center justify-center">
+          <SetGoalPrompt onSet={handleFirstGoalSet} />
+        </div>
+      ) : (
+        <>
+          <div className="weekly-goal-body flex min-h-0 flex-1 flex-col items-center pt-3">
+            <ProgressRing
+              percentage={percentage}
+              isCompletedOrExceeded={isGoalMet}
+            />
+            <p className="weekly-goal-hours mt-2.5 text-[14px] font-semibold leading-5 text-(--color-text-primary)">
+              {safeCompletedHours === null ? "—" : safeCompletedHours} / {safeTargetHours} hours
+            </p>
+            <p className="weekly-goal-message mt-1 text-[13px] font-normal leading-4.5 text-(--color-text-secondary)">
+              {safeCompletedHours === null ? "Activity unavailable" : isGoalMet ? "Goal crushed!" : "Keep it up!"}
+              <img className="weekly-goal-fire" src={fireAsset} alt="" aria-hidden="true" />
+            </p>
           </div>
-        ))}
-      </div>
-      {completedDays ? null : <p className="sr-only" role="status">Daily study activity is unavailable.</p>}
 
-      {/* Set Weekly Goal Modal */}
+          <div className="weekly-goal-days mt-3 grid w-full shrink-0 grid-cols-7" aria-label={completedDays ? "Weekly activity" : "Weekly activity unavailable"}>
+            {WEEK_DAYS_INFO.map((day, index) => (
+              <div key={`${day}-${index}`} className="flex flex-col items-center" aria-hidden="true">
+                <span className={`size-2.75 rounded-full ${completedDays?.[index] ? "bg-(--color-brand)" : "border-[1.5px] border-[#94a3b8] bg-(--color-surface)"}`} />
+                <span className="mt-1 text-12px font-semibold leading-4 text-[#374151]">{day}</span>
+              </div>
+            ))}
+          </div>
+          {completedDays ? null : <p className="sr-only" role="status">Daily study activity is unavailable.</p>}
+        </>
+      )}
+
+      {/* Edit Goal Modal (only shown after goal is set) */}
       {isModalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs animate-in fade-in duration-150"
@@ -167,7 +252,6 @@ export function WeeklyGoalCard({
                 Aim for a realistic study pace to maintain continuous progress.
               </p>
 
-              {/* Slider */}
               <div className="mt-6 px-2">
                 <input
                   type="range"
@@ -185,7 +269,6 @@ export function WeeklyGoalCard({
                 </div>
               </div>
 
-              {/* Quick Presets */}
               <div className="flex justify-center gap-2 mt-4">
                 {[8, 12, 15, 20].map((preset) => (
                   <button

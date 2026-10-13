@@ -65,7 +65,7 @@ function toSession(payload: SupabaseTokenResponse): StoredSession {
   return { accessToken: payload.access_token, refreshToken: payload.refresh_token, expiresAt: Date.now() + payload.expires_in * 1_000, user: { id: user.id, email: typeof user.email === "string" ? user.email : null } };
 }
 
-async function tokenRequest(grantType: "password" | "refresh_token", body: Readonly<Record<string, string>>): Promise<StoredSession> {
+async function tokenRequest(grantType: "refresh_token", body: Readonly<Record<string, string>>): Promise<StoredSession> {
   if (!canUseSupabaseAuth()) throw new SupabaseAuthClientError("Supabase authentication is not configured for this web build.");
   let response: Response;
   try {
@@ -74,7 +74,7 @@ async function tokenRequest(grantType: "password" | "refresh_token", body: Reado
     throw new SupabaseAuthClientError("The authentication service could not be reached.");
   }
   const payload = await response.json().catch(() => ({})) as SupabaseTokenResponse;
-  if (!response.ok) throw new SupabaseAuthClientError(grantType === "password" ? "The email or password is incorrect, or this account cannot sign in with a password." : "Your session has expired. Please sign in again.");
+  if (!response.ok) throw new SupabaseAuthClientError("Your session has expired. Please sign in again.");
   return toSession(payload);
 }
 
@@ -93,10 +93,17 @@ export async function restoreSupabaseSession(): Promise<StoredSession | null> {
   }
 }
 
-export async function signInWithSupabasePassword(input: Readonly<{ email: string; password: string; remember: boolean }>): Promise<SupabaseAuthenticatedUser> {
-  const session = await tokenRequest("password", { email: input.email.trim(), password: input.password });
-  persistSession(session, input.remember);
-  return session.user;
+export interface ProviderSessionBundle { readonly accessToken:string; readonly refreshToken:string; readonly authUserId:string; readonly expiresAt:string; readonly email?:string|null; }
+
+/** Creates a no-email Supabase identity for the one-time provisioned-account activation. */
+export async function createAnonymousProviderSession(): Promise<ProviderSessionBundle> {
+  if (!canUseSupabaseAuth()) throw new SupabaseAuthClientError("Supabase authentication is not configured for this web build.");
+  let response:Response;
+  try{response=await fetch(`${env.supabaseUrl}/auth/v1/signup`,{method:"POST",headers:{apikey:env.supabasePublishableKey,"content-type":"application/json",accept:"application/json"},body:JSON.stringify({data:{}})});}catch{throw new SupabaseAuthClientError("The authentication service could not be reached.");}
+  const payload=await response.json().catch(()=>({})) as SupabaseTokenResponse;
+  if(!response.ok)throw new SupabaseAuthClientError("First-time activation could not establish a secure session. Please try again.");
+  const session=toSession(payload);
+  return {accessToken:session.accessToken,refreshToken:session.refreshToken,authUserId:session.user.id,expiresAt:new Date(session.expiresAt).toISOString(),email:null};
 }
 
 export async function getSupabaseAccessToken(): Promise<string | null> {
@@ -107,6 +114,17 @@ export async function getSupabaseAccessToken(): Promise<string | null> {
 export function clearSupabaseSession(): void {
   clearStoredSession();
 }
+
+/** Persists provider credentials only after the backend has accepted a device-bound session. */
+export function persistProviderSession(input: Readonly<ProviderSessionBundle & { remember: boolean }>): void {
+  const expiresAt = new Date(input.expiresAt).getTime();
+  if (!input.accessToken || !input.refreshToken || !input.authUserId || !Number.isFinite(expiresAt)) {
+    throw new SupabaseAuthClientError("The verified session is incomplete.");
+  }
+  persistSession({ accessToken: input.accessToken, refreshToken: input.refreshToken, expiresAt, user: { id: input.authUserId, email: input.email ?? null } }, input.remember);
+}
+
+export const persistVerifiedOtpSession=persistProviderSession;
 
 export function isSupabaseAuthConfigured(): boolean {
   return canUseSupabaseAuth();

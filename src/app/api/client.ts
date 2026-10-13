@@ -151,9 +151,9 @@ export async function makeApiClient(): Promise<ApiClient | null> {
     console.warn("[api/client] VITE_API_BASE_URL is not set -- requests will fail.");
   }
 
+  if (!baseUrl) return null;
   const token = await getSupabaseAccessToken();
   if (!token) return null;
-
   return new ApiClient(baseUrl, token);
 }
 
@@ -196,6 +196,18 @@ export function extractApiErrorMessage(
     typeof (error as { message?: unknown }).message === "string"
   ) {
     return (error as { message: string }).message || fallback;
+  }
+
+  if (
+    error !== null &&
+    typeof error === "object" &&
+    "error" in error &&
+    (error as { error?: unknown }).error !== null &&
+    typeof (error as { error?: unknown }).error === "object" &&
+    "message" in ((error as { error: Record<string, unknown> }).error) &&
+    typeof (error as { error: { message?: unknown } }).error.message === "string"
+  ) {
+    return (error as { error: { message: string } }).error.message || fallback;
   }
 
   return fallback;

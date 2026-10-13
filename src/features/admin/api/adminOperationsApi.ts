@@ -1,5 +1,6 @@
 import { env } from "../../../app/config/env";
-import { getSupabaseAccessToken } from "../../auth/api/supabaseAuth";
+// [AUTH-BACKEND DISABLED] Supabase token import commented out
+// import { getSupabaseAccessToken } from "../../auth/api/supabaseAuth";
 
 export type ManualPlanCode = "single_course_manual" | "oct10_four_subjects_individual" | "oct10_four_subjects_group3" | "oct10_four_subjects_group5";
 export interface ManualSubscriptionPlan { code: ManualPlanCode; title: string; description: string; currency: "EGP"; pricePerStudent: number | null; listPricePerStudent: number | null; studentCount: 1 | 3 | 5; subjectCount: number; promoEndsOn: string | null; requiresManualPrice: boolean; }
@@ -15,12 +16,15 @@ const base = () => {
 };
 
 async function request<T>(path: string, options: { method?: "GET" | "POST"; body?: unknown } = {}): Promise<T> {
-  const token = await getSupabaseAccessToken();
-  if (!token) throw new Error("Admin sign-in is required.");
+  // [AUTH-BACKEND DISABLED] Supabase token fetch commented out — backend auth disabled
+  // const token = await getSupabaseAccessToken();
+  // if (!token) throw new Error("Admin sign-in is required.");
+  throw new Error("Authentication backend is disabled. Admin operations are unavailable.");
+  // eslint-disable-next-line no-unreachable
   const response = await fetch(`${base()}${path}`, {
     method: options.method ?? "GET",
     headers: {
-      authorization: `Bearer ${token}`,
+      authorization: `Bearer ${''}`, // token replaced
       "x-correlation-id": id(),
       ...(options.body ? { "content-type": "application/json", "Idempotency-Key": id() } : {}),
     },

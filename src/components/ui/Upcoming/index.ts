@@ -1,2 +1,1 @@
-export { Upcoming } from './Upcoming';
-export type { UpcomingProps, UpcomingItem } from './upcoming.types';
+export * from "../../../features/student/components/Upcoming";

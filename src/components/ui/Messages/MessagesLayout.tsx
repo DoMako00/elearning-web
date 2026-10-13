@@ -15,29 +15,30 @@ import { ChatWindow } from "./ChatWindow";
 import { ChatContextSidebar } from "./ChatContextSidebar";
 import { useChatSocket } from "../../../hooks/useChatSocket";
 import { useMessages } from "../../../app/providers/MessagesProvider";
+import { MEDIA_QUERIES } from "../../../styles/breakpoints";
 import "./Messages.css";
 
 export const MessagesLayout: React.FC = () => {
   const { conversations, setConversations } = useMessages();
 
-  // Track screen width <= 820px dynamically
+  // Track tablet & mobile screen width (<= 1399px) dynamically via canonical breakpoint
   const [isSmallScreen, setIsSmallScreen] = useState(() => {
     if (typeof window !== "undefined") {
-      return window.innerWidth <= 820 || window.matchMedia("(max-width: 820px)").matches;
+      return window.matchMedia(MEDIA_QUERIES.tabletAndBelow).matches;
     }
     return false;
   });
 
-  // On screens <= 820px (iPad Air portrait / tablet / mobile), start with no selected chat
+  // On compact/tablet screens, start with no selected chat if user hasn't selected one
   const [activeConversationId, setActiveConversationId] = useState<string | null>(() => {
-    if (typeof window !== "undefined" && (window.innerWidth <= 820 || window.matchMedia("(max-width: 820px)").matches)) {
+    if (typeof window !== "undefined" && window.matchMedia(MEDIA_QUERIES.tabletAndBelow).matches) {
       return null;
     }
     return "c1";
   });
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 820px)");
+    const mediaQuery = window.matchMedia(MEDIA_QUERIES.tabletAndBelow);
     const handler = (e: MediaQueryListEvent) => {
       setIsSmallScreen(e.matches);
     };

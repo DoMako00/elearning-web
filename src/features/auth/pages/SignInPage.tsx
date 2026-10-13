@@ -3,15 +3,12 @@ import {
   ArrowRight,
   BarChart3,
   Check,
-  Eye,
-  EyeOff,
-  Lock,
   Mail,
   ShieldCheck,
-  X,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../app/providers/AuthProvider";
+import { activateProvisionedStudent, initiateOtpLogin, verifyOtp, type BrandCode } from "../api/identityApi";
 import authBotanicalBg from "../../../Assets/onboarding/auth-botanical-bg.jpg";
 import "../styles/SignInModern.css";
 
@@ -20,21 +17,27 @@ export function SignInPage() {
   const location = useLocation();
   const auth = useAuth();
 
+  const [mode, setMode] = useState<"activate" | "signin">("activate");
+  const [brand, setBrand] = useState<BrandCode>("elite");
   const [identifier, setIdentifier] = useState("");
-  const [password, setPassword] = useState("");
+  const [accountIdentifier, setAccountIdentifier] = useState("");
+  const [setupCode, setSetupCode] = useState("");
+  const [challengeId, setChallengeId] = useState<string | null>(null);
+  const [otp, setOtp] = useState("");
   const [remember, setRemember] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [forgotModalOpen, setForgotModalOpen] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotSent, setForgotSent] = useState(false);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextErrors: Record<string, string> = {};
-    if (!identifier.trim()) nextErrors.identifier = "Enter your email address.";
-    if (!password) nextErrors.password = "Enter your password.";
+    if(mode==="activate"){
+      if(!accountIdentifier.trim())nextErrors.accountIdentifier="Enter the Account Identifier provided by your Admin.";
+      if(!setupCode.trim())nextErrors.setupCode="Enter your one-time Setup Code.";
+    }else{
+      if (!identifier.trim()) nextErrors.identifier = "Enter your verified email address.";
+      if (challengeId && !/^\d{6,8}$/.test(otp.trim())) nextErrors.otp = "Enter the one-time code sent to your email.";
+    }
     if (!auth.configured) {
       nextErrors.form =
         "This web build is missing its Supabase public authentication configuration.";
@@ -44,36 +47,24 @@ export function SignInPage() {
     if (Object.keys(nextErrors).length > 0) return;
 
     setSubmitting(true);
-    const result = await auth.signInWithPassword({
-      email: identifier,
-      password,
-      remember,
-    });
-    setSubmitting(false);
-
-    if (!result.success) {
-      setErrors({ form: result.message });
-      return;
-    }
-
-    const redirect = (location.state as { from?: unknown } | null)?.from;
-    navigate(
-      typeof redirect === "string" && redirect.startsWith("/")
-        ? redirect
-        : "/",
-      { replace: true }
-    );
-  };
-
-  const handleForgotPassword = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!forgotEmail.trim()) return;
-    setForgotSent(true);
-    setTimeout(() => {
-      setForgotModalOpen(false);
-      setForgotSent(false);
-      setForgotEmail("");
-    }, 2500);
+    try {
+      if(mode==="activate"){
+        await activateProvisionedStudent({brand,accountIdentifier,setupCode,remember});
+        setSetupCode("");
+        navigate("/",{replace:true});
+        window.location.reload();
+      }else if (!challengeId) {
+        const challenge = await initiateOtpLogin({ email: identifier, brand });
+        setChallengeId(challenge.challengeId);
+      } else {
+        await verifyOtp({ challengeId, code: otp, email: identifier, remember });
+        const redirect = (location.state as { from?: unknown } | null)?.from;
+        navigate(typeof redirect === "string" && redirect.startsWith("/") ? redirect : "/", { replace: true });
+        window.location.reload();
+      }
+    } catch (error) {
+      setErrors({ form: error instanceof Error ? error.message : "Unable to complete sign-in." });
+    } finally { setSubmitting(false); }
   };
 
   return (
@@ -112,15 +103,33 @@ export function SignInPage() {
           </a>
 
           {/* Heading */}
-          <h1 className="signin-title">Welcome back</h1>
-          <p className="signin-subtitle">
-            Sign in to continue to your workspace.
-          </p>
+          <h1 className="signin-title">{mode === "activate" ? "Activate your account" : "Sign in"}</h1>
+          <p className="signin-subtitle">{mode === "activate" ? "Use the one-time details provided by your Admin. You can link your real email in Settings after activation." : "For students who have already linked and verified a real email."}</p>
+          <div className="flex gap-2 mb-5" role="tablist" aria-label="Student access type">
+            <button type="button" role="tab" aria-selected={mode === "activate"} onClick={() => {setMode("activate");setChallengeId(null);setErrors({});}} className="px-3 py-2 rounded-xl border border-emerald-700 text-sm font-semibold" style={{background:mode === "activate"?"#ecfdf3":"white",color:"#166534"}}>Activate your account</button>
+            <button type="button" role="tab" aria-selected={mode === "signin"} onClick={() => {setMode("signin");setChallengeId(null);setErrors({});}} className="px-3 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700">Sign in</button>
+          </div>
 
           {/* Form */}
           <form className="signin-form" onSubmit={submit} noValidate>
-            {/* Email Field */}
+            {mode === "activate" ? <>
             <div className="signin-field-group">
+              <label htmlFor="signin-brand" className="signin-field-label">Learning brand</label>
+              <select id="signin-brand" value={brand} onChange={(e)=>setBrand(e.target.value as BrandCode)} className="signin-input">
+                <option value="medway">Medway</option><option value="elite">Elite</option><option value="nexus">Nexus</option>
+              </select>
+            </div>
+            <div className="signin-field-group">
+              <label htmlFor="signin-account-id" className="signin-field-label">Account Identifier</label>
+              <input id="signin-account-id" value={accountIdentifier} onChange={e=>setAccountIdentifier(e.target.value)} className="signin-input" autoComplete="off" />
+              {errors.accountIdentifier && <span className="signin-field-error" role="alert">{errors.accountIdentifier}</span>}
+            </div>
+            <div className="signin-field-group">
+              <label htmlFor="signin-setup-code" className="signin-field-label">One-time Setup Code</label>
+              <input id="signin-setup-code" type="password" value={setupCode} onChange={e=>setSetupCode(e.target.value)} className="signin-input" autoComplete="one-time-code" />
+              {errors.setupCode && <span className="signin-field-error" role="alert">{errors.setupCode}</span>}
+            </div>
+            </> : <div className="signin-field-group">
               <label htmlFor="signin-email" className="signin-field-label">
                 Email address
               </label>
@@ -150,55 +159,44 @@ export function SignInPage() {
                   {errors.identifier}
                 </span>
               )}
-            </div>
+            </div>}
 
-            {/* Password Field */}
+            {/* OTP field appears only after the backend has issued a challenge. */}
+            {mode === "signin" && challengeId && (
             <div className="signin-field-group">
-              <label htmlFor="signin-password" className="signin-field-label">
-                Password
+              <label htmlFor="signin-otp" className="signin-field-label">
+                One-time code
               </label>
               <div
                 className={`signin-input-wrapper ${
-                  errors.password ? "has-error" : ""
+                  errors.otp ? "has-error" : ""
                 }`}
               >
-                <Lock className="signin-input-icon" aria-hidden="true" />
                 <input
-                  id="signin-password"
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  autoComplete="current-password"
-                  placeholder="••••••••••••"
-                  value={password}
+                  id="signin-otp"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  placeholder="123456"
+                  value={otp}
                   onChange={(e) => {
-                    setPassword(e.target.value);
-                    setErrors((prev) => ({ ...prev, password: "", form: "" }));
+                    setOtp(e.target.value.replace(/\D/g, ""));
+                    setErrors((prev) => ({ ...prev, otp: "", form: "" }));
                   }}
                   className="signin-input"
-                  aria-invalid={Boolean(errors.password)}
+                  aria-invalid={Boolean(errors.otp)}
                 />
-                <button
-                  type="button"
-                  className="signin-password-toggle"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" aria-hidden="true" />
-                  ) : (
-                    <Eye className="w-5 h-5" aria-hidden="true" />
-                  )}
-                </button>
               </div>
-              {errors.password && (
+              {errors.otp && (
                 <span className="signin-field-error" role="alert">
-                  {errors.password}
+                  {errors.otp}
                 </span>
               )}
             </div>
+            )}
 
             {/* Utilities: Remember me + Forgot password */}
-            <div className="signin-utilities">
+            {mode === "signin" && <div className="signin-utilities">
               <button
                 type="button"
                 className="signin-remember-btn"
@@ -216,17 +214,8 @@ export function SignInPage() {
                 <span>Remember me</span>
               </button>
 
-              <button
-                type="button"
-                className="signin-forgot-link"
-                onClick={() => {
-                  setForgotEmail(identifier);
-                  setForgotModalOpen(true);
-                }}
-              >
-                Forgot password?
-              </button>
-            </div>
+              <span className="signin-forgot-link">Email OTP only · phone is not a login method</span>
+            </div>}
 
             {/* Form Error Notification */}
             {errors.form && (
@@ -256,10 +245,10 @@ export function SignInPage() {
               className="signin-submit-btn"
             >
               {submitting ? (
-                <span>Signing in…</span>
+                  <span>{challengeId ? "Verifying…" : "Sending code…"}</span>
               ) : (
                 <>
-                  <span>Continue</span>
+                  <span>{mode === "activate" ? "Activate account" : challengeId ? "Verify code" : "Send code"}</span>
                   <ArrowRight className="w-4 h-4" aria-hidden="true" />
                 </>
               )}
@@ -338,81 +327,6 @@ export function SignInPage() {
         </aside>
       </div>
 
-      {/* Forgot Password Modal */}
-      {forgotModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in duration-200"
-          onClick={() => setForgotModalOpen(false)}
-        >
-          <div
-            className="w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-slate-100"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-slate-900">
-                Reset your password
-              </h3>
-              <button
-                type="button"
-                onClick={() => setForgotModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {forgotSent ? (
-              <div className="py-4 text-center">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center mb-3">
-                  <Check className="w-6 h-6 stroke-[2.5]" />
-                </div>
-                <h4 className="text-base font-semibold text-slate-900 mb-1">
-                  Reset link sent
-                </h4>
-                <p className="text-sm text-slate-500">
-                  If an account exists for {forgotEmail}, you will receive a
-                  password reset email shortly.
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleForgotPassword}>
-                <p className="text-sm text-slate-500 mb-4">
-                  Enter your email address and we'll send you a link to reset
-                  your password.
-                </p>
-                <div className="mb-4">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Email address
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="you@company.com"
-                    value={forgotEmail}
-                    onChange={(e) => setForgotEmail(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10"
-                  />
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setForgotModalOpen(false)}
-                    className="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 rounded-xl text-sm font-medium bg-[#1d6e41] text-white hover:bg-[#165834]"
-                  >
-                    Send reset link
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

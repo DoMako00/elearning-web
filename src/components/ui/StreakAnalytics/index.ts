@@ -1,9 +1,10 @@
-export { ActivityHeatmap } from './ActivityHeatmap';
-export { MetricCards } from './MetricCards';
-export { MilestoneBadges, MilestoneBadge } from './MilestoneBadges';
-export { StreakAnalytics } from './StreakAnalytics';
-export { StreakMilestoneModal } from './StreakMilestoneModal';
-export type { StreakMilestoneModalProps } from './StreakMilestoneModal';
+// Forwarded to canonical location in the student feature module.
+export { ActivityHeatmap } from '../../../features/student/components/StreakAnalytics/ActivityHeatmap';
+export { MetricCards } from '../../../features/student/components/StreakAnalytics/MetricCards';
+export { MilestoneBadges, MilestoneBadge } from '../../../features/student/components/StreakAnalytics/MilestoneBadges';
+export { StreakAnalytics } from '../../../features/student/components/StreakAnalytics/StreakAnalytics';
+export { StreakMilestoneModal } from '../../../features/student/components/StreakAnalytics/StreakMilestoneModal';
+export type { StreakMilestoneModalProps } from '../../../features/student/components/StreakAnalytics/StreakMilestoneModal';
 export {
   calculateStreak,
   calculateMilestones,

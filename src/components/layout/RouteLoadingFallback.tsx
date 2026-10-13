@@ -12,6 +12,8 @@ import {
   SettingsSkeleton,
   HelpCenterSkeleton,
   ProfileSkeleton,
+  CourseOverviewSkeleton,
+  LessonPlayerSkeleton,
 } from "../ui/Skeleton";
 
 export interface RouteLoadingFallbackProps {
@@ -54,7 +56,17 @@ export const RouteLoadingFallback: React.FC<RouteLoadingFallbackProps> = ({
     return <ProfileSkeleton activeTab={activeTab} />;
   }
 
-  // 3. My Courses
+  // 3. Lesson Player (Continue Lesson / Lesson link)
+  if (pathname.includes("/lessons/")) {
+    return <LessonPlayerSkeleton />;
+  }
+
+  // 4. Course Overview (Open Subject: /my-courses/:slug)
+  if (pathname.startsWith("/my-courses/") && pathname !== "/my-courses") {
+    return <CourseOverviewSkeleton />;
+  }
+
+  // 5. My Courses (main list)
   if (pathname === "/my-courses") {
     return <MyCoursesSkeleton />;
   }

@@ -1,2 +1,1 @@
-export { MyProgress } from './MyProgress';
-export type { MyProgressProps } from './my-progress.types';
+export * from "../../../features/student/components/MyProgress";

@@ -1,22 +1,17 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, type ComponentType } from "react";
 import type { RouteObject } from "react-router-dom";
-import { AdminLayout } from "../pages/admin/AdminLayout";
 import { RouteErrorBoundary } from "../../components/layout/RouteErrorBoundary";
 import { RouteLoadingFallback } from "../../components/layout/RouteLoadingFallback";
+import { AdminV2Layout } from "../../features/admin-v2/layout/AdminV2Layout";
 
-const AdminOverviewPage = lazy(() => import("../pages/admin/AdminOverviewPage").then((m) => ({ default: m.AdminOverviewPage })));
 const AdminPagePlaceholder = lazy(() => import("../pages/admin/AdminPagePlaceholder").then((m) => ({ default: m.AdminPagePlaceholder })));
-const AdminInstructorsPage = lazy(() => import("../pages/admin/AdminInstructorsPage").then((m) => ({ default: m.AdminInstructorsPage })));
-const AdminCoursesPage = lazy(() => import("../pages/admin/AdminCoursesPage").then((m) => ({ default: m.AdminCoursesPage })));
-const AdminCurriculumPage = lazy(() => import("../pages/admin/AdminCurriculumPage").then((m) => ({ default: m.AdminCurriculumPage })));
-const AdminCourseBuilderPage = lazy(() => import("../pages/admin/AdminCourseBuilderPage").then((m) => ({ default: m.AdminCourseBuilderPage })));
-const AdminStudentsPage = lazy(() => import("../pages/admin/AdminStudentsPage").then((m) => ({ default: m.AdminStudentsPage })));
-const AdminPaymentsPage = lazy(() => import("../pages/admin/AdminOperationsPages").then((m) => ({ default: m.AdminPaymentsPage })));
-const AdminSubscriptionsPage = lazy(() => import("../pages/admin/AdminOperationsPages").then((m) => ({ default: m.AdminSubscriptionsPage })));
-const AdminContentPage = lazy(() => import("../pages/admin/AdminOperationsPages").then((m) => ({ default: m.AdminContentPage })));
-const AdminSecurityPage = lazy(() => import("../pages/admin/AdminOperationsPages").then((m) => ({ default: m.AdminSecurityPage })));
+const AdminV2InstructorsPage = lazy(() => import("../../features/admin-v2/instructors/InstructorsPage").then((m) => ({ default: m.InstructorsPage })));
+const AdminV2OverviewPage = lazy(() => import("../../features/admin-v2/overview/OverviewPage").then((m) => ({ default: m.OverviewPage })));
+const AdminV2SecurityPage = lazy(() => import("../../features/admin-v2/security/SecurityPage").then((m) => ({ default: m.SecurityPage })));
+const AdminV2PaymentsPage = lazy(() => import("../../features/admin-v2/payments/PaymentsPage").then((m) => ({ default: m.PaymentsPage })));
+const LocalStudentPreviewPage = lazy(() => import("../../features/admin-v2/students/LocalStudentPreviewPage").then((m) => ({ default: m.LocalStudentPreviewPage })));
 
-function withAdminSuspense(Component: React.ComponentType<any>, props?: any) {
+function withAdminSuspense<P extends object>(Component: ComponentType<P>, props: P) {
   return (
     <RouteErrorBoundary>
       <Suspense fallback={<RouteLoadingFallback />}>
@@ -37,21 +32,58 @@ const sections = [
 
 export const adminRoutes: RouteObject[] = [{
   path: "/admin",
-  element: <AdminLayout />,
+  element: <AdminV2Layout />,
   children: [
-    { path: "payments", element: withAdminSuspense(AdminPaymentsPage) },
-    { path: "subscriptions", element: withAdminSuspense(AdminSubscriptionsPage) },
-    { path: "content", element: withAdminSuspense(AdminContentPage) },
-    { path: "security", element: withAdminSuspense(AdminSecurityPage) },
-    { index: true, element: withAdminSuspense(AdminOverviewPage) },
-    { path: "courses", element: withAdminSuspense(AdminCoursesPage) },
-    { path: "courses/:courseId/builder", element: withAdminSuspense(AdminCourseBuilderPage) },
-    { path: "instructors", element: withAdminSuspense(AdminInstructorsPage) },
-    { path: "curriculum", element: withAdminSuspense(AdminCurriculumPage) },
-    { path: "students", element: withAdminSuspense(AdminStudentsPage) },
+    { index: true, element: withAdminSuspense(AdminV2OverviewPage, {}) },
+    { path: "security", element: withAdminSuspense(AdminV2SecurityPage, {}) },
+    { path: "instructors", element: withAdminSuspense(AdminV2InstructorsPage, {}) },
     ...sections.map(([path, title, description]) => ({
       path,
       element: withAdminSuspense(AdminPagePlaceholder, { title, description }),
     })),
   ],
+},
+{
+  path: "/admin/overview",
+  element: <AdminV2Layout />,
+  children: [{ index: true, element: withAdminSuspense(AdminV2OverviewPage, {}) }],
+},
+{
+  path: "/admin/curriculum",
+  element: <AdminV2Layout />,
+  children: [{ index: true, element: withAdminSuspense(lazy(() => import("../../features/admin-v2/curriculum/CurriculumPage").then((m) => ({ default: m.CurriculumPage }))), {}) }],
+},
+{
+  path: "/admin/courses",
+  element: <AdminV2Layout />,
+  children: [{ index: true, element: withAdminSuspense(lazy(() => import("../../features/admin-v2/courses/CoursesPage").then((m) => ({ default: m.CoursesPage }))), {}) }],
+},
+{
+  path: "/admin/courses/:courseId/builder",
+  element: <AdminV2Layout />,
+  children: [{ index: true, element: withAdminSuspense(lazy(() => import("../../features/admin-v2/builder/CourseBuilderPage").then((m) => ({ default: m.CourseBuilderPage }))), {}) }],
+},
+{
+  path: "/admin/subscriptions",
+  element: <AdminV2Layout />,
+  children: [{ index: true, element: withAdminSuspense(lazy(() => import("../../features/admin-v2/subscriptions/SubscriptionsPage").then((m) => ({ default: m.SubscriptionsPage }))), {}) }],
+},
+{
+  path: "/admin/students",
+  element: <AdminV2Layout />,
+  children: [{ index: true, element: withAdminSuspense(lazy(() => import("../../features/admin-v2/students/StudentsPage").then((m) => ({ default: m.StudentsPage }))), {}) }],
+},
+{
+  path: "/admin/content",
+  element: <AdminV2Layout />,
+  children: [{ index: true, element: withAdminSuspense(lazy(() => import("../../features/admin-v2/content/ContentPage").then((m) => ({ default: m.ContentPage }))), {}) }],
+},
+{
+  path: "/admin/payments",
+  element: <AdminV2Layout />,
+  children: [{ index: true, element: withAdminSuspense(AdminV2PaymentsPage, {}) }],
+},
+{
+  path: "/student-preview",
+  element: withAdminSuspense(LocalStudentPreviewPage, {}),
 }];

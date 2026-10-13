@@ -1,0 +1,41 @@
+import type { AdminV2Data, BrandCode, CourseRecord, CurriculumUnitRecord, StudentRecord } from "../types/adminV2.types";
+
+export function unitForCourse(data: AdminV2Data, course: CourseRecord): CurriculumUnitRecord | undefined {
+  return data.curriculumUnits.find((unit) => unit.id === course.curriculumUnitId);
+}
+
+export function yearForUnit(data: AdminV2Data, unit?: CurriculumUnitRecord) {
+  return unit ? data.academicYears.find((year) => year.id === unit.academicYearId) : undefined;
+}
+
+export function semesterForUnit(data: AdminV2Data, unit?: CurriculumUnitRecord) {
+  return unit ? data.semesters.find((semester) => semester.id === unit.semesterId) : undefined;
+}
+
+export function institutionForUnit(data: AdminV2Data, unit?: CurriculumUnitRecord) {
+  return unit ? data.institutions.find((institution) => institution.id === unit.institutionId) : undefined;
+}
+
+export function courseMatchesStudentPlacement(data: AdminV2Data, course: CourseRecord, student: StudentRecord) {
+  if (course.scope === "Standalone") return true;
+  const institution = institutionForUnit(data, unitForCourse(data, course));
+  return institution?.shortName.toLowerCase().includes(student.institution.toLowerCase()) ?? false;
+}
+
+export function courseUnitLabel(data: AdminV2Data, course: CourseRecord) {
+  const unit = unitForCourse(data, course);
+  return unit ? `${unit.code} ${unit.title}` : "Not mapped";
+}
+
+export function courseLevel(data: AdminV2Data, course: CourseRecord) {
+  return yearForUnit(data, unitForCourse(data, course))?.title ?? "—";
+}
+
+export function courseSemester(data: AdminV2Data, course: CourseRecord) {
+  return semesterForUnit(data, unitForCourse(data, course))?.title ?? "—";
+}
+
+export function expectedUnitType(brand: BrandCode, yearTitle: string): "Subject" | "Module" {
+  const yearNumber = Number(yearTitle.match(/\d+/)?.[0] ?? 0);
+  return brand === "nexus" || yearNumber > 1 ? "Module" : "Subject";
+}

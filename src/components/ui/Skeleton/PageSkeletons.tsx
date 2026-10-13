@@ -39,7 +39,7 @@ export const SkeletonHeroCard: React.FC<{
 
     <div className="pt-6 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <SkeletonAvatar size={42} className="!bg-[#d8e2dc]" />
+        <SkeletonAvatar size={42} className="bg-[#d8e2dc]" />
         <div className="space-y-1.5">
           <Skeleton width={130} height={14} borderRadius={4} variant="contrast" />
           <Skeleton width={80} height={12} borderRadius={4} variant="contrast" />
@@ -206,6 +206,186 @@ export const MyCoursesSkeleton: React.FC = () => {
           <SkeletonCard />
           <SkeletonCard />
         </div>
+      </div>
+    </section>
+  );
+};
+
+/**
+ * 2B. COURSE OVERVIEW SKELETON (Open Subject)
+ * Matches CourseOverviewPage:
+ * - Header with title & breadcrumbs
+ * - Main 2-column layout: Hero (dark green or soft card) + Tabs + Content Cards + Sidebar modules rail
+ */
+export const CourseOverviewSkeleton: React.FC = () => {
+  return (
+    <section className="course-overview-page" aria-busy="true" aria-label="Loading course overview">
+      <header className="course-overview-heading">
+        <div className="flex items-center gap-2 mb-2">
+          <Skeleton width={80} height={14} borderRadius={4} />
+          <Skeleton width={12} height={12} borderRadius={2} />
+          <Skeleton width={140} height={14} borderRadius={4} />
+        </div>
+        <div className="course-overview-heading__row">
+          <div className="space-y-2">
+            <Skeleton width={260} height={32} borderRadius={6} />
+            <div className="flex items-center gap-3">
+              <Skeleton width={110} height={14} borderRadius={4} />
+              <Skeleton width={80} height={14} borderRadius={4} />
+              <Skeleton width={90} height={14} borderRadius={4} />
+            </div>
+          </div>
+          <Skeleton width={44} height={44} borderRadius={11} />
+        </div>
+      </header>
+
+      <div className="course-overview-layout">
+        <div className="course-overview-primary">
+          {/* Hero Card */}
+          <div className="relative overflow-hidden rounded-2xl border border-[#dfe9e4] bg-[#e7ede9] p-6 flex flex-col justify-between" style={{ minHeight: "340px" }}>
+            <div className="space-y-3 max-w-xl">
+              <Skeleton width={140} height={24} borderRadius={999} variant="contrast" />
+              <Skeleton width="85%" height={32} borderRadius={6} variant="contrast" />
+              <Skeleton width="60%" height={16} borderRadius={4} variant="contrast" />
+            </div>
+            <div className="pt-6 border-t border-[#d8e2dc] flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <SkeletonAvatar size={44} className="bg-[#d8e2dc]" />
+                <div className="space-y-1.5">
+                  <Skeleton width={130} height={14} borderRadius={4} variant="contrast" />
+                  <Skeleton width={85} height={12} borderRadius={4} variant="contrast" />
+                </div>
+              </div>
+              <Skeleton width={140} height={40} borderRadius={12} variant="contrast" />
+            </div>
+          </div>
+
+          {/* Section Tabs */}
+          <div className="flex gap-2 pt-2">
+            <Skeleton width={110} height={40} borderRadius={10} />
+            <Skeleton width={95} height={40} borderRadius={10} />
+            <Skeleton width={110} height={40} borderRadius={10} />
+            <Skeleton width={115} height={40} borderRadius={10} />
+          </div>
+
+          {/* Tab content cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+            <SkeletonCardWrapper className="space-y-3">
+              <Skeleton width="45%" height={18} borderRadius={4} />
+              <SkeletonText lines={3} />
+            </SkeletonCardWrapper>
+            <SkeletonCardWrapper className="space-y-3">
+              <Skeleton width="40%" height={18} borderRadius={4} />
+              <SkeletonText lines={3} />
+            </SkeletonCardWrapper>
+          </div>
+        </div>
+
+        {/* Right sidebar - Module Syllabus */}
+        <aside className="course-overview-rail space-y-3" style={{ minWidth: "300px" }}>
+          <SkeletonCardWrapper className="space-y-4">
+            <div className="flex justify-between items-center pb-2 border-b border-[#dfe9e4]">
+              <Skeleton width={130} height={18} borderRadius={4} />
+              <Skeleton width={60} height={14} borderRadius={4} />
+            </div>
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="p-3 rounded-xl border border-[#e2e8f0] bg-gray-50/70 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <Skeleton width="70%" height={15} borderRadius={4} />
+                    <Skeleton width={16} height={16} borderRadius={4} />
+                  </div>
+                  <Skeleton width="40%" height={11} borderRadius={4} />
+                </div>
+              ))}
+            </div>
+          </SkeletonCardWrapper>
+        </aside>
+      </div>
+    </section>
+  );
+};
+
+/**
+ * 2C. LESSON PLAYER SKELETON (Continue Lesson / Lesson Player)
+ * Matches LessonPlayerPage:
+ * - Header with lesson info & actions
+ * - Big Video Player container
+ * - Tabs & Tab panels + Sidebar lesson playlist
+ */
+export const LessonPlayerSkeleton: React.FC = () => {
+  return (
+    <section className="course-overview-page lesson-player-page" aria-busy="true" aria-label="Loading lesson player">
+      <header className="course-overview-heading">
+        <div className="course-overview-heading__row">
+          <div className="space-y-2">
+            <Skeleton width={320} height={30} borderRadius={6} />
+            <div className="flex items-center gap-3">
+              <Skeleton width={120} height={14} borderRadius={4} />
+              <Skeleton width={140} height={14} borderRadius={4} />
+              <Skeleton width={70} height={14} borderRadius={4} />
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton width={44} height={44} borderRadius={11} />
+            <Skeleton width={44} height={44} borderRadius={11} />
+          </div>
+        </div>
+      </header>
+
+      <div className="course-overview-layout">
+        <div className="course-overview-primary">
+          {/* Big Video Player Canvas */}
+          <div className="relative w-full rounded-2xl bg-[#0f172a] border border-[#1e293b] flex items-center justify-center overflow-hidden" style={{ minHeight: "360px" }}>
+            <Skeleton width={64} height={64} circle className="bg-slate-700/60" />
+            <div className="absolute bottom-0 inset-x-0 p-4 bg-linear-to-t from-black/80 to-transparent flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Skeleton width={28} height={28} circle className="bg-slate-700/60" />
+                <Skeleton width={80} height={12} borderRadius={4} className="bg-slate-700/60" />
+              </div>
+              <Skeleton width="50%" height={6} borderRadius={999} className="bg-slate-700/60 mx-4" />
+              <div className="flex gap-2">
+                <Skeleton width={24} height={24} borderRadius={4} className="bg-slate-700/60" />
+                <Skeleton width={24} height={24} borderRadius={4} className="bg-slate-700/60" />
+              </div>
+            </div>
+          </div>
+
+          {/* Lesson Tabs */}
+          <div className="flex gap-2 pt-2">
+            <Skeleton width={110} height={40} borderRadius={10} />
+            <Skeleton width={95} height={40} borderRadius={10} />
+            <Skeleton width={110} height={40} borderRadius={10} />
+            <Skeleton width={115} height={40} borderRadius={10} />
+          </div>
+
+          {/* Bottom Card */}
+          <SkeletonCardWrapper className="space-y-3">
+            <Skeleton width={140} height={18} borderRadius={4} />
+            <SkeletonText lines={3} />
+          </SkeletonCardWrapper>
+        </div>
+
+        {/* Right sidebar - Playlist */}
+        <aside className="course-overview-rail space-y-3" style={{ minWidth: "300px" }}>
+          <SkeletonCardWrapper className="space-y-3">
+            <div className="flex justify-between items-center pb-2 border-b border-[#dfe9e4]">
+              <Skeleton width={120} height={18} borderRadius={4} />
+              <Skeleton width={50} height={14} borderRadius={4} />
+            </div>
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl border border-[#e2e8f0] bg-gray-50/60">
+                  <Skeleton width={28} height={28} circle />
+                  <div className="space-y-1.5 flex-1">
+                    <Skeleton width="80%" height={13} borderRadius={4} />
+                    <Skeleton width="40%" height={10} borderRadius={4} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </SkeletonCardWrapper>
+        </aside>
       </div>
     </section>
   );
@@ -585,7 +765,7 @@ export const MessagesSkeleton: React.FC = () => {
               <Skeleton width={220} height={50} borderRadius={14} />
             </div>
             <div className="flex justify-end">
-              <Skeleton width={200} height={42} borderRadius={14} className="!bg-emerald-100/60" />
+              <Skeleton width={200} height={42} borderRadius={14} className="bg-emerald-100/60" />
             </div>
             <div className="flex gap-2 items-start max-w-sm">
               <SkeletonAvatar size={28} />
@@ -796,7 +976,7 @@ export const HelpCenterSkeleton: React.FC = () => {
       <div className="relative overflow-hidden rounded-2xl bg-[#e7ede9] border border-[#d6eedf] px-6 py-8 flex flex-col items-center text-center space-y-4 shadow-2xs">
         <Skeleton width={200} height={28} borderRadius={6} variant="contrast" />
         <Skeleton width={320} height={16} borderRadius={4} variant="contrast" />
-        <Skeleton width="100%" height={48} borderRadius={16} className="max-w-xl !bg-white" />
+        <Skeleton width="100%" height={48} borderRadius={16} className="max-w-xl bg-white" />
         <div className="flex gap-2 pt-1">
           <Skeleton width={80} height={24} borderRadius={999} variant="contrast" />
           <Skeleton width={90} height={24} borderRadius={999} variant="contrast" />
@@ -861,7 +1041,7 @@ export const ProfileSkeleton: React.FC<{ activeTab?: "overview" | "achievements"
       {/* Profile Header Hero (Soft greenish-grey) */}
       <div className="relative overflow-hidden rounded-2xl bg-[#e7ede9] border border-[#d6eedf] px-5 py-4 shadow-2xs space-y-4">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
-          <SkeletonAvatar size={76} className="!bg-[#d8e2dc]" />
+          <SkeletonAvatar size={76} className="bg-[#d8e2dc]" />
           <div className="flex-1 space-y-2 text-center sm:text-left">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
               <Skeleton width={150} height={24} borderRadius={6} variant="contrast" />

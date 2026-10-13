@@ -1,9 +1,2 @@
-import { AssignmentsWorkspace } from "../../../components/ui/Assignments";
-
-export function AssignmentsPage() {
-  return (
-    <section className="student-page student-page--assignments" aria-labelledby="assignments-title">
-      <AssignmentsWorkspace />
-    </section>
-  );
-}
+// Forwarded to canonical location in the student feature module.
+export { AssignmentsPage } from "../../../features/student/pages/AssignmentsPage";
