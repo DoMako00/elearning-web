@@ -9,6 +9,7 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import { activateProvisionedStudent, initiateOtpLogin, verifyOtp, type BrandCode } from "../api/identityApi";
+import { getAdminOverview } from "../../admin-v2/api/adminOperationsApi";
 import authBotanicalBg from "../../../Assets/onboarding/auth-botanical-bg.jpg";
 import "../styles/SignInModern.css";
 
@@ -60,7 +61,17 @@ export function SignInPage() {
         setChallengeId(challenge.challengeId);
       } else {
         await verifyOtp({ challengeId, code: otp, email: identifier, remember });
-        navigate(typeof returnTo === "string" && returnTo.startsWith("/") ? returnTo : "/", { replace: true });
+        let hasAdminAccess = false;
+        let adminCheckUnavailable = false;
+        for (const adminBrand of ["elite", "medway", "nexus"] as const) {
+          try { await getAdminOverview(adminBrand); hasAdminAccess = true; break; }
+          catch (error) {
+            const status = (error as { status?: number }).status;
+            if (status !== 403 && status !== 404) { adminCheckUnavailable = true; break; }
+          }
+        }
+        const savedDestination = typeof returnTo === "string" && returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : null;
+        navigate(hasAdminAccess || adminCheckUnavailable ? (savedDestination?.startsWith("/admin") ? savedDestination : "/admin") : (savedDestination?.startsWith("/admin") ? "/" : savedDestination ?? "/"), { replace: true });
         window.location.reload();
       }
     } catch (error) {
