@@ -16,8 +16,10 @@ export function SignInPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const auth = useAuth();
+  const returnTo = (location.state as { from?: unknown } | null)?.from;
+  const adminReturn = typeof returnTo === "string" && returnTo.startsWith("/admin");
 
-  const [mode, setMode] = useState<"activate" | "signin">("activate");
+  const [mode, setMode] = useState<"activate" | "signin">(adminReturn ? "signin" : "activate");
   const [brand, setBrand] = useState<BrandCode>("elite");
   const [identifier, setIdentifier] = useState("");
   const [accountIdentifier, setAccountIdentifier] = useState("");
@@ -58,8 +60,7 @@ export function SignInPage() {
         setChallengeId(challenge.challengeId);
       } else {
         await verifyOtp({ challengeId, code: otp, email: identifier, remember });
-        const redirect = (location.state as { from?: unknown } | null)?.from;
-        navigate(typeof redirect === "string" && redirect.startsWith("/") ? redirect : "/", { replace: true });
+        navigate(typeof returnTo === "string" && returnTo.startsWith("/") ? returnTo : "/", { replace: true });
         window.location.reload();
       }
     } catch (error) {
@@ -104,8 +105,8 @@ export function SignInPage() {
 
           {/* Heading */}
           <h1 className="signin-title">{mode === "activate" ? "Activate your account" : "Sign in"}</h1>
-          <p className="signin-subtitle">{mode === "activate" ? "Use the one-time details provided by your Admin. You can link your real email in Settings after activation." : "For students who have already linked and verified a real email."}</p>
-          <div className="flex gap-2 mb-5" role="tablist" aria-label="Student access type">
+          <p className="signin-subtitle">{mode === "activate" ? "Use the one-time details provided by your Admin. You can link your real email in Settings after activation." : adminReturn ? "Use your verified Admin email to receive a one-time code." : "For students who have already linked and verified a real email."}</p>
+          <div className="flex gap-2 mb-5" role="tablist" aria-label="Account access type">
             <button type="button" role="tab" aria-selected={mode === "activate"} onClick={() => {setMode("activate");setChallengeId(null);setErrors({});}} className="px-3 py-2 rounded-xl border border-emerald-700 text-sm font-semibold" style={{background:mode === "activate"?"#ecfdf3":"white",color:"#166534"}}>Activate your account</button>
             <button type="button" role="tab" aria-selected={mode === "signin"} onClick={() => {setMode("signin");setChallengeId(null);setErrors({});}} className="px-3 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700">Sign in</button>
           </div>

@@ -1,6 +1,8 @@
 import { Bell, BookOpen, ChevronDown, Crown, GraduationCap, LayoutDashboard, LibraryBig, Search, ShieldCheck, CreditCard, Files, UserRound, CalendarDays, Layers3, RotateCcw } from "lucide-react";
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type Dispatch, type PropsWithChildren, type SetStateAction } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "../../../app/providers/AuthProvider";
+import { getAdminOverview } from "../api/adminOperationsApi";
 import { adminNavigation } from "../../../app/pages/admin/adminNavigation";
 import { brandName } from "../data/adminV2.fixtures";
 import { resetAdminV2, updateAdminV2, useAdminV2Store } from "../data/adminV2.store";
@@ -44,8 +46,10 @@ export function AdminV2DomainStatus() {
 }
 
 export function AdminV2Layout({ children }: PropsWithChildren) {
+  const auth = useAuth();
   const localData = useAdminV2Store();
   const { pathname } = useLocation();
+  const [adminAccess, setAdminAccess] = useState<"checking" | "allowed" | "denied" | "error">("checking");
   const builderCourseId = pathname.match(/^\/admin\/courses\/([^/]+)\/builder$/)?.[1];
   const [serverDomains, setServerDomains] = useState<ServerDomainData>(() => emptyAdminV2ServerDomainData());
   const [overview, setOverview] = useState<AdminOverviewView | null>(null);
@@ -82,6 +86,24 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
   const reportDomainError = (message: string) => setDomainError(message);
   const context = useMemo(() => ({ data, setData, brand, setBrand, globalSearch, setGlobalSearch, domainLoading, domainError, refreshServerDomains, reportDomainError, overview }), [data, brand, globalSearch, domainLoading, domainError, overview]);
   useEffect(() => {
+    if (auth.status !== "authenticated") { setAdminAccess("denied"); return; }
+    let active = true;
+    setAdminAccess("checking");
+    void (async () => {
+      for (const code of ["elite", "medway", "nexus"] as const) {
+        try { await getAdminOverview(code); if (active) setAdminAccess("allowed"); return; }
+        catch (error) {
+          const status = (error as { status?: number }).status;
+          if (status === 401) { if (active) setAdminAccess("denied"); return; }
+          if (status !== 403 && status !== 404) { if (active) setAdminAccess("error"); return; }
+        }
+      }
+      if (active) setAdminAccess("denied");
+    })();
+    return () => { active = false; };
+  }, [auth.status, auth.user?.id]);
+  useEffect(() => {
+    if (adminAccess !== "allowed") return;
     const controller = new AbortController();
     setDomainLoading(true);
     setOverview(null);
@@ -100,7 +122,7 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
       } finally { if (!controller.signal.aborted) setDomainLoading(false); }
     })();
     return () => controller.abort();
-  }, [builderCourseId, pathname, brand, refreshSequence]);
+  }, [adminAccess, builderCourseId, pathname, brand, refreshSequence]);
   useEffect(() => {
     const focusSearch = (event: KeyboardEvent) => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); searchRef.current?.focus(); } };
     window.addEventListener("keydown", focusSearch);
@@ -110,6 +132,9 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
     try { window.localStorage.setItem(BRAND_FILTER_STORAGE_KEY, brand); } catch { /* The in-memory selection still works in restricted storage contexts. */ }
   }, [brand]);
 
+  if (auth.status === "loading" || (auth.status === "authenticated" && adminAccess === "checking")) return <main aria-live="polite">Checking your Admin session…</main>;
+  if (auth.status !== "authenticated" || adminAccess === "denied") return <Navigate to="/auth/sign-in" replace state={{ from: pathname }} />;
+  if (adminAccess === "error") return <main role="alert">The Admin session could not be checked. Please reload and try again.</main>;
   return <AdminV2Context.Provider value={context}>
     <div className="admin-v2">
       <aside className="admin-v2__sidebar">
