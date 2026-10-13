@@ -23,7 +23,7 @@ createRoot(rootElement).render(
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/sw-learning-cache.js', { scope: '/' })
+      .register('/sw-learning-cache.js', { scope: '/', type: 'module' })
       .then((reg) => {
         console.info('[SW] Registered:', reg.scope);
       })
