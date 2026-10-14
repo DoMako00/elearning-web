@@ -1,4 +1,4 @@
-import { requireApiClient } from "../../../app/api/client";
+import { extractApiErrorMessage, requireApiClient } from "../../../app/api/client";
 import { toEnglishStudentName } from "./studentDisplay";
 
 type Envelope<T> = { ok: true; correlationId: string; data: T };
@@ -7,7 +7,7 @@ async function unwrap<T>(
   request: Promise<{ data?: unknown; error?: unknown }>,
 ): Promise<T> {
   const response = await request;
-  if (response.error) throw response.error;
+  if (response.error) throw new Error(extractApiErrorMessage(response.error, "Student request failed."));
   const payload = response.data as Envelope<T> | undefined;
   if (!payload?.data)
     throw new Error("The server returned an incomplete response.");
