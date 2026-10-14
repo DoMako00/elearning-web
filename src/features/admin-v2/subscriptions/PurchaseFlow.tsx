@@ -149,9 +149,14 @@ export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
     selectedStudents.length > 0 && selectedStudents.every((student) => studentMatchesOffering(student, offering))), [offerings, selectedStudents]);
   const eligibleStudents = useMemo(() => students.filter((student) => {
     const statusAllowed = student.status === "active" || student.status === "pending";
-    const hasSaleableOffering = offerings.some((offering) => offeringIsForSale(offering) && studentMatchesOffering(student, offering));
-    return statusAllowed && !isAdminTestStudentName(student.displayName) && hasSaleableOffering;
+    // Student eligibility is academic/brand compatibility. Saleability is a
+    // separate Offering state and must not hide valid persisted Students from
+    // the first wizard step when an Offering is still draft or closed.
+    const hasCompatibleOffering = offerings.some((offering) => studentMatchesOffering(student, offering));
+    return statusAllowed && !isAdminTestStudentName(student.displayName) && hasCompatibleOffering;
   }), [students, offerings]);
+  const hasSaleableOfferingForEligibleStudents = useMemo(() => offerings.some((offering) =>
+    offeringIsForSale(offering) && eligibleStudents.some((student) => studentMatchesOffering(student, offering))), [eligibleStudents, offerings]);
   const compatibleStudents = useMemo(() => {
     const query = studentSearch.trim().toLocaleLowerCase();
     return eligibleStudents.filter((student) => !query
@@ -271,6 +276,7 @@ export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
       {!loading && step === 1 && <div className="admin-v2__purchase-step">
         <h3>Select Students</h3>
         <p>Choose one to {capacity} Students. The backend verifies every Student’s brand and academic placement against the selected Offering.</p>
+        {eligibleStudents.length > 0 && !hasSaleableOfferingForEligibleStudents && <div className="admin-v2__inline-notice" role="status">Compatible Students are shown from persisted records, but no matching Semester Offering is currently open for purchase. Activate a compatible Offering in Manage Semester Offerings before continuing.</div>}
         <FormField label="Plan capacity" wide><select value={capacity} onChange={(event) => {
           const value = Number(event.target.value) as Capacity;
           if (selectedStudentIds.length > value) { setError("Remove Students before selecting a smaller capacity."); return; }
@@ -287,7 +293,7 @@ export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
               <small>{student.platform?.platformDisplayName ?? "Brand"}</small>
             </label>;
           })}
-          {!eligibleStudents.length && <p className="admin-v2__empty">No active or provisioned Students match a saleable Semester Offering for this Brand and academic placement. Test/acceptance accounts are excluded from purchases.</p>}
+          {!eligibleStudents.length && <p className="admin-v2__empty">No active or provisioned non-test Students match a persisted Semester Offering for this Brand and academic placement.</p>}
           {eligibleStudents.length > 0 && !compatibleStudents.length && <p className="admin-v2__empty">No eligible Students match this search.</p>}
         </div>
         <p className="admin-v2__purchase-count">{selectedStudentIds.length} of {capacity} maximum selected. A larger package is charged at its full capacity even if not all Seats are assigned yet.</p>
@@ -339,3 +345,4 @@ export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
     </Drawer>}
   </>;
 }
+
