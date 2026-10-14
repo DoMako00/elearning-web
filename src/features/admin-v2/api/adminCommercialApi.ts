@@ -22,6 +22,34 @@ export interface SemesterOfferingOrder {
   institutionCode: string; academicLevelNumber: number; academicSemesterNumber: number;
   selectedStudentCount: number; students?: CommercialStudent[]; subscriptionId?: string | null; assignedSeatCount?: number;
 }
+export type SemesterOfferingPaymentMethod = "instapay" | "wallet" | "bank_transfer" | "cash" | "other";
+export interface CreateSemesterOfferingOrderInput {
+  semesterOfferingId: string;
+  planCode: "semester_offering_1" | "semester_offering_3" | "semester_offering_5";
+  selectedStudentProfileIds: string[];
+  paymentMethod: SemesterOfferingPaymentMethod;
+  paymentReference?: string;
+  paymentEvidenceNote?: string;
+}
+export interface CreatedSemesterOfferingOrder {
+  orderId: string;
+  status: "pending_review";
+  version: number;
+  semesterOfferingId: string;
+  planCode: CreateSemesterOfferingOrderInput["planCode"];
+  capacity: 1 | 3 | 5;
+  selectedStudentCount: number;
+  pricePerStudentMinor: number;
+  priceTotalMinor: number;
+  currency: string;
+}
+export interface ReviewedSemesterOfferingOrder {
+  orderId: string;
+  status: "approved" | "rejected";
+  version?: number;
+  orderVersion?: number;
+  subscriptionId?: string;
+}
 export interface SubscriptionCourse { id: string; code: string; title: string; }
 export interface Subscription {
   id: string; brandId: string; brandCode: BrandCode; studentProfileId: string; studentName: string;
@@ -46,9 +74,16 @@ export async function getSemesterOfferingOrder(orderId: string) {
   const api = await requireApiClient();
   return unwrap<SemesterOfferingOrder>(api.GET("/v1/admin/semester-offering-orders/{orderId}" as never, { params: { path: { orderId } } }));
 }
+export async function createSemesterOfferingOrder(input: CreateSemesterOfferingOrderInput) {
+  const api = await requireApiClient();
+  return unwrap<CreatedSemesterOfferingOrder>(api.POST("/v1/admin/semester-offering-orders" as never, {
+    headers: { "Idempotency-Key": key() },
+    body: input,
+  }));
+}
 export async function reviewSemesterOfferingOrder(orderId: string, action: "approve" | "reject", expectedVersion: number, reason: string) {
   const api = await requireApiClient();
-  return unwrap<Record<string, unknown>>(api.POST(`/v1/admin/semester-offering-orders/{orderId}/${action}` as never, { params: { path: { orderId } }, headers: { "Idempotency-Key": key() }, body: { expectedVersion, reason } }));
+  return unwrap<ReviewedSemesterOfferingOrder>(api.POST(`/v1/admin/semester-offering-orders/{orderId}/${action}` as never, { params: { path: { orderId } }, headers: { "Idempotency-Key": key() }, body: { expectedVersion, reason } }));
 }
 export async function listSubscriptions(filters: { brand?: string; status?: string; studentProfileId?: string } = {}) {
   const api = await requireApiClient();

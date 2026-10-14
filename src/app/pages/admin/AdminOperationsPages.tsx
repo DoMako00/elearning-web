@@ -219,3 +219,4 @@ export function AdminSecurityPage() {
     <div className="admin-workspace-stack"><WorkspaceInspector title="Event details" selected={!!selected}>{selected && <WorkspaceFields fields={[["Event", selected.eventType.replaceAll("_", " ")], ["Brand", selected.platform.platformDisplayName], ["Severity", <WorkspaceBadge value={selected.severity} />], ["Recorded", date(selected.occurredAt)]]} />}</WorkspaceInspector><WorkspaceCard title="Security actions"><div className="admin-workspace-actions"><button type="button" disabled>Revoke sessions</button><button type="button" disabled>Reset account access</button><button type="button" disabled>Update security policy</button><p>These actions are unavailable here. No security changes can be made from this screen.</p></div></WorkspaceCard></div></div>
   </section>;
 }
+

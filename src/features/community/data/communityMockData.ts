@@ -460,7 +460,7 @@ export const INITIAL_ONLINE_MEMBERS: CommunityMember[] = [
       "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=100&h=100&q=80",
     isOnline: true,
   },
-
+    
 ];
 export const ALL_COMMUNITY_MEMBERS: MentorSpotlight = {
   id: "mentor-alex",

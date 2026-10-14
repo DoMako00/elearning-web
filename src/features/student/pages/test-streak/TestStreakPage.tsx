@@ -2,11 +2,11 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, Flame, ShieldAlert, RotateCcw, Plus, CheckCircle2, Sparkles } from 'lucide-react';
 import { StreakAnalytics, StreakMilestoneModal } from '../../../../components/ui/StreakAnalytics';
-import {
-  getStreakAnalyticsData,
+import { 
+  getStreakAnalyticsData, 
   DailyActivityLog,
   StreakMilestone,
-  DEFAULT_STREAK_CONFIG
+  DEFAULT_STREAK_CONFIG 
 } from '../../../../shared/utils/streakEngine';
 import './TestStreakPage.css';
 
@@ -14,7 +14,7 @@ import './TestStreakPage.css';
 function generateInitialLogs(): DailyActivityLog[] {
   const logs: DailyActivityLog[] = [];
   const today = new Date();
-
+  
   // Create 180 days of realistic history
   for (let i = 0; i < 180; i++) {
     const d = new Date(today);
@@ -200,7 +200,7 @@ export function TestStreakPage() {
       {/* Interactive Control Console */}
       <section className="test-streak-controls" aria-label="Interactive Controls">
         <h2 className="test-streak-controls-title">🎮 Simulator Controls</h2>
-
+        
         <div className="test-streak-controls-grid">
           {/* Daily Activity Simulator */}
           <div className="test-control-card">
@@ -210,8 +210,8 @@ export function TestStreakPage() {
               Current Today: <strong>{activeTodayMinutes} mins</strong> ({activeTodayMinutes >= 5 ? '✅ Active' : '❌ Inactive'})
             </div>
             <div className="test-control-actions">
-              <button
-                className="test-btn test-btn-primary"
+              <button 
+                className="test-btn test-btn-primary" 
                 onClick={handleIncrementStreak}
                 style={{ background: 'linear-gradient(135deg, #20a862 0%, #16a34a 100%)', width: '100%', justifyContent: 'center' }}
               >
@@ -246,8 +246,8 @@ export function TestStreakPage() {
               <button className="test-btn test-btn-scenario" onClick={() => handleSetStreakDays(100)}>
                 🥇 100 Days (Master Learner)
               </button>
-              <button
-                className="test-btn test-btn-scenario"
+              <button 
+                className="test-btn test-btn-scenario" 
                 onClick={() => handleTriggerMilestonePopup('rookie')}
                 style={{ background: '#eff9f2', borderColor: '#20a862', color: '#20a862', width: '100%', justifyContent: 'center' }}
               >

@@ -79,7 +79,7 @@ const DEFAULT_ITEMS: UpcomingItem[] = [
     iconType: 'assignment',
     tag: 'Due',
   },
-
+  
 ];
 
 function renderItemIcon(type?: string) {
@@ -341,3 +341,4 @@ export function Upcoming({
     </section>
   );
 }
+

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Check, CircleDollarSign, Search, X } from "lucide-react";
 import { useAdminV2 } from "../layout/AdminV2Layout";
 import { BrandBadge, StatusBadge } from "../shared/AdminV2Primitives";
@@ -8,11 +8,11 @@ import { getSemesterOfferingOrder, listSemesterOfferingOrders, reviewSemesterOff
 import { extractApiErrorMessage } from "../../../app/api/client";
 
 const PAGE_SIZE = 8;
-const label = (status: ManualPaymentStatus) => status === "pending_review" ? "Pending Verification" : status === "approved" ? "Approved" : status === "rejected" ? "Rejected" : "Cancelled";
+const label = (status: ManualPaymentStatus) => status === "pending_review" ? "Pending Review" : status === "approved" ? "Approved" : status === "rejected" ? "Rejected" : "Cancelled";
 const money = (value: number, currency: string) => new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 2 }).format(value / 100);
 
 export function PaymentsPage() {
-  const { brand, globalSearch } = useAdminV2(); const [params] = useSearchParams();
+  const { brand, globalSearch } = useAdminV2(); const [params] = useSearchParams(); const navigate = useNavigate();
   const [items, setItems] = useState<SemesterOfferingOrder[]>([]); const [search, setSearch] = useState(""); const [status, setStatus] = useState<"all" | ManualPaymentStatus>("all"); const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState(params.get("payment") ?? ""); const [detail, setDetail] = useState<SemesterOfferingOrder | null>(null); const [confirm, setConfirm] = useState<"approve" | "reject" | null>(null); const [reason, setReason] = useState(""); const [loading, setLoading] = useState(true); const [mutating, setMutating] = useState(false); const [error, setError] = useState("");
   const load = async () => { setLoading(true); setError(""); try { const result = await listSemesterOfferingOrders({ brand: brand === "all" ? "all" : brand, ...(status === "all" ? {} : { status }) }); setItems(result.items); } catch (cause) { setError(extractApiErrorMessage(cause, "Payment orders could not be loaded.")); } finally { setLoading(false); } };
@@ -20,7 +20,7 @@ export function PaymentsPage() {
   const query = (search || globalSearch).toLowerCase(); const rows = useMemo(() => items.filter((item) => !query || `${item.orderId} ${item.semesterOfferingTitle} ${item.students?.map((student) => student.fullName).join(" ") ?? ""} ${item.status}`.toLowerCase().includes(query)), [items, query]);
   const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE)); const visible = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE); const selected = detail?.orderId === selectedId ? detail : rows.find((item) => item.orderId === selectedId) ?? rows[0];
   useEffect(() => { const order = rows.find((item) => item.orderId === selectedId) ?? rows[0]; if (!order) { setDetail(null); return; } setSelectedId(order.orderId); void getSemesterOfferingOrder(order.orderId).then(setDetail).catch((cause) => setError(extractApiErrorMessage(cause, "Payment detail could not be loaded."))); }, [selectedId, rows]);
-  const review = async () => { if (!selected || !confirm || !reason.trim()) return; setMutating(true); setError(""); try { await reviewSemesterOfferingOrder(selected.orderId, confirm, selected.version, reason.trim()); setConfirm(null); setReason(""); setDetail(null); await load(); } catch (cause) { setError(extractApiErrorMessage(cause, "The manual payment review could not be completed.")); } finally { setMutating(false); } };
+  const review = async () => { if (!selected || !confirm || !reason.trim()) return; setMutating(true); setError(""); try { const reviewed = await reviewSemesterOfferingOrder(selected.orderId, confirm, selected.version, reason.trim()); setConfirm(null); setReason(""); setDetail(null); await load(); if (confirm === "approve" && reviewed.subscriptionId) navigate(`/admin/subscriptions?subscription=${encodeURIComponent(reviewed.subscriptionId)}`); } catch (cause) { setError(extractApiErrorMessage(cause, "The manual payment review could not be completed.")); } finally { setMutating(false); } };
   const count = (value: ManualPaymentStatus) => items.filter((item) => item.status === value).length;
   return <section className="admin-v2__page admin-v2__payments">
     <div className="admin-v2__metrics admin-v2__payment-metrics"><Metric label="Pending review" value={String(count("pending_review"))} /><Metric label="Approved" value={String(count("approved"))} /><Metric label="Rejected" value={String(count("rejected"))} /><Metric label="Review queue" value={loading ? "Loading" : "Manual"} /></div>

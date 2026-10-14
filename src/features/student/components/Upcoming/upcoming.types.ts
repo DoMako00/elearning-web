@@ -12,3 +12,4 @@ export interface UpcomingProps {
   items?: UpcomingItem[];
   onViewCalendar?: () => void;
 }
+

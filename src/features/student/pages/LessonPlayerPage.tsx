@@ -579,7 +579,7 @@ function StudentLessonPlayerContent() {
   const handleMarkComplete = () => {
     // Prevent marking complete if already completed (permanent completion)
     if (isAlreadyCompleted) return;
-
+    
     // Mark as complete permanently
     setIsComplete(true);
     setCompletedLessons(prev => new Set(prev).add(lessonId));

@@ -190,8 +190,8 @@ function AssignmentCard({
           </div>
         </div>
 
-        <button
-          type="button"
+        <button 
+          type="button" 
           className={`assignment-card__action assignment-card__action--${item.status}`}
           onClick={(e) => {
             e.stopPropagation();

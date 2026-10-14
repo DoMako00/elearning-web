@@ -9,7 +9,7 @@ export type SessionStatus = "Active" | "Revoked";
 export type AuditEventStatus = "Info" | "Success" | "Warning" | "Critical";
 export type DeviceCategory = "Mobile" | "Additional device";
 export type DeviceType = "Phone" | "PC / laptop" | "Tablet";
-export type RecordStatus = "Active" | "Published" | "Draft" | "Archived" | "Suspended" | "Inactive" | "Pending" | "Pending Payment" | "Payment Rejected" | "Pending Verification" | "Expiring Soon" | "Expired" | "Cancelled" | "Past Due" | "Revoked" | "Replacement Pending" | "Approved" | "Rejected" | "Withdrawn";
+export type RecordStatus = "Active" | "Published" | "Draft" | "Archived" | "Suspended" | "Inactive" | "Pending" | "Pending Payment" | "Pending Review" | "Payment Rejected" | "Pending Verification" | "Expiring Soon" | "Expired" | "Cancelled" | "Past Due" | "Revoked" | "Replacement Pending" | "Approved" | "Rejected" | "Withdrawn";
 
 export type InstructorStatus = "Active" | "Inactive";
 export interface InstructorRecord {

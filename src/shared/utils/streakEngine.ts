@@ -200,7 +200,7 @@ export function offsetDateString(dateStr: string, daysOffset: number): string {
 
 /**
  * Calculates current streak, longest streak, total active days, and freeze pass usage.
- *
+ * 
  * Logic:
  * - Active Threshold: ≥ 5 mins or 1 completed quiz/lesson.
  * - Missed Day Logic: When scanning backward from yesterday:
@@ -412,8 +412,8 @@ export function getStreakAnalyticsData(
     }
   });
 
-  const averageMinutesPerActiveDay = activeDaysInMonth > 0
-    ? Math.round(totalMinutesInMonth / activeDaysInMonth)
+  const averageMinutesPerActiveDay = activeDaysInMonth > 0 
+    ? Math.round(totalMinutesInMonth / activeDaysInMonth) 
     : 0;
 
   return {

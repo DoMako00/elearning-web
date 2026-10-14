@@ -62,8 +62,8 @@ export function ActivityHeatmap({ cells, onCellClick }: ActivityHeatmapProps) {
                   ))
                 ) : (
                   Array.from({ length: 35 }, (_, i) => (
-                    <div
-                      key={i}
+                    <div 
+                      key={i} 
                       className="activity-heatmap-cell activity-heatmap-cell--other-month"
                       style={{ backgroundColor: 'var(--heatmap-0, #eef2ef)' }}
                     />

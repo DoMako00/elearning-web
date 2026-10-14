@@ -200,7 +200,7 @@ export const ActivityAnalyticsTab: React.FC<ActivityAnalyticsTabProps> = ({
 
       {/* Row: Subject Distribution & 30-Day Consistency Heatmap */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 shrink-0 items-stretch">
-
+        
         {/* Subject Study Time Distribution (Expanded height to fill card space) */}
         <section
           className="rounded-2xl border border-gray-100 bg-white p-5 shadow-xs flex flex-col justify-between"

@@ -128,3 +128,4 @@ export async function withdrawMedia(scope: ContentScope, resource: LessonResourc
 export async function archiveLessonResource(scope: ContentScope, resource: LessonResourceDto) {
   return updateLessonResource(scope, resource, { status: "archived" });
 }
+

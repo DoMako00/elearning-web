@@ -133,7 +133,7 @@ export const HelpCenter: React.FC = () => {
           Tablet / Mobile: stacked columns with natural fluid scrolling
       */}
       <div className="help-center-columns flex flex-col lg:flex-row items-stretch lg:items-start gap-4 xl:gap-5 w-full">
-
+        
         {/* Left Main Column: flex-1, contains Hero, Categories, Popular Articles */}
         <div className="help-center-main-col flex-1 overflow-y-auto flex flex-col gap-4 min-w-0">
           {/* 1. Hero Support Banner */}

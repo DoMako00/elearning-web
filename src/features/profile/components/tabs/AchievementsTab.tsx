@@ -47,7 +47,7 @@ export const AchievementsTab: React.FC<AchievementsTabProps> = ({
     <div className="flex-1 min-h-0 flex flex-col justify-start overflow-y-auto overflow-x-hidden pt-1 pb-4 gap-4">
       {/* Top Row: Gamification Metrics (responsive cols on small/tablet/desktop) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 shrink-0">
-
+        
         {/* Card 1: Streak Score Card */}
         <section
           className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-linear-to-br from-emerald-500/10 via-white to-emerald-50/50 p-4 lg:p-5 shadow-xs flex flex-col justify-between"

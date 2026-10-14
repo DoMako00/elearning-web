@@ -217,14 +217,14 @@
 .inactivity-btn-primary {
   background: linear-gradient(135deg, var(--inactivity-brand) 0%, var(--inactivity-brand-hover) 100%);
   color: var(--inactivity-white);
-  box-shadow:
+  box-shadow: 
     0 4px 14px rgba(32, 168, 98, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .inactivity-btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow:
+  box-shadow: 
     0 8px 24px rgba(32, 168, 98, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }

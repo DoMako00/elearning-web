@@ -61,7 +61,7 @@
 
 .xp-reward-modal.level-up {
   border-color: var(--xp-brand, #20a862);
-  box-shadow:
+  box-shadow: 
     var(--xp-shadow-lg),
     0 0 0 1px var(--xp-brand-soft-strong, #c9f0d7),
     0 0 30px rgba(32, 168, 98, 0.15);
@@ -255,7 +255,7 @@
   border-radius: 14px;
   background: var(--xp-surface, #ffffff);
   border: 2px solid var(--xp-border, #e8ecef);
-  box-shadow:
+  box-shadow: 
     0 4px 16px rgba(0, 0, 0, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
@@ -263,7 +263,7 @@
 .xp-reward-level-badge.is-new {
   border-color: var(--xp-brand, #20a862);
   background: linear-gradient(135deg, var(--xp-brand-soft) 0%, var(--xp-surface) 100%);
-  box-shadow:
+  box-shadow: 
     0 4px 16px rgba(0, 0, 0, 0.06),
     0 0 24px rgba(32, 168, 98, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
@@ -424,14 +424,14 @@
 .xp-reward-btn-primary {
   background: linear-gradient(135deg, var(--xp-brand) 0%, var(--xp-brand-hover) 100%);
   color: var(--xp-white);
-  box-shadow:
+  box-shadow: 
     0 4px 14px rgba(32, 168, 98, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .xp-reward-btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow:
+  box-shadow: 
     0 8px 24px rgba(32, 168, 98, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }

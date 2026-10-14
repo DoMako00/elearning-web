@@ -382,6 +382,9 @@ export function StudentsPage() {
       navigate(`/admin/subscriptions?subscription=${subscription.id}`);
     else navigate("/admin/subscriptions");
   };
+  const createPurchase = (studentId: string) => {
+    navigate(`/admin/subscriptions?startPurchase=1&purchaseStudent=${encodeURIComponent(studentId)}`);
+  };
 
   const activeStudents = data.students.filter(
     (student) => student.status === "Active",
@@ -809,12 +812,10 @@ export function StudentsPage() {
                   <InspectorSection
                     title="Subscription / plan summary"
                     action={
-                      <button
-                        className="admin-v2__text-button"
-                        onClick={openSubscription}
-                      >
-                        Open subscription
-                      </button>
+                      <div className="admin-v2__student-purchase-actions">
+                        {subscription && <button className="admin-v2__text-button" onClick={openSubscription}>Open subscription</button>}
+                        <button className="admin-v2__text-button" onClick={() => createPurchase(selected.id)}>Create purchase</button>
+                      </div>
                     }
                   >
                     <InspectorFields
@@ -1244,10 +1245,20 @@ export function StudentsPage() {
           footer={
             <FormActions>
               <button
-                className="admin-v2__button is-primary"
+                className="admin-v2__button"
                 onClick={() => setCreatedStudent(null)}
               >
                 Done
+              </button>
+              <button
+                className="admin-v2__button is-primary"
+                onClick={() => {
+                  const studentId = createdStudent.student.id;
+                  setCreatedStudent(null);
+                  createPurchase(studentId);
+                }}
+              >
+                Continue to purchase
               </button>
             </FormActions>
           }

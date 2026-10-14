@@ -20,3 +20,4 @@ export function WorkspaceInspector({ title, selected, children }: { title: strin
 export function WorkspaceFields({ fields }: { fields: readonly (readonly [string, ReactNode])[] }) {
   return <dl className="admin-workspace-fields">{fields.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value ?? "Unavailable"}</dd></div>)}</dl>;
 }
+

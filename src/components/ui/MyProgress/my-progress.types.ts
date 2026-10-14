@@ -4,5 +4,5 @@ export interface MyProgressProps {
   growthLabel?: string;
   onViewProgress?: () => void;
   chartData?: number[];
-
+  
 }

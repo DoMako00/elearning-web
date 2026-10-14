@@ -101,11 +101,11 @@ export function useCommunitySocket({
 
   // const [allMembers, setAllMembers] = useState<ALLCommunityMember[]>(ALL_COMMUNITY_MEMBERSs);
   // const [allCount, setAllCount] = useState<number>(128);
-
+  
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const wsRef = useRef<WebSocket | null>(null);
 
-
+  
   // const [discussions, setDiscussions] = useState<DiscussionPost[]>(INITIAL_DISCUSSIONS);
   // const [onlineMembers, setOnlineMembers] = useState<CommunityMember[]>(INITIAL_ONLINE_MEMBERS);
   // const [onlineCount, setOnlineCount] = useState<number>(128);

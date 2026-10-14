@@ -11,11 +11,11 @@ interface MilestoneBadgesProps {
   milestones: MilestoneStatus[];
 }
 
-export function MilestoneBadge({
-  milestone,
-  isUnlocked,
-  progress,
-  daysRemaining
+export function MilestoneBadge({ 
+  milestone, 
+  isUnlocked, 
+  progress, 
+  daysRemaining 
 }: MilestoneStatus) {
   return (
     <article
@@ -47,14 +47,14 @@ export function MilestoneBadge({
       <div className="milestone-badge-content">
         <h3 className="milestone-badge-label">{milestone.label}</h3>
         <p className="milestone-badge-description">{milestone.description}</p>
-
+        
         <div className="milestone-badge-progress" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label={`${milestone.label} progress`}>
-          <div
+          <div 
             className="milestone-progress-bar"
             style={{ width: `${progress}%` }}
           />
         </div>
-
+        
         <div className="milestone-badge-progress-text">
           <span className="milestone-progress-percent">{progress}%</span>
           <span className="milestone-progress-remaining">
@@ -67,7 +67,7 @@ export function MilestoneBadge({
 }
 
 export function MilestoneBadges({ milestones }: MilestoneBadgesProps) {
-  const sortedMilestones = useMemo(() =>
+  const sortedMilestones = useMemo(() => 
     [...milestones].sort((a, b) => a.milestone.requiredDays - b.milestone.requiredDays),
   [milestones]);
 

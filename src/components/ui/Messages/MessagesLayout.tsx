@@ -20,7 +20,7 @@ import "./Messages.css";
 
 export const MessagesLayout: React.FC = () => {
   const { conversations, setConversations } = useMessages();
-
+  
   // Track tablet & mobile screen width (<= 1399px) dynamically via canonical breakpoint
   const [isSmallScreen, setIsSmallScreen] = useState(() => {
     if (typeof window !== "undefined") {

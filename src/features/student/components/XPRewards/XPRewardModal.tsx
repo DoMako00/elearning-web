@@ -89,7 +89,7 @@ interface ProgressBarProps {
 
 function ProgressBar({ percentage, animated = true, delay = 0 }: ProgressBarProps) {
   const clampedPercentage = Math.min(100, Math.max(0, percentage));
-
+  
   return (
     <div className="xp-reward-progress-container">
       <div

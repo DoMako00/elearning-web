@@ -573,7 +573,7 @@
   .activity-heatmap-months {
     grid-template-columns: 1fr;
   }
-
+  
   .activity-heatmap-legend {
     flex-wrap: wrap;
     justify-content: center;
@@ -594,7 +594,7 @@
   .activity-heatmap-cell {
     border-width: 2px;
   }
-
+  
   .activity-heatmap-legend-cell {
     border-width: 2px;
   }

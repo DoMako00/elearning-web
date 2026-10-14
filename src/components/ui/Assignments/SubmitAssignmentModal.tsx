@@ -1,10 +1,10 @@
 import React, { useState, useRef } from "react";
-import {
-  X,
-  UploadCloud,
-  FileText,
-  Trash2,
-  CheckCircle2,
+import { 
+  X, 
+  UploadCloud, 
+  FileText, 
+  Trash2, 
+  CheckCircle2, 
   AlertCircle,
   Loader2
 } from "lucide-react";
@@ -64,8 +64,8 @@ export function SubmitAssignmentModal({
       return;
     }
 
-    const sizeFormatted = sizeInMb < 1
-      ? `${(file.size / 1024).toFixed(1)} KB`
+    const sizeFormatted = sizeInMb < 1 
+      ? `${(file.size / 1024).toFixed(1)} KB` 
       : `${sizeInMb.toFixed(1)} MB`;
 
     setSelectedFile({
@@ -136,9 +136,9 @@ export function SubmitAssignmentModal({
               {assignmentTitle} &bull; {courseName}
             </p>
           </div>
-          <button
-            type="button"
-            className="submit-modal-close"
+          <button 
+            type="button" 
+            className="submit-modal-close" 
             onClick={onClose}
             aria-label="Close modal"
           >

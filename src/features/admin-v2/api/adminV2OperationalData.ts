@@ -86,3 +86,4 @@ export async function loadAdminOverviewData(brand:BrandFilter,courses:CourseReco
 }
 
 export function securityBrandCode(student:AdminStudentListItem){return asBrand(student.platform?.platformCode);}
+

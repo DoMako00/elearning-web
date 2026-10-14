@@ -4,7 +4,7 @@ import type { BrandCode, RecordStatus } from "../types/adminV2.types";
 import { brandName } from "../data/adminV2.fixtures";
 
 const toneByStatus: Record<RecordStatus, string> = {
-  Active: "success", Published: "success", Approved: "success", Draft: "warning", Archived: "muted", Suspended: "danger", Inactive: "muted", Pending: "warning", "Pending Payment": "warning", "Pending Verification": "warning", "Payment Rejected": "danger", Rejected: "danger", "Expiring Soon": "warning", Expired: "muted", Cancelled: "danger", "Past Due": "danger", Revoked: "muted", "Replacement Pending": "warning", Withdrawn: "muted",
+  Active: "success", Published: "success", Approved: "success", Draft: "warning", Archived: "muted", Suspended: "danger", Inactive: "muted", Pending: "warning", "Pending Payment": "warning", "Pending Review": "warning", "Pending Verification": "warning", "Payment Rejected": "danger", Rejected: "danger", "Expiring Soon": "warning", Expired: "muted", Cancelled: "danger", "Past Due": "danger", Revoked: "muted", "Replacement Pending": "warning", Withdrawn: "muted",
 };
 
 export function StatusBadge({ status }: { status: RecordStatus }) {
