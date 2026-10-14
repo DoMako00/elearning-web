@@ -12,7 +12,6 @@ import {
   CheckCircle,
   HelpCircle,
   Video,
-  TrendingUp,
   Activity,
 } from "lucide-react";
 import type {
@@ -25,36 +24,15 @@ interface ActivityAnalyticsTabProps {
   studyDistribution: SubjectStudyDistribution[];
   learningTrends: LearningTrendPoint[];
   stats: ProfileAnalyticsStats;
+  activityDays: Array<{ date: string; completedLessons: number }>;
 }
 
 export const ActivityAnalyticsTab: React.FC<ActivityAnalyticsTabProps> = ({
   studyDistribution,
   learningTrends,
   stats,
+  activityDays,
 }) => {
-  // Generate 30-day activity matrix (GitHub-style consistency heatmap)
-  const days30 = Array.from({ length: 30 }, (_, i) => {
-    const dayNum = 30 - i;
-    // Deterministic realistic learning pattern (streak active over last 14 days)
-    const isStreakDay = dayNum <= 14;
-    const intensity = isStreakDay
-      ? dayNum % 4 === 0
-        ? 4
-        : dayNum % 3 === 0
-        ? 3
-        : 2
-      : dayNum % 2 === 0
-      ? 1
-      : 0;
-    const hours = intensity === 4 ? 3.5 : intensity === 3 ? 2.5 : intensity === 2 ? 1.5 : intensity === 1 ? 0.8 : 0;
-    return {
-      day: dayNum,
-      intensity,
-      hours,
-      dateLabel: `Day ${dayNum} ago`,
-    };
-  }).reverse();
-
   return (
     <div className="flex-1 min-h-0 flex flex-col justify-start overflow-y-auto overflow-x-hidden pt-1 pb-4 gap-4">
       {/* 4 Top Performance Metric Cards (compact height, 2 cols on mobile/ipad, 4 cols on desktop) */}
@@ -69,12 +47,9 @@ export const ActivityAnalyticsTab: React.FC<ActivityAnalyticsTabProps> = ({
           </div>
           <div className="flex items-baseline justify-between gap-1">
             <p className="text-xl font-black text-gray-900 tracking-tight leading-none">
-              {stats.averageQuizAccuracy}%
+              {stats.averageQuizAccuracy === null ? "—" : `${stats.averageQuizAccuracy}%`}
             </p>
-            <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-0.5">
-              <TrendingUp className="size-3" />
-              <span>+4.2%</span>
-            </p>
+            <p className="text-[11px] font-bold text-gray-500">Persisted results</p>
           </div>
         </div>
 
@@ -88,11 +63,9 @@ export const ActivityAnalyticsTab: React.FC<ActivityAnalyticsTabProps> = ({
           </div>
           <div className="flex items-baseline justify-between gap-1">
             <p className="text-xl font-black text-gray-900 tracking-tight leading-none">
-              {stats.totalVideoWatchHours} <span className="text-xs font-semibold text-gray-500">hrs</span>
+              {stats.totalVideoWatchHours === null ? "—" : stats.totalVideoWatchHours} {stats.totalVideoWatchHours !== null && <span className="text-xs font-semibold text-gray-500">hrs</span>}
             </p>
-            <p className="text-[11px] font-bold text-blue-600">
-              42 lectures
-            </p>
+            <p className="text-[11px] font-bold text-gray-500">Tracked by playback</p>
           </div>
         </div>
 
@@ -106,11 +79,9 @@ export const ActivityAnalyticsTab: React.FC<ActivityAnalyticsTabProps> = ({
           </div>
           <div className="flex items-baseline justify-between gap-1">
             <p className="text-xl font-black text-gray-900 tracking-tight leading-none">
-              {stats.completedAssignments}
+              {stats.completedAssignments === null ? "—" : stats.completedAssignments}
             </p>
-            <p className="text-[11px] font-bold text-purple-600">
-              100% on-time
-            </p>
+            <p className="text-[11px] font-bold text-gray-500">Reviewed submissions</p>
           </div>
         </div>
 
@@ -124,11 +95,9 @@ export const ActivityAnalyticsTab: React.FC<ActivityAnalyticsTabProps> = ({
           </div>
           <div className="flex items-baseline justify-between gap-1">
             <p className="text-xl font-black text-gray-900 tracking-tight leading-none">
-              {stats.totalQuestionsAnswered}
+              {stats.totalQuestionsAnswered === null ? "—" : stats.totalQuestionsAnswered}
             </p>
-            <p className="text-[11px] font-bold text-amber-600">
-              Clinical cases
-            </p>
+            <p className="text-[11px] font-bold text-gray-500">Assessment data</p>
           </div>
         </div>
       </div>
@@ -140,9 +109,9 @@ export const ActivityAnalyticsTab: React.FC<ActivityAnalyticsTabProps> = ({
       >
         <div className="flex items-center justify-between gap-2 mb-2">
           <h2 id="extended-trends-heading" className="text-sm sm:text-base font-black text-gray-900 tracking-tight">
-            Learning Velocity & Weekly Trends (Hours/Week)
+            Learning Activity Trends
           </h2>
-          <div className="flex items-center gap-3.5 text-xs font-bold">
+          {learningTrends.length > 0 && <div className="flex items-center gap-3.5 text-xs font-bold">
             <div className="flex items-center gap-1.5">
               <span className="size-2.5 rounded-full bg-emerald-500" />
               <span className="text-gray-800">Current</span>
@@ -151,11 +120,11 @@ export const ActivityAnalyticsTab: React.FC<ActivityAnalyticsTabProps> = ({
               <span className="size-2.5 rounded-full bg-gray-300" />
               <span className="text-gray-500">Previous</span>
             </div>
-          </div>
+          </div>}
         </div>
 
         <div className="h-40 lg:h-44 w-full">
-          <ResponsiveContainer width="100%" height="100%">
+          {learningTrends.length ? <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={learningTrends} margin={{ top: 8, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="currentGrad" x1="0" y1="0" x2="0" y2="1">
@@ -194,7 +163,7 @@ export const ActivityAnalyticsTab: React.FC<ActivityAnalyticsTabProps> = ({
                 fill="none"
               />
             </AreaChart>
-          </ResponsiveContainer>
+          </ResponsiveContainer> : <div className="grid h-full place-items-center text-sm font-medium text-gray-500">No persisted trend history is available yet.</div>}
         </div>
       </section>
 
@@ -212,7 +181,7 @@ export const ActivityAnalyticsTab: React.FC<ActivityAnalyticsTabProps> = ({
                 Study Time by Subject Area
               </h2>
               <p className="text-xs text-gray-500 font-medium mb-3 mt-0.5">
-                Active learning allocation across medical specialties.
+                Subject-level study duration is not currently recorded.
               </p>
             </div>
 
@@ -236,12 +205,13 @@ export const ActivityAnalyticsTab: React.FC<ActivityAnalyticsTabProps> = ({
                   </div>
                 </div>
               ))}
+              {studyDistribution.length === 0 && <p className="py-5 text-sm text-gray-500">No persisted study-time breakdown is available.</p>}
             </div>
           </div>
 
           <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600 font-medium">
-            <span>Cumulative Study:</span>
-            <strong className="text-gray-900 font-black text-sm">92.0 Total Hours</strong>
+            <span>Session duration:</span>
+            <strong className="text-gray-900 font-black text-sm">Not tracked</strong>
           </div>
         </section>
 
@@ -253,43 +223,41 @@ export const ActivityAnalyticsTab: React.FC<ActivityAnalyticsTabProps> = ({
           <div>
             <div className="flex items-center justify-between mb-0.5">
               <h2 id="consistency-matrix-heading" className="text-sm sm:text-base font-black text-gray-900 tracking-tight">
-                Consistency Heatmap (30 Days)
+                Weekly Lesson Activity
               </h2>
-              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">
-                14-Day Streak Active
-              </span>
+              {stats.currentStreakDays !== null && <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">{stats.currentStreakDays}-day current streak</span>}
             </div>
             <p className="text-xs text-gray-500 font-medium mb-3 mt-0.5">
-              Daily learning sessions, quiz completions, and active study frequency.
+              Completed lessons recorded during the current week.
             </p>
 
             {/* Heatmap Grid */}
             <div className="grid grid-cols-6 sm:grid-cols-10 gap-1.5">
-              {days30.map((d, index) => {
+              {activityDays.map((d) => {
+                const intensity = d.completedLessons >= 4 ? 4 : d.completedLessons >= 3 ? 3 : d.completedLessons >= 1 ? 2 : 0;
                 const bgClass =
-                  d.intensity === 4
+                  intensity === 4
                     ? "bg-emerald-600 text-white"
-                    : d.intensity === 3
+                    : intensity === 3
                     ? "bg-emerald-400 text-white"
-                    : d.intensity === 2
+                    : intensity === 2
                     ? "bg-emerald-200 text-emerald-950"
-                    : d.intensity === 1
-                    ? "bg-emerald-100/70 text-emerald-900"
                     : "bg-gray-100 text-gray-400";
 
                 return (
                   <div
-                    key={index}
+                    key={d.date}
                     className={`group relative aspect-square rounded-md flex items-center justify-center text-xs font-black transition-all hover:scale-110 cursor-pointer ${bgClass}`}
                   >
-                    <span>{30 - index}</span>
+                    <span>{new Date(`${d.date}T00:00:00Z`).toLocaleDateString(undefined, { weekday: "short" })}</span>
                     {/* Hover tooltip */}
                     <div className="pointer-events-none absolute bottom-full mb-1 hidden group-hover:block z-20 whitespace-nowrap rounded-md bg-gray-900 px-2 py-0.5 text-[10px] font-semibold text-white shadow-md">
-                      {d.hours > 0 ? `${d.hours} hrs studied` : "Rest day"}
+                      {d.completedLessons} completed lesson{d.completedLessons === 1 ? "" : "s"} on {d.date}
                     </div>
                   </div>
                 );
               })}
+              {activityDays.length === 0 && <p className="col-span-full py-6 text-sm text-gray-500">No weekly activity has been recorded.</p>}
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { X } from "lucide-react";
-import type { CalendarEvent, EventType } from "../calendar.types";
+import type { CalendarEvent } from "../calendar.types";
 
 interface CreateEventModalProps {
   draft: Partial<CalendarEvent>;
@@ -44,7 +44,7 @@ export function CreateEventModal({
             id="evt-title"
             type="text"
             required
-            placeholder="e.g. Read Quiz, Live Session..."
+            placeholder="e.g. Focused study session"
             value={draft.title || ""}
             onChange={(e) => onDraftChange({ title: e.target.value })}
             autoFocus
@@ -53,17 +53,10 @@ export function CreateEventModal({
 
         <div className="calendar-form-group">
           <label htmlFor="evt-type">Category</label>
-          <select
-            id="evt-type"
-            value={draft.type}
-            onChange={(e) => onDraftChange({ type: e.target.value as EventType })}
-          >
-            <option value="quiz">Quiz (Green)</option>
-            <option value="live_session">Live Session (Blue)</option>
-            <option value="assignment">Assignment (Purple)</option>
-            <option value="office_hours">Office Hours (Violet)</option>
-            <option value="study_block">Study Block (Amber)</option>
+          <select id="evt-type" value="study_block" disabled aria-describedby="evt-type-help">
+            <option value="study_block">Personal study block</option>
           </select>
+          <small id="evt-type-help">Academic events, assignments, and assessments are scheduled by your institution.</small>
         </div>
 
         <div className="calendar-form-group">

@@ -25,6 +25,9 @@ interface ChatWindowProps {
   onAudioCall?: () => void;
   onMoreActions?: () => void;
   onBack?: () => void;
+  isLoading?: boolean;
+  hasError?: boolean;
+  isSending?: boolean;
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
@@ -39,6 +42,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   onAudioCall,
   onMoreActions,
   onBack,
+  isLoading = false,
+  hasError = false,
+  isSending = false,
 }) => {
   const [inputText, setInputText] = useState("");
   const [pendingAttachments, setPendingAttachments] = useState<Attachment[]>([]);
@@ -199,11 +205,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       {/* 2. Scrollable Messages Feed */}
       <div className="flex-1 overflow-y-auto p-5 space-y-3 bg-[#fbfdfc]">
         {/* Date Divider badge */}
-        <div className="flex items-center justify-center my-2">
-          <span className="px-3 py-1 rounded-full bg-slate-100 text-[#64748b] text-[11px] font-medium tracking-wide">
-            Today
-          </span>
-        </div>
+        {messages.length > 0 && <div className="flex items-center justify-center my-2"><span className="px-3 py-1 rounded-full bg-slate-100 text-[#64748b] text-[11px] font-medium tracking-wide">Conversation history</span></div>}
+
+        {isLoading && <p role="status" className="py-8 text-center text-xs text-slate-400">Loading saved messages…</p>}
+        {hasError && <p role="alert" className="py-8 text-center text-xs text-rose-600">Messages could not be loaded. Retry by reopening the conversation.</p>}
+        {!isLoading && !hasError && messages.length === 0 && <p className="py-8 text-center text-xs text-slate-400">No messages yet. Send the first message to begin.</p>}
 
         {/* Feed List */}
         {messages.map((msg) => {
@@ -263,9 +269,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           {/* Attachment Clip */}
           <button
             type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="p-1.5 rounded-xl text-[#64748b] hover:text-[#20a862] hover:bg-[#eff9f2] transition-colors"
-            title="Attach diagram or document"
+            disabled
+            className="p-1.5 rounded-xl text-[#64748b] opacity-45 cursor-not-allowed"
+            title="File attachments are not supported by the current messaging API"
             aria-label="Attach diagram or document"
           >
             <Paperclip className="w-4.5 h-4.5 -rotate-45" />
@@ -322,13 +328,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           <button
             type="button"
             onClick={handleSend}
-            disabled={!inputText.trim() && pendingAttachments.length === 0}
+            disabled={isSending || !inputText.trim()}
             className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all shrink-0 ${
-              inputText.trim() || pendingAttachments.length > 0
+              inputText.trim() && !isSending
                 ? "bg-[#20a862] text-white hover:bg-[#188a50] shadow-sm hover:scale-105 active:scale-95"
                 : "bg-slate-200 text-slate-400 cursor-not-allowed"
             }`}
-            title="Send message"
+            title={isSending ? "Saving message…" : "Send message"}
             aria-label="Send message"
           >
             <Send className="w-4 h-4 ml-0.5" />

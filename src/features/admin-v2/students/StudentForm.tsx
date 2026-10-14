@@ -6,39 +6,102 @@ import {
   ShieldCheck,
   UserRound,
 } from "lucide-react";
-import type { FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import type { BrandCode, StudentDraft } from "../types/adminV2.types";
 import { FormField } from "../shared/AdminV2Primitives";
+import type { AcademicInstitution, BrandAccess } from "../api/adminAcademicApi";
+
+const isActive = (status: string) => status.toLowerCase() === "active";
 
 export function StudentForm({
   initial,
   brand,
+  brandOptions,
+  institutions,
+  optionsLoading,
+  optionsError,
   mode = "create",
   submitLabel = "Create student",
   errorMessage,
   onSubmit,
 }: {
-  initial?: Partial<StudentDraft>;
-  brand: BrandCode;
+  initial?: Partial<Omit<StudentDraft, "institution">> & { institution?: string };
+  brand?: BrandCode;
+  brandOptions: readonly BrandAccess[];
+  institutions: readonly AcademicInstitution[];
+  optionsLoading: boolean;
+  optionsError?: string;
   mode?: "create" | "edit";
   submitLabel?: string;
   errorMessage?: string;
   onSubmit: (draft: StudentDraft) => void;
 }) {
+  const [selectedBrand, setSelectedBrand] = useState<BrandCode | "">(initial?.brand ?? brand ?? "");
+  const [selectedInstitutionId, setSelectedInstitutionId] = useState("");
+  const [selectedLevelId, setSelectedLevelId] = useState("");
+  const [selectedSemesterId, setSelectedSemesterId] = useState("");
+  const activeBrandOptions = useMemo(() => brandOptions.filter((item) => isActive(item.status)), [brandOptions]);
+  const selectedBrandAccess = activeBrandOptions.find((item) => item.code === selectedBrand);
+  const initialInstitution = institutions.find((item) =>
+    item.id === initial?.academicInstitutionId ||
+    item.code.toLowerCase() === initial?.institution?.toLowerCase() ||
+    item.displayName.toLowerCase().startsWith(initial?.institution?.toLowerCase() ?? "\u0000"),
+  );
+  const allowedInstitutionIds = new Set(selectedBrandAccess?.allowedAcademicInstitutions.filter((item) => isActive(item.status)).map((item) => item.id) ?? []);
+  const institutionOptions = useMemo(() => institutions.filter((item) =>
+    isActive(item.status) && (allowedInstitutionIds.has(item.id) || (mode === "edit" && item.id === initialInstitution?.id)),
+  ), [institutions, mode, selectedBrandAccess, initialInstitution?.id]);
+  const selectedInstitution = institutionOptions.find((item) => item.id === selectedInstitutionId);
+  const levelOptions = selectedInstitution?.levels.filter((item) => isActive(item.status)) ?? [];
+  const selectedLevel = levelOptions.find((item) => item.id === selectedLevelId);
+  const semesterOptions = selectedLevel?.semesters.filter((item) => isActive(item.status)) ?? [];
+  const selectedSemester = semesterOptions.find((item) => item.id === selectedSemesterId);
+
+  useEffect(() => {
+    if (institutionOptions.some((item) => item.id === selectedInstitutionId)) return;
+    const nextInstitution = initialInstitution && institutionOptions.some((item) => item.id === initialInstitution.id)
+      ? initialInstitution
+      : institutionOptions[0];
+    setSelectedInstitutionId(nextInstitution?.id ?? "");
+    const nextLevel = nextInstitution?.levels.find((item) => item.id === initial?.academicLevelId && isActive(item.status))
+      ?? nextInstitution?.levels.find((item) => isActive(item.status) && item.displayTitle === initial?.academicLevel)
+      ?? nextInstitution?.levels.find((item) => isActive(item.status));
+    setSelectedLevelId(nextLevel?.id ?? "");
+    const nextSemester = nextLevel?.semesters.find((item) => item.id === initial?.academicSemesterId && isActive(item.status))
+      ?? nextLevel?.semesters.find((item) => isActive(item.status) && item.displayTitle === initial?.semester)
+      ?? nextLevel?.semesters.find((item) => isActive(item.status));
+    setSelectedSemesterId(nextSemester?.id ?? "");
+  }, [
+    institutionOptions,
+    selectedInstitutionId,
+    initialInstitution?.id,
+    initial?.academicLevel,
+    initial?.academicLevelId,
+    initial?.semester,
+    initial?.academicSemesterId,
+  ]);
+
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!selectedBrandAccess || !selectedInstitution || !selectedLevel || !selectedSemester) return;
+    const institutionCode = selectedInstitution.code.toLowerCase();
+    if (institutionCode !== "buc" && institutionCode !== "delta") return;
     const form = new FormData(event.currentTarget);
     onSubmit({
       fullName: String(form.get("fullName") ?? "").trim(),
       accountIdentifier: String(form.get("accountIdentifier") ?? "").trim(),
       email: "",
       phone: String(form.get("phone") ?? "").trim(),
-      brand: String(form.get("brand")) as BrandCode,
-      institution: String(
-        form.get("institution"),
-      ) as StudentDraft["institution"],
-      academicLevel: String(form.get("academicLevel")),
-      semester: String(form.get("semester")),
+      brand: selectedBrandAccess.code,
+      institution: institutionCode === "delta" ? "Delta" : "BUC",
+      academicInstitutionId: selectedInstitution.id,
+      academicInstitutionCode: institutionCode,
+      academicLevel: selectedLevel.displayTitle,
+      academicLevelId: selectedLevel.id,
+      academicLevelNumber: selectedLevel.levelNumber,
+      semester: selectedSemester.displayTitle,
+      academicSemesterId: selectedSemester.id,
+      academicSemesterNumber: selectedSemester.semesterNumber,
       program: String(form.get("program") ?? "").trim(),
     });
   };
@@ -121,12 +184,23 @@ export function StudentForm({
           <FormField label="Brand">
             <select
               name="brand"
-              defaultValue={initial?.brand ?? brand}
-              disabled={mode === "edit"}
+              required
+              value={selectedBrand}
+              disabled={mode === "edit" || optionsLoading || !!optionsError}
+              onChange={(event) => {
+                const nextBrand = event.target.value as BrandCode;
+                setSelectedBrand(nextBrand);
+                const nextAccess = activeBrandOptions.find((item) => item.code === nextBrand);
+                const allowedIds = new Set(nextAccess?.allowedAcademicInstitutions.filter((item) => isActive(item.status)).map((item) => item.id) ?? []);
+                const nextInstitution = institutions.find((item) => isActive(item.status) && allowedIds.has(item.id));
+                setSelectedInstitutionId(nextInstitution?.id ?? "");
+                const nextLevel = nextInstitution?.levels.find((item) => isActive(item.status));
+                setSelectedLevelId(nextLevel?.id ?? "");
+                setSelectedSemesterId(nextLevel?.semesters.find((item) => isActive(item.status))?.id ?? "");
+              }}
             >
-              <option value="medway">Medway</option>
-              <option value="elite">Elite</option>
-              <option value="nexus">Nexus</option>
+              <option value="">Choose a Brand</option>
+              {activeBrandOptions.map((item) => <option key={item.id} value={item.code}>{item.name}</option>)}
             </select>
           </FormField>
         </div>
@@ -140,51 +214,60 @@ export function StudentForm({
           <small>Where this Student belongs</small>
         </header>
         <div className="admin-v2__student-form-grid">
+          {optionsLoading && <p className="admin-v2__field-help" role="status">Loading persisted Brand and academic placement options…</p>}
+          {optionsError && <p className="admin-v2__student-form-error" role="alert">{optionsError}</p>}
           <FormField label="Institution">
             <select
               name="institution"
-              disabled={mode === "edit"}
-              defaultValue={
-                initial?.institution ?? (brand === "nexus" ? "Delta" : "BUC")
-              }
+              required
+              value={selectedInstitutionId}
+              disabled={optionsLoading || !!optionsError}
+              onChange={(event) => {
+                const nextInstitution = institutionOptions.find((item) => item.id === event.target.value);
+                setSelectedInstitutionId(nextInstitution?.id ?? "");
+                const nextLevel = nextInstitution?.levels.find((item) => isActive(item.status));
+                setSelectedLevelId(nextLevel?.id ?? "");
+                setSelectedSemesterId(nextLevel?.semesters.find((item) => isActive(item.status))?.id ?? "");
+              }}
             >
-              <option>BUC</option>
-              <option>Delta</option>
+              <option value="">Choose institution</option>
+              {institutionOptions.map((item) => <option key={item.id} value={item.id}>{item.displayName}</option>)}
             </select>
           </FormField>
           <FormField label="Program">
             <input
               name="program"
               disabled={mode === "edit"}
-              defaultValue={initial?.program ?? "Medicine (MBBS)"}
-              placeholder="Medicine (MBBS)"
+              defaultValue={initial?.program ?? ""}
+              placeholder="Program label (optional)"
             />
           </FormField>
           <FormField label="Academic level">
             <select
               name="academicLevel"
-              disabled={mode === "edit"}
-              defaultValue={initial?.academicLevel ?? "Year 1"}
+              required
+              value={selectedLevelId}
+              disabled={optionsLoading || !!optionsError}
+              onChange={(event) => {
+                const nextLevel = levelOptions.find((item) => item.id === event.target.value);
+                setSelectedLevelId(nextLevel?.id ?? "");
+                setSelectedSemesterId(nextLevel?.semesters.find((item) => isActive(item.status))?.id ?? "");
+              }}
             >
-              {Array.from({ length: 6 }, (_, index) => `Year ${index + 1}`).map(
-                (item) => (
-                  <option key={item}>{item}</option>
-                ),
-              )}
+              <option value="">Choose academic level</option>
+              {levelOptions.map((item) => <option key={item.id} value={item.id}>{item.displayTitle}</option>)}
             </select>
           </FormField>
           <FormField label="Semester">
             <select
               name="semester"
-              disabled={mode === "edit"}
-              defaultValue={initial?.semester ?? "Semester 1"}
+              required
+              value={selectedSemesterId}
+              disabled={optionsLoading || !!optionsError}
+              onChange={(event) => setSelectedSemesterId(event.target.value)}
             >
-              {Array.from(
-                { length: 12 },
-                (_, index) => `Semester ${index + 1}`,
-              ).map((item) => (
-                <option key={item}>{item}</option>
-              ))}
+              <option value="">Choose semester</option>
+              {semesterOptions.map((item) => <option key={item.id} value={item.id}>{item.displayTitle}</option>)}
             </select>
           </FormField>
         </div>

@@ -2705,6 +2705,8 @@ export interface components {
         AdminStudentReadItem: {
             /** Format: uuid */
             id?: string;
+            /** Format: date-time */
+            createdAt?: string;
             platform?: Record<string, never>;
             displayName?: string | null;
             emailMasked?: string | null;

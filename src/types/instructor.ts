@@ -12,9 +12,9 @@ export interface CourseTaught {
   id: string;
   title: string;
   category: string;
-  type: "Core subject" | "Elective" | "Advanced";
-  studentsCount: number;
-  progressPercentage: number;
+  type?: "Core subject" | "Elective" | "Advanced" | null;
+  studentsCount: number | null;
+  progressPercentage: number | null;
   imageSrc: string;
   rating?: number;
   route?: string;
@@ -49,12 +49,12 @@ export interface ResearchPublication {
 
 export interface InstructorStats {
   coursesTaught: number;
-  studentsMentored: number;
-  publishedResources: number;
-  averageRating: number;
+  studentsMentored: number | null;
+  publishedResources: number | null;
+  averageRating: number | null;
   yearsTeaching: string;
-  responseRate: number;
-  studentCompletion: number;
+  responseRate: number | null;
+  studentCompletion: number | null;
 }
 
 export interface InstructorProfile {

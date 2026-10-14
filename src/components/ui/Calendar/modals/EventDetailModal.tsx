@@ -3,11 +3,12 @@ import type { CalendarEvent } from "../calendar.types";
 
 interface EventDetailModalProps {
   event: CalendarEvent;
+  canEdit?: boolean;
   onClose: () => void;
   onDelete: (id: string) => void;
 }
 
-export function EventDetailModal({ event, onClose, onDelete }: EventDetailModalProps) {
+export function EventDetailModal({ event, canEdit = false, onClose, onDelete }: EventDetailModalProps) {
   return (
     <div className="calendar-modal-backdrop" onClick={onClose}>
       <div
@@ -20,14 +21,14 @@ export function EventDetailModal({ event, onClose, onDelete }: EventDetailModalP
           <h2 id="event-details-title" className="calendar-modal__title">
             {event.title}
           </h2>
-          <button
+          {canEdit && <button
             type="button"
             className="calendar-modal__close-btn"
             onClick={onClose}
             aria-label="Close modal"
           >
             <X size={18} />
-          </button>
+          </button>}
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>

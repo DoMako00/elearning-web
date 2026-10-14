@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -7,12 +7,12 @@ import {
   Bot,
   CalendarCheck2,
   ChartNoAxesCombined,
-  Check,
   Clock3,
   Compass,
   Sparkles,
   UserRoundCheck,
 } from "lucide-react";
+import { useSetWeeklyLessonGoal, useStudentLearningPreferences } from "../../api/useStudentLearning";
 import robotAsset from "../../../../Assets/ai-learning-robot.webp";
 import journeyIllustration from "../../../../Assets/empty-learning-journey.webp";
 import "./EmptyLearningState.css";
@@ -25,24 +25,7 @@ const benefits = [
 ] as const;
 
 
-const weeklyStudyHourOptions = [4, 6, 8] as const;
-const weeklyStudyGoalStorageKey = "greenlearn-weekly-study-hours";
-
-/** Temporary control until the corresponding product destinations are connected. */
-function UnavailableAction({ children, className, ariaLabel, tooltip }: { children: ReactNode; className: string; ariaLabel?: string; tooltip?: string }) {
-  return (
-    <button
-      type="button"
-      className={className}
-      disabled
-      aria-label={ariaLabel}
-      aria-description="This destination will be available when course exploration is connected."
-      title={tooltip ?? "This destination will be available when course exploration is connected."}
-    >
-      {children}
-    </button>
-  );
-}
+const weeklyLessonGoalOptions = [4, 6, 8] as const;
 
 export function LearningBenefits() {
   return (
@@ -63,24 +46,24 @@ export function PopularTopicsCard({ topics }: { topics: readonly string[] }) {
     <article className="empty-side-card empty-topics-card" aria-labelledby="popular-topics-title">
       <header className="empty-topics-card__header">
         <div>
-          <h2 id="popular-topics-title">Popular Topics</h2>
-          <p>Elite Year 1 starting point</p>
+          <h2 id="popular-topics-title">Available Courses</h2>
+          <p>Published for your learning space</p>
         </div>
-        <span className="empty-topics-card__count" aria-label={`${topics.length} topics available`}>
-          {topics.length} topics
+        <span className="empty-topics-card__count" aria-label={`${topics.length} courses available`}>
+          {topics.length} courses
         </span>
       </header>
-      <div className="empty-topics-card__grid" aria-label="Popular learning topics">
+      <div className="empty-topics-card__grid" aria-label="Available courses">
         {topics.map((label) => (
           <span className="empty-topic" key={label}>
             <span className="empty-topic__icon" aria-hidden="true"><BookOpenCheck /></span>
             <span className="empty-topic__label">{label}</span>
           </span>
         ))}
-        {topics.length === 0 ? <p>No published subjects are available for this placement yet.</p> : null}
+        {topics.length === 0 ? <p>No published courses are available for this account yet.</p> : null}
       </div>
       <footer className="empty-topics-card__footer">
-        <UnavailableAction className="empty-side-link"><span>Available placement subjects</span><ArrowRight aria-hidden="true" /></UnavailableAction>
+        <Link to="/explore" className="empty-side-link"><span>Explore courses</span><ArrowRight aria-hidden="true" /></Link>
       </footer>
     </article>
   );
@@ -91,9 +74,9 @@ export function AIRecommendationsCard() {
     <article className="empty-side-card empty-ai-card" aria-labelledby="ai-recommendations-title">
       <div className="empty-ai-card__copy">
         <span className="empty-ai-card__eyebrow" aria-hidden="true"><Bot /></span>
-        <h2 id="ai-recommendations-title">Plan your medical study week</h2>
-        <p>Start with Biochemistry, then review the rest of your Year 1 subjects as they become available.</p>
-        <UnavailableAction className="empty-ai-card__button"><Sparkles aria-hidden="true" /><span>Study plan</span></UnavailableAction>
+        <h2 id="ai-recommendations-title">Discover courses</h2>
+        <p>Browse courses published for your account and academic placement.</p>
+        <Link to="/explore" className="empty-ai-card__button"><Sparkles aria-hidden="true" /><span>Explore courses</span></Link>
       </div>
       <img className="empty-ai-card__robot" src={robotAsset} alt="Friendly GreenLearn AI learning guide robot" />
     </article>
@@ -101,22 +84,17 @@ export function AIRecommendationsCard() {
 }
 
 export function StudyPlanCard() {
-  const [weeklyStudyHours, setWeeklyStudyHours] = useState(() => {
-    if (typeof window === "undefined") return 6;
+  const preferences = useStudentLearningPreferences();
+  const saveGoal = useSetWeeklyLessonGoal();
+  const [weeklyLessons, setWeeklyLessons] = useState<number | null>(null);
 
-    const storedHours = Number(window.localStorage.getItem(weeklyStudyGoalStorageKey));
-    return weeklyStudyHourOptions.includes(storedHours as 4 | 6 | 8) ? storedHours : 6;
-  });
-  const [isSaved, setIsSaved] = useState(false);
-
-  const selectWeeklyStudyHours = (hours: number) => {
-    setWeeklyStudyHours(hours);
-    setIsSaved(false);
-  };
+  useEffect(() => {
+    if (preferences.isSuccess) setWeeklyLessons(preferences.data.weeklyLessonGoal);
+  }, [preferences.data, preferences.isSuccess]);
 
   const saveStudyGoal = () => {
-    window.localStorage.setItem(weeklyStudyGoalStorageKey, String(weeklyStudyHours));
-    setIsSaved(true);
+    if (weeklyLessons === null || !preferences.data) return;
+    saveGoal.mutate({ weeklyLessonGoal: weeklyLessons, expectedVersion: preferences.data?.version ?? null });
   };
 
   return (
@@ -128,43 +106,45 @@ export function StudyPlanCard() {
         </div>
         <span className="empty-study-plan-card__icon" aria-hidden="true"><CalendarCheck2 /></span>
       </header>
-      <p>Choose a pace that works with your semester.</p>
+      <p>Set a weekly lesson-completion goal that works with your semester.</p>
       <div className="empty-study-plan-card__value" aria-live="polite">
-        <output>{weeklyStudyHours}</output>
-        <span>hours<br />per week</span>
+        <output>{weeklyLessons ?? "—"}</output>
+        <span>lessons<br />per week</span>
       </div>
       <div
         className="empty-study-plan-card__meter"
         role="progressbar"
-        aria-label={`${weeklyStudyHours} hours per week selected`}
+        aria-label={weeklyLessons === null ? "No weekly lesson goal selected" : `${weeklyLessons} lessons per week selected`}
         aria-valuemin={4}
         aria-valuemax={8}
-        aria-valuenow={weeklyStudyHours}
+          aria-valuenow={weeklyLessons ?? undefined}
       >
         {Array.from({ length: 8 }, (_, index) => (
-          <span className={index < weeklyStudyHours ? "is-active" : undefined} key={index} />
+          <span className={weeklyLessons !== null && index < weeklyLessons ? "is-active" : undefined} key={index} />
         ))}
       </div>
-      <div className="empty-study-plan-card__options" aria-label="Weekly study hours">
-        {weeklyStudyHourOptions.map((hours) => (
+      <div className="empty-study-plan-card__options" aria-label="Weekly lesson goal">
+        {weeklyLessonGoalOptions.map((lessons) => (
           <button
-            key={hours}
+            key={lessons}
             type="button"
             className="empty-study-plan-card__option"
-            aria-pressed={weeklyStudyHours === hours}
-            onClick={() => selectWeeklyStudyHours(hours)}
+            aria-pressed={weeklyLessons === lessons}
+            disabled={preferences.isLoading || preferences.isError}
+            onClick={() => setWeeklyLessons(lessons)}
           >
-            {hours}h
+            {lessons}
           </button>
         ))}
       </div>
       <footer className="empty-study-plan-card__footer">
-        <span className="empty-study-plan-card__availability"><Clock3 aria-hidden="true" /><span>Flexible anytime</span></span>
-        <button type="button" className="empty-study-plan-card__save" onClick={saveStudyGoal}>
-          {isSaved ? <Check aria-hidden="true" /> : <ArrowRight aria-hidden="true" />}
-          <span>{isSaved ? "Goal saved" : "Save goal"}</span>
+        <span className="empty-study-plan-card__availability"><Clock3 aria-hidden="true" /><span>{preferences.isLoading ? "Loading saved goal" : preferences.data?.weeklyLessonGoal == null ? "No saved goal" : "Saved to your account"}</span></span>
+        <button type="button" className="empty-study-plan-card__save" disabled={weeklyLessons === null || preferences.isLoading || saveGoal.isPending || preferences.isError} onClick={saveStudyGoal}>
+          <ArrowRight aria-hidden="true" />
+          <span>{saveGoal.isPending ? "Saving…" : saveGoal.isSuccess ? "Goal saved" : "Save goal"}</span>
         </button>
       </footer>
+      {preferences.isError || saveGoal.isError ? <p role="alert">Your weekly goal could not be saved. Please try again.</p> : null}
     </article>
   );
 }
@@ -177,9 +157,9 @@ export function EmptyLearningState({ topics = [], isAuthenticated = false }: { t
           <img className="empty-learning-main-card__art" src={journeyIllustration} alt="Green backpack with books and a small plant, ready for a new course" />
           <div className="empty-learning-main-card__copy">
             <h1>{isAuthenticated ? "Your learning journey is waiting" : "Welcome to GreenLearn"}</h1>
-            <p>{isAuthenticated ? "You are not enrolled in a course yet. Your available placement subjects are shown below." : "Sign in to view the courses and subjects available to your student account."}</p>
+            <p>{isAuthenticated ? "You are not enrolled in a course yet. Explore courses published for your account." : "Sign in to view the courses available to your student account."}</p>
             {!isAuthenticated ? <Link className="empty-learning-main-card__primary-action" to="/auth/sign-in" state={{ from: "/" }}><Compass aria-hidden="true" /><span>Sign in to view courses</span></Link> : null}
-            <UnavailableAction className="empty-learning-main-card__secondary-action"><span>How learning works</span><ArrowRight aria-hidden="true" /></UnavailableAction>
+            <Link className="empty-learning-main-card__secondary-action" to="/help"><span>How learning works</span><ArrowRight aria-hidden="true" /></Link>
           </div>
         </div>
         <LearningBenefits />

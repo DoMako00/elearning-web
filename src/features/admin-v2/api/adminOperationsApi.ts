@@ -38,9 +38,12 @@ export async function listAdminSecurityEvents(brand: BrandFilter, page = 1, page
 }
 
 export async function listAllAdminStudents(brand: BrandFilter): Promise<AdminStudentListItem[]> {
-  const first = await listAdminStudents({ brand, page: 1, pageSize: 100 });
+  // `all` is a UI filter, not a persisted Brand code. Sending it to the API
+  // incorrectly scopes the purchase wizard to a non-existent Brand.
+  const filters = brand === "all" ? {} : { brand };
+  const first = await listAdminStudents({ ...filters, page: 1, pageSize: 100 });
   const pages = Math.max(1, Math.ceil(first.pagination.totalItems / first.pagination.pageSize));
-  const rest = await Promise.all(Array.from({ length: pages - 1 }, (_, index) => listAdminStudents({ brand, page: index + 2, pageSize: 100 })));
+  const rest = await Promise.all(Array.from({ length: pages - 1 }, (_, index) => listAdminStudents({ ...filters, page: index + 2, pageSize: 100 })));
   return [...first.data, ...rest.flatMap((page) => page.data)];
 }
 

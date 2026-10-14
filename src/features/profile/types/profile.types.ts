@@ -16,10 +16,10 @@ export interface UserProfileData {
   bio: string;
   location: string;
   joinedDate: string;
-  xp: number;
-  level: number;
+  xp: number | null;
+  level: number | null;
   rankTitle: string;
-  nextLevelXp: number;
+  nextLevelXp: number | null;
   interests: string[];
 }
 
@@ -86,8 +86,8 @@ export interface MilestoneBadgeItem {
   id: string;
   title: string;
   description: string;
-  category: "streak" | "academic" | "engagement" | "mastery";
-  tier: "bronze" | "silver" | "gold" | "diamond";
+  category: "streak" | "academic" | "engagement" | "mastery" | null;
+  tier: "bronze" | "silver" | "gold" | "diamond" | null;
   earned: boolean;
   earnedDate?: string;
   progressCurrent?: number;
@@ -110,13 +110,13 @@ export interface LearningTrendPoint {
 }
 
 export interface ProfileAnalyticsStats {
-  averageQuizAccuracy: number; // e.g. 92%
-  totalVideoWatchHours: number; // e.g. 84.5 hrs
-  completedAssignments: number; // e.g. 28
-  totalQuestionsAnswered: number; // e.g. 450
-  weeklyStreakDays: number;
-  bestStreakRecord: number;
-  streakFreezePassesRemaining: number;
-  weeklyTargetHours: number;
-  weeklyCompletedHours: number;
+  averageQuizAccuracy: number | null;
+  totalVideoWatchHours: number | null;
+  completedAssignments: number | null;
+  totalQuestionsAnswered: number | null;
+  currentStreakDays: number | null;
+  bestStreakRecord: number | null;
+  streakFreezePassesRemaining: number | null;
+  weeklyTargetLessons: number | null;
+  weeklyCompletedLessons: number | null;
 }

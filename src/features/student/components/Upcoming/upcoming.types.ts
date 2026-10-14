@@ -4,6 +4,7 @@ export interface UpcomingItem {
   time: string;
   iconType?: 'quiz' | 'session' | 'assignment' | 'lab' | 'exam' | string;
   tag?: string;
+  href?: string;
 }
 
 export interface UpcomingProps {

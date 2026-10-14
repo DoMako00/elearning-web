@@ -13,7 +13,7 @@ export interface AssignmentItem {
   relativeLabel: string;
   urgency: AssignmentUrgency;
   status: AssignmentStatus;
-  points: number;
+  points: number | null;
   progress?: number;
   image: string;
   dueAt: string;

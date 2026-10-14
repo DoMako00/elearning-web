@@ -1,4 +1,4 @@
-export type EventType = "quiz" | "live_session" | "assignment" | "office_hours" | "study_block";
+export type EventType = "quiz" | "live_session" | "assignment" | "office_hours" | "study_block" | "reminder" | "academic_event" | "course_release" | "exam" | "holiday";
 
 export type CalendarViewMode = "week" | "month";
 
@@ -15,6 +15,9 @@ export interface CalendarEvent {
   courseTitle?: string;
   locationOrUrl?: string;
   status?: "upcoming" | "in-progress" | "completed";
+  source?: "academic" | "assignment" | "assessment" | "personal";
+  version?: number | null;
+  editable?: boolean;
 }
 
 export interface AgendaItem {
@@ -32,14 +35,14 @@ export interface ReminderItem {
   id: string;
   title: string;
   dateLabel: string;
-  type: "assignment" | "goal" | "quiz";
+  type: "assignment" | "goal" | "quiz" | "reminder";
   completed?: boolean;
 }
 
 export interface StudyGoalProgress {
   weeklyPercentage: number;
-  completedHours: number;
-  targetHours: number;
+  completedLessons: number;
+  targetLessons: number | null;
   streakDays: {
     day: "S" | "M" | "T" | "W" | "T" | "F" | "S";
     completed: boolean;

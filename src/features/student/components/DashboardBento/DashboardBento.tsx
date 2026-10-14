@@ -8,6 +8,7 @@ import { RecommendedCourses } from "../../../../components/ui/RecommendedCourses
 import { Upcoming } from "../../../../components/ui/Upcoming";
 import { WeeklyGoalCard } from "../WeeklyGoalCard";
 import { YourStreak } from "../YourStreak";
+import { useStudentLearningPreferences, useStudentProgress, useSetWeeklyLessonGoal } from "../../api/useStudentLearning";
 import type { UpcomingItem } from "../../../../components/ui/Upcoming/upcoming.types";
 import type { StudentCourseItem } from "../../api/studentCoursesApi";
 import "./DashboardBento.css";
@@ -31,8 +32,9 @@ function buildAvailableSubjectItems(courses: readonly StudentCourseItem[]): Upco
     id: course.courseId,
     title: course.title,
     time: `${course.lessonCount} lessons available`,
-    iconType: "assignment",
+    iconType: "course",
     tag: course.unitLabel,
+    href: `/my-courses/${course.courseId}`,
   }));
 }
 
@@ -54,9 +56,13 @@ function NoSessionProgressCard() {
   );
 }
 
-export function DashboardBento({ courses = [], hasSession = false }: DashboardBentoProps) {
+export function DashboardBento({ courses = [] }: DashboardBentoProps) {
   const [isAIOpen, setIsAIOpen] = useState(false);
   const availableSubjectItems = useMemo(() => buildAvailableSubjectItems(courses), [courses]);
+  const progress = useStudentProgress();
+  const preferences = useStudentLearningPreferences();
+  const setWeeklyGoal = useSetWeeklyLessonGoal();
+  const hasSession = (progress.data?.totalCompletedLessons ?? 0) > 0;
 
   return (
     <section className="dashboard-bento" aria-label="Learning dashboard">
@@ -69,8 +75,16 @@ export function DashboardBento({ courses = [], hasSession = false }: DashboardBe
           <AILearningGuide />
         </div>
         <div className="dashboard-bento__slot dashboard-bento__slot--weekly">
-          {/* goalSet=false triggers the "Set your goal" first-time state */}
-          <WeeklyGoalCard goalSet={false} />
+          <WeeklyGoalCard
+            completedLessons={progress.data?.weeklyCompletedLessons}
+            targetLessons={preferences.data?.weeklyLessonGoal ?? null}
+            completedDays={progress.data?.weekDays.map((day) => day.completedLessons > 0)}
+            goalSet={preferences.data?.weeklyLessonGoal !== null && preferences.data?.weeklyLessonGoal !== undefined}
+            loading={progress.isLoading || preferences.isLoading}
+            saving={setWeeklyGoal.isPending}
+            error={setWeeklyGoal.error instanceof Error ? "Weekly goal could not be saved. Refresh and try again." : null}
+            onGoalSet={(lessons) => setWeeklyGoal.mutate({ weeklyLessonGoal: lessons, expectedVersion: preferences.data?.version ?? null })}
+          />
         </div>
       </div>
 
@@ -89,7 +103,7 @@ export function DashboardBento({ courses = [], hasSession = false }: DashboardBe
         </div>
         <div className="dashboard-bento__slot dashboard-bento__slot--streak">
           {/* streakDays=0 until backend data is available */}
-          <YourStreak streakDays={0} totalMilestones={5} completedMilestones={0} />
+          <YourStreak />
         </div>
       </div>
 

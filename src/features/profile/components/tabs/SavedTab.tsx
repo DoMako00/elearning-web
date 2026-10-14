@@ -17,7 +17,7 @@ interface SavedTabProps {
   items: SavedItem[];
   currentCategory: SavedCategory | "all";
   onCategoryChange: (cat: SavedCategory | "all") => void;
-  onRemoveItem: (id: string) => void;
+  onRemoveItem: (id: string) => void | Promise<void>;
   onShowToast?: (msg: string) => void;
 }
 
@@ -46,10 +46,14 @@ export const SavedTab: React.FC<SavedTabProps> = ({
     }
   };
 
-  const handleRemove = (e: React.MouseEvent, item: SavedItem) => {
+  const handleRemove = async (e: React.MouseEvent, item: SavedItem) => {
     e.stopPropagation();
-    onRemoveItem(item.id);
-    onShowToast?.(`Removed "${item.title}" from saved bookmarks`);
+    try {
+      await onRemoveItem(item.id);
+      onShowToast?.(`Removed "${item.title}" from saved bookmarks`);
+    } catch {
+      onShowToast?.("The saved item could not be removed. Please retry.");
+    }
   };
 
   return (

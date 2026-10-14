@@ -34,7 +34,7 @@ export interface Message {
   replyToMessageId?: string;
 }
 
-export type ConversationType = "direct" | "instructor" | "group";
+export type ConversationType = "direct" | "instructor" | "group" | "support";
 
 export interface CourseContext {
   courseId: string;
@@ -71,7 +71,7 @@ export interface Conversation {
   isArchived?: boolean;
 }
 
-export type ConversationFilter = "all" | "unread" | "instructors" | "groups";
+export type ConversationFilter = "all" | "unread" | "students" | "support";
 
 export interface TypingPayload {
   conversationId: string;

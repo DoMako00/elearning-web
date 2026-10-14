@@ -808,6 +808,24 @@
   font-weight: 650;
 }
 
+.learning-discussion__actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #7b8794;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.learning-discussion__actions button:disabled {
+  cursor: wait;
+}
+
 .learning-discussion__actions svg {
   width: 13px;
   height: 13px;
@@ -1008,6 +1026,25 @@
   border: 1px solid #eef2ef;
   border-radius: 10px;
   background: #fff;
+}
+
+.workspace-pin-list li button {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: 32px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.workspace-pin-list li button:disabled {
+  cursor: not-allowed;
+  opacity: .65;
 }
 
 .workspace-pin-list li > svg {

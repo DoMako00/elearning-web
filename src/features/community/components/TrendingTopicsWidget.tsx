@@ -73,14 +73,15 @@ export function TrendingTopicsWidget({
               <TrendingUp className="size-3.5" />
             </div>
             <h4 className="text-[14px] sm:text-[14.5px] font-bold text-slate-900 tracking-tight">
-              Trending topics
+              Topics in discussions
             </h4>
           </div>
-          <span className="text-[11px] font-medium text-slate-400">This week</span>
+          <span className="text-[11px] font-medium text-slate-400">Persisted posts</span>
         </div>
 
         {/* Topics List */}
         <div className="divide-y divide-slate-100/90">
+          {topics.length === 0 && <p className="py-4 text-xs text-slate-400">Topics will appear when discussions are posted.</p>}
           {topics.slice(0, 5).map((topic) => (
             <button
               key={topic.id}
@@ -97,7 +98,7 @@ export function TrendingTopicsWidget({
                 </span>
               </div>
               <span className="text-[11px] text-slate-400 font-medium shrink-0 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">
-                {topic.repliesCount} replies
+                {topic.repliesCount} threads
               </span>
             </button>
           ))}

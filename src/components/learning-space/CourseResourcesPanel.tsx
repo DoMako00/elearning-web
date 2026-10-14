@@ -1,40 +1,56 @@
-import { Download, FileSpreadsheet, FileText, ListFilter, Presentation, Search } from "lucide-react";
+import { Download, FileText, ListFilter, Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import { COURSE_RESOURCES } from "./learningSpaceData";
+import { getStudentProtectedMedia } from "../../features/student/api/studentCoursesApi";
+import type { LearningSpaceResource } from "./learningSpaceMappers";
 
-const TYPE_FILTERS = ["All types", "PDF", "PPTX", "DOCX", "CSV"] as const;
-const MODULE_FILTERS = ["All modules", "Module 1", "Module 2", "Module 3"] as const;
+const TYPE_FILTERS = ["All types", "PDF", "VIDEO"] as const;
 
-function FileGlyph({ extension }: { extension: string }) {
-  if (extension === "pptx") return <Presentation aria-hidden="true" />;
-  if (extension === "csv") return <FileSpreadsheet aria-hidden="true" />;
+function FileGlyph({ extension: _extension }: { extension: LearningSpaceResource["extension"] }) {
   return <FileText aria-hidden="true" />;
 }
 
-export function CourseResourcesPanel() {
+export function CourseResourcesPanel({ resources: courseResources, courseTitle, onOpenLesson }: { resources: readonly LearningSpaceResource[]; courseTitle: string; onOpenLesson: (lessonId: string) => void }) {
   const [query, setQuery] = useState("");
   const [type, setType] = useState<(typeof TYPE_FILTERS)[number]>("All types");
-  const [module, setModule] = useState<(typeof MODULE_FILTERS)[number]>("All modules");
+  const [chapterId, setChapterId] = useState("all");
+  const [openingId, setOpeningId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const chapters = useMemo(() => [...new Map(courseResources.map((resource) => [resource.chapterId, { id: resource.chapterId, title: resource.chapterTitle }])).values()], [courseResources]);
 
   const resources = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    return COURSE_RESOURCES.filter((resource) => {
-      const matchesQuery =
-        !normalized ||
-        resource.title.toLowerCase().includes(normalized) ||
-        resource.description.toLowerCase().includes(normalized);
-      const matchesType = type === "All types" || resource.extension === type.toLowerCase();
-      const matchesModule = module === "All modules" || resource.module === Number(module.replace("Module ", ""));
-      return matchesQuery && matchesType && matchesModule;
+    return courseResources.filter((resource) => {
+      const matchesQuery = !normalized || resource.title.toLowerCase().includes(normalized) || resource.chapterTitle.toLowerCase().includes(normalized);
+      const matchesType = type === "All types" || resource.extension.toUpperCase() === type;
+      const matchesChapter = chapterId === "all" || resource.chapterId === chapterId;
+      return matchesQuery && matchesType && matchesChapter;
     });
-  }, [module, query, type]);
+  }, [chapterId, courseResources, query, type]);
+
+  const openResource = async (resource: LearningSpaceResource) => {
+    if (!resource.available || openingId) return;
+    setError(null);
+    if (resource.extension === "video") {
+      onOpenLesson(resource.lessonId);
+      return;
+    }
+    setOpeningId(resource.id);
+    try {
+      const delivery = await getStudentProtectedMedia({ assetId: resource.id });
+      window.location.assign(delivery.delivery.url);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "The protected resource could not be opened.");
+    } finally {
+      setOpeningId(null);
+    }
+  };
 
   return (
     <div className="learning-resources">
       <header className="learning-resources__header">
         <div>
           <h2>Course resources</h2>
-          <p>Access reading materials, guides, atlases, and other resources for Human Anatomy I.</p>
+          <p>Published lesson resources for {courseTitle}. Protected files open only after server authorization.</p>
         </div>
       </header>
       <div className="learning-resources__toolbar">
@@ -52,10 +68,9 @@ export function CourseResourcesPanel() {
             <option key={option}>{option}</option>
           ))}
         </select>
-        <select value={module} aria-label="Filter by module" onChange={(event) => setModule(event.target.value as (typeof MODULE_FILTERS)[number])}>
-          {MODULE_FILTERS.map((option) => (
-            <option key={option}>{option}</option>
-          ))}
+        <select value={chapterId} aria-label="Filter by chapter" onChange={(event) => setChapterId(event.target.value)}>
+          <option value="all">All chapters</option>
+          {chapters.map((chapter) => <option key={chapter.id} value={chapter.id}>{chapter.title}</option>)}
         </select>
         <button type="button" className="learning-resources__filter" aria-label="More filters">
           <ListFilter aria-hidden="true" />
@@ -66,7 +81,7 @@ export function CourseResourcesPanel() {
           <thead>
             <tr>
               <th>Resource</th>
-              <th>Module</th>
+              <th>Chapter</th>
               <th>Type</th>
               <th>Size</th>
               <th>Added</th>
@@ -85,22 +100,22 @@ export function CourseResourcesPanel() {
                     </span>
                     <span>
                       <strong>{resource.title}</strong>
-                      <small>{resource.description}</small>
+                      <small>{resource.chapterTitle}</small>
                     </span>
                   </div>
                 </td>
                 <td>
-                  <span className="learning-resources__module">Module {resource.module}</span>
+                  <span className="learning-resources__module">{resource.chapterTitle}</span>
                 </td>
                 <td>
                   <span className={`learning-resources__type learning-resources__type--${resource.extension}`}>
                     {resource.extension.toUpperCase()}
                   </span>
                 </td>
-                <td>{resource.size}</td>
-                <td>{resource.added}</td>
+                <td aria-label="File size not provided by the API">—</td>
+                <td aria-label="Added date not provided by the API">—</td>
                 <td>
-                  <button type="button" aria-label={`Download ${resource.title}`}>
+                  <button type="button" aria-label={`Open protected ${resource.title}`} disabled={!resource.available || openingId === resource.id} onClick={() => void openResource(resource)}>
                     <Download aria-hidden="true" />
                   </button>
                 </td>
@@ -108,7 +123,8 @@ export function CourseResourcesPanel() {
             ))}
           </tbody>
         </table>
-        {resources.length === 0 ? <p className="learning-resources__empty">No resources match those filters.</p> : null}
+        {error ? <p className="learning-resources__empty" role="alert">{error}</p> : null}
+        {resources.length === 0 ? <p className="learning-resources__empty">No published lesson resources are available for this course.</p> : null}
       </div>
     </div>
   );

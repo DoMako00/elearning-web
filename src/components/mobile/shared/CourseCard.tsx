@@ -6,7 +6,7 @@ export interface CourseCardData {
   id: string;
   title: string;
   subtitle: string;
-  imageSrc: string;
+  imageSrc?: string;
   completedDocs: number;
   totalDocs: number;
   status?: string; // e.g. "IN PROGRESS" | "COMPLETED"
@@ -97,7 +97,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
               <span className="flex items-center gap-1.5 truncate">
                 <FileText className="w-3.5 h-3.5 text-emerald-600 shrink-0" strokeWidth={2} />
                 <span className="truncate">
-                  {course.completedDocs} of {course.totalDocs} documents
+                  {course.completedDocs} of {course.totalDocs} lessons
                 </span>
               </span>
               <span className="text-emerald-600 font-bold ml-1">{percentage}%</span>
@@ -134,11 +134,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
     >
       {/* Top Banner image area with In Progress pill & Bookmark */}
       <div className="relative h-20 sm:h-22 w-full bg-emerald-50/50 overflow-hidden">
-        <img
-          src={course.imageSrc}
-          alt={course.title}
-          className="w-full h-full object-cover object-center"
-        />
+          {course.imageSrc ? <img src={course.imageSrc} alt="" aria-hidden="true" className="w-full h-full object-cover object-center" /> : <div className="w-full h-full bg-linear-to-br from-emerald-50 via-white to-emerald-100/70" aria-hidden="true" />}
         <div className="absolute inset-0 bg-linear-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
         <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-emerald-50/95 backdrop-blur-xs text-emerald-700 text-[9px] font-bold tracking-wider uppercase shadow-2xs border border-emerald-200/60">
           {course.status || "IN PROGRESS"}
@@ -178,7 +174,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
             <span className="flex items-center gap-1 truncate">
               <FileText className="w-3 h-3 text-emerald-600 shrink-0" />
               <span className="truncate">
-                {course.completedDocs} of {course.totalDocs} documents
+                {course.completedDocs} of {course.totalDocs} lessons
               </span>
             </span>
             <span className="text-emerald-600 font-bold ml-1">{percentage}%</span>

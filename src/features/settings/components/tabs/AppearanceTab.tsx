@@ -47,7 +47,7 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
       {/* 1. Theme Selection Cards */}
       <SettingsCard
         title="Theme Selection"
-        subtitle="Choose how GreenLearn appears on this browser session."
+        subtitle="Appearance customization is not currently applied by the application."
         icon={<Palette className="w-4 h-4 stroke-2" />}
       >
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
@@ -58,6 +58,7 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
                 key={card.id}
                 type="button"
                 onClick={() => onUpdate("theme", card.id)}
+                disabled
                 className={`p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
                   isSelected
                     ? "border-emerald-500 bg-emerald-50/40 ring-2 ring-emerald-500/20 shadow-xs"
@@ -96,6 +97,7 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
           <ToggleSwitch
             checked={appearance.reduceMotion}
             onChange={(checked) => onUpdate("reduceMotion", checked)}
+            disabled
             label="Reduce UI Animations"
             description="Disables gamification confetti and page transitions."
           />
@@ -121,7 +123,8 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
                   e.target.value as AppearancePreferences["fontSize"]
                 )
               }
-              className="w-full h-9 pl-3 pr-8 text-xs bg-gray-50/80 border border-gray-200/90 rounded-xl text-gray-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white cursor-pointer appearance-none transition-all shadow-2xs"
+              disabled
+              className="w-full h-9 pl-3 pr-8 text-xs bg-gray-50/80 border border-gray-200/90 rounded-xl text-gray-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white cursor-not-allowed appearance-none transition-all shadow-2xs"
             >
               <option value="standard">Standard (Default 100%)</option>
               <option value="large">Large (Comfortable 115%)</option>

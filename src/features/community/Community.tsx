@@ -1,60 +1,40 @@
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import { useToast } from "../../hooks/useToast";
 import { ToastNotification } from "../../components/ui/ToastNotification";
 import { SearchAndFilterToolbar } from "./components/SearchAndFilterToolbar";
-import { FeaturedGroupCard } from "./components/FeaturedGroupCard";
 import { TrendingTopicsWidget } from "./components/TrendingTopicsWidget";
 import { DiscussionFeed } from "./components/DiscussionFeed";
-import { MentorSpotlightCard } from "./components/MentorSpotlightCard";
-import { CommunitySidebar } from "./components/CommunitySidebar";
 import { CreateThreadModal } from "./components/CreateThreadModal";
 import { DiscussionDetailModal } from "./components/DiscussionDetailModal";
-import { AllMembersModal } from "./components/AllMembersModal";
-import { useCommunitySocket } from "./hooks/useCommunitySocket";
-import {
-  INITIAL_FEATURED_GROUP,
-  INITIAL_TRENDING_TOPICS,
-  INITIAL_MENTOR,
-  INITIAL_COMMUNITY_EVENTS,
-  INITIAL_TOP_CONTRIBUTORS,
-} from "./data/communityMockData";
-import type {
-  TopicCategory,
-  TrendingTopic,
-  DiscussionPost,
-} from "./types/community";
+import { useStudentProfile } from "../student/api/useStudentLearning";
+import { useCreateStudentCommunityComment, useCreateStudentCommunityPost, useSetStudentCommunityReaction, useStudentCommunityComments, useStudentCommunityPosts } from "../student/api/useStudentCommunity";
+import { mapCommunityPost } from "../student/api/studentCommunityMapper";
+import type { StudentCommunityCategoryKey } from "../student/api/studentCommunityApi";
+import type { TopicCategory, DiscussionPost } from "./types/community";
 
 export function Community() {
-  const navigate = useNavigate();
   const { toastMessage, showToast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<TopicCategory>("all");
   const [selectedDropdownTopic, setSelectedDropdownTopic] = useState("All topics");
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isAllMembersModalOpen, setIsAllMembersModalOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const profile = useStudentProfile();
+  const postsQuery = useStudentCommunityPosts();
+  const commentsQuery = useStudentCommunityComments(selectedPostId);
+  const createPostMutation = useCreateStudentCommunityPost();
+  const createCommentMutation = useCreateStudentCommunityComment(selectedPostId ?? "");
+  const reactionMutation = useSetStudentCommunityReaction();
+  const posts = postsQuery.data ?? [];
+  const discussions = posts.map((post) => mapCommunityPost(post));
 
-  // Real-time WebSocket hook
-  const {
-    discussions,
-    onlineMembers,
-    onlineCount,
-    isConnected,
-    createPost,
-    likePost,
-    addReply,
-  } = useCommunitySocket({
-    roomName: "community_feed",
-    autoConnect: true,
-    enableSimulatedTraffic: true,
-  });
-
-  // Current active discussion thread (live synchronized with discussions list)
+  // The active discussion is rehydrated from the persisted feed and comments query.
   const activeDiscussion = useMemo(() => {
     if (!selectedPostId) return null;
-    return discussions.find((d) => d.id === selectedPostId) || null;
-  }, [discussions, selectedPostId]);
+    const post = posts.find((discussion) => discussion.id === selectedPostId);
+    return post ? mapCommunityPost(post, commentsQuery.data) : null;
+  }, [posts, selectedPostId, commentsQuery.data]);
 
   // Filtered discussions by category and search query
   const filteredDiscussions = useMemo(() => {
@@ -70,87 +50,65 @@ export function Community() {
 
       // 2. Dropdown Filter
       if (selectedDropdownTopic !== "All topics") {
-        if (selectedDropdownTopic === "React & Next.js") {
-          if (!["react", "nextjs"].includes(item.category.key.toLowerCase()))
-            return false;
-        } else if (selectedDropdownTopic === "UI/UX Design Systems") {
-          if (item.category.key.toLowerCase() !== "design") return false;
-        } else if (selectedDropdownTopic === "Data Science & AI") {
-          if (item.category.key.toLowerCase() !== "datascience") return false;
-        } else if (selectedDropdownTopic === "Backend & APIs") {
-          if (item.category.key.toLowerCase() !== "backend") return false;
-        }
+        const topicKeys: Record<string, string> = { "React & Next.js": "react", "UI/UX Design Systems": "design", "Data Science & AI": "datascience", "Backend & APIs": "backend" };
+        if (topicKeys[selectedDropdownTopic] && item.category.key.toLowerCase() !== topicKeys[selectedDropdownTopic]) return false;
       }
 
       // 3. Category Filter
       if (selectedCategory === "all") return true;
       if (selectedCategory === "discussions") return true;
-      if (selectedCategory === "groups") {
-        return item.category.key.toLowerCase().includes("react");
-      }
+      if (selectedCategory === "groups") return false;
       if (selectedCategory === "qa") {
         return item.title.includes("?");
       }
-      if (selectedCategory === "resources") {
-        return item.topicIcon === "cubes" || item.topicIcon === "code";
-      }
-      if (selectedCategory === "events") {
-        return false; // Events are rendered in sidebar
-      }
+      if (selectedCategory === "resources" || selectedCategory === "events") return false;
 
       return true;
     });
   }, [discussions, searchQuery, selectedDropdownTopic, selectedCategory]);
 
   // Actions
-  const handleCreatePost = (post: {
-    title: string;
-    categoryKey: string;
-    categoryLabel: string;
-    topicIcon: DiscussionPost["topicIcon"];
-  }) => {
-    createPost({
-      title: post.title,
-      author: {
-        id: "u-current",
-        name: "Juliana Silva",
-        avatarUrl: "https://i.pravatar.cc/112?img=47",
-        role: "Student",
-      },
-      category: {
-        key: post.categoryKey,
-        label: post.categoryLabel,
-        badgeColor: "emerald",
-      },
-      topicIcon: post.topicIcon,
-    });
-    showToast("Your discussion thread has been published!");
+  const handleCreatePost = async (post: { title: string; body: string; categoryKey: string }) => {
+    setCreateError(null);
+    try {
+      await createPostMutation.mutateAsync({ id: crypto.randomUUID(), title: post.title, body: post.body, categoryKey: post.categoryKey as StudentCommunityCategoryKey });
+      showToast("Your discussion thread has been published.");
+    } catch (error) {
+      setCreateError(error instanceof Error ? error.message : "Discussion could not be published.");
+      throw error;
+    }
   };
 
-  const handleTopicClick = (topic: TrendingTopic) => {
-    setSearchQuery(topic.title);
-    showToast(`Filtering discussions for: "${topic.title}"`);
-  };
-
-  const handleJoinGroup = (joined: boolean) => {
-    showToast(
-      joined
-        ? "You joined React Developers Hub!"
-        : "You left the study group"
-    );
+  const handleTopicClick = (topic: { id: string }) => {
+    setSelectedDropdownTopic(({ react: "React & Next.js", design: "UI/UX Design Systems", datascience: "Data Science & AI", backend: "Backend & APIs" } as Record<string, string>)[topic.id] ?? "All topics");
   };
 
   const handlePostClick = (post: DiscussionPost) => {
     setSelectedPostId(post.id);
   };
 
-  const handleEventAction = (_eventId: string, action: "join" | "remind") => {
-    showToast(
-      action === "join"
-        ? "You are registered for this event!"
-        : "Reminder set! We will notify you before it begins."
-    );
+  const handleLikePost = (postId: string) => {
+    const post = posts.find((item) => item.id === postId);
+    if (post) reactionMutation.mutate({ postId, active: !post.reacted });
   };
+
+  const handleAddReply = async (_postId: string, body: string) => {
+    try {
+      await createCommentMutation.mutateAsync({ id: crypto.randomUUID(), body });
+      showToast("Reply saved.");
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Reply could not be saved.");
+    }
+  };
+
+  const topicCounts = posts.reduce<Record<string, number>>((counts, post) => {
+    counts[post.categoryKey] = (counts[post.categoryKey] ?? 0) + 1;
+    return counts;
+  }, {});
+  const topicLabels: Record<string, string> = { general: "General", react: "React & Next.js", design: "UI/UX Design", datascience: "Data Science & AI", backend: "Backend & APIs" };
+  const topics = Object.entries(topicCounts).map(([id, count]) => ({ id, title: topicLabels[id] ?? id, repliesCount: count, topicIcon: "atom" as const, category: topicLabels[id] ?? id }));
+  const commentCount = posts.reduce((sum, post) => sum + post.commentCount, 0);
+  const reactionCount = posts.reduce((sum, post) => sum + post.reactionCount, 0);
 
   return (
     <div className="community-layout-root w-full h-full min-h-0 flex flex-col bg-[#f8faf9] overflow-y-auto lg:overflow-hidden">
@@ -171,63 +129,79 @@ export function Community() {
 
         {/* 2-Column Master Layout: Left Main Feed + Right Sidebar */}
         <div className="community-columns-row flex-1 min-h-0 flex flex-col lg:flex-row items-stretch gap-3 sm:gap-3.5 w-full pb-6 lg:pb-0">
-          {/* Left Column (Feed, Featured Group, Trending Topics, Mentor Spotlight) */}
+          {/* Left Column (scope, persisted topics, and discussions) */}
           <main className="community-main-feed flex-1 min-w-0 flex flex-col justify-between gap-3 h-full min-h-0 lg:overflow-y-auto xl:overflow-hidden">
-            {/* Row 1: Featured Study Group (7 cols) + Trending Topics (5 cols) */}
+            {/* Row 1: Current academic community + persisted topic counts */}
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 sm:gap-3.5 w-full flex-none xl:flex-1 min-h-0 items-stretch">
               <div className="xl:col-span-7 flex flex-col min-h-0 h-auto xl:h-full">
-                <FeaturedGroupCard
-                  group={INITIAL_FEATURED_GROUP}
-                  onJoinToggle={handleJoinGroup}
-                />
+                <section className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-2xs flex flex-col justify-between h-full">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Your community</p>
+                    <h3 className="mt-2 text-lg sm:text-xl font-bold text-slate-900">
+                      {profile.data ? `${profile.data.institution.name} · ${profile.data.brand.name}` : "Academic community"}
+                    </h3>
+                    <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+                      Discussions are limited to Students in your Brand and Institution. Posts, replies, and reactions are saved to your account.
+                    </p>
+                  </div>
+                  {profile.isError && <p role="alert" className="mt-3 text-xs text-rose-700">Your community scope could not be loaded.</p>}
+                </section>
               </div>
 
               <div className="xl:col-span-5 flex flex-col min-h-0 h-auto xl:h-full">
                 <TrendingTopicsWidget
-                  topics={INITIAL_TRENDING_TOPICS}
+                  topics={topics}
                   onTopicClick={handleTopicClick}
                   onViewAllClick={() => setSelectedDropdownTopic("All topics")}
                 />
               </div>
             </div>
 
-            {/* Row 2: Recent Discussions Feed (8 cols) + Mentor Spotlight (4 cols) */}
+            {/* Row 2: Recent discussions + persisted activity totals */}
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 sm:gap-3.5 w-full flex-none xl:flex-1 min-h-0 items-stretch">
               <div className="xl:col-span-8 flex flex-col min-h-0 h-90 xl:h-full">
                 <DiscussionFeed
                   discussions={filteredDiscussions}
                   onPostClick={handlePostClick}
-                  onLikePost={likePost}
+                  onLikePost={handleLikePost}
+                  isLoading={postsQuery.isPending}
+                  errorMessage={postsQuery.isError ? "Community discussions could not be loaded." : null}
                 />
               </div>
 
               <div className="xl:col-span-4 flex flex-col min-h-0 h-auto xl:h-full">
-                <MentorSpotlightCard
-                  mentor={INITIAL_MENTOR}
-                  onViewProfile={() =>
-                    showToast("Opening Alex Morgan's mentor profile...")
-                  }
-                  onMessage={() => {
-                    navigate("/messages");
-                    showToast("Opening chat with Mentor Alex Morgan...");
-                  }}
-                />
+                <section className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-2xs h-full flex flex-col justify-between">
+                  <div>
+                    <h4 className="text-[13.5px] font-bold text-slate-900 tracking-tight">Community activity</h4>
+                    <p className="mt-1 text-xs text-slate-500">Counts from the persisted discussion feed.</p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 py-4">
+                    <div className="rounded-xl bg-slate-50 p-3 text-center"><strong className="block text-lg text-slate-900">{posts.length}</strong><span className="text-[10px] text-slate-500">discussions</span></div>
+                    <div className="rounded-xl bg-slate-50 p-3 text-center"><strong className="block text-lg text-slate-900">{commentCount}</strong><span className="text-[10px] text-slate-500">replies</span></div>
+                    <div className="rounded-xl bg-slate-50 p-3 text-center"><strong className="block text-lg text-slate-900">{reactionCount}</strong><span className="text-[10px] text-slate-500">likes</span></div>
+                  </div>
+                  <button type="button" onClick={() => setIsCreateModalOpen(true)} className="w-full rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-700 transition-colors">Start a discussion</button>
+                </section>
               </div>
             </div>
           </main>
 
-          {/* Right Sidebar Column (Members Online, Upcoming Events, Top Contributors) - stays fixed, never scrolls */}
+          {/* Right Sidebar Column - exact persisted active-scope state only */}
           <div className="community-sidebar-panel">
-            <CommunitySidebar
-              onlineMembers={onlineMembers}
-              onlineCount={onlineCount}
-              events={INITIAL_COMMUNITY_EVENTS}
-              contributors={INITIAL_TOP_CONTRIBUTORS}
-              onViewAllMembers={() => setIsAllMembersModalOpen(true)}
-              onViewAllEvents={() => showToast("Loading full community events calendar")}
-              onViewLeaderboard={() => showToast("Viewing full contributor leaderboard")}
-              onEventAction={handleEventAction}
-            />
+            <section className="h-full rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs flex flex-col">
+              <h4 className="text-[13.5px] font-bold text-slate-900">Discussion feed</h4>
+              <p className="mt-1 text-xs text-slate-500">Brand and Institution scoped</p>
+              <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-3">
+                <span className="block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Current scope</span>
+                <span className="mt-1 block text-sm font-bold text-slate-800">{profile.data ? `${profile.data.brand.name} · ${profile.data.institution.name}` : profile.isPending ? "Loading scope…" : "Scope unavailable"}</span>
+              </div>
+              <div className="mt-3 space-y-2 text-xs text-slate-600">
+                <p>{postsQuery.isPending ? "Loading saved discussions…" : postsQuery.isError ? "Feed unavailable. Retry by refreshing this page." : `${posts.length} saved discussion${posts.length === 1 ? "" : "s"}`}</p>
+                <p>{commentCount} persisted repl{commentCount === 1 ? "y" : "ies"}</p>
+                <p>{reactionCount} persisted like{reactionCount === 1 ? "" : "s"}</p>
+              </div>
+              <div className="mt-auto pt-4 border-t border-slate-100 text-[11px] text-slate-400">Posts are not live-synchronized; refresh to check for new activity.</div>
+            </section>
           </div>
         </div>
       </div>
@@ -235,24 +209,20 @@ export function Community() {
       {/* Modal for creating a new discussion or group */}
       <CreateThreadModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={() => { setIsCreateModalOpen(false); setCreateError(null); }}
         onSubmit={handleCreatePost}
+        isSubmitting={createPostMutation.isPending}
+        errorMessage={createError}
       />
 
-      {/* Modal for scrolling through all community members */}
-      <AllMembersModal
-        isOpen={isAllMembersModalOpen}
-        onClose={() => setIsAllMembersModalOpen(false)}
-      />
-
-      {/* Modal for viewing and interacting with a discussion thread in real-time */}
+      {/* Modal for a persisted discussion and its comments */}
       <DiscussionDetailModal
         post={activeDiscussion}
         isOpen={!!activeDiscussion}
         onClose={() => setSelectedPostId(null)}
-        onLike={likePost}
-        onAddReply={addReply}
-        isConnected={isConnected}
+        onLike={handleLikePost}
+        onAddReply={handleAddReply}
+        isLoadingReplies={commentsQuery.isPending}
       />
     </div>
   );

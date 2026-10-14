@@ -1,15 +1,17 @@
 import { lazy, Suspense, type ComponentType } from "react";
-import type { RouteObject } from "react-router-dom";
+import { Navigate, type RouteObject } from "react-router-dom";
 import { RouteErrorBoundary } from "../../components/layout/RouteErrorBoundary";
 import { RouteLoadingFallback } from "../../components/layout/RouteLoadingFallback";
 import { AdminV2Layout } from "../../features/admin-v2/layout/AdminV2Layout";
 
-const AdminPagePlaceholder = lazy(() => import("../pages/admin/AdminPagePlaceholder").then((m) => ({ default: m.AdminPagePlaceholder })));
 const AdminV2InstructorsPage = lazy(() => import("../../features/admin-v2/instructors/InstructorsPage").then((m) => ({ default: m.InstructorsPage })));
 const AdminV2OverviewPage = lazy(() => import("../../features/admin-v2/overview/OverviewPage").then((m) => ({ default: m.OverviewPage })));
 const AdminV2SecurityPage = lazy(() => import("../../features/admin-v2/security/SecurityPage").then((m) => ({ default: m.SecurityPage })));
 const AdminV2PaymentsPage = lazy(() => import("../../features/admin-v2/payments/PaymentsPage").then((m) => ({ default: m.PaymentsPage })));
-const LocalStudentPreviewPage = lazy(() => import("../../features/admin-v2/students/LocalStudentPreviewPage").then((m) => ({ default: m.LocalStudentPreviewPage })));
+const AdminSupportInboxPage = lazy(() => import("../../features/admin-v2/SupportInboxPage").then((m) => ({ default: m.SupportInboxPage })));
+const AdminAssessmentsPage = lazy(() => import("../../features/admin-v2/assessments/AssessmentsPage").then((m) => ({ default: m.AssessmentsPage })));
+const AdminRolesPage = lazy(() => import("../../features/admin-v2/roles/RolesPage").then((m) => ({ default: m.RolesPage })));
+const AdminAssignmentReviewPage = lazy(() => import("../../features/admin-v2/assignments/AssignmentReviewPage").then((m) => ({ default: m.AssignmentReviewPage })));
 
 function withAdminSuspense<P extends object>(Component: ComponentType<P>, props: P) {
   return (
@@ -21,26 +23,21 @@ function withAdminSuspense<P extends object>(Component: ComponentType<P>, props:
   );
 }
 
-const sections = [
-  ["commercial", "Commercial", "Payment, refund, and order review read models."],
-  ["access", "Access Grants", "Explicit grant, source, scope, and entitlement summaries."],
-  ["media", "Media", "Protected asset, playback, and access-decision summaries."],
-  ["assessments", "Assessments", "Assessment, question-bank, and attempt summaries."],
-  ["audit", "Audit", "Append-only audit and administrative action history."],
-  ["roles", "Roles & Permissions", "Platform-scoped role and permission summaries."],
-] as const;
-
 export const adminRoutes: RouteObject[] = [{
   path: "/admin",
   element: <AdminV2Layout />,
   children: [
     { index: true, element: withAdminSuspense(AdminV2OverviewPage, {}) },
     { path: "security", element: withAdminSuspense(AdminV2SecurityPage, {}) },
+    { path: "support", element: withAdminSuspense(AdminSupportInboxPage, {}) },
     { path: "instructors", element: withAdminSuspense(AdminV2InstructorsPage, {}) },
-    ...sections.map(([path, title, description]) => ({
-      path,
-      element: withAdminSuspense(AdminPagePlaceholder, { title, description }),
-    })),
+    { path: "commercial", element: <Navigate to="/admin/payments" replace /> },
+    { path: "access", element: <Navigate to="/admin/subscriptions" replace /> },
+    { path: "media", element: <Navigate to="/admin/content" replace /> },
+    { path: "assessments", element: withAdminSuspense(AdminAssessmentsPage, {}) },
+    { path: "assignments", element: withAdminSuspense(AdminAssignmentReviewPage, {}) },
+    { path: "audit", element: <Navigate to="/admin/security" replace /> },
+    { path: "roles", element: withAdminSuspense(AdminRolesPage, {}) },
   ],
 },
 {
@@ -83,7 +80,13 @@ export const adminRoutes: RouteObject[] = [{
   element: <AdminV2Layout />,
   children: [{ index: true, element: withAdminSuspense(AdminV2PaymentsPage, {}) }],
 },
-{
-  path: "/student-preview",
-  element: withAdminSuspense(LocalStudentPreviewPage, {}),
-}];
+...(import.meta.env.DEV
+  ? [{
+      path: "/student-preview",
+      element: withAdminSuspense(
+        lazy(() => import("../../features/admin-v2/students/LocalStudentPreviewPage").then((m) => ({ default: m.LocalStudentPreviewPage }))),
+        {},
+      ),
+    }]
+  : []),
+];

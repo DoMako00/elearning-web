@@ -22,7 +22,7 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
       {/* 1. Learning Alerts */}
       <SettingsCard
         title="Learning Alerts"
-        subtitle="Stay updated on coursework milestones, daily practice, and due dates."
+        subtitle="These in-app notification preferences are saved to your account. Delivery availability depends on enabled platform notifications."
         icon={<BookOpen className="w-4 h-4 stroke-2" />}
       >
         <div className="divide-y divide-gray-100 pt-1">
@@ -33,7 +33,7 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
                 onToggle("learningAlerts", "assignmentDeadlines", checked)
               }
               label="Assignment Deadlines"
-              description="Receive prompts 24 hours and 2 hours before submission deadlines."
+              description="Preference saved; notification delivery is not enabled by this setting alone."
             />
           </div>
 
@@ -44,7 +44,7 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
                 onToggle("learningAlerts", "lessonReminders", checked)
               }
               label="Lesson Reminders"
-              description="Get nudges for upcoming live sessions and unfinished lesson modules."
+              description="Preference saved; no reminder is sent until a platform notification is created."
             />
           </div>
 
@@ -55,7 +55,7 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
                 onToggle("learningAlerts", "dailyStreakWarnings", checked)
               }
               label="Daily Streak Warnings"
-              description="Keep your XP streak alive with evening reminders if you haven't studied today."
+              description="Preference saved; no streak reminder is currently generated."
             />
           </div>
         </div>
@@ -75,7 +75,7 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
                 onToggle("socialCommunity", "directMessages", checked)
               }
               label="New Direct Messages"
-              description="Notify when study partners or teachers message your inbox."
+              description="Preference saved for future in-app message notifications."
             />
           </div>
 
@@ -86,7 +86,7 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
                 onToggle("socialCommunity", "mentionsInCommunity", checked)
               }
               label="Mentions in Community"
-              description="Get alerted when another student tags @you in forum threads."
+              description="Preference saved for future in-app community notifications."
             />
           </div>
 
@@ -97,7 +97,7 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
                 onToggle("socialCommunity", "repliesToPosts", checked)
               }
               label="Replies to My Posts"
-              description="Alert whenever someone answers your questions or comments."
+              description="Preference saved for future in-app reply notifications."
             />
           </div>
         </div>
@@ -117,7 +117,7 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
                 onToggle("systemAlerts", "securityAlerts", checked)
               }
               label="Security Alerts"
-              description="Important notifications about unrecognized logins and password resets."
+              description="Preference saved for future in-app security notifications."
             />
           </div>
 
@@ -128,7 +128,7 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
                 onToggle("systemAlerts", "billingUpdates", checked)
               }
               label="Billing Updates"
-              description="Receipts, invoice summaries, and payment method expirations."
+              description="Preference saved for future in-app commercial notices. No card or renewal data is stored."
             />
           </div>
         </div>

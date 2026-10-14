@@ -13,8 +13,8 @@ import { TopAppBar } from "../TopAppBar";
 import { useScreenStack } from "../ScreenStack";
 import { useMobileMessages } from "../data/useMobileMessages";
 import { MobileToast } from "../shared/MobileToast";
-import { CURRENT_USER } from "../../ui/Messages/messages.data";
-import type { Attachment } from "../../../types/chat";
+import { useStudentConversationMessages, useStudentMessageMutations } from "../../../features/student/api/useStudentMessages";
+import { mapStudentMessage } from "../../../features/student/api/studentMessagesMapper";
 
 export interface ChatConversationScreenProps {
   conversationId: string;
@@ -34,20 +34,17 @@ export const ChatConversationScreen: React.FC<ChatConversationScreenProps> = ({
   backLabel = "Back",
 }) => {
   const { pop } = useScreenStack();
-  const {
-    getConversationById,
-    getMessagesByConversationId,
-    sendMessage,
-    markAsRead,
-  } = useMobileMessages();
+  const { conversations, currentUserId } = useMobileMessages();
+  const messagesQuery = useStudentConversationMessages(conversationId);
+  const messagesMutations = useStudentMessageMutations();
 
   const [inputText, setInputText] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const conversation = getConversationById(conversationId);
-  const messages = getMessagesByConversationId(conversationId);
+  const conversation = conversations.find((item) => item.id === conversationId);
+  const messages = (messagesQuery.data ?? []).map((item) => mapStudentMessage(item, conversationId));
 
   const name = conversation?.title || initialName || "Conversation";
   const role =
@@ -64,12 +61,12 @@ export const ChatConversationScreen: React.FC<ChatConversationScreenProps> = ({
       .join("")
       .slice(0, 2)
       .toUpperCase();
-  const isOnline = conversation?.isOnline ?? true;
+  const isOnline = conversation?.isOnline ?? false;
 
   // Mark as read when opened
   useEffect(() => {
-    markAsRead(conversationId);
-  }, [conversationId, markAsRead]);
+    void messagesMutations.markRead.mutateAsync(conversationId).catch(() => undefined);
+  }, [conversationId]);
 
   // Scroll to bottom when messages update
   useEffect(() => {
@@ -83,8 +80,7 @@ export const ChatConversationScreen: React.FC<ChatConversationScreenProps> = ({
 
   const handleSend = () => {
     if (!inputText.trim()) return;
-    sendMessage(conversationId, inputText.trim());
-    setInputText("");
+    void messagesMutations.send.mutateAsync({ conversationId, body: inputText.trim() }).then(() => setInputText("")).catch((error: unknown) => showToast(error instanceof Error ? error.message : "Message could not be sent."));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -95,35 +91,7 @@ export const ChatConversationScreen: React.FC<ChatConversationScreenProps> = ({
   };
 
   const handleFileAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    const file = files[0];
-    const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
-    const sizeStr =
-      Number(sizeMb) > 0.1
-        ? `${sizeMb} MB`
-        : `${Math.round(file.size / 1024)} KB`;
-
-    const newAttachment: Attachment = {
-      id: `att-${Date.now()}`,
-      name: file.name,
-      size: sizeStr,
-      type: file.name.endsWith(".pdf") ? "pdf" : "doc",
-      url: URL.createObjectURL(file),
-      uploadedAt: new Intl.DateTimeFormat("en-US", {
-        hour: "numeric",
-        minute: "numeric",
-        hour12: true,
-      }).format(new Date()),
-    };
-
-    sendMessage(
-      conversationId,
-      inputText.trim(),
-      [newAttachment]
-    );
-    setInputText("");
+    if (e.target.files?.length) showToast("File attachments are not supported by the current messaging API.");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -199,15 +167,14 @@ export const ChatConversationScreen: React.FC<ChatConversationScreenProps> = ({
 
       {/* Message Thread */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {messagesQuery.isPending && <p role="status" className="py-6 text-center text-xs text-slate-400">Loading saved messages…</p>}
+        {messagesQuery.isError && <p role="alert" className="py-6 text-center text-xs text-rose-600">Messages could not be loaded.</p>}
+        {!messagesQuery.isPending && !messagesQuery.isError && messages.length === 0 && <p className="py-6 text-center text-xs text-slate-400">No messages yet. Send the first message to begin.</p>}
         {/* Date Divider */}
-        <div className="flex justify-center my-2">
-          <span className="px-3 py-0.5 rounded-full bg-slate-200/80 text-[10px] font-bold text-slate-600 uppercase tracking-wider">
-            Today
-          </span>
-        </div>
+        {messages.length > 0 && <div className="flex justify-center my-2"><span className="px-3 py-0.5 rounded-full bg-slate-200/80 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Conversation history</span></div>}
 
         {messages.map((msg) => {
-          const isMe = msg.senderId === CURRENT_USER.id;
+          const isMe = msg.senderId === currentUserId;
           return (
             <div
               key={msg.id}
@@ -330,9 +297,10 @@ export const ChatConversationScreen: React.FC<ChatConversationScreenProps> = ({
       <div className="shrink-0 sticky bottom-0 z-20 p-2.5 bg-white border-t border-slate-200/80 flex items-center gap-1.5 shadow-md">
         <button
           type="button"
-          onClick={() => fileInputRef.current?.click()}
+          disabled
           aria-label="Attach document"
-          className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors shrink-0 cursor-pointer"
+          title="File attachments are not supported by the current messaging API"
+          className="p-2 text-slate-400 rounded-xl transition-colors shrink-0 cursor-not-allowed opacity-45"
         >
           <Paperclip className="w-4.5 h-4.5" />
         </button>
@@ -358,10 +326,10 @@ export const ChatConversationScreen: React.FC<ChatConversationScreenProps> = ({
         <button
           type="button"
           onClick={handleSend}
-          disabled={!inputText.trim()}
+          disabled={!inputText.trim() || messagesMutations.send.isPending}
           aria-label="Send message"
           className={`p-2 rounded-xl transition-all shrink-0 cursor-pointer ${
-            inputText.trim()
+            inputText.trim() && !messagesMutations.send.isPending
               ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs active:scale-95"
               : "bg-slate-100 text-slate-400 cursor-not-allowed"
           }`}

@@ -12,13 +12,18 @@ const numberFormatter = new Intl.NumberFormat("en-US");
 
 export function UserHeaderActions({
   avatarSrc,
-  avatarAlt = "Juliana Silva",
-  userName = "Juliana Silva",
+  avatarAlt = "Student account",
+  userName = "Student",
   userRole = "Student",
-  xp = 2450,
+  xp,
   hasNotification = false,
-  unreadNotificationsCount = 3,
+  unreadNotificationsCount = 0,
+  notifications,
+  notificationsLoading = false,
+  notificationsError = null,
   onNotificationClick,
+  onReadNotification,
+  onMarkAllRead,
   onXpClick,
   onAvatarClick,
   onViewProfile,
@@ -35,7 +40,8 @@ export function UserHeaderActions({
   const notifTriggerRef = useRef<HTMLButtonElement>(null);
   const { toastMessage, showToast } = useToast();
 
-  const formattedXp = `${numberFormatter.format(xp)} XP`;
+  const formattedXp = xp === undefined ? null : `${numberFormatter.format(xp)} XP`;
+  const initials = userName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "S";
 
   const toggleDropdown = () => {
     setIsDropdownOpen((prev) => !prev);
@@ -92,11 +98,15 @@ export function UserHeaderActions({
           isOpen={isNotifOpen}
           onClose={() => setIsNotifOpen(false)}
           triggerRef={notifTriggerRef}
-          onMarkAllRead={() => showToast("All notifications marked as read")}
+          notifications={notifications}
+          loading={notificationsLoading}
+          error={notificationsError}
+          onReadNotification={onReadNotification}
+          onMarkAllRead={onMarkAllRead}
         />
       </div>
 
-      <div className="relative flex items-center user-header-actions__xp-wrap">
+      {xp !== undefined ? <div className="relative flex items-center user-header-actions__xp-wrap">
         <button
           ref={xpTriggerRef}
           type="button"
@@ -129,7 +139,7 @@ export function UserHeaderActions({
           triggerRef={xpTriggerRef}
           xp={xp}
         />
-      </div>
+      </div> : null}
 
       <div className="relative flex items-center user-header-actions__profile-wrap">
         <button
@@ -150,11 +160,7 @@ export function UserHeaderActions({
                 : ""
             }`}
           >
-            <img
-              className="size-full object-cover"
-              src={avatarSrc}
-              alt={avatarAlt}
-            />
+            {avatarSrc ? <img className="size-full object-cover" src={avatarSrc} alt={avatarAlt} /> : <span aria-hidden="true" className="user-header-actions__avatar-fallback">{initials}</span>}
           </div>
 
           <ChevronDown

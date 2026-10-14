@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { X, UploadCloud, AlertCircle, Paperclip } from "lucide-react";
+import { X, UploadCloud, AlertCircle } from "lucide-react";
 import type { SupportTicket } from "../../../types/help";
 import { HELP_CATEGORIES } from "../data/helpCenterData";
 
 interface CreateTicketModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmitTicket: (ticket: Omit<SupportTicket, "id" | "ticketNumber" | "createdAt" | "status">) => void;
+  onSubmitTicket: (ticket: Omit<SupportTicket, "id" | "ticketNumber" | "createdAt" | "status">) => Promise<void>;
 }
 
 export const CreateTicketModal: React.FC<CreateTicketModalProps> = ({
@@ -17,13 +17,12 @@ export const CreateTicketModal: React.FC<CreateTicketModalProps> = ({
   const [subject, setSubject] = useState("");
   const [categoryId, setCategoryId] = useState(HELP_CATEGORIES[0]?.title || "Technical Issues");
   const [description, setDescription] = useState("");
-  const [attachedFiles, setAttachedFiles] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!subject.trim()) {
       setErrorMsg("Please provide a ticket subject.");
@@ -37,7 +36,7 @@ export const CreateTicketModal: React.FC<CreateTicketModalProps> = ({
     setIsSubmitting(true);
     setErrorMsg("");
 
-    setTimeout(() => {
+    try {
       let iconType: SupportTicket["iconType"] = "file-text";
       if (categoryId.toLowerCase().includes("video") || categoryId.toLowerCase().includes("technical")) {
         iconType = "video";
@@ -47,24 +46,18 @@ export const CreateTicketModal: React.FC<CreateTicketModalProps> = ({
         iconType = "smartphone";
       }
 
-      onSubmitTicket({
+      await onSubmitTicket({
         title: subject,
         category: categoryId,
         description,
         iconType,
       });
-
-      setIsSubmitting(false);
       setSubject("");
       setDescription("");
-      setAttachedFiles([]);
       onClose();
-    }, 600);
-  };
-
-  const handleSimulateUpload = () => {
-    const mockFileName = `screenshot_issue_${Math.floor(Math.random() * 900 + 100)}.png`;
-    setAttachedFiles((prev) => [...prev, mockFileName]);
+    } catch (error) {
+      setErrorMsg(error instanceof Error ? error.message : "Your support message could not be sent.");
+    } finally { setIsSubmitting(false); }
   };
 
   return (
@@ -84,7 +77,7 @@ export const CreateTicketModal: React.FC<CreateTicketModalProps> = ({
               Submit a support ticket
             </h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Our support team usually responds within 2-4 business hours.
+              Your message is saved to your Student support conversations.
             </p>
           </div>
 
@@ -161,38 +154,15 @@ export const CreateTicketModal: React.FC<CreateTicketModalProps> = ({
               Attachments (Optional)
             </label>
             <div
-              onClick={handleSimulateUpload}
-              className="border-2 border-dashed border-gray-200 hover:border-emerald-400 rounded-xl p-4 text-center cursor-pointer bg-gray-50/50 hover:bg-emerald-50/30 transition-all group"
+              aria-disabled="true"
+              className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center bg-gray-50/50 group"
             >
               <UploadCloud className="w-6 h-6 text-gray-400 group-hover:text-emerald-600 mx-auto mb-1 transition-colors" />
               <p className="text-xs font-medium text-gray-700">
-                Click to upload screenshots or logs
+                Attachments are not available in support messages yet
               </p>
-              <p className="text-[11px] text-gray-400 mt-0.5">PNG, JPG, PDF up to 10MB</p>
+              <p className="text-[11px] text-gray-400 mt-0.5">Send text details through this form.</p>
             </div>
-
-            {attachedFiles.length > 0 && (
-              <div className="mt-2 space-y-1">
-                {attachedFiles.map((file, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between text-xs py-1 px-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-700"
-                  >
-                    <span className="flex items-center gap-1.5 truncate">
-                      <Paperclip className="w-3.5 h-3.5 text-emerald-600" />
-                      {file}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setAttachedFiles(attachedFiles.filter((_, i) => i !== idx))}
-                      className="text-gray-400 hover:text-rose-600 cursor-pointer"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Footer Actions */}
@@ -206,7 +176,7 @@ export const CreateTicketModal: React.FC<CreateTicketModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !subject.trim() || !description.trim()}
               className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] rounded-xl transition-all shadow-xs disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? "Submitting..." : "Submit ticket"}

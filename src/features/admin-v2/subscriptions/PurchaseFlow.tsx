@@ -6,6 +6,7 @@ import { listAllAdminStudents } from "../api/adminOperationsApi";
 import { createSemesterOfferingOrder, type SemesterOfferingPaymentMethod } from "../api/adminCommercialApi";
 import { listSemesterOfferings, getSemesterOffering, type SemesterOffering } from "../api/semesterOfferingsApi";
 import type { AdminStudentListItem } from "../api/adminStudentsApi";
+import { isAdminTestStudentName, toEnglishStudentName } from "../api/studentDisplay";
 import { extractApiErrorMessage } from "../../../app/api/client";
 import { BrandBadge, Drawer, FormActions, FormField } from "../shared/AdminV2Primitives";
 
@@ -16,12 +17,11 @@ const plans: ReadonlyArray<{
   capacity: Capacity;
   name: string;
   description: string;
-  price: string;
   icon: typeof UserRound;
 }> = [
-  { capacity: 1, name: "Individual", description: "One Student in a selected Semester Offering.", price: "Starting at 6,000 EGP / student", icon: UserRound },
-  { capacity: 3, name: "Team", description: "Up to three Students in one selected Offering.", price: "Eligible friend pricing: 4,700 EGP / student", icon: Users },
-  { capacity: 5, name: "Group", description: "Up to five Students in one selected Offering.", price: "Eligible friend pricing: 4,500 EGP / student", icon: UsersRound },
+  { capacity: 1, name: "Individual", description: "One Student in a selected Semester Offering.", icon: UserRound },
+  { capacity: 3, name: "Team", description: "Up to three Students in one selected Offering.", icon: Users },
+  { capacity: 5, name: "Group", description: "Up to five Students in one selected Offering.", icon: UsersRound },
 ];
 
 const methods: ReadonlyArray<{ value: SemesterOfferingPaymentMethod; label: string }> = [
@@ -52,7 +52,7 @@ function offeringIsForSale(offering: SemesterOffering, now = Date.now()) {
 }
 
 function studentMatchesOffering(student: AdminStudentListItem, offering: SemesterOffering) {
-  return student.platform?.platformCode === offering.brand.code
+  return student.platform?.platformCode?.trim().toLowerCase() === offering.brand.code.trim().toLowerCase()
     && student.academicInstitutionId === offering.institution.id
     && student.academicLevelId === offering.academicLevel.id
     && student.academicSemesterId === offering.academicSemester.id;
@@ -147,12 +147,16 @@ export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
     : offerings.find((offering) => offering.id === selectedOfferingId) ?? null;
   const compatibleOfferings = useMemo(() => offerings.filter((offering) =>
     selectedStudents.length > 0 && selectedStudents.every((student) => studentMatchesOffering(student, offering))), [offerings, selectedStudents]);
-  const compatibleStudents = useMemo(() => students.filter((student) => {
-    const statusAllowed = student.status === "active";
-    const name = student.displayName ?? "Student";
+  const eligibleStudents = useMemo(() => students.filter((student) => {
+    const statusAllowed = student.status === "active" || student.status === "pending";
+    const hasSaleableOffering = offerings.some((offering) => offeringIsForSale(offering) && studentMatchesOffering(student, offering));
+    return statusAllowed && !isAdminTestStudentName(student.displayName) && hasSaleableOffering;
+  }), [students, offerings]);
+  const compatibleStudents = useMemo(() => {
     const query = studentSearch.trim().toLocaleLowerCase();
-    return statusAllowed && (!query || `${name} ${student.academicInstitution ?? ""}`.toLocaleLowerCase().includes(query));
-  }), [students, studentSearch]);
+    return eligibleStudents.filter((student) => !query
+      || `${toEnglishStudentName(student.displayName)} ${student.academicInstitution ?? ""}`.toLocaleLowerCase().includes(query));
+  }, [eligibleStudents, studentSearch]);
   const orderTotalMinor = selectedOffering ? selectedOffering.priceMinor * capacity : 0;
   const validOrderTotal = Number.isSafeInteger(orderTotalMinor) && orderTotalMinor > 0;
   const currentPlan = plans.find((plan) => plan.capacity === capacity)!;
@@ -182,7 +186,9 @@ export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
   };
 
   const createOrder = async () => {
-    if (!selectedOffering || !validOrderTotal || !priceConfirmed || selectedStudentIds.length < 1 || selectedStudentIds.length > capacity) return;
+    if (!selectedOffering || !validOrderTotal || !priceConfirmed || selectedStudentIds.length < 1 || selectedStudentIds.length > capacity
+      || selectedStudents.length !== selectedStudentIds.length
+      || selectedStudents.some((student) => !compatibleStudents.some((candidate) => candidate.id === student.id))) return;
     setMutating(true);
     setError("");
     try {
@@ -206,6 +212,7 @@ export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
 
   const canContinue = step === 1
     ? selectedStudentIds.length > 0 && selectedStudentIds.length <= capacity && selectedStudents.length === selectedStudentIds.length
+      && selectedStudents.every((student) => compatibleStudents.some((candidate) => candidate.id === student.id))
     : step === 2
       ? Boolean(selectedOffering && offeringDetail?.id === selectedOffering.id && offeringIsForSale(selectedOffering))
       : step === 3
@@ -226,11 +233,7 @@ export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
       <div className="admin-v2__plan-grid">
         {plans.map((plan) => {
           const Icon = plan.icon;
-          const priceCopy = brand === "nexus"
-            ? plan.price
-            : brand === "all"
-              ? `${plan.price} · Nexus Basics 1 reference`
-              : "Price set by the selected Offering";
+          const priceCopy = "Price set by the selected Offering";
           return <article key={plan.capacity} className={plan.capacity === 1 ? "is-featured" : ""}>
             <span className="admin-v2__plan-icon"><Icon size={17} aria-hidden="true" /></span>
             <div className="admin-v2__plan-title"><h3>{plan.name}</h3>{plan.capacity === 1 && <small>STANDARD</small>}</div>
@@ -284,7 +287,8 @@ export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
               <small>{student.platform?.platformDisplayName ?? "Brand"}</small>
             </label>;
           })}
-          {!compatibleStudents.length && <p className="admin-v2__empty">No Students are available in the current search.</p>}
+          {!eligibleStudents.length && <p className="admin-v2__empty">No active or provisioned Students match a saleable Semester Offering for this Brand and academic placement. Test/acceptance accounts are excluded from purchases.</p>}
+          {eligibleStudents.length > 0 && !compatibleStudents.length && <p className="admin-v2__empty">No eligible Students match this search.</p>}
         </div>
         <p className="admin-v2__purchase-count">{selectedStudentIds.length} of {capacity} maximum selected. A larger package is charged at its full capacity even if not all Seats are assigned yet.</p>
       </div>}
@@ -313,7 +317,7 @@ export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
         <h3>Confirm price and manual payment</h3>
         <p>Order pricing comes from the selected Offering. Payment is reviewed manually; entering a reference or note never activates access.</p>
         <div className="admin-v2__purchase-price"><span>Standard Offering price</span><strong>{formatMoney(selectedOffering.priceMinor, selectedOffering.currency)} <small>/ student / Seat</small></strong><span>Capacity charge · {capacity} × {formatMoney(selectedOffering.priceMinor, selectedOffering.currency)}</span><strong>{formatMoney(orderTotalMinor, selectedOffering.currency)}</strong></div>
-        {capacity > 1 && selectedOffering.brand.code === "nexus" && <p className="admin-v2__purchase-pricing-note">For Nexus Basics 1, eligible friend pricing may be 4,700 EGP for a qualified 3-Student purchase or 4,500 EGP for a qualified 5-Student purchase. Capacity alone does not qualify a purchase. The current Order API accepts only the Offering’s persisted price, so this flow will not apply those rates automatically. Use an Offering configured with an approved rate before creating a discounted Order.</p>}
+        {capacity > 1 && <p className="admin-v2__purchase-pricing-note">Capacity does not automatically qualify a purchase for a discount. The Order amount comes from the selected Offering’s persisted price.</p>}
         <FormField label="Manual payment method" wide><select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value as SemesterOfferingPaymentMethod)}>{methods.map((method) => <option key={method.value} value={method.value}>{method.label}</option>)}</select></FormField>
         <FormField label="Payment reference (optional)" wide><input value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} maxLength={500} placeholder="Enter only a real reference supplied by the payer" /></FormField>
         <FormField label="Payment note / evidence description (optional)" wide><textarea value={paymentEvidenceNote} onChange={(event) => setPaymentEvidenceNote(event.target.value)} maxLength={1000} placeholder="Record truthful payment details; private evidence upload is not available here." /></FormField>

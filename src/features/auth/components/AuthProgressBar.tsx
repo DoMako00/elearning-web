@@ -1,6 +1,13 @@
 import { Check, ChevronRight, CircleUserRound, GraduationCap, ShieldCheck, Smartphone } from "lucide-react";
-import { authProgressSteps } from "../data/authOnboarding.mock";
-import type { AuthStepId } from "../types/authOnboarding.types";
+import type { AuthProgressStep, AuthStepId } from "../types/authOnboarding.types";
+
+const authProgressSteps: AuthProgressStep[] = [
+  { id: "sign-in", label: "Sign in" },
+  { id: "verify-otp", label: "Verify OTP" },
+  { id: "complete-profile", label: "Complete Profile" },
+  { id: "choose-brand", label: "Choose Brand & Access" },
+  { id: "access-granted", label: "You’re all set!" },
+];
 
 const stepIcons = [CircleUserRound, Smartphone, GraduationCap, ShieldCheck, Check];
 

@@ -1,19 +1,20 @@
-import { CATEGORY_TABS } from "./exploreData";
+import type { ExploreCategory } from "./exploreData";
 
 interface ExploreCategoriesProps {
   activeCategory: string;
   onSelectCategory: (categoryId: string) => void;
+  categories: readonly ExploreCategory[];
 }
 
 export function ExploreCategories({
   activeCategory,
   onSelectCategory,
+  categories,
 }: ExploreCategoriesProps) {
   return (
     <nav className="explore-categories" aria-label="Topic categories">
       <div className="explore-categories__track" role="tablist">
-        {CATEGORY_TABS.map((tab) => {
-          const Icon = tab.icon;
+        {categories.map((tab) => {
           const isActive = activeCategory === tab.id;
 
           return (
@@ -25,7 +26,6 @@ export function ExploreCategories({
               className={`explore-category-tab ${isActive ? "is-active" : ""}`}
               onClick={() => onSelectCategory(tab.id)}
             >
-              {Icon && <Icon className="explore-category-tab__icon" aria-hidden="true" />}
               <span>{tab.label}</span>
             </button>
           );

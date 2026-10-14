@@ -4,33 +4,19 @@ import type {
   DeviceSession,
   SubscriptionPlan,
   PaymentMethod,
-  SecuritySettings,
   NotificationPreferences,
-  PrivacyPreferences,
   AppearancePreferences,
   SettingsTabId,
 } from "../../../types/settings";
-import {
-  INITIAL_PROFILE_DATA,
-  INITIAL_DEVICES,
-  INITIAL_SUBSCRIPTION,
-  INITIAL_PAYMENT_METHODS,
-  INITIAL_SECURITY,
-  INITIAL_NOTIFICATIONS,
-  INITIAL_PRIVACY,
-  INITIAL_APPEARANCE,
-} from "../data/settingsMockData";
 
 export function useSettingsForm(initialTab: SettingsTabId = "profile") {
   const [activeTab, setActiveTab] = useState<SettingsTabId>(initialTab);
-  const [profile, setProfile] = useState<StudentProfileData>(INITIAL_PROFILE_DATA);
-  const [devices, setDevices] = useState<DeviceSession[]>(INITIAL_DEVICES);
-  const [subscription, setSubscription] = useState<SubscriptionPlan>(INITIAL_SUBSCRIPTION);
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(INITIAL_PAYMENT_METHODS);
-  const [security, setSecurity] = useState<SecuritySettings>(INITIAL_SECURITY);
-  const [notifications, setNotifications] = useState<NotificationPreferences>(INITIAL_NOTIFICATIONS);
-  const [privacy, setPrivacy] = useState<PrivacyPreferences>(INITIAL_PRIVACY);
-  const [appearance, setAppearance] = useState<AppearancePreferences>(INITIAL_APPEARANCE);
+  const [profile, setProfile] = useState<StudentProfileData>({fullName:"",studentId:"",email:"",phoneCountryCode:"",phoneCountryFlag:"",phoneNumber:"",university:"",academicYear:"",major:"",avatarUrl:""});
+  const [devices, setDevices] = useState<DeviceSession[]>([]);
+  const [subscription, setSubscription] = useState<SubscriptionPlan>({name:"",status:"Unavailable",seats:0,duration:"",renewDate:"",planType:"individual"});
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [notifications, setNotifications] = useState<NotificationPreferences>({learningAlerts:{assignmentDeadlines:false,lessonReminders:false,dailyStreakWarnings:false},socialCommunity:{directMessages:false,mentionsInCommunity:false,repliesToPosts:false},systemAlerts:{securityAlerts:false,billingUpdates:false}});
+  const [appearance, setAppearance] = useState<AppearancePreferences>({theme:"light",reduceMotion:false,fontSize:"standard"});
 
   // Email/Phone change form state for backwards compatibility
   const [contactSubTab, setContactSubTab] = useState<"email" | "phone">("email");
@@ -41,18 +27,6 @@ export function useSettingsForm(initialTab: SettingsTabId = "profile") {
     value: StudentProfileData[K]
   ) => {
     setProfile((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const removeDevice = (deviceId: string) => {
-    setDevices((prev) => prev.filter((d) => d.id !== deviceId));
-  };
-
-  const removeAllOtherDevices = () => {
-    setDevices((prev) => prev.filter((d) => d.isCurrent));
-  };
-
-  const updateSecurity = (newSettings: Partial<SecuritySettings>) => {
-    setSecurity((prev) => ({ ...prev, ...newSettings }));
   };
 
   const toggleNotification = (
@@ -69,13 +43,6 @@ export function useSettingsForm(initialTab: SettingsTabId = "profile") {
     }));
   };
 
-  const updatePrivacyField = <K extends keyof PrivacyPreferences>(
-    field: K,
-    value: PrivacyPreferences[K]
-  ) => {
-    setPrivacy((prev) => ({ ...prev, [field]: value }));
-  };
-
   const updateAppearanceField = <K extends keyof AppearancePreferences>(
     field: K,
     value: AppearancePreferences[K]
@@ -90,18 +57,14 @@ export function useSettingsForm(initialTab: SettingsTabId = "profile") {
     updateProfileField,
     setProfile,
     devices,
-    removeDevice,
-    removeAllOtherDevices,
+    setDevices,
     subscription,
     setSubscription,
     paymentMethods,
     setPaymentMethods,
-    security,
-    updateSecurity,
     notifications,
+    setNotifications,
     toggleNotification,
-    privacy,
-    updatePrivacyField,
     appearance,
     updateAppearanceField,
     contactSubTab,

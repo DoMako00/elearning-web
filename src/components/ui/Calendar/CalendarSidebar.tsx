@@ -113,10 +113,10 @@ export function CalendarSidebar({
 
           <div className="calendar-goal-stats">
             <h3 className="calendar-goal-stats__hours">
-              {studyGoal.completedHours} / {studyGoal.targetHours} hours
+              {studyGoal.completedLessons} / {studyGoal.targetLessons ?? "—"} lessons
             </h3>
             <p className="calendar-goal-stats__sub">
-              Keep it up!
+              {studyGoal.targetLessons === null ? "Set a weekly goal" : "Completed this week"}
               <img className="weekly-goal-fire" alt="" aria-hidden="true" src={fireAsset} />
             </p>
           </div>
@@ -161,6 +161,8 @@ export function CalendarSidebar({
                 ? FileText
                 : rem.type === "goal"
                 ? CheckCircle2
+                : rem.type === "reminder"
+                ? CalendarIcon
                 : FileText;
 
             return (

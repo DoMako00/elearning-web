@@ -1,5 +1,5 @@
 import React from "react";
-import { FileText, Users, ArrowRight } from "lucide-react";
+import { FileText, LockKeyhole, ArrowRight, CheckCircle2 } from "lucide-react";
 
 export interface ResourceCardData {
   id: string;
@@ -8,8 +8,8 @@ export interface ResourceCardData {
   category: string;
   categoryId: string;
   imageSrc: string;
-  documentsCount: number;
-  learnersCount: string; // e.g. "15.2k"
+  lessonCount: number;
+  canOpen: boolean;
   slug: string;
   level?: string;
   duration?: string;
@@ -112,16 +112,16 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
           </p>
         </div>
 
-        {/* Discovery stats + Arrow */}
+        {/* Persisted course summary + access state */}
         <div className="mt-3 pt-2 border-t border-slate-100/80 flex items-center justify-between gap-1">
           <div className="flex items-center gap-2.5 text-[10px] text-slate-500 font-medium truncate">
             <span className="flex items-center gap-1 truncate">
               <FileText className="w-3 h-3 text-emerald-600 shrink-0" />
-              <span>{resource.documentsCount} docs</span>
+              <span>{resource.lessonCount} lessons</span>
             </span>
             <span className="flex items-center gap-1 truncate">
-              <Users className="w-3 h-3 text-slate-400 shrink-0" />
-              <span>{resource.learnersCount}</span>
+              {resource.canOpen ? <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" /> : <LockKeyhole className="w-3 h-3 text-slate-400 shrink-0" />}
+              <span>{resource.canOpen ? "Available" : "Not available"}</span>
             </span>
           </div>
 

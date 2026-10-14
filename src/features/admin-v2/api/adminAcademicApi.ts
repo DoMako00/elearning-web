@@ -1,13 +1,13 @@
 import { extractApiErrorMessage, requireApiClient } from "../../../app/api/client";
 
 export type BrandCode = "medway" | "elite" | "nexus";
-export interface AcademicUnit { id: string; code: string; sourceDisplayLabel: string; academicInstitutionId?: string; academicSemesterId?: string; sortOrder?: number; reviewStatus?: string; version?: number; }
-export interface AcademicSemester { id: string; academicLevelId?: string; semesterNumber: number; displayTitle: string; sortOrder?: number; status: string; modules: AcademicUnit[]; }
-export interface AcademicLevel { id: string; levelNumber: number; displayTitle: string; sortOrder?: number; status: string; semesters: AcademicSemester[]; }
-export interface AcademicInstitution { id: string; code: string; displayName: string; status: string; levels: AcademicLevel[]; }
+export interface AcademicUnit { id: string; code: string; sourceDisplayLabel: string; sourceType: "drive_folder"|"admin"; displayTitle: string|null; description: string; credits: number|string|null; academicInstitutionId?: string; academicSemesterId?: string; sortOrder?: number; reviewStatus?: string; version?: number; }
+export interface AcademicSemester { id: string; academicLevelId?: string; semesterNumber: number; displayTitle: string; sortOrder?: number; status: string; version?:number; modules: AcademicUnit[]; }
+export interface AcademicLevel { id: string; levelNumber: number; displayTitle: string; sortOrder?: number; status: string; version?:number; semesters: AcademicSemester[]; }
+export interface AcademicInstitution { id: string; code: string; displayName: string; status: string; version?:number; levels: AcademicLevel[]; }
 export interface BrandAccess { id: string; code: BrandCode; name: string; status: string; allowedAcademicInstitutions: Pick<AcademicInstitution,"id"|"code"|"displayName"|"status">[]; }
 export interface BrandCourse { id: string; brandId: string; code: string; title: string; status: "draft"|"published"|"archived"; classification: "academic_module_offering"|"standalone"; cataloguePresentation: "module_based"|"subject_based"; academicInstitutionId: string|null; academicModuleId: string|null; academicInstitution?: {id:string;code:string;displayName:string}|null; academicModule?: {id:string;code:string;sourceDisplayLabel:string}|null; version: number; createdAt?:string; updatedAt: string; instructorAssignments?: {instructorId:string;displayName:string;status:string}[]; }
-export interface Instructor { id: string; code: string; instructorCode?:string; displayName: string; status: "active"|"inactive"|"archived"; version: number; createdAt?:string; updatedAt?:string; }
+export interface Instructor { id: string; code: string; instructorCode?:string; displayName: string; status: "active"|"inactive"|"archived"; publicEmail: string|null; specialties: string[]; version: number; createdAt?:string; updatedAt?:string; }
 export interface InstructorBrand { id:string;brandId:string;instructorId:string;status:"active"|"inactive";version:number;createdAt?:string;updatedAt?:string; }
 export interface CourseInstructor { id:string;brandId:string;courseId:string;instructorId:string;status:"active"|"inactive";version:number;displayName?:string; }
 export interface StructureItem { id: string; brandCourseId:string; title: string; sortOrder: number; status: "draft"|"published"|"archived"; version: number; courseChapterId?: string; createdAt?:string;updatedAt?:string; }
@@ -35,6 +35,10 @@ const writeHeaders=()=>({headers:{"Idempotency-Key":idempotencyKey()}});
 
 export const listInstitutions=()=>call<AcademicInstitution[]>((api)=>api.GET("/v1/admin/curriculum/institutions" as never));
 export const listBrandAccess=()=>call<BrandAccess[]>((api)=>api.GET("/v1/admin/curriculum/brand-access" as never));
+export type AcademicRecordEntity="institutions"|"levels"|"semesters"|"modules";
+const unwrapAcademic=(result:Record<string,unknown>)=>{const nested=result.data;if(result.ok===true&&nested&&typeof nested==="object"&&!Array.isArray(nested))return nested as Record<string,unknown>;return result;};
+export const getAcademicRecord=async(entity:AcademicRecordEntity,id:string)=>unwrapAcademic(await call<Record<string,unknown>>((api)=>api.GET(`/v1/admin/curriculum/${entity}/{id}` as never,{params:{path:{id}}})));
+export const writeAcademicRecord=async(entity:AcademicRecordEntity,id:string|undefined,body:Record<string,unknown>)=>unwrapAcademic(await call<Record<string,unknown>>((api)=>id?api.PATCH(`/v1/admin/curriculum/${entity}/{id}` as never,{params:{path:{id}},...writeHeaders(),body}):api.POST(`/v1/admin/curriculum/${entity}` as never,{...writeHeaders(),body})));
 export const listCourses=(brandId:string)=>call<BrandCourse[]>((api)=>api.GET("/v1/admin/brands/{brandId}/courses" as never,path(brandId)));
 export const getCourse=(brandId:string,courseId:string)=>call<BrandCourse>((api)=>api.GET("/v1/admin/brands/{brandId}/courses/{courseId}" as never,path(brandId,courseId)));
 export const writeCourse=(brandId:string,courseId:string|undefined,body:Record<string,unknown>)=>call<unknown>((api)=>courseId?api.PATCH("/v1/admin/brands/{brandId}/courses/{courseId}" as never,{...path(brandId,courseId),...writeHeaders(),body}):api.POST("/v1/admin/brands/{brandId}/courses" as never,{...path(brandId),...writeHeaders(),body}));

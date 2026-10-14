@@ -1,10 +1,10 @@
-import { Bell, BookOpen, ChevronDown, Crown, GraduationCap, LayoutDashboard, LibraryBig, Search, ShieldCheck, CreditCard, Files, UserRound, CalendarDays, Layers3, RotateCcw, LogOut } from "lucide-react";
+import { Bell, BookOpen, ChevronDown, Crown, GraduationCap, LayoutDashboard, LibraryBig, Search, ShieldCheck, CreditCard, Files, UserRound, CalendarDays, Layers3, RotateCcw, LogOut, MessageSquare, ClipboardCheck } from "lucide-react";
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type Dispatch, type PropsWithChildren, type SetStateAction } from "react";
 import { Navigate, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import { getAdminOverview } from "../api/adminOperationsApi";
 import { adminNavigation } from "../../../app/pages/admin/adminNavigation";
-import { brandName } from "../data/adminV2.fixtures";
+import { brandName } from "../data/adminV2.defaults";
 import { resetAdminV2, updateAdminV2, useAdminV2Store } from "../data/adminV2.store";
 import { ConfirmDialog } from "../shared/AdminV2Primitives";
 import type { AdminV2Data, BrandFilter } from "../types/adminV2.types";
@@ -31,7 +31,7 @@ interface AdminV2ContextValue {
 const AdminV2Context = createContext<AdminV2ContextValue | null>(null);
 const brandChoices: BrandFilter[] = ["all", "medway", "elite", "nexus"];
 const BRAND_FILTER_STORAGE_KEY = "greenlearn.admin-v2.brand-filter";
-const routeIcons = [LayoutDashboard, BookOpen, LibraryBig, UserRound, GraduationCap, CreditCard, CalendarDays, Files, ShieldCheck];
+const routeIcons = [LayoutDashboard, BookOpen, LibraryBig, UserRound, GraduationCap, CreditCard, CalendarDays, Files, ShieldCheck, MessageSquare, ClipboardCheck];
 
 export function useAdminV2() {
   const context = useContext(AdminV2Context);
@@ -83,7 +83,7 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
   const [resetOpen, setResetOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const routeLabel = useMemo(() => pathname === "/admin/overview" ? "Overview" : pathname.match(/^\/admin\/courses\/[^/]+\/builder$/) ? "Course Builder" : adminNavigation.find((route) => route.path === pathname)?.label ?? "Admin", [pathname]);
-  const routeSubtitle = routeLabel === "Overview" ? "Welcome back, Admin. Here is what is happening across your platform." : routeLabel === "Security" ? "Monitor persisted devices, sessions, and security events." : routeLabel === "Courses" ? "Manage course offerings, curriculum mapping, and instructor assignments." : routeLabel === "Instructors" ? "Manage your global instructor directory, brand assignments, and course allocations." : routeLabel === "Students" ? "Manage student identity, access, devices, and sessions." : routeLabel === "Payments" ? "Review manual payment submissions and approve or reject pending reviews." : routeLabel === "Curriculum" ? "Manage approved academic structures by institution." : routeLabel === "Course Builder" ? "Build chapters and lessons independently from curriculum mapping." : routeLabel === "Content" ? "Manage video and PDF resources attached to course lessons." : "Manage subscription plans, seats, and student lifecycle.";
+  const routeSubtitle = routeLabel === "Overview" ? "Welcome back, Admin. Here is what is happening across your platform." : routeLabel === "Security" ? "Monitor persisted devices, sessions, and security events." : routeLabel === "Courses" ? "Manage course offerings, curriculum mapping, and instructor assignments." : routeLabel === "Instructors" ? "Manage your global instructor directory, brand assignments, and course allocations." : routeLabel === "Students" ? "Manage student identity, access, devices, and sessions." : routeLabel === "Payments" ? "Review manual payment submissions and approve or reject pending reviews." : routeLabel === "Curriculum" ? "Manage approved academic structures by institution." : routeLabel === "Course Builder" ? "Build chapters and lessons independently from curriculum mapping." : routeLabel === "Content" ? "Manage video and PDF resources attached to course lessons." : routeLabel === "Assignment Review" ? "Review Student submissions, scores, and return-for-revision decisions." : routeLabel === "Support Inbox" ? "Read and reply to persisted Student support conversations." : "Manage subscription plans, seats, and student lifecycle.";
   const reportDomainError = (message: string) => setDomainError(message);
   const context = useMemo(() => ({ data, setData, brand, setBrand, globalSearch, setGlobalSearch, domainLoading, domainError, refreshServerDomains, reportDomainError, overview }), [data, brand, globalSearch, domainLoading, domainError, overview]);
   useEffect(() => {

@@ -4,55 +4,13 @@ import "./NotificationsDropdown.css";
 
 export interface NotificationItem {
   id: string;
-  type: "message" | "assignment" | "course" | "system";
+  type: "message" | "assignment" | "assessment" | "community" | "course" | "subscription" | "system";
   title: string;
   body: string;
-  time: string;
-  isUnread: boolean;
+  deepLink: string | null;
+  createdAt: string;
+  readAt: string | null;
 }
-
-const MOCK_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: "n1",
-    type: "message",
-    title: "New message from Dr. Ahmed Hassan",
-    body: "Thanks! The diagram really helped clarify the relationships.",
-    time: "10 min ago",
-    isUnread: true,
-  },
-  {
-    id: "n2",
-    type: "assignment",
-    title: "Assignment due soon",
-    body: "Upper Limb Clinical Case Review is due in 2 days.",
-    time: "1 hr ago",
-    isUnread: true,
-  },
-  {
-    id: "n3",
-    type: "message",
-    title: "New message from Prof. Sarah Johnson",
-    body: "Please review the updated assignment rubric for the enzyme kinetics case study.",
-    time: "2 hr ago",
-    isUnread: true,
-  },
-  {
-    id: "n4",
-    type: "course",
-    title: "Lesson unlocked",
-    body: "Lesson 4: Thorax & Thoracic Wall is now available in Human Anatomy I.",
-    time: "Yesterday",
-    isUnread: false,
-  },
-  {
-    id: "n5",
-    type: "assignment",
-    title: "Assignment graded",
-    body: "Your submission for Brachial Plexus Diagram has been graded.",
-    time: "Yesterday",
-    isUnread: false,
-  },
-];
 
 function NotifIcon({ type }: { type: NotificationItem["type"] }) {
   if (type === "message")    return <MessageSquare  className="notif-item__type-icon notif-item__type-icon--message"    aria-hidden="true" />;
@@ -66,18 +24,24 @@ export interface NotificationsDropdownProps {
   onClose: () => void;
   triggerRef?: React.RefObject<HTMLElement | null>;
   notifications?: NotificationItem[];
+  loading?: boolean;
+  error?: string | null;
   onMarkAllRead?: () => void;
+  onReadNotification?: (id: string) => void;
 }
 
 export function NotificationsDropdown({
   isOpen,
   onClose,
   triggerRef,
-  notifications = MOCK_NOTIFICATIONS,
+  notifications = [],
+  loading = false,
+  error = null,
   onMarkAllRead,
+  onReadNotification,
 }: NotificationsDropdownProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const unreadCount = notifications.filter((n) => n.isUnread).length;
+  const unreadCount = notifications.filter((n) => !n.readAt).length;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -136,19 +100,17 @@ export function NotificationsDropdown({
 
       {/* List */}
       <ul className="notif-dropdown__list" role="list">
-        {notifications.map((notif) => (
+        {loading ? <li className="notif-item__body" role="status">Loading notifications…</li> : null}
+        {!loading && error ? <li className="notif-item__body" role="alert">{error}</li> : null}
+        {!loading && !error && notifications.length === 0 ? <li className="notif-item__body">No notifications yet.</li> : null}
+        {!loading && !error && notifications.map((notif) => (
           <li key={notif.id}>
             <button
               type="button"
-              className={`notif-item${notif.isUnread ? " notif-item--unread" : ""}`}
+              className={`notif-item${!notif.readAt ? " notif-item--unread" : ""}`}
               onClick={() => {
-                if (notif.type === "assignment") {
-                  window.location.href = "/assignments";
-                } else if (notif.type === "message") {
-                  window.location.href = "/messages";
-                } else if (notif.type === "course") {
-                  window.location.href = "/my-courses/human-anatomy-i";
-                }
+                if (!notif.readAt) onReadNotification?.(notif.id);
+                if (notif.deepLink) window.location.assign(notif.deepLink);
                 onClose();
               }}
             >
@@ -158,9 +120,9 @@ export function NotificationsDropdown({
               <div className="notif-item__copy">
                 <p className="notif-item__title">{notif.title}</p>
                 <p className="notif-item__body">{notif.body}</p>
-                <time className="notif-item__time">{notif.time}</time>
+                <time className="notif-item__time" dateTime={notif.createdAt}>{formatNotificationDate(notif.createdAt)}</time>
               </div>
-              {notif.isUnread && (
+              {!notif.readAt && (
                 <span className="notif-item__dot" aria-label="Unread" />
               )}
             </button>
@@ -174,10 +136,16 @@ export function NotificationsDropdown({
         <button type="button" className="notif-dropdown__mark-all" onClick={() => {
           onMarkAllRead?.();
           onClose();
-        }}>
+        }} disabled={unreadCount === 0 || loading || Boolean(error)}>
           Mark all as read
         </button>
       </div>
     </div>
   );
+}
+
+function formatNotificationDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) return "Date unavailable";
+  return new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(date);
 }

@@ -24,7 +24,7 @@ export function AILearningGuide() {
           <div className="ai-guide-copy">
             <div className="ai-guide-intro">
               <h3>
-                Hi Juliana! <span className="ai-guide-wave" aria-hidden="true">👋</span>
+                Your learning journey <span className="ai-guide-wave" aria-hidden="true">👋</span>
               </h3>
               <p>I&apos;m your AI learning guide.</p>
               <p>What would you like to learn today?</p>

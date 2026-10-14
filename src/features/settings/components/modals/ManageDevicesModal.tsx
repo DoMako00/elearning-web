@@ -8,6 +8,8 @@ interface ManageDevicesModalProps {
   onClose: () => void;
   onRevokeDevice: (deviceId: string) => void;
   onRevokeAllOther: () => void;
+  canRevokeDevice?: boolean;
+  canRevokeOtherSessions?: boolean;
 }
 
 export const ManageDevicesModal: React.FC<ManageDevicesModalProps> = ({
@@ -16,6 +18,8 @@ export const ManageDevicesModal: React.FC<ManageDevicesModalProps> = ({
   onClose,
   onRevokeDevice,
   onRevokeAllOther,
+  canRevokeDevice = false,
+  canRevokeOtherSessions = false,
 }) => {
   if (!isOpen) return null;
 
@@ -44,7 +48,7 @@ export const ManageDevicesModal: React.FC<ManageDevicesModalProps> = ({
         <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/50">
           <div>
             <h3 className="text-sm font-bold text-gray-900">Manage Active Devices</h3>
-            <p className="text-xs text-gray-500">View and revoke active session logins</p>
+            <p className="text-xs text-gray-500">View active sessions; an Admin must revoke devices from Admin &gt; Security</p>
           </div>
           <button
             type="button"
@@ -83,7 +87,7 @@ export const ManageDevicesModal: React.FC<ManageDevicesModalProps> = ({
                       {device.browser} • {device.os} • {device.location}
                     </p>
                     <p className="text-[10px] text-gray-400 mt-0.5">
-                      IP: {device.ipAddress} • Last active: {device.lastActive}
+                      Last active: {device.lastActive}
                     </p>
                   </div>
                 </div>
@@ -92,6 +96,8 @@ export const ManageDevicesModal: React.FC<ManageDevicesModalProps> = ({
                   <button
                     type="button"
                     onClick={() => onRevokeDevice(device.id)}
+                    disabled={!canRevokeDevice}
+                    title={!canRevokeDevice ? "Ask an authorized Admin to revoke this device from Admin > Security." : undefined}
                     className="px-2.5 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg transition-colors shrink-0 cursor-pointer"
                   >
                     Revoke
@@ -103,7 +109,7 @@ export const ManageDevicesModal: React.FC<ManageDevicesModalProps> = ({
         </div>
 
         <div className="p-3.5 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
-          {otherDevicesCount > 0 ? (
+          {otherDevicesCount > 0 && canRevokeOtherSessions ? (
             <button
               type="button"
               onClick={onRevokeAllOther}

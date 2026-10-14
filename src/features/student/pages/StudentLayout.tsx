@@ -1,11 +1,14 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useMemo } from "react";
 import { AppShell } from "../../../components/layout/AppShell";
 import { SearchBar } from "../../../components/ui/SearchBar";
 import { UserHeaderActions } from "../../../components/ui/UserHeaderActions";
 import { useIsMobile } from "../../../hooks/useIsMobile";
 import { MobileLayout } from "../../../components/mobile/MobileLayout";
-import { useGamification } from "../../../app/providers/GamificationProvider";
 import { useAuth } from "../../../app/providers/AuthProvider";
+import { useStudentProfile } from "../api/useStudentLearning";
+import { useMarkStudentNotificationsRead, useStudentNotifications } from "../api/useStudentNotifications";
+import { MessagesProvider } from "../../../app/providers/MessagesProvider";
 
 import { lazy, Suspense } from "react";
 
@@ -16,17 +19,22 @@ import { RouteLoadingFallback } from "../../../components/layout/RouteLoadingFal
 const CourseOverviewScreen = lazy(() => import("../../../components/mobile/screens/CourseOverviewScreen").then((m) => ({ default: m.CourseOverviewScreen })));
 const MobileLearningPathStubScreen = lazy(() => import("../../../components/mobile/screens/MobileLearningPathStubScreen").then((m) => ({ default: m.MobileLearningPathStubScreen })));
 
-export function StudentLayout() {
+function StudentLayoutContent() {
   const isMobile = useIsMobile();
   const location = useLocation();
   const navigate = useNavigate();
-  const { xpTotal } = useGamification();
   const auth = useAuth();
+  const profileQuery = useStudentProfile();
+  const notificationsQuery = useStudentNotifications();
+  const markNotificationsRead = useMarkStudentNotificationsRead();
+  const notifications = useMemo(() => (notificationsQuery.data ?? []).map((item) => ({ ...item, isUnread: item.readAt === null })), [notificationsQuery.data]);
+  const unreadNotificationsCount = notifications.reduce((count, item) => count + Number(item.isUnread), 0);
   const pathname = location.pathname;
 
   // Render Mobile Layout when viewport matches <= 767px
   if (isMobile) {
-    if (pathname.startsWith("/my-courses/") && pathname !== "/my-courses") {
+    const mobileCourseDetail = pathname.match(/^\/my-courses\/([^/]+)$/);
+    if (mobileCourseDetail) {
       return (
         <RouteErrorBoundary isMobile>
           <Suspense fallback={<RouteLoadingFallback isMobile message="Loading course..." />}>
@@ -46,7 +54,8 @@ export function StudentLayout() {
         </RouteErrorBoundary>
       );
     }
-    return <MobileLayout />;
+    const mobileTabRoots = new Set(["/", "/my-courses", "/explore", "/calendar", "/settings"]);
+    return <MobileLayout routeContent={mobileTabRoots.has(pathname) ? undefined : <Outlet />} />;
   }
 
   // Prevent flash while measuring initial viewport on client mount
@@ -166,7 +175,7 @@ export function StudentLayout() {
             <span style={{ color: "#64748b", fontWeight: 600 }}>Assignments</span>
           </Link>
           <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-          <h1>Clinical Case Review</h1>
+          <h1>Assignment details</h1>
         </div>
       );
     }
@@ -235,12 +244,16 @@ export function StudentLayout() {
           <div className="student-dashboard__actions">
             {auth.status === "authenticated" ? (
               <UserHeaderActions
-                avatarSrc="https://i.pravatar.cc/112?img=47"
                 avatarAlt="Student account"
-                userName={auth.user?.name ?? "Student"}
+                userName={profileQuery.data?.fullName ?? "Student"}
                 userRole="Student"
-                xp={xpTotal}
-                hasNotification
+                hasNotification={unreadNotificationsCount > 0}
+                unreadNotificationsCount={unreadNotificationsCount}
+                notifications={notifications}
+                notificationsLoading={notificationsQuery.isLoading}
+                notificationsError={notificationsQuery.error instanceof Error ? "Notifications could not be loaded." : null}
+                onReadNotification={(id) => markNotificationsRead.mutate(id)}
+                onMarkAllRead={() => markNotificationsRead.mutate(null)}
                 onViewProfile={() => navigate("/profile")}
                 onMenuItemClick={(itemKey) => {
                   if (itemKey === "profile") navigate("/profile");
@@ -271,4 +284,8 @@ export function StudentLayout() {
       </div>
     </AppShell>
   );
+}
+
+export function StudentLayout() {
+  return <MessagesProvider><StudentLayoutContent /></MessagesProvider>;
 }

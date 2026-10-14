@@ -12,7 +12,7 @@ export interface MediaAssetDto {
   id: string; brandId: string; courseId: string; lessonId: string; resourceId: string | null;
   assetType: "video" | "document" | "image"; title: string; contentType: string;
   expectedSize: number; objectSize: number | null; status: "pending_upload" | "uploaded" | "verified" | "published" | "withdrawn" | "failed";
-  documentDeliveryMode: string | null; watermarkRequired: boolean;
+  documentDeliveryMode: string | null; watermarkRequired: boolean; videoDurationSeconds: number | null; maxCompletedViews: number; version: number;
 }
 export interface LessonMediaInventory { assets: MediaAssetDto[]; uploadPolicy: { multipartThresholdBytes: number; maxUploadBytes: number | null; namespace: "production" | "acceptance" }; }
 export interface ContentScope { brand: BrandAccess; course: BrandCourse; chapter: StructureItem; lesson: StructureItem; }
@@ -72,15 +72,22 @@ export async function updateLessonResource(scope: ContentScope, resource: Lesson
   }));
 }
 
-export async function createMediaAsset(scope: ContentScope, resourceId: string, title: string, file: File) {
+export async function createMediaAsset(scope: ContentScope, resourceId: string, title: string, file: File, videoDurationSeconds?: number, maxCompletedViews = 3) {
   const assetType = file.type === "application/pdf" ? "document" : "video";
   const contentType = assetType === "document" ? "application/pdf" : "video/mp4";
   if ((assetType === "video" && file.type !== "video/mp4") || (assetType === "document" && file.type !== "application/pdf")) throw new Error("The media API accepts MP4 video and PDF files only.");
   const result = await request<{ asset: MediaAssetDto }>((api) => api.POST("/v1/admin/brands/{brandId}/courses/{courseId}/lessons/{lessonId}/media" as never, {
     ...mediaPath(scope), ...writeHeaders(),
-    body: { assetType, title, contentType, expectedSize: file.size, resourceId },
+    body: { assetType, title, contentType, expectedSize: file.size, resourceId, ...(assetType === "video" ? { videoDurationSeconds, maxCompletedViews } : {}) },
   }));
   return result.asset;
+}
+
+export async function configureVideoViewLimit(scope: LessonMediaScope, asset: Pick<MediaAssetDto, "id" | "version">, input: Readonly<{ videoDurationSeconds: number; maxCompletedViews: number; reason: string }>) {
+  return request<{ asset: MediaAssetDto }>((api) => api.POST("/v1/admin/brands/{brandId}/courses/{courseId}/lessons/{lessonId}/media/{assetId}/configuration" as never, {
+    ...mediaPath(scope), params: { path: { ...mediaPath(scope).params.path, assetId: asset.id } },
+    body: { expectedVersion: asset.version, ...input },
+  }));
 }
 
 async function postMedia(scope: LessonMediaScope, assetId: string, operation: string, body?: unknown) {

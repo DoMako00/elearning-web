@@ -15,7 +15,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { HelpCategory, HelpArticle } from "../../../types/help";
-import { ALL_CATEGORY_ARTICLES } from "../data/helpCenterData";
+import { ALL_CATEGORY_ARTICLES, getHelpCategoryArticleCount } from "../data/helpCenterData";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   User,
@@ -93,7 +93,7 @@ export const CategoryArticlesModal: React.FC<CategoryArticlesModalProps> = ({
                   {category.title}
                 </h2>
                 <span className="px-2 py-0.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 rounded-full">
-                  {category.articleCount} articles
+                  {getHelpCategoryArticleCount(category.id)} articles
                 </span>
               </div>
               <p className="text-xs text-gray-500 truncate mt-0.5">
@@ -156,8 +156,12 @@ export const CategoryArticlesModal: React.FC<CategoryArticlesModalProps> = ({
                       <Clock className="w-3 h-3 text-gray-400" />
                       {art.readTime}
                     </span>
-                    <span>•</span>
-                    <span>Updated {art.lastUpdated}</span>
+                    {art.lastUpdated && (
+                      <>
+                        <span>•</span>
+                        <span>Updated {art.lastUpdated}</span>
+                      </>
+                    )}
                   </div>
                 </div>
 

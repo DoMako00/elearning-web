@@ -11,6 +11,8 @@ interface ConversationListProps {
   currentFilter: ConversationFilter;
   onFilterChange: (filter: ConversationFilter) => void;
   onNewMessageClick: () => void;
+  isLoading?: boolean;
+  hasError?: boolean;
 }
 
 export const ConversationList: React.FC<ConversationListProps> = ({
@@ -22,6 +24,8 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   currentFilter,
   onFilterChange,
   onNewMessageClick,
+  isLoading = false,
+  hasError = false,
 }) => {
   // Compute counts
   // Count how many *chats* have unread messages (not total unread message count)
@@ -34,8 +38,8 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     return conversations.filter((conv) => {
       // Filter tab
       if (currentFilter === "unread" && conv.unreadCount === 0) return false;
-      if (currentFilter === "instructors" && conv.type !== "instructor") return false;
-      if (currentFilter === "groups" && conv.type !== "group") return false;
+      if (currentFilter === "students" && conv.type !== "direct") return false;
+      if (currentFilter === "support" && conv.type !== "support") return false;
 
       // Search match
       if (searchQuery.trim()) {
@@ -113,33 +117,37 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
           <button
             type="button"
-            onClick={() => onFilterChange("instructors")}
+            onClick={() => onFilterChange("students")}
             className={`px-3 py-1 rounded-full text-[12px] font-medium transition-all ${
-              currentFilter === "instructors"
+              currentFilter === "students"
                 ? "bg-[#20a862]/10 border border-[#20a862] text-[#20a862] font-semibold"
                 : "border border-[#e5ebe7] text-[#64748b] hover:bg-[#f8faf9]"
             }`}
           >
-            Instructors
+            Students
           </button>
 
           <button
             type="button"
-            onClick={() => onFilterChange("groups")}
+            onClick={() => onFilterChange("support")}
             className={`px-3 py-1 rounded-full text-[12px] font-medium transition-all ${
-              currentFilter === "groups"
+              currentFilter === "support"
                 ? "bg-[#20a862]/10 border border-[#20a862] text-[#20a862] font-semibold"
                 : "border border-[#e5ebe7] text-[#64748b] hover:bg-[#f8faf9]"
             }`}
           >
-            Groups
+            Support
           </button>
         </div>
       </div>
 
       {/* Conversation Cards List */}
       <div className="flex-1 overflow-y-auto divide-y divide-[#f1f5f3] px-1.5 py-1">
-        {filteredConversations.length === 0 ? (
+        {isLoading ? (
+          <div role="status" className="p-8 text-center text-[#94a3b8] text-xs">Loading persisted conversations…</div>
+        ) : hasError ? (
+          <div role="alert" className="p-8 text-center text-rose-600 text-xs">Conversations could not be loaded.</div>
+        ) : filteredConversations.length === 0 ? (
           <div className="p-8 text-center text-[#94a3b8] text-xs">
             No conversations found
           </div>

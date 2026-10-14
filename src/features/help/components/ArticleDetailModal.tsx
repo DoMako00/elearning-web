@@ -104,9 +104,6 @@ export const ArticleDetailModal: React.FC<ArticleDetailModalProps> = ({
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
                 {category?.title || "Help Guide"}
               </span>
-              {article.views && (
-                <span className="text-xs text-gray-400">• {article.views} views</span>
-              )}
             </div>
 
             <h1
@@ -121,8 +118,12 @@ export const ArticleDetailModal: React.FC<ArticleDetailModalProps> = ({
                 <Clock className="w-3.5 h-3.5 text-gray-400" />
                 {article.readTime}
               </span>
-              <span>•</span>
-              <span>Updated {article.lastUpdated}</span>
+              {article.lastUpdated && (
+                <>
+                  <span>•</span>
+                  <span>Updated {article.lastUpdated}</span>
+                </>
+              )}
             </div>
           </div>
 

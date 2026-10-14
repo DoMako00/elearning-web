@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -7,12 +7,12 @@ import {
   Bot,
   CalendarCheck2,
   ChartNoAxesCombined,
-  Check,
   Clock3,
   Compass,
   Sparkles,
   UserRoundCheck,
 } from "lucide-react";
+import { useSetWeeklyLessonGoal, useStudentLearningPreferences } from "../../../features/student/api/useStudentLearning";
 import robotAsset from "../../../Assets/ai-learning-robot.webp";
 import journeyIllustration from "../../../Assets/empty-learning-journey.webp";
 import "./EmptyLearningState.css";
@@ -25,8 +25,7 @@ const benefits = [
 ] as const;
 
 
-const weeklyStudyHourOptions = [4, 6, 8] as const;
-const weeklyStudyGoalStorageKey = "greenlearn-weekly-study-hours";
+const weeklyLessonGoalOptions = [4, 6, 8] as const;
 
 /** Temporary control until the corresponding product destinations are connected. */
 function UnavailableAction({ children, className, ariaLabel, tooltip }: { children: ReactNode; className: string; ariaLabel?: string; tooltip?: string }) {
@@ -101,22 +100,16 @@ export function AIRecommendationsCard() {
 }
 
 export function StudyPlanCard() {
-  const [weeklyStudyHours, setWeeklyStudyHours] = useState(() => {
-    if (typeof window === "undefined") return 6;
+  const preferences = useStudentLearningPreferences();
+  const saveGoal = useSetWeeklyLessonGoal();
+  const [weeklyLessons, setWeeklyLessons] = useState(4);
 
-    const storedHours = Number(window.localStorage.getItem(weeklyStudyGoalStorageKey));
-    return weeklyStudyHourOptions.includes(storedHours as 4 | 6 | 8) ? storedHours : 6;
-  });
-  const [isSaved, setIsSaved] = useState(false);
-
-  const selectWeeklyStudyHours = (hours: number) => {
-    setWeeklyStudyHours(hours);
-    setIsSaved(false);
-  };
+  useEffect(() => {
+    if (preferences.data?.weeklyLessonGoal != null) setWeeklyLessons(preferences.data.weeklyLessonGoal);
+  }, [preferences.data?.weeklyLessonGoal]);
 
   const saveStudyGoal = () => {
-    window.localStorage.setItem(weeklyStudyGoalStorageKey, String(weeklyStudyHours));
-    setIsSaved(true);
+    saveGoal.mutate({ weeklyLessonGoal: weeklyLessons, expectedVersion: preferences.data?.version ?? null });
   };
 
   return (
@@ -128,43 +121,44 @@ export function StudyPlanCard() {
         </div>
         <span className="empty-study-plan-card__icon" aria-hidden="true"><CalendarCheck2 /></span>
       </header>
-      <p>Choose a pace that works with your semester.</p>
+      <p>Set a weekly lesson-completion goal that works with your semester.</p>
       <div className="empty-study-plan-card__value" aria-live="polite">
-        <output>{weeklyStudyHours}</output>
-        <span>hours<br />per week</span>
+        <output>{weeklyLessons}</output>
+        <span>lessons<br />per week</span>
       </div>
       <div
         className="empty-study-plan-card__meter"
         role="progressbar"
-        aria-label={`${weeklyStudyHours} hours per week selected`}
+        aria-label={`${weeklyLessons} lessons per week selected`}
         aria-valuemin={4}
         aria-valuemax={8}
-        aria-valuenow={weeklyStudyHours}
+        aria-valuenow={weeklyLessons}
       >
         {Array.from({ length: 8 }, (_, index) => (
-          <span className={index < weeklyStudyHours ? "is-active" : undefined} key={index} />
+          <span className={index < weeklyLessons ? "is-active" : undefined} key={index} />
         ))}
       </div>
-      <div className="empty-study-plan-card__options" aria-label="Weekly study hours">
-        {weeklyStudyHourOptions.map((hours) => (
+      <div className="empty-study-plan-card__options" aria-label="Weekly lesson goal">
+        {weeklyLessonGoalOptions.map((lessons) => (
           <button
-            key={hours}
+            key={lessons}
             type="button"
             className="empty-study-plan-card__option"
-            aria-pressed={weeklyStudyHours === hours}
-            onClick={() => selectWeeklyStudyHours(hours)}
+            aria-pressed={weeklyLessons === lessons}
+            onClick={() => setWeeklyLessons(lessons)}
           >
-            {hours}h
+            {lessons}
           </button>
         ))}
       </div>
       <footer className="empty-study-plan-card__footer">
-        <span className="empty-study-plan-card__availability"><Clock3 aria-hidden="true" /><span>Flexible anytime</span></span>
-        <button type="button" className="empty-study-plan-card__save" onClick={saveStudyGoal}>
-          {isSaved ? <Check aria-hidden="true" /> : <ArrowRight aria-hidden="true" />}
-          <span>{isSaved ? "Goal saved" : "Save goal"}</span>
+        <span className="empty-study-plan-card__availability"><Clock3 aria-hidden="true" /><span>{preferences.isLoading ? "Loading saved goal" : preferences.data?.weeklyLessonGoal == null ? "No saved goal" : "Saved to your account"}</span></span>
+        <button type="button" className="empty-study-plan-card__save" disabled={preferences.isLoading || saveGoal.isPending || preferences.isError} onClick={saveStudyGoal}>
+          <ArrowRight aria-hidden="true" />
+          <span>{saveGoal.isPending ? "Saving…" : saveGoal.isSuccess ? "Goal saved" : "Save goal"}</span>
         </button>
       </footer>
+      {preferences.isError || saveGoal.isError ? <p role="alert">Your weekly goal could not be saved. Please try again.</p> : null}
     </article>
   );
 }

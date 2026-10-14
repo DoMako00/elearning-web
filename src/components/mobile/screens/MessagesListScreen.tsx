@@ -8,7 +8,7 @@ import { ChatConversationScreen } from "./ChatConversationScreen";
 
 export const MessagesListScreen: React.FC = () => {
   const { push } = useScreenStack();
-  const { conversations } = useMobileMessages();
+  const { conversations, isPending, isError } = useMobileMessages();
   const [searchQuery, setSearchQuery] = useState("");
 
   const filtered = conversations.filter((c) => {
@@ -46,7 +46,7 @@ export const MessagesListScreen: React.FC = () => {
         {/* Header Hero */}
         <HeroBand
           heading="Messages"
-          subtitle="Direct chats with professors, advisors, and study groups."
+          subtitle="Private Student conversations and Admin Support."
         />
 
         <div className="px-4 pb-12 space-y-3.5 max-w-lg mx-auto">
@@ -59,7 +59,11 @@ export const MessagesListScreen: React.FC = () => {
 
           {/* Conversations list */}
           <div className="bg-white rounded-3xl border border-slate-100 divide-y divide-slate-100 overflow-hidden shadow-2xs">
-            {filtered.length === 0 ? (
+            {isPending ? (
+              <div role="status" className="p-8 text-center text-xs text-slate-400 font-medium">Loading saved conversations…</div>
+            ) : isError ? (
+              <div role="alert" className="p-8 text-center text-xs text-rose-600 font-medium">Conversations could not be loaded.</div>
+            ) : filtered.length === 0 ? (
               <div className="p-8 text-center text-xs text-slate-400 font-medium">
                 No conversations found.
               </div>
@@ -73,7 +77,7 @@ export const MessagesListScreen: React.FC = () => {
                     .join("")
                     .slice(0, 2)
                     .toUpperCase();
-                const isOnline = c.isOnline ?? true;
+                const isOnline = c.isOnline ?? false;
 
                 return (
                   <button

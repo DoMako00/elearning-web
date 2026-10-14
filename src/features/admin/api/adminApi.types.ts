@@ -43,6 +43,7 @@ export type AdminPermissionCode =
   | "admin.seats.manage" | "admin.grants.read" | "admin.grants.issue_exception" | "admin.grants.revoke" | "admin.content.read"
   | "admin.content.publish" | "admin.content.withdraw" | "admin.media.read" | "admin.media.manage" | "admin.assessments.read"
   | "admin.assessments.review" | "admin.audit.read" | "admin.security.read" | "admin.roles.read" | "admin.roles.manage"
+  | "admin.support.read" | "admin.support.manage"
   | "admin.policies.read" | "admin.policies.manage";
 
 export interface AdminCommandMetadata { platform: AdminPlatformContext; reason: string; correlationId: CorrelationId; idempotencyKey?: IdempotencyKey; policySetId?: PolicySetId; expectedVersion?: string | number; }

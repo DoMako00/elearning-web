@@ -15,7 +15,6 @@ export interface HelpCategory {
   id: string;
   title: string;
   description: string;
-  articleCount: number;
   iconName: string;
   colorTheme?: string;
 }
@@ -27,8 +26,7 @@ export interface HelpArticle {
   description: string;
   iconName: string;
   readTime: string; // e.g., "3 min read"
-  lastUpdated: string;
-  views?: string;
+  lastUpdated?: string;
   isPopular?: boolean;
   content: {
     overview: string;

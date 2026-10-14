@@ -18,14 +18,16 @@ import {
   MobileWeeklyStudyGoal,
 } from "../shared";
 import {
-  INITIAL_CALENDAR_EVENTS,
-  INITIAL_REMINDERS,
   type CalendarEvent,
   type CalendarViewMode,
   type ReminderItem,
   getEgyptNow,
   formatLocalDate,
 } from "../../ui/Calendar";
+import { useStudentCalendar, useStudentCalendarMutations } from "../../../features/student/api/useStudentCalendar";
+import { useStudentProgress, useStudentLearningPreferences } from "../../../features/student/api/useStudentLearning";
+import { mapStudentCalendarItem } from "../../../features/student/api/studentCalendarMapper";
+import { cairoDateTimeToIso } from "../../ui/Calendar/calendar-helpers";
 
 /**
  * KNOWN DESKTOP ISSUES (documented for future cross-platform cleanup):
@@ -41,10 +43,6 @@ export const CalendarScreen: React.FC = () => {
   // 1. View mode & date state (defaults to real current date on mount, not hardcoded August 2026)
   const [viewMode, setViewMode] = useState<CalendarViewMode>("week");
   const [activeDate, setActiveDate] = useState<Date>(() => new Date());
-
-  // 2. Events & reminders state (seeded directly from shared desktop data)
-  const [events, setEvents] = useState<CalendarEvent[]>(INITIAL_CALENDAR_EVENTS);
-  const [reminders] = useState<ReminderItem[]>(INITIAL_REMINDERS);
 
   // 3. Selection & detail modal state
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
@@ -62,6 +60,21 @@ export const CalendarScreen: React.FC = () => {
   }, []);
 
   const egyptNow = useMemo(() => getEgyptNow(), [currentTime]);
+  const queryRange = useMemo(() => {
+    const start = new Date(activeDate);
+    if (viewMode === "week") start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+    else { start.setDate(1); start.setDate(start.getDate() - ((start.getDay() + 6) % 7)); }
+    const end = new Date(start); end.setDate(end.getDate() + (viewMode === "week" ? 7 : 42));
+    return { from: formatLocalDate(start), to: formatLocalDate(end) };
+  }, [activeDate, viewMode]);
+  const calendarQuery = useStudentCalendar(queryRange.from, queryRange.to);
+  const calendarMutations = useStudentCalendarMutations();
+  const progressQuery = useStudentProgress();
+  const preferencesQuery = useStudentLearningPreferences();
+  const events = useMemo(() => (calendarQuery.data ?? []).map(mapStudentCalendarItem), [calendarQuery.data]);
+  const reminders = useMemo<ReminderItem[]>(() => events.filter((event) => event.type === "reminder" && event.editable).map((event) => ({ id: event.id, title: event.title, dateLabel: `${event.date} · ${event.displayTime}`, type: "reminder", completed: event.status === "completed" })), [events]);
+  const progress = progressQuery.data;
+  const weeklyGoal = preferencesQuery.data?.weeklyLessonGoal ?? progress?.weeklyGoalLessons ?? null;
 
   // Toast auto-clear
   useEffect(() => {
@@ -231,18 +244,23 @@ export const CalendarScreen: React.FC = () => {
     setIsDetailOpen(true);
   };
 
-  const handleDeleteEvent = (eventId: string) => {
-    setEvents((prev) => prev.filter((e) => e.id !== eventId));
-    setToastMessage("Event removed from schedule");
+  const handleDeleteEvent = async (eventId: string) => {
+    const event = events.find((item) => item.id === eventId);
+    if (!event?.editable || !event.version) return;
+    try { await calendarMutations.update.mutateAsync({ id: event.id, expectedVersion: event.version, status: "cancelled" }); setToastMessage("Reminder removed from your calendar"); }
+    catch (error) { setToastMessage(error instanceof Error ? error.message : "Calendar item could not be cancelled"); }
   };
 
-  const handleAddEvent = (newEvent: CalendarEvent) => {
-    setEvents((prev) => [...prev, newEvent]);
+  const handleAddEvent = async (newEvent: { title: string; type: "study_block"; date: string; startTime: string; endTime: string; description: string | null }): Promise<boolean> => {
+    try {
+      await calendarMutations.create.mutateAsync({ id: crypto.randomUUID(), itemType: "study_block", title: newEvent.title, description: newEvent.description, startsAt: cairoDateTimeToIso(newEvent.date, newEvent.startTime), endsAt: cairoDateTimeToIso(newEvent.date, newEvent.endTime) });
+    } catch (error) { setToastMessage(error instanceof Error ? error.message : "Calendar item could not be saved"); return false; }
     // Switch to the day of the new event so the user sees it immediately
     const [y, m, d] = newEvent.date.split("-").map(Number);
     setActiveDate(new Date(y, m - 1, d));
     setViewMode("week");
     setToastMessage(`"${newEvent.title}" added to your calendar`);
+    return true;
   };
 
   return (
@@ -252,6 +270,8 @@ export const CalendarScreen: React.FC = () => {
 
       {/* Main scrollable body */}
       <div className="flex-1 overflow-y-auto">
+        {calendarQuery.isLoading && <p role="status" className="px-4 pt-2 text-xs text-slate-500">Loading your calendar…</p>}
+        {calendarQuery.isError && <p role="alert" className="px-4 pt-2 text-xs text-rose-700">Your calendar could not be loaded. <button type="button" className="underline" onClick={() => void calendarQuery.refetch()}>Retry</button></p>}
         {/* 2. HeroBand */}
         <HeroBand
           eyebrow="ACADEMIC SCHEDULE"
@@ -500,9 +520,9 @@ export const CalendarScreen: React.FC = () => {
             <SectionHeader
               title="Study Goal Progress"
               actionLabel="Edit"
-              onAction={() => setToastMessage("Goal editing coming soon")}
+              onAction={() => setToastMessage("Edit your weekly lesson goal from Calendar on desktop")}
             />
-            <MobileWeeklyStudyGoal completedHours={9} targetHours={12} />
+            <MobileWeeklyStudyGoal completedLessons={progress?.weeklyCompletedLessons ?? 0} targetLessons={weeklyGoal} weekDays={progress?.weekDays ?? []} currentDate={egyptNow.dateStr} />
           </section>
 
           {/* 9. Reminders Section */}
@@ -510,7 +530,7 @@ export const CalendarScreen: React.FC = () => {
             <SectionHeader
               title="Reminders"
               actionLabel="View all"
-              onAction={() => setToastMessage("Full reminders list coming soon")}
+              onAction={() => setToastMessage(`${reminders.length} personal reminders loaded`)}
             />
             <div className="space-y-2.5">
               {reminders.map((rem) => (
@@ -533,7 +553,7 @@ export const CalendarScreen: React.FC = () => {
           setIsDetailOpen(false);
           setSelectedEvent(null);
         }}
-        onDelete={handleDeleteEvent}
+        onDelete={selectedEvent?.editable ? (id) => void handleDeleteEvent(id) : undefined}
       />
 
       {/* Add Event BottomSheet */}

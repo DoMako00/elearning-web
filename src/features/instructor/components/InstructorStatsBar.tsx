@@ -25,19 +25,19 @@ export const InstructorStatsBar: React.FC<InstructorStatsBarProps> = ({ stats })
     {
       id: "students",
       icon: Users,
-      value: stats.studentsMentored.toLocaleString(),
+      value: stats.studentsMentored?.toLocaleString() ?? "—",
       label: "Students mentored",
     },
     {
       id: "resources",
       icon: FileText,
-      value: stats.publishedResources.toString(),
+      value: stats.publishedResources?.toString() ?? "—",
       label: "Resources",
     },
     {
       id: "rating",
       icon: Star,
-      value: stats.averageRating.toFixed(1),
+      value: stats.averageRating?.toFixed(1) ?? "—",
       label: "Average rating",
     },
     {
@@ -49,13 +49,13 @@ export const InstructorStatsBar: React.FC<InstructorStatsBarProps> = ({ stats })
     {
       id: "response",
       icon: Clock,
-      value: `${stats.responseRate}%`,
+      value: stats.responseRate === null ? "—" : `${stats.responseRate}%`,
       label: "Response rate",
     },
     {
       id: "completion",
       icon: BarChart2,
-      value: `${stats.studentCompletion}%`,
+      value: stats.studentCompletion === null ? "—" : `${stats.studentCompletion}%`,
       label: "Completion",
     },
   ];

@@ -8,11 +8,8 @@ import {
   ChevronDown,
   SlidersHorizontal,
 } from "lucide-react";
-import {
-  ASSIGNMENT_DEADLINES,
-  ASSIGNMENT_FEEDBACK,
-  ASSIGNMENT_ITEMS,
-} from "./assignments.data";
+import { useStudentAssignments } from "../../../features/student/api/useStudentAssignments";
+import { mapStudentAssignment } from "../../../features/student/api/studentAssignmentMapper";
 import type {
   AssignmentFilter,
   AssignmentItem,
@@ -69,9 +66,9 @@ function ProgressDonut({
   const radius = 54;
   const stroke = 12;
   const circumference = 2 * Math.PI * radius;
-  const completedLen = (completed / total) * circumference;
-  const inProgressLen = (inProgress / total) * circumference;
-  const notStartedLen = (notStarted / total) * circumference;
+  const completedLen = total > 0 ? (completed / total) * circumference : 0;
+  const inProgressLen = total > 0 ? (inProgress / total) * circumference : 0;
+  const notStartedLen = total > 0 ? (notStarted / total) * circumference : 0;
 
   return (
     <svg className="assignments-donut" viewBox="0 0 140 140" aria-hidden="true">
@@ -122,13 +119,9 @@ function ProgressDonut({
 
 function AssignmentCard({
   item,
-  bookmarked,
-  onToggleBookmark,
   onOpenDetail,
 }: {
   item: AssignmentItem;
-  bookmarked: boolean;
-  onToggleBookmark: () => void;
   onOpenDetail: () => void;
 }) {
   return (
@@ -139,9 +132,7 @@ function AssignmentCard({
         </span>
 
         <div className="assignment-card__body">
-          <div className="assignment-card__art" aria-hidden="true">
-            <img src={item.image} alt="" />
-          </div>
+          <div className="assignment-card__art" aria-hidden="true">{item.image ? <img src={item.image} alt="" /> : <span className="assignment-card__art-placeholder">A</span>}</div>
 
           <div className="assignment-card__info">
             <h3>{item.title}</h3>
@@ -164,20 +155,17 @@ function AssignmentCard({
           </span>
           <button
             type="button"
-            className={`assignment-card__bookmark${bookmarked ? " is-saved" : ""}`}
-            aria-label={bookmarked ? `Remove bookmark from ${item.title}` : `Bookmark ${item.title}`}
-            aria-pressed={bookmarked}
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleBookmark();
-            }}
+            className="assignment-card__bookmark"
+            aria-label="Assignment bookmarking is unavailable"
+            title="Assignment bookmarking is not available yet"
+            disabled
           >
-            <Bookmark aria-hidden="true" className={bookmarked ? "fill-current" : ""} />
+            <Bookmark aria-hidden="true" />
           </button>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          <span className="assignment-card__points">{item.points} points</span>
+          <span className="assignment-card__points">{item.points === null ? "Score not set" : `${item.points} points`}</span>
           <div className="assignment-card__progress" aria-hidden={item.status !== "in-progress" || typeof item.progress !== "number"}>
             {item.status === "in-progress" && typeof item.progress === "number" ? (
               <>
@@ -207,55 +195,55 @@ function AssignmentCard({
 
 export function AssignmentsWorkspace() {
   const navigate = useNavigate();
+  const assignmentsQuery = useStudentAssignments();
+  const items = useMemo(() => (assignmentsQuery.data ?? []).map(mapStudentAssignment), [assignmentsQuery.data]);
   const [filter, setFilter] = useState<AssignmentFilter>("all");
   const [sortBy, setSortBy] = useState<AssignmentSort>("due");
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
-  const [bookmarked, setBookmarked] = useState<Record<string, boolean>>({
-    "asg-1": true,
-    "asg-4": true,
-  });
   const sortRef = useRef<HTMLDivElement>(null);
 
   const handleOpenDetail = (item: AssignmentItem) => {
-    // If it's asg-1 or matches, navigate to detail
-    navigate(`/assignments/${item.id === "asg-1" ? "upper-limb-clinical-case-review" : item.id}`);
+    navigate(`/assignments/${encodeURIComponent(item.id)}`);
   };
 
   const counts = useMemo(() => {
-    const inProgress = ASSIGNMENT_ITEMS.filter((item) => item.status === "in-progress").length;
-    const submitted = ASSIGNMENT_ITEMS.filter((item) => item.status === "submitted").length;
-    const graded = ASSIGNMENT_ITEMS.filter((item) => item.status === "graded").length;
-    const notStarted = ASSIGNMENT_ITEMS.filter((item) => item.status === "not-started").length;
+    const inProgress = items.filter((item) => item.status === "in-progress").length;
+    const submitted = items.filter((item) => item.status === "submitted").length;
+    const graded = items.filter((item) => item.status === "graded").length;
+    const notStarted = items.filter((item) => item.status === "not-started").length;
     return {
-      all: ASSIGNMENT_ITEMS.length,
+      all: items.length,
       "in-progress": inProgress,
       submitted,
       graded,
       notStarted,
       completed: submitted + graded,
     };
-  }, []);
+  }, [items]);
 
   const visibleItems = useMemo(() => {
     const filtered =
       filter === "all"
-        ? ASSIGNMENT_ITEMS
-        : ASSIGNMENT_ITEMS.filter((item) => item.status === filter);
+        ? items
+        : items.filter((item) => item.status === filter);
 
     const statusRank = (status: AssignmentStatus) =>
       status === "submitted" || status === "graded" ? 1 : 0;
 
     const sorted = [...filtered].sort((a, b) => {
       if (sortBy === "title") return a.title.localeCompare(b.title);
-      if (sortBy === "points") return b.points - a.points;
+      if (sortBy === "points") return (b.points ?? -1) - (a.points ?? -1);
       const byOpen = statusRank(a.status) - statusRank(b.status);
       if (byOpen !== 0) return byOpen;
       return a.dueAt.localeCompare(b.dueAt);
     });
 
     return showAll ? sorted : sorted.slice(0, PAGE_SIZE);
-  }, [filter, sortBy, showAll]);
+  }, [filter, items, sortBy, showAll]);
+
+  const deadlines = useMemo(() => items.filter((item) => item.urgency !== "done" && item.dueAt.startsWith("2")).sort((a, b) => a.dueAt.localeCompare(b.dueAt)).slice(0, 4), [items]);
+  const feedback = useMemo(() => (assignmentsQuery.data ?? []).filter((item) => item.submission?.status === "reviewed"), [assignmentsQuery.data]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -266,10 +254,6 @@ export function AssignmentsWorkspace() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const toggleBookmark = (id: string) => {
-    setBookmarked((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
 
   const totalForFilter = filter === "all" ? counts.all : counts[filter];
   const showingFrom = visibleItems.length === 0 ? 0 : 1;
@@ -343,12 +327,13 @@ export function AssignmentsWorkspace() {
         </div>
 
         <div className="assignments-grid" aria-label="Assignment list">
-          {visibleItems.map((item) => (
+          {assignmentsQuery.isLoading ? <p role="status" className="assignments-empty-state">Loading assignments…</p>
+            : assignmentsQuery.isError ? <div role="alert" className="assignments-empty-state"><p>{assignmentsQuery.error instanceof Error ? assignmentsQuery.error.message : "Assignments could not be loaded."}</p><button type="button" onClick={() => void assignmentsQuery.refetch()}>Try again</button></div>
+            : visibleItems.length === 0 ? <p role="status" className="assignments-empty-state">No assignments match this view.</p>
+            : visibleItems.map((item) => (
             <AssignmentCard
               key={item.id}
               item={item}
-              bookmarked={Boolean(bookmarked[item.id])}
-              onToggleBookmark={() => toggleBookmark(item.id)}
               onOpenDetail={() => handleOpenDetail(item)}
             />
           ))}
@@ -370,9 +355,8 @@ export function AssignmentsWorkspace() {
         <section className="assignments-widget">
           <h2>Upcoming deadlines</h2>
           <ul className="assignments-deadlines">
-            {ASSIGNMENT_DEADLINES.map((deadline) => (
+            {deadlines.map((deadline) => (
               <li key={deadline.id}>
-                <img src={deadline.image} alt="" />
                 <div>
                   <b>{deadline.title}</b>
                   <small>{deadline.dueLabel}</small>
@@ -380,8 +364,9 @@ export function AssignmentsWorkspace() {
                 <span className={urgencyClass(deadline.urgency)}>{deadline.relativeLabel}</span>
               </li>
             ))}
+            {!assignmentsQuery.isLoading && deadlines.length === 0 && <li>No upcoming deadlines are available.</li>}
           </ul>
-          <button type="button" className="assignments-widget__link">
+          <button type="button" className="assignments-widget__link" onClick={() => navigate("/calendar")}>
             View calendar <ArrowRight aria-hidden="true" />
           </button>
         </section>
@@ -401,25 +386,25 @@ export function AssignmentsWorkspace() {
                 <div>
                   Completed <b>{counts.completed}</b>
                 </div>
-                <span>{Math.round((counts.completed / counts.all) * 100)}%</span>
+                <span>{counts.all ? Math.round((counts.completed / counts.all) * 100) : 0}%</span>
               </li>
               <li>
                 <i className="dot dot--progress" />
                 <div>
                   In progress <b>{counts["in-progress"]}</b>
                 </div>
-                <span>{Math.round((counts["in-progress"] / counts.all) * 100)}%</span>
+                <span>{counts.all ? Math.round((counts["in-progress"] / counts.all) * 100) : 0}%</span>
               </li>
               <li>
                 <i className="dot dot--idle" />
                 <div>
                   Not started <b>{counts.notStarted}</b>
                 </div>
-                <span>{Math.round((counts.notStarted / counts.all) * 100)}%</span>
+                <span>{counts.all ? Math.round((counts.notStarted / counts.all) * 100) : 0}%</span>
               </li>
             </ul>
           </div>
-          <button type="button" className="assignments-widget__link">
+          <button type="button" className="assignments-widget__link" onClick={() => navigate("/profile?tab=activity")}>
             View all stats <ArrowRight aria-hidden="true" />
           </button>
         </section>
@@ -427,21 +412,22 @@ export function AssignmentsWorkspace() {
         <section className="assignments-widget">
           <h2>Recent feedback</h2>
           <ul className="assignments-feedback">
-            {ASSIGNMENT_FEEDBACK.map((item) => (
+            {feedback.map((item) => (
               <li key={item.id}>
                 <span className="assignments-feedback__icon" aria-hidden="true">
                   <Check />
                 </span>
                 <div>
                   <b>{item.title}</b>
-                  <p>{item.comment}</p>
-                  <small>{item.timeAgo}</small>
+                  <p>{item.submission?.feedback ?? "Reviewed by your instructor."}</p>
+                  <small>{item.submission?.submittedAt ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(item.submission.submittedAt)) : ""}</small>
                 </div>
-                <strong>{item.score}</strong>
+                <strong>{item.submission?.score ?? "—"}</strong>
               </li>
             ))}
+            {feedback.length === 0 && <li>No reviewed feedback is available yet.</li>}
           </ul>
-          <button type="button" className="assignments-widget__link">
+          <button type="button" className="assignments-widget__link" disabled>
             View all feedback <ArrowRight aria-hidden="true" />
           </button>
         </section>

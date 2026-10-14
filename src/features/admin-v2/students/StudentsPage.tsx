@@ -36,35 +36,32 @@ import type {
   StudentDraft,
   StudentRecord,
 } from "../types/adminV2.types";
-import {
-  enrollmentFor,
-  getPlan,
-  getStudentSubscription,
-  studentAccessBlock,
-} from "../data/adminV2.store";
+import { enrollmentFor } from "../data/adminV2.store";
 import { StudentForm } from "./StudentForm";
 import {
   courseLevel,
   courseMatchesStudentPlacement,
   courseUnitLabel,
 } from "../data/adminV2.selectors";
+import { listBrandAccess, listInstitutions, type AcademicInstitution, type BrandAccess } from "../api/adminAcademicApi";
 import {
   createAdminStudent,
   getAdminStudent,
-  listAdminStudents,
   resetAdminStudentClaim,
   setAdminStudentStatus,
   updateAdminStudent,
   type AdminStudentDetail,
   type AdminStudentListItem,
 } from "../api/adminStudentsApi";
+import { listAllAdminStudents } from "../api/adminOperationsApi";
+import { toEnglishStudentName } from "../api/studentDisplay";
 
 const PAGE_SIZE = 8;
 type InspectorTab = "Profile" | "Access" | "Devices" | "Sessions";
 const tabs: InspectorTab[] = ["Profile", "Access", "Devices", "Sessions"];
 
 export function StudentsPage() {
-  const { data: fixtureData, brand, globalSearch } = useAdminV2();
+  const { data: storeData, brand, globalSearch } = useAdminV2();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [tab, setTab] = useState<InspectorTab>("Profile");
@@ -75,9 +72,7 @@ export function StudentsPage() {
   const [institution, setInstitution] = useState("all");
   const [semester, setSemester] = useState("all");
   const [page, setPage] = useState(1);
-  const [selectedId, setSelectedId] = useState(
-    searchParams.get("student") ?? "st-001",
-  );
+  const [selectedId, setSelectedId] = useState(searchParams.get("student") ?? "");
   const [drawer, setDrawer] = useState<
     "add" | "edit" | "grant" | "device" | null
   >(null);
@@ -101,8 +96,14 @@ export function StudentsPage() {
   const [remoteDetail, setRemoteDetail] = useState<AdminStudentDetail | null>(
     null,
   );
+  const [studentBrandOptions, setStudentBrandOptions] = useState<BrandAccess[]>([]);
+  const [studentInstitutionOptions, setStudentInstitutionOptions] = useState<AcademicInstitution[]>([]);
+  const [studentPlacementOptionsLoading, setStudentPlacementOptionsLoading] = useState(false);
+  const [studentPlacementOptionsError, setStudentPlacementOptionsError] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState("");
   const [mutationPending, setMutationPending] = useState(false);
   const mapStudent = (item: AdminStudentListItem): StudentRecord => ({
     id: item.id,
@@ -110,16 +111,19 @@ export function StudentsPage() {
     fullName: item.displayName ?? "Unnamed Student",
     email: item.emailMasked ?? "",
     phone: item.phoneMasked ?? "",
-    brand: (item.platform?.platformCode === "medway" ||
-    item.platform?.platformCode === "nexus"
-      ? item.platform.platformCode
-      : "elite") as BrandCode,
-    institution: item.academicInstitution?.toLowerCase().includes("delta")
-      ? "Delta"
-      : "BUC",
+    brand: (() => {
+      const code = item.platform?.platformCode;
+      if (code === "medway" || code === "elite" || code === "nexus") return code;
+      throw new Error("The server returned a Student without a valid Brand.");
+    })(),
+    institution: item.academicInstitution?.trim() || "—",
+    academicInstitutionId: item.academicInstitutionId,
     academicLevel: item.academicLevel ?? "—",
+    academicLevelId: item.academicLevelId,
     semester: item.academicSemester ?? item.academicTermOrYear ?? "—",
+    academicSemesterId: item.academicSemesterId,
     program: "",
+    activeDeviceCount: item.activeDeviceCount,
     status:
       item.status === "suspended"
         ? "Suspended"
@@ -127,8 +131,8 @@ export function StudentsPage() {
           ? "Active"
           : item.status === "disabled"
             ? "Inactive"
-            : "Pending Payment",
-    createdAt: "—",
+            : "Pending",
+    createdAt: item.createdAt,
     lastActivity: item.lastSeenAt
       ? new Date(item.lastSeenAt).toLocaleString()
       : "Never",
@@ -137,13 +141,8 @@ export function StudentsPage() {
     setLoading(true);
     setLoadError("");
     try {
-      const result = await listAdminStudents({
-        brand: brand === "all" ? undefined : brand,
-        search: search || globalSearch || undefined,
-        page: 1,
-        pageSize: 100,
-      });
-      setRemoteRows(result.data.map(mapStudent));
+      const result = await listAllAdminStudents(brand);
+      setRemoteRows(result.map(mapStudent));
     } catch (error) {
       setRemoteRows([]);
       setLoadError(
@@ -155,24 +154,58 @@ export function StudentsPage() {
   };
   useEffect(() => {
     void reload();
-  }, [brand, globalSearch, search]);
+  }, [brand]);
   useEffect(() => {
-    if (!selectedId || !remoteRows.some((item) => item.id === selectedId))
+    let current = true;
+    setStudentPlacementOptionsLoading(true);
+    setStudentPlacementOptionsError("");
+    void Promise.all([listBrandAccess(), listInstitutions()])
+      .then(([brands, institutions]) => {
+        if (!current) return;
+        setStudentBrandOptions(brands);
+        setStudentInstitutionOptions(institutions);
+      })
+      .catch((error: unknown) => {
+        if (!current) return;
+        setStudentBrandOptions([]);
+        setStudentInstitutionOptions([]);
+        setStudentPlacementOptionsError(error instanceof Error ? error.message : "Brand and academic placement options could not be loaded.");
+      })
+      .finally(() => { if (current) setStudentPlacementOptionsLoading(false); });
+    return () => { current = false; };
+  }, []);
+  useEffect(() => {
+    if (!remoteRows.length) {
+      if (!loading && selectedId) setSelectedId("");
       return;
+    }
+    if (selectedId && remoteRows.some((item) => item.id === selectedId)) return;
+    const requestedId = searchParams.get("student");
+    setSelectedId(remoteRows.find((item) => item.id === requestedId)?.id ?? remoteRows[0].id);
+  }, [remoteRows, selectedId, searchParams, loading]);
+  useEffect(() => {
+    let current = true;
+    const hasSelectedStudent = selectedId && remoteRows.some((item) => item.id === selectedId);
+    setRemoteDetail(null);
+    setDetailError("");
+    if (!hasSelectedStudent) { setDetailLoading(false); return () => { current = false; }; }
+    setDetailLoading(true);
     void getAdminStudent(selectedId, brand === "all" ? undefined : brand)
-      .then(setRemoteDetail)
-      .catch(() => setRemoteDetail(null));
+      .then((detail) => { if (current) setRemoteDetail(detail); })
+      .catch((error: unknown) => { if (current) setDetailError(error instanceof Error ? error.message : "Student details could not be loaded."); })
+      .finally(() => { if (current) setDetailLoading(false); });
+    return () => { current = false; };
   }, [selectedId, brand, remoteRows]);
   const data = useMemo(() => {
-    const detail = remoteDetail;
+    const detail = remoteDetail?.id === selectedId ? remoteDetail : null;
     return {
-      ...fixtureData,
+      ...storeData,
       students: remoteRows,
-      courses: [] as typeof fixtureData.courses,
-      plans: [] as typeof fixtureData.plans,
-      subscriptions: [] as typeof fixtureData.subscriptions,
-      payments: [] as typeof fixtureData.payments,
-      enrollments: [] as typeof fixtureData.enrollments,
+      courses: [] as typeof storeData.courses,
+      plans: [] as typeof storeData.plans,
+      subscriptions: [] as typeof storeData.subscriptions,
+      payments: [] as typeof storeData.payments,
+      enrollments: [] as typeof storeData.enrollments,
       devices: (detail?.devices ?? []).map((device) => ({
         id: device.id,
         studentId: detail?.id ?? "",
@@ -200,11 +233,16 @@ export function StudentsPage() {
         browser: "—",
         created: new Date(session.createdAt).toLocaleString(),
         lastActivity: new Date(session.lastSeenAt).toLocaleString(),
-        status: session.revokedAt ? ("Revoked" as const) : ("Active" as const),
+        status:
+          session.revokedAt || (session.expiresAt && Date.parse(session.expiresAt) <= Date.now())
+            ? ("Revoked" as const)
+            : ("Active" as const),
       })),
     };
-  }, [fixtureData, remoteRows, remoteDetail]);
+  }, [storeData, remoteRows, remoteDetail, selectedId]);
   const query = (search || globalSearch).toLowerCase();
+  const institutionFilterValues = useMemo(() => [...new Set(data.students.map((item) => item.institution).filter(Boolean))].sort(), [data.students]);
+  const semesterFilterValues = useMemo(() => [...new Set(data.students.map((item) => item.semester).filter((item) => item && item !== "—"))].sort(), [data.students]);
   const rows = useMemo(
     () =>
       data.students.filter(
@@ -247,18 +285,7 @@ export function StudentsPage() {
   const activeDevices = selectedDevices.filter(
     (device) => device.status === "Active",
   );
-  const selectedEnrollments = selected
-    ? data.enrollments.filter(
-        (item) => item.studentId === selected.id && item.status === "Active",
-      )
-    : [];
-  const subscription = selected
-    ? getStudentSubscription(data, selected.id)
-    : undefined;
-  const plan = subscription ? getPlan(data, subscription.planId) : undefined;
-  const blockedReason = selected
-    ? studentAccessBlock(data, selected.id)
-    : "Student record is unavailable.";
+  const selectedAccess = selected && remoteDetail?.id === selected.id ? remoteDetail.access : undefined;
   const setAccountStatus = async (
     studentId: string,
     next: StudentRecord["status"],
@@ -296,7 +323,10 @@ export function StudentsPage() {
         const result = await updateAdminStudent(selected.id, {
           fullName: draft.fullName,
           phone: draft.phone || undefined,
-          studentCode: draft.accountIdentifier || null,
+          ...(draft.accountIdentifier.trim() ? { studentCode: draft.accountIdentifier.trim() } : {}),
+          academicInstitutionId: draft.academicInstitutionId,
+          academicLevelId: draft.academicLevelId,
+          academicSemesterId: draft.academicSemesterId,
           expectedVersion: remoteDetail?.version ?? 1,
         });
         setRemoteDetail(result);
@@ -308,11 +338,9 @@ export function StudentsPage() {
         fullName: draft.fullName,
         ...(draft.phone?.trim() ? { phone: draft.phone.trim() } : {}),
         brandCode: draft.brand,
-        academicInstitutionCode:
-          draft.institution === "Delta" ? "delta" : "buc",
-        academicLevelNumber:
-          Number(draft.academicLevel.replace(/\D/g, "")) || 1,
-        academicSemesterNumber: Number(draft.semester.replace(/\D/g, "")) || 1,
+        academicInstitutionCode: draft.academicInstitutionCode,
+        academicLevelNumber: draft.academicLevelNumber,
+        academicSemesterNumber: draft.academicSemesterNumber,
         studentCode: draft.accountIdentifier || undefined,
         programLabel: draft.program || undefined,
       });
@@ -324,7 +352,7 @@ export function StudentsPage() {
           id: result.studentProfileId,
           accountIdentifier: result.accountIdentifier,
           setupCode: result.setupCode,
-          fullName: draft.fullName,
+          fullName: toEnglishStudentName(draft.fullName),
           email: "",
           phone: draft.phone,
           brand: draft.brand,
@@ -378,9 +406,7 @@ export function StudentsPage() {
     setNotice("Copied to clipboard.");
   };
   const openSubscription = () => {
-    if (subscription)
-      navigate(`/admin/subscriptions?subscription=${subscription.id}`);
-    else navigate("/admin/subscriptions");
+    navigate("/admin/subscriptions");
   };
   const createPurchase = (studentId: string) => {
     navigate(`/admin/subscriptions?startPurchase=1&purchaseStudent=${encodeURIComponent(studentId)}`);
@@ -395,15 +421,15 @@ export function StudentsPage() {
   const eliteStudents = data.students.filter(
     (student) => student.brand === "elite",
   ).length;
-  const thisMonth = data.students.filter(
-    (student) =>
-      student.createdAt ===
-      new Date().toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-  ).length;
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
+  const nextMonthStart = new Date(monthStart);
+  nextMonthStart.setMonth(nextMonthStart.getMonth() + 1);
+  const thisMonth = data.students.filter((student) => {
+    const createdAt = Date.parse(student.createdAt);
+    return Number.isFinite(createdAt) && createdAt >= monthStart.getTime() && createdAt < nextMonthStart.getTime();
+  }).length;
   const activeShare = data.students.length
     ? Math.round((activeStudents / data.students.length) * 100)
     : 0;
@@ -438,6 +464,11 @@ export function StudentsPage() {
           role={loadError ? "alert" : "status"}
         >
           {loading ? "Loading Students…" : loadError}
+        </div>
+      )}
+      {studentPlacementOptionsError && (
+        <div className="admin-v2__inline-notice" role="alert">
+          Brand and academic placement options could not be loaded: {studentPlacementOptionsError}
         </div>
       )}
       <div className="admin-v2__metrics admin-v2__student-metrics">
@@ -491,15 +522,20 @@ export function StudentsPage() {
               <select
                 aria-label="Brand"
                 value={brandFilter}
+                disabled={!studentBrandOptions.length}
                 onChange={(event) => {
                   setBrandFilter(event.target.value as "all" | BrandCode);
                   setPage(1);
                 }}
               >
                 <option value="all">All brands</option>
-                <option value="medway">Medway</option>
-                <option value="elite">Elite</option>
-                <option value="nexus">Nexus</option>
+                {studentBrandOptions
+                  .filter((item) => item.status.toLowerCase() === "active")
+                  .map((item) => (
+                    <option key={item.id} value={item.code}>
+                      {item.name}
+                    </option>
+                  ))}
               </select>
               <select
                 aria-label="Academic level"
@@ -567,8 +603,7 @@ export function StudentsPage() {
                 }}
               >
                 <option value="all">All institutions</option>
-                <option>BUC</option>
-                <option>Delta</option>
+                {institutionFilterValues.map((item) => <option key={item}>{item}</option>)}
               </select>
               <select
                 aria-label="Semester"
@@ -579,12 +614,7 @@ export function StudentsPage() {
                 }}
               >
                 <option value="all">All semesters</option>
-                {Array.from(
-                  { length: 12 },
-                  (_, index) => `Semester ${index + 1}`,
-                ).map((item) => (
-                  <option key={item}>{item}</option>
-                ))}
+                {semesterFilterValues.map((item) => <option key={item}>{item}</option>)}
               </select>
               <button
                 onClick={() => {
@@ -617,11 +647,7 @@ export function StudentsPage() {
             </thead>
             <tbody>
               {visible.map((student) => {
-                const deviceCount = data.devices.filter(
-                  (device) =>
-                    device.studentId === student.id &&
-                    device.status === "Active",
-                ).length;
+                const deviceCount = student.activeDeviceCount;
                 return (
                   <tr
                     key={student.id}
@@ -659,7 +685,7 @@ export function StudentsPage() {
                     <td>
                       <span className="admin-v2__device-count">
                         <Monitor size={13} />
-                        {deviceCount}/2
+                        {deviceCount ?? "—"}/2
                       </span>
                     </td>
                     <td>{student.lastActivity}</td>
@@ -781,10 +807,15 @@ export function StudentsPage() {
                       >
                         <Copy size={14} /> Reset setup code
                       </button>
-                      <button onClick={() => navigate("/student-preview")}>
-                        <UserRound size={14} />
-                        Sign-in preview
-                      </button>
+                      {import.meta.env.DEV && (
+                        <button
+                          title="Isolated demo data only; this is not the selected Student account."
+                          onClick={() => navigate("/student-preview")}
+                        >
+                          <UserRound size={14} />
+                          Demo preview
+                        </button>
+                      )}
                     </div>
                   </InspectorSection>
                   <InspectorSection title="Activity summary">
@@ -793,14 +824,14 @@ export function StudentsPage() {
                         ["Last activity", selected.lastActivity],
                         [
                           "Active sessions",
-                          selectedSessions.filter(
+                          detailLoading ? "Loading…" : detailError ? "—" : selectedSessions.filter(
                             (session) => session.status === "Active",
                           ).length,
                         ],
-                        ["Registered devices", `${activeDevices.length} / 2`],
+                        ["Registered devices", detailLoading ? "Loading…" : detailError ? "—" : `${activeDevices.length} / 2`],
                         [
-                          "Accessible courses",
-                          blockedReason ? 0 : selectedEnrollments.length,
+                          "Active access grants",
+                          detailLoading ? "Loading…" : (selectedAccess?.activeGrantCount ?? "—"),
                         ],
                       ]}
                     />
@@ -813,40 +844,27 @@ export function StudentsPage() {
                     title="Subscription / plan summary"
                     action={
                       <div className="admin-v2__student-purchase-actions">
-                        {subscription && <button className="admin-v2__text-button" onClick={openSubscription}>Open subscription</button>}
+                        <button className="admin-v2__text-button" onClick={openSubscription}>Open subscriptions</button>
                         <button className="admin-v2__text-button" onClick={() => createPurchase(selected.id)}>Create purchase</button>
                       </div>
                     }
                   >
                     <InspectorFields
                       fields={[
-                        ["Plan", plan?.name ?? "No plan"],
-                        [
-                          "Subscription state",
-                          subscription ? (
-                            <StatusBadge status={subscription.status} />
-                          ) : (
-                            <span className="admin-v2__not-subscribed">
-                              Not subscribed
-                            </span>
-                          ),
-                        ],
-                        [
-                          "Seat",
-                          subscription
-                            ? `${subscription.studentIds.indexOf(selected.id) + 1} of ${plan?.capacity ?? subscription.studentIds.length}`
-                            : "—",
-                        ],
-                        ["Start", subscription?.startDate ?? "—"],
-                        ["Expiry", subscription?.expiryDate ?? "—"],
+                        ["Active owner subscriptions", detailLoading ? "Loading…" : (selectedAccess?.activeSubscriptionCount ?? "—")],
+                        ["Active access grants", detailLoading ? "Loading…" : (selectedAccess?.activeGrantCount ?? "—")],
+                        ["Enrollment records", detailLoading ? "Loading…" : (selectedAccess?.enrollmentCount ?? "—")],
+                        ["Expired grants", detailLoading ? "Loading…" : (selectedAccess?.expiredGrantCount ?? "—")],
+                        ["Revoked grants", detailLoading ? "Loading…" : (selectedAccess?.revokedGrantCount ?? "—")],
                       ]}
                     />
-                    {blockedReason && (
-                      <p className="admin-v2__access-block">
+                    {detailError && (
+                      <p className="admin-v2__access-block" role="alert">
                         <CircleAlert size={14} />
-                        {blockedReason}
+                        {detailError}
                       </p>
                     )}
+                    <p className="admin-v2__source-note">Enrollment counts are informational; access is authorized by the active Subscription Seat and AccessGrant.</p>
                   </InspectorSection>
                   <InspectorSection title="Academic placement">
                     <InspectorFields
@@ -876,46 +894,17 @@ export function StudentsPage() {
                     }
                   >
                     <div className="admin-v2__access-list">
-                      {selectedEnrollments.map((enrollment) => {
-                        const course = data.courses.find(
-                          (item) => item.id === enrollment.courseId,
-                        );
-                        return (
-                          <article key={enrollment.id}>
-                            <BookOpen size={15} />
-                            <div>
-                              <strong>
-                                {course?.title ?? "Course unavailable"}
-                              </strong>
-                              <small>
-                                {course
-                                  ? `${brandLabel(course.brand)} · ${courseUnitLabel(data, course)}`
-                                  : "Enrollment record"}
-                              </small>
-                              <small>
-                                Source: {enrollment.source} · Expires{" "}
-                                {enrollment.expiryDate ?? "with subscription"}
-                              </small>
-                            </div>
-                            <span
-                              className={`admin-v2__access-state${blockedReason ? " is-blocked" : ""}`}
-                            >
-                              {blockedReason ? "Blocked" : enrollment.status}
-                            </span>
-                            <button
-                              type="button"
-                              disabled
-                              title="Resolve access through the Subscription Seat workflow; Enrollment is not an authorization control."
-                              aria-label={`Remove ${course?.title ?? "course"} access`}
-                            >
-                              <X size={14} />
-                            </button>
-                          </article>
-                        );
-                      })}
-                      {!selectedEnrollments.length && (
+                      {detailLoading ? (
+                        <p className="admin-v2__empty-inline" role="status">Loading access summary…</p>
+                      ) : detailError ? (
+                        <p className="admin-v2__empty-inline" role="alert">Access summary could not be loaded.</p>
+                      ) : selectedAccess?.activeGrantCount ? (
                         <p className="admin-v2__empty-inline">
-                          No course access assigned.
+                          {selectedAccess.activeGrantCount} active AccessGrant{selectedAccess.activeGrantCount === 1 ? "" : "s"} recorded. Course-level access is managed through the Subscription and Seat records.
+                        </p>
+                      ) : (
+                        <p className="admin-v2__empty-inline">
+                          {selectedAccess ? "No active AccessGrants are recorded." : "Access summary is unavailable."}
                         </p>
                       )}
                     </div>
@@ -929,7 +918,7 @@ export function StudentsPage() {
                 <>
                   <InspectorSection title="Registered devices">
                     <div className="admin-v2__slot-summary">
-                      <strong>{activeDevices.length} of 2 slots used</strong>
+                      <strong>{detailLoading ? "Loading device slots…" : detailError ? "Device data unavailable" : `${activeDevices.length} of 2 slots used`}</strong>
                       <div>
                         <span
                           className={
@@ -959,7 +948,11 @@ export function StudentsPage() {
                       <small>1 mobile + 1 PC, laptop, or tablet</small>
                     </div>
                     <div className="admin-v2__device-list">
-                      {selectedDevices.map((device) => (
+                      {detailLoading ? (
+                        <p className="admin-v2__empty-inline" role="status">Loading registered devices…</p>
+                      ) : detailError ? (
+                        <p className="admin-v2__empty-inline" role="alert">Device details could not be loaded.</p>
+                      ) : selectedDevices.map((device) => (
                         <article
                           key={device.id}
                           className={
@@ -987,7 +980,7 @@ export function StudentsPage() {
                           <StatusBadge status={device.status} />
                         </article>
                       ))}
-                      {!selectedDevices.length && (
+                      {!detailLoading && !detailError && !selectedDevices.length && (
                         <p className="admin-v2__empty-inline">
                           No registered devices.
                         </p>
@@ -1005,7 +998,11 @@ export function StudentsPage() {
                     }
                   >
                     <div className="admin-v2__session-list">
-                      {selectedSessions.map((session) => (
+                      {detailLoading ? (
+                        <p className="admin-v2__empty-inline" role="status">Loading sessions…</p>
+                      ) : detailError ? (
+                        <p className="admin-v2__empty-inline" role="alert">Session details could not be loaded.</p>
+                      ) : selectedSessions.map((session) => (
                         <article key={session.id}>
                           <span className="admin-v2__device-icon">
                             <Monitor size={17} />
@@ -1023,7 +1020,7 @@ export function StudentsPage() {
                           <StatusBadge status={session.status} />
                         </article>
                       ))}
-                      {!selectedSessions.length && (
+                      {!detailLoading && !detailError && !selectedSessions.length && (
                         <p className="admin-v2__empty-inline">
                           No sessions recorded.
                         </p>
@@ -1073,6 +1070,7 @@ export function StudentsPage() {
                 className="admin-v2__button is-primary"
                 type="submit"
                 form="shared-student-form"
+                disabled={mutationPending || studentPlacementOptionsLoading || !!studentPlacementOptionsError || (drawer === "edit" && (!remoteDetail || remoteDetail.id !== selected?.id || detailLoading || !!detailError))}
               >
                 {drawer === "add" ? "Create Student" : "Save changes"}
               </button>
@@ -1080,7 +1078,11 @@ export function StudentsPage() {
           }
         >
           <StudentForm
-            brand={selected?.brand ?? (brand === "all" ? "medway" : brand)}
+            brand={selected?.brand ?? (brand === "all" ? undefined : brand)}
+            brandOptions={studentBrandOptions}
+            institutions={studentInstitutionOptions}
+            optionsLoading={studentPlacementOptionsLoading}
+            optionsError={studentPlacementOptionsError || undefined}
             mode={drawer === "edit" ? "edit" : "create"}
             errorMessage={studentFormError}
             initial={
@@ -1090,8 +1092,11 @@ export function StudentsPage() {
                     accountIdentifier: selected.accountIdentifier,
                     brand: selected.brand,
                     institution: selected.institution,
+                    academicInstitutionId: selected.academicInstitutionId ?? undefined,
                     academicLevel: selected.academicLevel,
+                    academicLevelId: selected.academicLevelId ?? undefined,
                     semester: selected.semester,
+                    academicSemesterId: selected.academicSemesterId ?? undefined,
                     program: selected.program,
                   }
                 : undefined

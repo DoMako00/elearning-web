@@ -1,5 +1,5 @@
 import React from "react";
-import { FileText, Video, User, Clock, ChevronRight } from "lucide-react";
+import { FileText, Video, User, Clock, ChevronRight, CalendarDays, BookOpen, GraduationCap } from "lucide-react";
 import type { CalendarEvent, EventType } from "../../ui/Calendar/calendar.types";
 import { isEventLive } from "./eventLive";
 
@@ -74,6 +74,11 @@ export const EVENT_STYLE_MAP: Record<
     chipText: "#b45309",
     titleColor: "#b45309",
   },
+  reminder: { label: "Reminder", icon: Clock, accentColor: "#64748b", chipBg: "#f8fafc", chipBorder: "#e2e8f0", chipText: "#334155", titleColor: "#0f172a" },
+  academic_event: { label: "Academic event", icon: CalendarDays, accentColor: "#059669", chipBg: "#ecfdf5", chipBorder: "#a7f3d0", chipText: "#047857", titleColor: "#0f172a" },
+  course_release: { label: "Course release", icon: BookOpen, accentColor: "#2563eb", chipBg: "#eff6ff", chipBorder: "#bfdbfe", chipText: "#1d4ed8", titleColor: "#0f172a" },
+  exam: { label: "Exam", icon: GraduationCap, accentColor: "#e11d48", chipBg: "#fff1f2", chipBorder: "#fecdd3", chipText: "#be123c", titleColor: "#0f172a" },
+  holiday: { label: "Holiday", icon: CalendarDays, accentColor: "#64748b", chipBg: "#f8fafc", chipBorder: "#e2e8f0", chipText: "#334155", titleColor: "#0f172a" },
 };
 
 export const EventCard: React.FC<EventCardProps & { isLast?: boolean }> = ({

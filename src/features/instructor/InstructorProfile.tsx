@@ -13,18 +13,17 @@ import {
   BookMeetingModal,
   EditProfileModal,
 } from "./components";
-import { DR_AHMED_HASSAN_PROFILE } from "./data/instructorMockData";
 import type { InstructorProfile as InstructorProfileType } from "../../types/instructor";
 import { useToast } from "../../hooks/useToast";
 import { ToastNotification } from "../../components/ui/ToastNotification";
 
 interface InstructorProfileProps {
-  initialProfile?: InstructorProfileType;
+  initialProfile: InstructorProfileType;
   isSelf?: boolean;
 }
 
 export const InstructorProfile: React.FC<InstructorProfileProps> = ({
-  initialProfile = DR_AHMED_HASSAN_PROFILE,
+  initialProfile,
   isSelf = true,
 }) => {
   const [profile, setProfile] = useState<InstructorProfileType>(initialProfile);
@@ -91,7 +90,7 @@ export const InstructorProfile: React.FC<InstructorProfileProps> = ({
           {/* Schedule: takes its natural height, shrinks gracefully */}
           <WeeklyScheduleCard
             schedule={profile.schedule}
-            onViewScheduleClick={() => setIsBookModalOpen(true)}
+          onViewScheduleClick={isSelf ? () => setIsBookModalOpen(true) : undefined}
           />
         </div>
 
@@ -120,25 +119,26 @@ export const InstructorProfile: React.FC<InstructorProfileProps> = ({
           <ResearchPublicationsCard publications={profile.publications} />
           <ContactAvailabilityCard
             instructor={profile}
-            onBookMeetingClick={() => setIsBookModalOpen(true)}
+            onBookMeetingClick={isSelf ? () => setIsBookModalOpen(true) : undefined}
+            readOnly={!isSelf}
           />
         </div>
       </div>
 
       {/* Modals */}
-      <BookMeetingModal
+      {isSelf && <BookMeetingModal
         isOpen={isBookModalOpen}
         onClose={() => setIsBookModalOpen(false)}
         instructor={profile}
         onConfirmBooking={handleConfirmBooking}
-      />
+      />}
 
-      <EditProfileModal
+      {isSelf && <EditProfileModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         instructor={profile}
         onSave={handleUpdateProfile}
-      />
+      />}
     </div>
   );
 };

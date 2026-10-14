@@ -107,7 +107,7 @@ export const EventDetailSheet: React.FC<EventDetailSheetProps> = ({
 
         {/* Action Buttons */}
         <div className="pt-2 flex items-center gap-3">
-          {onDelete && (
+          {onDelete && event.editable && (
             <button
               type="button"
               onClick={handleDelete}

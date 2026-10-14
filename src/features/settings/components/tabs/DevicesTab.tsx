@@ -7,12 +7,16 @@ interface DevicesTabProps {
   devices: DeviceSession[];
   onRevokeDevice: (deviceId: string) => void;
   onRevokeAllOther: () => void;
+  canRevokeDevice?: boolean;
+  canRevokeOtherSessions?: boolean;
 }
 
 export const DevicesTab: React.FC<DevicesTabProps> = ({
   devices,
   onRevokeDevice,
   onRevokeAllOther,
+  canRevokeDevice = false,
+  canRevokeOtherSessions = false,
 }) => {
   const currentDevice = devices.find((d) => d.isCurrent) || devices[0];
   const otherDevices = devices.filter((d) => !d.isCurrent);
@@ -36,7 +40,7 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({
         subtitle="The active browser and computer currently signed in to your portal."
         icon={<ShieldCheck className="w-4 h-4 stroke-2" />}
       >
-        <div className="p-4 rounded-2xl border-2 border-emerald-500/80 bg-emerald-50/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+        {currentDevice ? <div className="p-4 rounded-2xl border-2 border-emerald-500/80 bg-emerald-50/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white border border-emerald-200/80 text-emerald-700 flex items-center justify-center shrink-0 shadow-2xs">
               {getDeviceIcon(currentDevice.deviceType)}
@@ -52,7 +56,7 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({
                 </span>
               </div>
               <p className="text-xs text-gray-500 mt-0.5">
-                {currentDevice.os} • {currentDevice.location} • IP: {currentDevice.ipAddress}
+                {[currentDevice.os,currentDevice.location].filter(Boolean).join(" • ") || "Current authenticated device"}
               </p>
             </div>
           </div>
@@ -60,19 +64,21 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({
           <span className="self-start sm:self-center text-[11px] font-semibold text-emerald-700 bg-white/90 border border-emerald-200 px-3 py-1 rounded-xl shadow-2xs">
             This Device
           </span>
-        </div>
+        </div> : <div className="p-6 text-center text-xs text-gray-400 bg-gray-50/60 rounded-xl border border-dashed border-gray-200">No active device record is available.</div>}
       </SettingsCard>
 
       {/* 2. Other Devices List */}
       <SettingsCard
         title="Other Recognized Devices"
-        subtitle="Manage historical and secondary sessions with active session tokens."
+        subtitle="View active sessions. Device revocation requires an authorized Admin in Admin > Security."
         icon={<Laptop className="w-4 h-4 stroke-2" />}
         headerAction={
           otherDevices.length > 0 && (
             <button
               type="button"
               onClick={onRevokeAllOther}
+              disabled={!canRevokeOtherSessions}
+              title={!canRevokeOtherSessions ? "This account has no self-service revoke-others operation." : undefined}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition-colors cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
@@ -109,6 +115,8 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({
                 <button
                   type="button"
                   onClick={() => onRevokeDevice(dev.id)}
+                  disabled={!canRevokeDevice}
+                  title={!canRevokeDevice ? "Ask an authorized Admin to revoke this device from Admin > Security." : undefined}
                   className="text-xs font-semibold text-rose-600 hover:text-rose-700 transition-colors cursor-pointer hover:underline"
                 >
                   Revoke Access

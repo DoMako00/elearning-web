@@ -15,72 +15,7 @@ import { ToastNotification } from '../../../../components/ui/ToastNotification';
 import type { UpcomingItem, UpcomingProps } from './upcoming.types';
 import './index.css';
 
-const DEFAULT_ITEMS: UpcomingItem[] = [
-  {
-    id: '1',
-    title: 'Anatomy Quiz',
-    time: 'Tomorrow, 10:00 AM',
-    iconType: 'quiz',
-    tag: 'Quiz',
-  },
-  {
-    id: '2',
-    title: 'Live Session',
-    time: 'May 22, 4:00 PM',
-    iconType: 'session',
-    tag: 'Live',
-  },
-  {
-    id: '3',
-    title: 'Physiology Lab',
-    time: 'May 24, 2:00 PM',
-    iconType: 'lab',
-    tag: 'Lab',
-  },
-  {
-    id: '4',
-    title: 'Assignment Due',
-    time: 'May 26, 11:59 PM',
-    iconType: 'assignment',
-    tag: 'Due',
-  },
-  {
-    id: '5',
-    title: 'Mock Exam',
-    time: 'May 28, 9:00 AM',
-    iconType: 'exam',
-    tag: 'Exam',
-  },
-  {
-    id: '6',
-    title: 'Anatomy Quiz',
-    time: 'Tomorrow, 10:00 AM',
-    iconType: 'quiz',
-    tag: 'Quiz',
-  },
-  {
-    id: '7',
-    title: 'Live Session',
-    time: 'May 22, 4:00 PM',
-    iconType: 'session',
-    tag: 'Live',
-  },
-  {
-    id: '8',
-    title: 'Physiology Lab',
-    time: 'May 24, 2:00 PM',
-    iconType: 'lab',
-    tag: 'Lab',
-  },
-  {
-    id: '9',
-    title: 'Assignment Due',
-    time: 'May 26, 11:59 PM',
-    iconType: 'assignment',
-    tag: 'Due',
-  },
-  
-];
+const DEFAULT_ITEMS: UpcomingItem[] = [];
 
 function renderItemIcon(type?: string) {
   switch (type) {
@@ -144,11 +79,13 @@ export function Upcoming({
 
   const handleEventAction = (event: UpcomingItem) => {
     setSelectedEvent(null);
-    if (event.iconType === 'quiz') {
+    if (event.href) {
+      navigate(event.href);
+    } else if (event.iconType === 'quiz') {
       showToast(`Starting ${event.title}...`);
       navigate('/assignments');
     } else if (event.iconType === 'session') {
-      showToast(`Joining Live Session with Dr. Ahmed Hassan...`);
+      showToast('Opening calendar...');
       navigate('/calendar');
     } else if (event.iconType === 'assignment') {
       showToast(`Opening ${event.title}...`);
@@ -162,7 +99,7 @@ export function Upcoming({
   return (
     <section
       className="upcoming-card relative"
-      aria-label={`${title}: ${displayCount} scheduled items`}
+      aria-label={`${title}: ${displayCount} items`}
     >
       <ToastNotification message={toastMessage} />
       {/* ── Header ── */}
@@ -194,9 +131,9 @@ export function Upcoming({
           )}
           <div
             className="upcoming-count-badge cursor-pointer"
-            title={`${displayCount} scheduled events for this month`}
+            title={`${displayCount} ${title.toLowerCase()} items`}
             onClick={() => navigate('/calendar')}
-            aria-label={`${displayCount} upcoming items scheduled for this month`}
+            aria-label={`${displayCount} ${title.toLowerCase()} items`}
           >
             <Calendar className="upcoming-count-icon" aria-hidden="true" />
             <span className="upcoming-count-number">{displayCount}</span>
@@ -284,32 +221,8 @@ export function Upcoming({
             <div className="py-4 space-y-3 text-sm">
               <div className="flex items-center gap-2 text-slate-600">
                 <Calendar className="size-4 text-emerald-600 shrink-0" />
-                <span className="font-semibold text-slate-800">Time & Schedule:</span>
+                <span className="font-semibold text-slate-800">{selectedEvent.href ? "Course details:" : "Time & Schedule:"}</span>
                 <span>{selectedEvent.time}</span>
-              </div>
-
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Instructor:</span>
-                  <span className="font-semibold text-slate-800">Dr. Ahmed Hassan, MD</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Format:</span>
-                  <span className="font-semibold text-slate-800">Interactive Clinical Session</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Duration:</span>
-                  <span className="font-semibold text-slate-800">45 Minutes</span>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Preparation Notes:
-                </h4>
-                <p className="text-xs text-slate-600 leading-relaxed bg-emerald-50/50 p-3 rounded-xl border border-emerald-100">
-                  Please review the upper limb dissection diagrams and the brachial plexus clinical case review beforehand. Questions will test clinical localization.
-                </p>
               </div>
             </div>
 
@@ -326,7 +239,9 @@ export function Upcoming({
                 onClick={() => handleEventAction(selectedEvent)}
                 className="flex-1 rounded-xl bg-(--color-brand,#20a862) py-2.5 text-xs font-semibold text-white shadow-sm hover:opacity-90"
               >
-                {selectedEvent.iconType === 'quiz'
+                {selectedEvent.href
+                  ? 'Open Course'
+                  : selectedEvent.iconType === 'quiz'
                   ? 'Start Quiz'
                   : selectedEvent.iconType === 'session'
                   ? 'Join Session'

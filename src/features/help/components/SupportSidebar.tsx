@@ -164,7 +164,7 @@ export const SupportSidebar: React.FC<SupportSidebarProps> = ({
             <h3 className="text-xs sm:text-[13px] font-bold text-gray-900 tracking-tight leading-snug">
               Need immediate help?
             </h3>
-            <p className="text-[11px] text-gray-500 truncate">Chat with our support team.</p>
+            <p className="text-[11px] text-gray-500 truncate">Send a saved message to Admin Support.</p>
           </div>
         </div>
 
@@ -174,14 +174,13 @@ export const SupportSidebar: React.FC<SupportSidebarProps> = ({
           className="w-full py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100/80 text-emerald-800 font-semibold text-xs inline-flex items-center justify-center gap-2 border border-emerald-200/80 transition-all cursor-pointer group shadow-2xs"
         >
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
           </span>
-          <span>Start live chat</span>
+          <span>Open support messages</span>
         </button>
 
         <p className="mt-2 text-center text-[10px] text-gray-400 font-medium">
-          Available daily 9:00 AM – 9:00 PM (GMT+3)
+          Messages are saved to your support conversations.
         </p>
       </div>
 

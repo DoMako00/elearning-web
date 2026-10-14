@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   MessageSquare,
   Users,
@@ -13,11 +13,9 @@ import {
   Mail,
   Phone,
   MapPin,
-  Check,
   CheckCircle2,
   Info,
   User,
-  ArrowRight,
 } from "lucide-react";
 import { useScreenStack } from "../ScreenStack";
 import { TopAppBar } from "../TopAppBar";
@@ -25,37 +23,34 @@ import { BottomSheet } from "../shared/BottomSheet";
 import { MobileToast } from "../shared/MobileToast";
 import { useMobileMessages } from "../data/useMobileMessages";
 import { MessagesListScreen } from "./MessagesListScreen";
-import { CommunityScreen } from "./CommunityScreen";
+import { CommunityScreen } from "./CommunityScreenReal";
 import { HelpCenterScreen } from "./HelpCenterScreen";
+import { useStudentProfile } from "../../../features/student/api/useStudentLearning";
+import { useStudentSettingsDevices, useStudentCommercialSettings, useStudentLearningPreferences } from "../../../features/student/api/useStudentSettings";
+import { studentLearningApi } from "../../../features/student/api/studentLearningApi";
+import { completeStudentEmailLink, getStudentAuthMethods, initiateOtpLogin, initiateStudentEmailLink, verifyOtpProof } from "../../../features/auth/api/identityApi";
+import { studentSettingsApi } from "../../../features/student/api/studentSettingsApi";
+import { downloadStudentAccountData } from "../../../features/settings/studentDataExport";
+import { useAuth } from "../../../app/providers/AuthProvider";
 
 export const SettingsScreen: React.FC = () => {
   const { push } = useScreenStack();
   const { unreadChatsCount } = useMobileMessages();
+  const profileQuery=useStudentProfile();
+  const devicesQuery=useStudentSettingsDevices();
+  const commercialQuery=useStudentCommercialSettings();
+  const preferencesQuery=useStudentLearningPreferences();
+  const auth=useAuth();
+  const currentDevice=devicesQuery.devices.data?.find(device=>device.id===devicesQuery.session.data?.deviceId && !device.revokedAt);
 
   // State for toasts and confirmation bottom sheet
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isLogoutSheetOpen, setIsLogoutSheetOpen] = useState(false);
+  const [isExportingData, setIsExportingData] = useState(false);
 
   // Editable profile state matching screenshot
-  const [profile, setProfile] = useState({
-    fullName: "Juliana Ahmed",
-    studentId: "2024-10567",
-    email: "juliana.ahmed@email.com",
-    phoneNumber: "+1 (555) 123-4567",
-    location: "New York, NY",
-    plan: "Student • Free Plan",
-    quote: "Keep learning, keep growing.",
-    avatarUrl: "https://i.pravatar.cc/160?img=47",
-  });
-
-  // Notification toggles state
-  const [notifications, setNotifications] = useState({
-    deadlines: true,
-    lessonReminders: true,
-    directMessages: true,
-    mentions: false,
-    systemSecurity: true,
-  });
+  const [profile, setProfile] = useState({fullName:"",studentId:"",email:"",phoneNumber:"",location:"",plan:"",quote:"",avatarUrl:""});
+  useEffect(()=>{const dto=profileQuery.data;if(!dto)return;setProfile({fullName:dto.fullName,studentId:dto.studentCode??"",email:dto.verifiedEmail??"No verified email linked",phoneNumber:dto.phone??"",location:`${dto.institution.name} · ${dto.level.title} · ${dto.semester.title}`,plan:commercialQuery.data?.semesterOffering?`${commercialQuery.data.subscriptionStatus??"unknown"} · ${commercialQuery.data.semesterOffering.title}`:"No active Offering",quote:"",avatarUrl:""});},[profileQuery.data,commercialQuery.data]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -73,10 +68,15 @@ export const SettingsScreen: React.FC = () => {
       component: (
         <EditProfileSubScreen
           profile={profile}
-          onSave={(newProfile) => {
-            setProfile((p) => ({ ...p, ...newProfile }));
-            showToast("Profile updated successfully");
+          onSave={async (newProfile) => {
+            const current=profileQuery.data;
+            if(!current) throw new Error("Student profile is still loading.");
+            const phone=newProfile.phoneNumber?.trim()?newProfile.phoneNumber.trim():null;
+            await studentLearningApi.updateProfile({fullName:(newProfile.fullName??current.fullName).trim(),phone,expectedVersion:current.version});
+            await profileQuery.refetch();
+            showToast("Profile updated from your account.");
           }}
+          onEmailLinked={async()=>{await profileQuery.refetch();showToast("Verified login email updated.");}}
         />
       ),
     });
@@ -91,35 +91,17 @@ export const SettingsScreen: React.FC = () => {
       backLabel: "Settings",
       component: (
         <NotificationPreferencesSubScreen
-          prefs={notifications}
-          onChange={(key, val) => {
-            setNotifications((prev) => ({ ...prev, [key]: val }));
-            showToast("Preferences saved");
+          prefs={{deadlines:preferencesQuery.data?.notificationPreferences.assignmentDeadlines??false,lessonReminders:preferencesQuery.data?.notificationPreferences.lessonReminders??false,directMessages:preferencesQuery.data?.notificationPreferences.directMessages??false,mentions:preferencesQuery.data?.notificationPreferences.mentionsInCommunity??false,systemSecurity:preferencesQuery.data?.notificationPreferences.securityAlerts??false}}
+          onChange={async (key, val) => {
+            const current=preferencesQuery.data;
+            if(!current){showToast("Notification preferences are still loading.");return;}
+            const fields={deadlines:"assignmentDeadlines",lessonReminders:"lessonReminders",directMessages:"directMessages",mentions:"mentionsInCommunity",systemSecurity:"securityAlerts"} as const;
+            const notificationPreferences={...current.notificationPreferences,[fields[key]]:val};
+            try{await studentLearningApi.setNotificationPreferences({notificationPreferences,expectedVersion:current.version});await preferencesQuery.refetch();showToast("Notification preference saved to your account.");}
+            catch(error){showToast(error instanceof Error?error.message:"Notification preference could not be saved.");}
           }}
         />
       ),
-    });
-  };
-
-  const handleOpenChangePassword = () => {
-    push({
-      id: "settings-password",
-      title: "Change Password",
-      tabRoot: "settings",
-      variant: "detail",
-      backLabel: "Settings",
-      component: <ChangePasswordSubScreen onComplete={() => showToast("Password changed successfully")} />,
-    });
-  };
-
-  const handleOpenUpgradePlan = () => {
-    push({
-      id: "settings-upgrade",
-      title: "Upgrade Plan",
-      tabRoot: "settings",
-      variant: "detail",
-      backLabel: "Settings",
-      component: <UpgradePlanSubScreen onSelectPlan={(plan) => showToast(`Selected ${plan} plan`)} />,
     });
   };
 
@@ -209,11 +191,7 @@ export const SettingsScreen: React.FC = () => {
           <div className="flex items-start justify-between gap-3 relative z-10">
             <div className="flex items-center gap-3">
               <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-white shadow-xs shrink-0 bg-slate-100">
-                <img
-                  src={profile.avatarUrl}
-                  alt={profile.fullName}
-                  className="w-full h-full object-cover"
-                />
+                {profile.avatarUrl ? <img src={profile.avatarUrl} alt={profile.fullName} className="w-full h-full object-cover" /> : <span className="w-full h-full flex items-center justify-center bg-emerald-50 text-emerald-700 font-bold">{profile.fullName.trim().charAt(0)||"?"}</span>}
               </div>
               <div className="min-w-0">
                 <h2 className="text-[17px] font-bold text-slate-900 leading-tight">
@@ -246,7 +224,7 @@ export const SettingsScreen: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                <span>{profile.phoneNumber}</span>
+                <span>{profile.phoneNumber||"No phone added · optional"}</span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
@@ -292,7 +270,7 @@ export const SettingsScreen: React.FC = () => {
         <div className="space-y-1.5">
           <div className="px-0.5">
             <h3 className="text-[13.5px] font-bold text-slate-900">nication</h3>
-            <p className="text-[11px] text-slate-400">Connect with instructors and study groups.</p>
+            <p className="text-[11px] text-slate-400">Message other Students or contact Admin support.</p>
           </div>
           <div className="space-y-2">
             <button
@@ -306,7 +284,7 @@ export const SettingsScreen: React.FC = () => {
                 </div>
                 <div className="min-w-0">
                   <h4 className="text-[12.5px] font-bold text-slate-900 leading-tight">Messages</h4>
-                  <p className="text-[10.5px] text-slate-400 mt-0.5">Direct chat with course instructors</p>
+                  <p className="text-[10.5px] text-slate-400 mt-0.5">Student conversations and Admin support</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -347,7 +325,7 @@ export const SettingsScreen: React.FC = () => {
           </div>
           <button
             type="button"
-            onClick={handleOpenChangePassword}
+            disabled
             className="w-full bg-white rounded-xl p-3 flex items-center justify-between border border-slate-100 shadow-2xs hover:bg-slate-50/70 transition-colors text-left cursor-pointer"
           >
             <div className="flex items-center gap-3 min-w-0">
@@ -356,10 +334,10 @@ export const SettingsScreen: React.FC = () => {
               </div>
               <div className="min-w-0">
                 <h4 className="text-[12.5px] font-bold text-slate-900 leading-tight">
-                  Change Password
+                  Verified-email OTP
                 </h4>
                 <p className="text-[10.5px] text-slate-400 mt-0.5">
-                  Create a new password
+                  Password sign-in is not supported for Student accounts.
                 </p>
               </div>
             </div>
@@ -371,7 +349,7 @@ export const SettingsScreen: React.FC = () => {
         <div className="space-y-1.5">
           <div className="px-0.5">
             <h3 className="text-[13.5px] font-bold text-slate-900">Devices & Access</h3>
-            <p className="text-[11px] text-slate-400">Your account is active on one device by default.</p>
+            <p className="text-[11px] text-slate-400">Device slots and replacement eligibility come from your account access policy.</p>
           </div>
 
           <div className="space-y-2.5">
@@ -386,13 +364,13 @@ export const SettingsScreen: React.FC = () => {
                     Current Device
                   </span>
                   <h4 className="text-[13px] font-bold text-slate-900 leading-tight mt-0.5">
-                    iPhone 15 Pro
+                    {currentDevice?.platform ?? "No active device record"}
                   </h4>
                   <p className="text-[10.5px] text-slate-500 mt-0.5 flex items-center gap-1.5">
-                    <span>New York, NY</span>
+                    <span>{currentDevice?.browser ?? "Device details unavailable"}</span>
                     <span className="w-1 h-1 rounded-full bg-slate-300 inline-block" />
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                    <span className="text-emerald-700 font-semibold">Active now</span>
+                    <span className="text-emerald-700 font-semibold">{currentDevice ? `Last seen ${new Date(currentDevice.lastSeenAt).toLocaleString()}` : "No current session"}</span>
                   </p>
                 </div>
               </div>
@@ -400,13 +378,13 @@ export const SettingsScreen: React.FC = () => {
               {/* Right side phone graphic with checkmark */}
               <div className="flex items-center gap-2 relative z-10 shrink-0">
                 <div className="w-9 h-13 rounded-lg border-2 border-emerald-500 bg-white shadow-xs flex items-center justify-center">
-                  <CheckCircle2 className="w-4.5 h-4.5 text-emerald-600 fill-emerald-100" />
+                  {currentDevice ? <CheckCircle2 className="w-4.5 h-4.5 text-emerald-600 fill-emerald-100" /> : <Info className="w-4.5 h-4.5 text-slate-400" />}
                 </div>
                 <ChevronRight className="w-4 h-4 text-slate-400" />
               </div>
             </div>
 
-            {/* Friends Plan Promo Card */}
+            {/* Server-derived subscription and Seat summary */}
             <div className="bg-white rounded-xl p-3.5 border border-slate-100 shadow-2xs space-y-2.5">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -414,50 +392,32 @@ export const SettingsScreen: React.FC = () => {
                     <Users className="w-4.5 h-4.5" />
                   </div>
                   <div className="min-w-0">
-                    <h4 className="text-[12.5px] font-bold text-slate-900 leading-tight">
-                      Need to use more devices?
-                    </h4>
-                    <p className="text-[10.5px] text-slate-500 mt-0.5 leading-relaxed">
-                      Upgrade to <span className="font-semibold text-slate-700">Friends Plan</span> to add extra seats for your other devices or share with friends.
-                    </p>
+                    <h4 className="text-[12.5px] font-bold text-slate-900 leading-tight">Current Semester Offering</h4>
+                    <p className="text-[10.5px] text-slate-500 mt-0.5 leading-relaxed">{profile.plan || "No current Offering or Seat data returned."}</p>
                   </div>
                 </div>
                 <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[9px] font-extrabold uppercase shrink-0 border border-emerald-100">
-                  Friends Plan
+                  {commercialQuery.data?.canAccess ? "Access active" : "No active access"}
                 </span>
               </div>
 
-              {/* Feature pills & CTA */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-1 border-t border-slate-50">
                 <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-[10.5px] font-medium text-slate-600">
                   <div className="flex items-center gap-1">
-                    <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 text-white flex items-center justify-center">
-                      <Check className="w-2.5 h-2.5 stroke-3" />
-                    </span>
-                    <span>Multiple devices</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                    <span>{currentDevice?.slot ? `${currentDevice.slot} slot` : "Device slot unavailable"}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 text-white flex items-center justify-center">
-                      <Check className="w-2.5 h-2.5 stroke-3" />
-                    </span>
-                    <span>Extra seats</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                    <span>{commercialQuery.data?.seatStatus ?? "No assigned Seat"}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 text-white flex items-center justify-center">
-                      <Check className="w-2.5 h-2.5 stroke-3" />
-                    </span>
-                    <span>Learn together</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                    <span>{commercialQuery.data?.semesterOffering?.title ?? "No Offering"}</span>
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleOpenUpgradePlan}
-                  className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold flex items-center justify-center gap-1.5 shadow-2xs transition-colors shrink-0 cursor-pointer"
-                >
-                  <span>Upgrade Plan</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                <span className="text-[10px] text-slate-500">Seat changes are managed by Admin.</span>
               </div>
             </div>
           </div>
@@ -467,7 +427,7 @@ export const SettingsScreen: React.FC = () => {
         <div className="space-y-1.5">
           <div className="px-0.5">
             <h3 className="text-[13.5px] font-bold text-slate-900">Notifications</h3>
-            <p className="text-[11px] text-slate-400">Choose what you want to be notified about.</p>
+            <p className="text-[11px] text-slate-400">Persist your in-app notification preferences.</p>
           </div>
           <button
             type="button"
@@ -483,7 +443,7 @@ export const SettingsScreen: React.FC = () => {
                   Notification Preferences
                 </h4>
                 <p className="text-[10.5px] text-slate-400 mt-0.5">
-                  Course updates, deadlines, and more
+                  Delivery depends on notifications enabled by the platform
                 </p>
               </div>
             </div>
@@ -499,7 +459,15 @@ export const SettingsScreen: React.FC = () => {
           </div>
           <button
             type="button"
-            onClick={() => showToast("Preparing your learning data export...")}
+            onClick={() => {
+              if (isExportingData) return;
+              setIsExportingData(true);
+              void downloadStudentAccountData()
+                .then(() => showToast("Your account data download is ready."))
+                .catch((error) => showToast(error instanceof Error ? error.message : "Your account data could not be exported."))
+                .finally(() => setIsExportingData(false));
+            }}
+            disabled={isExportingData}
             className="w-full bg-white rounded-xl p-3 flex items-center justify-between border border-slate-100 shadow-2xs hover:bg-slate-50/70 transition-colors text-left cursor-pointer"
           >
             <div className="flex items-center gap-3 min-w-0">
@@ -511,7 +479,7 @@ export const SettingsScreen: React.FC = () => {
                   Download My Data
                 </h4>
                 <p className="text-[10.5px] text-slate-400 mt-0.5">
-                  Get a copy of your learning data
+                  Download profile, progress, assignments, and issued-certificate records as JSON.
                 </p>
               </div>
             </div>
@@ -606,7 +574,7 @@ export const SettingsScreen: React.FC = () => {
               Are you sure you want to log out?
             </h4>
             <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
-              Your offline documents and reading progress will remain saved.
+              Your account records remain available when you sign in again.
             </p>
           </div>
           <div className="flex items-center gap-2 pt-2">
@@ -620,7 +588,7 @@ export const SettingsScreen: React.FC = () => {
             <button
               type="button"
               onClick={() => {
-                window.location.href = "/";
+                void studentSettingsApi.logoutCurrentSession().then(()=>{auth.signOut();window.location.assign("/auth/sign-in");}).catch(error=>showToast(error instanceof Error?error.message:"Sign out failed."));
               }}
               className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white transition-colors cursor-pointer shadow-2xs"
             >
@@ -632,29 +600,58 @@ export const SettingsScreen: React.FC = () => {
     </div>
   );
 };
-
 interface ProfileFields {
   fullName: string;
   email: string;
   phoneNumber: string;
-  quote: string;
 }
 
 // Sub-screen 1: Edit Profile
 const EditProfileSubScreen: React.FC<{
   profile: ProfileFields;
-  onSave: (updates: Partial<ProfileFields>) => void;
-}> = ({ profile, onSave }) => {
+  onSave: (updates: Partial<ProfileFields>) => Promise<void>;
+  onEmailLinked: () => Promise<void>;
+}> = ({ profile, onSave, onEmailLinked }) => {
   const { pop } = useScreenStack();
   const [fullName, setFullName] = useState(profile.fullName);
-  const [email, setEmail] = useState(profile.email);
   const [phoneNumber, setPhoneNumber] = useState(profile.phoneNumber);
-  const [quote, setQuote] = useState(profile.quote);
+  const [emailToLink,setEmailToLink]=useState("");
+  const [emailCode,setEmailCode]=useState("");
+  const [emailStage,setEmailStage]=useState<"idle"|"current"|"new">("idle");
+  const [challengeId,setChallengeId]=useState("");
+  const [linkTicket,setLinkTicket]=useState("");
+  const [error,setError]=useState("");
+  const [saving,setSaving]=useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ fullName, email, phoneNumber, quote });
-    pop();
+    setSaving(true);setError("");
+    try{await onSave({ fullName, phoneNumber });pop();}catch(value){setError(value instanceof Error?value.message:"Profile update failed.");}finally{setSaving(false);}
+  };
+
+  const startEmailVerification=async()=>{
+    setError("");
+    try{
+      const methods=await getStudentAuthMethods();
+      const currentEmail=methods.verifiedEmail;
+      if(currentEmail&&currentEmail.toLowerCase()===emailToLink.trim().toLowerCase()){setError("Enter a different email address to change your login email.");return;}
+      if(currentEmail){if(!methods.brandCode){setError("Your account brand could not be verified. Refresh your session and try again.");return;}const challenge=await initiateOtpLogin({email:currentEmail,brand:methods.brandCode});setChallengeId(challenge.challengeId);setEmailStage("current");}
+      else{const link=await initiateStudentEmailLink(emailToLink.trim());setLinkTicket(link.linkTicket);setEmailStage("new");}
+    }catch(value){setError(value instanceof Error?value.message:"Unable to start email verification.");}
+  };
+
+  const verifyEmailCode=async()=>{
+    if(!/^\d{8}$/.test(emailCode)){setError("Enter the 8-digit code sent to your email.");return;}
+    try{
+      if(emailStage==="current"){
+        const proof=await verifyOtpProof({challengeId,code:emailCode});
+        const link=await initiateStudentEmailLink(emailToLink.trim(),proof.accessToken);
+        setLinkTicket(link.linkTicket);setEmailStage("new");setEmailCode("");
+      }else if(emailStage==="new"){
+        await completeStudentEmailLink({linkTicket,code:emailCode});
+        setEmailStage("idle");setEmailCode("");setEmailToLink("");await onEmailLinked();
+      }
+    }catch(value){setError(value instanceof Error?value.message:"Email verification failed.");}
   };
 
   return (
@@ -672,11 +669,11 @@ const EditProfileSubScreen: React.FC<{
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Email</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Verified login email</label>
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+                value={profile.email}
+                readOnly
               className="w-full px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs focus:outline-emerald-500"
             />
           </div>
@@ -689,42 +686,40 @@ const EditProfileSubScreen: React.FC<{
               className="w-full px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs focus:outline-emerald-500"
             />
           </div>
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Inspirational Quote</label>
-            <textarea
-              rows={2}
-              value={quote}
-              onChange={(e) => setQuote(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs focus:outline-emerald-500"
-            />
-          </div>
+          <p className="text-[10px] text-slate-500">Academic placement and Student Code are managed by the institution.</p>
+        </div>
+
+        <div className="bg-white rounded-3xl border border-slate-100 p-4 space-y-3 shadow-2xs">
+          <div><h3 className="text-xs font-bold text-slate-800">Link or change verified email</h3><p className="text-[10.5px] text-slate-500 mt-1">Ownership is verified by email code. The email is not changed until verification succeeds.</p></div>
+          {emailStage==="idle"?<div className="flex gap-2"><input type="email" value={emailToLink} onChange={event=>setEmailToLink(event.target.value)} placeholder="Your real email address" className="min-w-0 flex-1 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs focus:outline-emerald-500"/><button type="button" disabled={!emailToLink.trim()} onClick={()=>void startEmailVerification()} className="px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold disabled:opacity-50">Send code</button></div>:<div className="flex gap-2"><input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={emailCode} onChange={event=>setEmailCode(event.target.value.replace(/\D/g,""))} placeholder={emailStage==="current"?"Code to current email":"Code to new email"} className="min-w-0 flex-1 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs focus:outline-emerald-500"/><button type="button" onClick={()=>void verifyEmailCode()} className="px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold">{emailStage==="current"?"Continue":"Verify email"}</button></div>}
+          {error&&<p role="alert" className="text-xs text-rose-600">{error}</p>}
         </div>
 
         <button
           type="submit"
+          disabled={saving}
           className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
         >
-          Save Profile Changes
+          {saving?"Saving…":"Save Profile Changes"}
         </button>
       </form>
     </div>
   );
 };
-
 // Sub-screen 2: Notification Preferences
 const NotificationPreferencesSubScreen: React.FC<{
   prefs: Record<string, boolean>;
-  onChange: (key: string, val: boolean) => void;
+  onChange: (key: "deadlines" | "lessonReminders" | "directMessages" | "mentions" | "systemSecurity", val: boolean) => void | Promise<void>;
 }> = ({ prefs, onChange }) => {
   const { pop } = useScreenStack();
 
   const items = [
-    { key: "deadlines", title: "Assignment Deadlines", desc: "Alerts 24 hours and 2 hours before due time" },
-    { key: "lessonReminders", title: "Daily Reading Reminders", desc: "Nudges to keep your study streak alive" },
-    { key: "directMessages", title: "Direct Messages", desc: "Instant notifications for messages from professors" },
-    { key: "mentions", title: "Community Mentions", desc: "When someone mentions you in a study group thread" },
-    { key: "systemSecurity", title: "Security Alerts", desc: "New login notices and critical platform updates" },
-  ];
+    { key: "deadlines", title: "Assignment Deadlines", desc: "Preference saved; notification delivery is not enabled by this setting alone." },
+    { key: "lessonReminders", title: "Lesson Reminders", desc: "Preference saved; the platform does not currently generate study reminders." },
+    { key: "directMessages", title: "Direct Messages", desc: "Preference saved for future in-app message notifications." },
+    { key: "mentions", title: "Community Mentions", desc: "Preference saved for future in-app community notifications." },
+    { key: "systemSecurity", title: "Security Alerts", desc: "Preference saved for future in-app security notifications." },
+  ] as const;
 
   return (
     <div className="flex-1 flex flex-col min-h-0 w-full bg-slate-50/50">
@@ -753,143 +748,6 @@ const NotificationPreferencesSubScreen: React.FC<{
             </div>
           ))}
         </div>
-      </div>
-    </div>
-  );
-};
-
-// Sub-screen 3: Change Password
-const ChangePasswordSubScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
-  const { pop } = useScreenStack();
-  const [currentPass, setCurrentPass] = useState("");
-  const [newPass, setNewPass] = useState("");
-  const [confirmPass, setConfirmPass] = useState("");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onComplete();
-    pop();
-  };
-
-  return (
-    <div className="flex-1 flex flex-col min-h-0 w-full bg-slate-50/50">
-      <TopAppBar variant="detail" title="Change Password" backLabel="Settings" onBack={pop} />
-      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 space-y-4 max-w-lg mx-auto w-full pb-16">
-        <div className="bg-white rounded-3xl border border-slate-100 p-4 space-y-3 shadow-2xs">
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Current Password</label>
-            <input
-              type="password"
-              value={currentPass}
-              onChange={(e) => setCurrentPass(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs focus:outline-emerald-500"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">New Password</label>
-            <input
-              type="password"
-              value={newPass}
-              onChange={(e) => setNewPass(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs focus:outline-emerald-500"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Confirm New Password</label>
-            <input
-              type="password"
-              value={confirmPass}
-              onChange={(e) => setConfirmPass(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs focus:outline-emerald-500"
-            />
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
-        >
-          Update Password
-        </button>
-      </form>
-    </div>
-  );
-};
-
-// Sub-screen 4: Upgrade Plan
-const UpgradePlanSubScreen: React.FC<{ onSelectPlan: (plan: string) => void }> = ({ onSelectPlan }) => {
-  const { pop } = useScreenStack();
-
-  const plans = [
-    {
-      name: "Individual Plan",
-      price: "Free",
-      period: "Current Plan",
-      features: ["Single device active session", "Standard document reader", "Community discussion access"],
-      current: true,
-    },
-    {
-      name: "Friends & Study Group",
-      price: "$9.99",
-      period: "/ month",
-      features: ["Up to 4 concurrent devices", "Offline document downloading", "Priority mentor messaging", "Shared group notes"],
-      current: false,
-    },
-  ];
-
-  return (
-    <div className="flex-1 flex flex-col min-h-0 w-full bg-slate-50/50">
-      <TopAppBar variant="detail" title="Upgrade Plan" backLabel="Settings" onBack={pop} />
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-lg mx-auto w-full pb-16">
-        {plans.map((p) => (
-          <div
-            key={p.name}
-            className={`p-4 rounded-3xl border transition-all ${
-              p.current
-                ? "bg-white border-slate-200/90 shadow-2xs"
-                : "bg-linear-to-b from-emerald-50/60 to-white border-emerald-300 shadow-sm"
-            }`}
-          >
-            <div className="flex items-start justify-between">
-              <div>
-                <h4 className="text-sm font-bold text-slate-900">{p.name}</h4>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  <span className="text-base font-extrabold text-slate-900">{p.price}</span> {p.period}
-                </p>
-              </div>
-              {p.current && (
-                <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10.5px] font-bold">
-                  Active
-                </span>
-              )}
-            </div>
-
-            <ul className="mt-3.5 space-y-1.5 text-xs text-slate-600">
-              {p.features.map((f, i) => (
-                <li key={i} className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>{f}</span>
-                </li>
-              ))}
-            </ul>
-
-            {!p.current && (
-              <button
-                type="button"
-                onClick={() => {
-                  onSelectPlan(p.name);
-                  pop();
-                }}
-                className="mt-4 w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
-              >
-                Upgrade to {p.name}
-              </button>
-            )}
-          </div>
-        ))}
       </div>
     </div>
   );

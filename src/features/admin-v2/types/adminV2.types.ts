@@ -1,6 +1,6 @@
 export type BrandCode = "medway" | "elite" | "nexus";
 export type BrandFilter = "all" | BrandCode;
-export type AccountStatus = "Pending Payment" | "Active" | "Suspended" | "Payment Rejected" | "Inactive";
+export type AccountStatus = "Pending" | "Pending Payment" | "Active" | "Suspended" | "Payment Rejected" | "Inactive";
 export type CourseStatus = "Published" | "Draft" | "Archived";
 export type SubscriptionStatus = "Pending Payment" | "Active" | "Payment Rejected" | "Expired" | "Expiring Soon" | "Cancelled" | "Past Due";
 export type PaymentStatus = "Pending Verification" | "Approved" | "Rejected";
@@ -9,7 +9,7 @@ export type SessionStatus = "Active" | "Revoked";
 export type AuditEventStatus = "Info" | "Success" | "Warning" | "Critical";
 export type DeviceCategory = "Mobile" | "Additional device";
 export type DeviceType = "Phone" | "PC / laptop" | "Tablet";
-export type RecordStatus = "Active" | "Published" | "Draft" | "Archived" | "Suspended" | "Inactive" | "Pending" | "Pending Payment" | "Pending Review" | "Payment Rejected" | "Pending Verification" | "Expiring Soon" | "Expired" | "Cancelled" | "Past Due" | "Revoked" | "Replacement Pending" | "Approved" | "Rejected" | "Withdrawn";
+export type RecordStatus = "Active" | "Published" | "Draft" | "Archived" | "Closed" | "Suspended" | "Inactive" | "Pending" | "Pending Payment" | "Pending Review" | "Payment Rejected" | "Pending Verification" | "Expiring Soon" | "Expired" | "Cancelled" | "Past Due" | "Revoked" | "Replacement Pending" | "Approved" | "Rejected" | "Withdrawn" | "Submitted" | "Reviewed" | "Returned";
 
 export type InstructorStatus = "Active" | "Inactive";
 export interface InstructorRecord {
@@ -33,10 +33,10 @@ export interface CourseRecord {
   version?: number; code?: string; brandId?: string; academicInstitutionId?: string | null; cataloguePresentation?: "module_based" | "subject_based";
 }
 
-export interface InstitutionRecord { id: string; name: string; shortName: string; status: "Active" | "Archived"; }
+export interface InstitutionRecord { id: string; name: string; shortName: string; status: "Active" | "Archived"; version?:number; }
 export interface CurriculumRecord { id: string; institutionId: string; title: string; status: "Approved" | "Draft"; updatedAt: string; }
-export interface AcademicYearRecord { id: string; curriculumId: string; title: string; order: number; status: "Active" | "Archived"; version?: number; }
-export interface SemesterRecord { id: string; academicYearId: string; title: string; order: number; status: "Active" | "Archived"; version?: number; }
+export interface AcademicYearRecord { id: string; curriculumId: string; title: string; order: number; levelNumber?:number; status: "Active" | "Archived"; version?: number; }
+export interface SemesterRecord { id: string; academicYearId: string; title: string; order: number; semesterNumber?:number; status: "Active" | "Archived"; version?: number; }
 export interface CurriculumUnitRecord {
   id: string; institutionId: string; academicYearId: string; semesterId: string; type: "Subject" | "Module";
   code: string; title: string; description: string; status: "Approved" | "Draft" | "Archived"; credits?: number; order: number; version?: number;
@@ -57,13 +57,14 @@ export interface ContentResource {
   fileSize: number; mimeType: string; durationSeconds?: number; pageCount?: number; status: ContentResourceStatus;
   createdAt: string; updatedAt: string; releaseAt: string | null; visibility: "Visible" | "Hidden";
   brandId?: string; courseId?: string; version?: number; mediaAssetId?: string | null;
+  mediaVersion?: number; maxCompletedViews?: number;
   uploadStatus?: "not_uploaded" | "pending_upload" | "uploaded" | "verified" | "published" | "withdrawn" | "failed";
   backendStatus?: "draft" | "published" | "archived";
   resourceKind?: "video" | "document";
 }
 export interface StudentRecord {
   id: string; accountIdentifier: string; setupCode?: string; fullName: string; email: string; phone?: string; brand: BrandCode;
-  institution: "BUC" | "Delta"; academicLevel: string; semester: string; program: string;
+  institution: string; academicInstitutionId?: string | null; academicLevel: string; academicLevelId?: string | null; semester: string; academicSemesterId?: string | null; program: string; activeDeviceCount?: number;
   status: AccountStatus; createdAt: string; lastActivity: string;
 }
 export interface SubscriptionPlan { id: "individual" | "trio" | "group"; name: string; capacity: 1 | 3 | 5; amount: number; currency: "EGP"; termMonths: 12; }
@@ -103,5 +104,5 @@ export interface AdminV2Data {
 
 export interface StudentDraft {
   fullName: string; accountIdentifier: string; email: string; phone?: string; brand: BrandCode; institution: "BUC" | "Delta";
-  academicLevel: string; semester: string; program: string;
+  academicInstitutionId?: string; academicLevel: string; academicLevelId?: string; academicLevelNumber: number; academicSemesterId?: string; academicSemesterNumber: number; academicInstitutionCode: "buc" | "delta"; semester: string; program: string;
 }

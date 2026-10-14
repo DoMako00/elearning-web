@@ -26,16 +26,16 @@ import { CategoryChipsRow } from "../shared/CategoryChipsRow";
 import { SectionHeader } from "../shared/SectionHeader";
 import { ReminderRow } from "../shared/ReminderRow";
 import { MobileToast } from "../shared/MobileToast";
-import { FileAttachmentPicker, AttachedFile } from "../shared/FileAttachmentPicker";
 import { ChatConversationScreen } from "./ChatConversationScreen";
+import { MessagesListScreen } from "./MessagesListScreen";
 import {
   HELP_CATEGORIES,
   POPULAR_SEARCH_TAGS,
-  RECENT_SUPPORT_TICKETS,
-  POPULAR_ARTICLES,
   ALL_CATEGORY_ARTICLES,
+  getHelpCategoryArticleCount,
 } from "../../../features/help/data/helpCenterData";
 import type { SupportTicket, HelpArticle } from "../../../types/help";
+import { useStudentConversations, useStudentMessageMutations } from "../../../features/student/api/useStudentMessages";
 import emptyLearningJourney from "../../../Assets/empty-learning-journey.webp";
 
 // Map icon names from data to Lucide icons
@@ -52,10 +52,21 @@ const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>
 
 export const HelpCenterScreen: React.FC = () => {
   const { push } = useScreenStack();
+  const conversationsQuery = useStudentConversations();
+  const messageMutations = useStudentMessageMutations();
   const [searchQuery, setSearchQuery] = useState("");
   const [activePopularTag, setActivePopularTag] = useState<string>("all");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [ticketsList, setTicketsList] = useState<SupportTicket[]>(RECENT_SUPPORT_TICKETS);
+  const ticketsList: SupportTicket[] = (conversationsQuery.data ?? []).filter(item => item.type === "admin_support").map(item => ({
+    id: item.id,
+    ticketNumber: `#${item.id.slice(0, 8).toUpperCase()}`,
+    title: item.title,
+    status: item.status === "open" ? "Open" : "Resolved",
+    createdAt: new Date(item.updatedAt).toLocaleString(),
+    category: "Support",
+    description: item.lastMessage?.body,
+    iconType: "file-text",
+  }));
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -91,18 +102,19 @@ export const HelpCenterScreen: React.FC = () => {
       backLabel: "Help",
       component: (
         <SubmitTicketSubScreen
-          onSubmitTicket={(newTicket) => {
-            setTicketsList((prev) => [newTicket, ...prev]);
-            showToast("Ticket submitted — we'll get back to you soon.");
-            // Deep link / push to the newly created ticket detail
+          onSubmitTicket={async (newTicket) => {
+            const conversation = await messageMutations.startSupport.mutateAsync({ subject: `${newTicket.category}: ${newTicket.title}`.slice(0, 240), body: newTicket.description ?? "" });
+            showToast("Support conversation saved. Replies will appear in Messages.");
+            const savedTicket: SupportTicket = { id: conversation.id, ticketNumber: `#${conversation.id.slice(0, 8).toUpperCase()}`, title: conversation.title, status: conversation.status === "open" ? "Open" : "Resolved", createdAt: new Date(conversation.updatedAt).toLocaleString(), category: "Support", description: conversation.lastMessage?.body, iconType: "file-text" };
             push({
-              id: `help-ticket-${newTicket.id}`,
-              title: newTicket.ticketNumber,
+              id: `help-ticket-${conversation.id}`,
+              title: savedTicket.ticketNumber,
               tabRoot: "settings",
               variant: "detail",
               backLabel: "Help",
-              component: <TicketDetailSubScreen ticket={newTicket} />,
+              component: <ChatConversationScreen conversationId={conversation.id} backLabel="Help" />,
             });
+            return savedTicket;
           }}
         />
       ),
@@ -117,7 +129,7 @@ export const HelpCenterScreen: React.FC = () => {
       tabRoot: "settings",
       variant: "detail",
       backLabel: "Help",
-      component: <TicketDetailSubScreen ticket={ticket} />,
+      component: <ChatConversationScreen conversationId={ticket.id} backLabel="Help" />,
     });
   };
 
@@ -138,23 +150,15 @@ export const HelpCenterScreen: React.FC = () => {
     });
   };
 
-  // Navigate to Support Chat (seeded with c6)
+  // Open the persisted conversation list; no synthetic support thread is created.
   const handleOpenSupportChat = () => {
     push({
-      id: "chat-c6",
-      title: "GreenLearn Support",
+      id: "messages-list",
+      title: "Messages",
       tabRoot: "settings",
       variant: "detail",
       backLabel: "Help",
-      component: (
-        <ChatConversationScreen
-          conversationId="c6"
-          initialName="GreenLearn Support"
-          initialRole="Platform Help & Student Success"
-          initialInitials="GL"
-          backLabel="Help"
-        />
-      ),
+      component: <MessagesListScreen />,
     });
   };
 
@@ -265,6 +269,9 @@ export const HelpCenterScreen: React.FC = () => {
               onAction={handleOpenNewTicket}
             />
             <div className="space-y-2">
+              {conversationsQuery.isPending && <p role="status" className="px-2 py-3 text-xs text-slate-500">Loading saved support conversations…</p>}
+              {conversationsQuery.isError && <p role="alert" className="px-2 py-3 text-xs text-rose-700">Support conversations could not be loaded. <button type="button" onClick={() => void conversationsQuery.refetch()}>Retry</button></p>}
+              {!conversationsQuery.isPending && !conversationsQuery.isError && ticketsList.length === 0 && <p className="px-2 py-3 text-xs text-slate-500">No saved support conversations.</p>}
               {ticketsList.slice(0, 3).map((ticket) => {
                 const statusColor =
                   ticket.status === "Open"
@@ -322,7 +329,7 @@ export const HelpCenterScreen: React.FC = () => {
                       </p>
                     </div>
                     <div className="mt-2.5 pt-2 border-t border-slate-50 flex items-center justify-between text-[10px] text-emerald-700 font-semibold">
-                      <span>{category.articleCount || 10} articles</span>
+                      <span>{getHelpCategoryArticleCount(category.id)} articles</span>
                       <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-emerald-600 transition-colors" />
                     </div>
                   </button>
@@ -336,13 +343,13 @@ export const HelpCenterScreen: React.FC = () => {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5 text-emerald-200 text-[11px] font-bold uppercase tracking-wider">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Live Support Desk</span>
+                <span>Student Support Messages</span>
               </div>
               <h3 className="text-sm font-bold text-white mt-1">
-                Need more help? Start Chat
+                Need more help? Open Messages
               </h3>
               <p className="text-xs text-emerald-100/80 mt-0.5 leading-relaxed">
-                Connect directly with our student support team.
+                Send a message that is saved to your support conversation.
               </p>
             </div>
             <button
@@ -350,7 +357,7 @@ export const HelpCenterScreen: React.FC = () => {
               onClick={handleOpenSupportChat}
               className="px-3.5 py-2 rounded-xl bg-white text-emerald-800 hover:bg-emerald-50 text-xs font-bold shadow-xs transition-colors shrink-0 cursor-pointer"
             >
-              Start Chat
+              Open Messages
             </button>
           </div>
         </div>
@@ -365,34 +372,26 @@ export const HelpCenterScreen: React.FC = () => {
 
 // Sub-screen 1: Submit Ticket Screen
 export const SubmitTicketSubScreen: React.FC<{
-  onSubmitTicket: (ticket: SupportTicket) => void;
+  onSubmitTicket: (ticket: SupportTicket) => Promise<SupportTicket>;
 }> = ({ onSubmitTicket }) => {
   const { pop } = useScreenStack();
   const [category, setCategory] = useState("Technical Issues");
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
-  const [attachments, setAttachments] = useState<AttachedFile[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!description.trim()) return;
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      const newTicket: SupportTicket = {
-        id: `tick-${Date.now()}`,
-        ticketNumber: `#GL-${Math.floor(1000 + Math.random() * 9000)}`,
-        title: subject.trim() || `${category} Support Request`,
-        status: "Open",
-        createdAt: "Just now",
-        category,
-        description: description.trim(),
-        iconType: category === "Technical Issues" ? "video" : "file-text",
-      };
-      setIsSubmitting(false);
-      onSubmitTicket(newTicket);
-    }, 400);
+    setErrorMessage("");
+    try {
+      await onSubmitTicket({ id: "", ticketNumber: "", title: subject.trim() || `${category} Support Request`, status: "Open", createdAt: "", category, description: description.trim(), iconType: category === "Technical Issues" ? "video" : "file-text" });
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Your support message could not be sent.");
+    } finally { setIsSubmitting(false); }
   };
 
   return (
@@ -456,21 +455,15 @@ export const SubmitTicketSubScreen: React.FC<{
             />
           </div>
 
-          {/* FileAttachmentPicker */}
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">
-              Attachments (optional)
+              Attachments
             </label>
-            <FileAttachmentPicker
-              attachments={attachments}
-              onAddAttachment={(file) => setAttachments((prev) => [...prev, file])}
-              onRemoveAttachment={(id) =>
-                setAttachments((prev) => prev.filter((a) => a.id !== id))
-              }
-              maxFiles={3}
-            />
+            <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-3 text-xs text-slate-500">Attachments are not supported by the current support messaging API.</p>
           </div>
         </div>
+
+        {errorMessage && <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">{errorMessage}</p>}
 
         <button
           type="submit"
@@ -583,7 +576,7 @@ export const CategoryArticlesSubScreen: React.FC<{
 }> = ({ categoryId, categoryTitle }) => {
   const { pop, push } = useScreenStack();
 
-  const articles = ALL_CATEGORY_ARTICLES[categoryId] || POPULAR_ARTICLES.slice(0, 3);
+  const articles = ALL_CATEGORY_ARTICLES[categoryId] ?? [];
 
   const handleOpenArticle = (article: HelpArticle) => {
     push({
@@ -626,9 +619,7 @@ export const CategoryArticlesSubScreen: React.FC<{
                   {art.description}
                 </p>
                 <div className="flex items-center gap-3 mt-2 text-[10px] text-slate-400">
-                  <span>{art.readTime || "3 min read"}</span>
-                  <span>·</span>
-                  <span>{art.lastUpdated || "Recently updated"}</span>
+                  <span>{art.readTime}</span>
                 </div>
               </div>
               <ChevronRight className="w-4 h-4 text-slate-300 shrink-0 mt-1" />
@@ -661,14 +652,11 @@ export const ArticleDetailSubScreen: React.FC<{
         <div className="bg-white rounded-3xl border border-slate-100 p-5 space-y-4 shadow-2xs">
           <div>
             <span className="inline-block px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10.5px] font-bold border border-emerald-200/50 mb-2">
-              {article.readTime || "3 min read"}
+              {article.readTime}
             </span>
             <h1 className="text-base sm:text-lg font-extrabold text-slate-900 leading-snug">
               {article.title}
             </h1>
-            <p className="text-xs text-slate-400 mt-1">
-              Updated {article.lastUpdated || "2 days ago"} · {article.views || "12.4k"} views
-            </p>
           </div>
 
           {/* Overview text */}

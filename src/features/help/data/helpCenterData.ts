@@ -1,4 +1,4 @@
-import type { HelpCategory, HelpArticle, SupportTicket, HelpResourceLink } from "../../../types/help";
+import type { HelpCategory, HelpArticle, HelpResourceLink } from "../../../types/help";
 
 export const POPULAR_SEARCH_TAGS: string[] = [
   "Video playback",
@@ -12,57 +12,49 @@ export const HELP_CATEGORIES: HelpCategory[] = [
   {
     id: "account-login",
     title: "Account & Login",
-    description: "Manage your account, password, verification, and access issues.",
-    articleCount: 12,
+    description: "Manage account activation, email verification, and access issues.",
     iconName: "User",
   },
   {
     id: "courses-learning",
     title: "Courses & Learning",
     description: "Access courses, track progress, lessons, and learning tools.",
-    articleCount: 18,
     iconName: "BookOpen",
   },
   {
     id: "payments-subscriptions",
     title: "Payments & Subscriptions",
-    description: "Billing, refunds, plans, discounts, and subscription management.",
-    articleCount: 10,
+    description: "Manual payment review, offerings, and subscription access.",
     iconName: "CreditCard",
   },
   {
     id: "technical-issues",
     title: "Technical Issues",
     description: "Video playback, browser issues, errors, and performance.",
-    articleCount: 16,
     iconName: "Settings2",
   },
   {
     id: "assignments-exams",
     title: "Assignments & Exams",
     description: "Submitting work, grades, quiz issues, and deadlines.",
-    articleCount: 9,
     iconName: "FileText",
   },
   {
     id: "certificates",
     title: "Certificates",
     description: "How to earn, download, and verify your certificates.",
-    articleCount: 6,
     iconName: "Award",
   },
   {
     id: "community-messages",
     title: "Community & Messages",
     description: "Discussions, messaging, study groups, and reporting.",
-    articleCount: 7,
     iconName: "Users",
   },
   {
     id: "other",
     title: "Other",
     description: "Anything else you need help with.",
-    articleCount: 5,
     iconName: "MoreHorizontal",
   },
 ];
@@ -75,8 +67,6 @@ export const POPULAR_ARTICLES: HelpArticle[] = [
     description: "Troubleshooting video playback issues.",
     iconName: "PlayCircle",
     readTime: "3 min read",
-    lastUpdated: "2 days ago",
-    views: "14.2k",
     isPopular: true,
     content: {
       overview:
@@ -85,7 +75,7 @@ export const POPULAR_ARTICLES: HelpArticle[] = [
         {
           stepNumber: 1,
           title: "Check your Internet connection",
-          description: "Ensure you have a continuous download speed of at least 5 Mbps for HD video playback."
+          description: "Check that your connection is stable, then try the protected player again."
         },
         {
           stepNumber: 2,
@@ -95,7 +85,7 @@ export const POPULAR_ARTICLES: HelpArticle[] = [
         {
           stepNumber: 3,
           title: "Disable conflicting browser extensions",
-          description: "Ad blockers or script blockers may intercept secure DRM video streaming endpoints."
+          description: "Privacy or script-blocking extensions may interfere with protected media playback."
         },
         {
           stepNumber: 4,
@@ -105,7 +95,7 @@ export const POPULAR_ARTICLES: HelpArticle[] = [
       ],
       callout: {
         type: "tip",
-        text: "Using Google Chrome or Firefox provides the smoothest DRM video playback experience on desktop."
+        text: "Keep your browser updated. Protected media availability is controlled by the backend."
       },
       relatedArticleIds: ["art-3", "art-8"]
     }
@@ -113,41 +103,39 @@ export const POPULAR_ARTICLES: HelpArticle[] = [
   {
     id: "art-2",
     categoryId: "account-login",
-    title: "How to reset your password?",
-    description: "Recover access to your account.",
+    title: "How do I activate or sign in to my account?",
+    description: "Use the sign-in method that matches your account status.",
     iconName: "KeyRound",
     readTime: "2 min read",
-    lastUpdated: "1 week ago",
-    views: "9.8k",
     isPopular: true,
     content: {
       overview:
-        "If you forgot your password or are locked out, you can request a secure password reset link to your registered email address.",
+        "The platform does not use password sign-in. First-time Students claim their provisioned account with an Account Identifier and Setup Code. Returning Students and Admins use email verification codes.",
       steps: [
         {
           stepNumber: 1,
-          title: "Go to the Sign In screen",
-          description: "Click on 'Sign In' at the top right and select 'Forgot Password?' below the input fields."
+          title: "Open Sign In",
+          description: "Choose account activation if you are a Student signing in for the first time."
         },
         {
           stepNumber: 2,
-          title: "Enter your registered email address",
-          description: "Type in the email address connected with your GreenLearn student account and submit."
+          title: "Activate a provisioned Student account",
+          description: "Enter the Account Identifier and one-time Setup Code provided by the Admin. No email or phone is required for the first claim."
         },
         {
           stepNumber: 3,
-          title: "Check your inbox",
-          description: "Open the recovery email and click 'Reset My Password'. Links expire after 30 minutes for security."
+          title: "Sign in after activation",
+          description: "After a Student links and verifies a real email in Settings, future sign-in uses an email verification code. Admin sign-in also uses email verification."
         },
         {
           stepNumber: 4,
-          title: "Create a new strong password",
-          description: "Choose a password that is at least 8 characters long, containing a mix of letters, numbers, and symbols."
+          title: "Keep the Setup Code private",
+          description: "The one-time Setup Code is only for first-time activation. Contact an Admin if the code expires or was already used."
         }
       ],
       callout: {
-        type: "warning",
-        text: "Make sure to check your Spam or Promotions folder if you don't receive the reset email within 2 minutes."
+        type: "note",
+        text: "An Account Identifier is not a mailbox and must never be used as an OTP destination."
       },
       relatedArticleIds: ["art-5", "art-6"]
     }
@@ -159,8 +147,6 @@ export const POPULAR_ARTICLES: HelpArticle[] = [
     description: "Supported browsers and device requirements.",
     iconName: "Laptop",
     readTime: "4 min read",
-    lastUpdated: "3 weeks ago",
-    views: "18.5k",
     isPopular: true,
     content: {
       overview:
@@ -179,7 +165,7 @@ export const POPULAR_ARTICLES: HelpArticle[] = [
         {
           stepNumber: 3,
           title: "Concurrent Device Policy",
-          description: "You can be signed in on up to 2 devices simultaneously on standard student plans."
+          description: "Student device slots follow the account policy. A full slot requires the authorized device replacement flow; it does not allow unlimited devices."
         }
       ],
       callout: {
@@ -196,8 +182,6 @@ export const POPULAR_ARTICLES: HelpArticle[] = [
     description: "Step-by-step guide with screenshots.",
     iconName: "FileCheck",
     readTime: "3 min read",
-    lastUpdated: "4 days ago",
-    views: "11.1k",
     isPopular: true,
     content: {
       overview:
@@ -211,7 +195,7 @@ export const POPULAR_ARTICLES: HelpArticle[] = [
         {
           stepNumber: 2,
           title: "Review submission requirements",
-          description: "Check accepted formats (PDF, DOCX, ZIP) and maximum allowed file size (50MB)."
+          description: "Check the accepted file types and size shown on the assignment form. Text submissions are also available when enabled for the assignment."
         },
         {
           stepNumber: 3,
@@ -221,12 +205,12 @@ export const POPULAR_ARTICLES: HelpArticle[] = [
         {
           stepNumber: 4,
           title: "Click 'Submit for Review'",
-          description: "Confirm your submission. Once submitted, your instructor will receive an alert."
+          description: "Confirm your submission. It is then available for authorized Admin review."
         }
       ],
       callout: {
         type: "tip",
-        text: "You can re-upload revisions before the final deadline passes unless locked by your instructor."
+        text: "The assignment’s saved availability and submission rules determine whether another submission is allowed."
       },
       relatedArticleIds: ["art-1", "art-6"]
     }
@@ -234,36 +218,34 @@ export const POPULAR_ARTICLES: HelpArticle[] = [
   {
     id: "art-5",
     categoryId: "payments-subscriptions",
-    title: "Can I get a refund?",
-    description: "Learn about our refund policy.",
+    title: "How are manual payments reviewed?",
+    description: "Understand what happens after an order is submitted.",
     iconName: "HelpCircle",
     readTime: "2 min read",
-    lastUpdated: "5 days ago",
-    views: "8.3k",
     isPopular: true,
     content: {
       overview:
-        "We offer a 14-day 100% money-back guarantee for all single course purchases and new annual subscriptions.",
+        "Payments are reviewed manually by an authorized Admin. Submitting an order does not activate a Subscription or grant course access.",
       steps: [
         {
           stepNumber: 1,
-          title: "Eligibility window",
-          description: "Refund requests must be submitted within 14 calendar days of payment."
+          title: "Order status",
+          description: "A newly submitted manual payment order is Pending Review until an authorized Admin reviews it."
         },
         {
           stepNumber: 2,
-          title: "Course completion limit",
-          description: "Course progress must be below 25% to qualify for an automatic refund."
+          title: "Payment evidence",
+          description: "Use only the payment details and evidence requested by the order form. Do not submit sensitive account credentials."
         },
         {
           stepNumber: 3,
-          title: "Requesting refund",
-          description: "Click 'Submit a support ticket' in the sidebar with category 'Payments & Subscriptions'."
+          title: "Access after review",
+          description: "Only successful manual approval can activate the associated Subscription and access."
         }
       ],
       callout: {
-        type: "warning",
-        text: "Refunds typically process back to your original payment method in 3-5 business days."
+        type: "note",
+        text: "There is no payment gateway, webhook, or automatic payment confirmation in this flow."
       },
       relatedArticleIds: ["art-7"]
     }
@@ -271,16 +253,14 @@ export const POPULAR_ARTICLES: HelpArticle[] = [
   {
     id: "art-6",
     categoryId: "account-login",
-    title: "How to change my email or phone?",
+    title: "How do I link or change my email?",
     description: "Update your contact information safely.",
     iconName: "MessageCircle",
     readTime: "3 min read",
-    lastUpdated: "2 weeks ago",
-    views: "6.9k",
     isPopular: true,
     content: {
       overview:
-        "Keep your account safe by ensuring your contact information is up to date.",
+        "A Student can link a real email after activating the provisioned account. Phone is optional contact information and is not used for sign-in or OTP.",
       steps: [
         {
           stepNumber: 1,
@@ -289,18 +269,18 @@ export const POPULAR_ARTICLES: HelpArticle[] = [
         },
         {
           stepNumber: 2,
-          title: "Update Email or Phone",
-          description: "Enter your new email address or phone number and click 'Save Changes'."
+          title: "Verify email ownership",
+          description: "Follow the email verification flow. The email becomes the login email only after successful verification."
         },
         {
           stepNumber: 3,
-          title: "Verify the change",
-          description: "A 6-digit confirmation code will be sent to your new email or phone number to confirm."
+          title: "Keep phone optional",
+          description: "Phone can be stored as contact data when supplied, but is never an authentication identity or OTP channel."
         }
       ],
       callout: {
-        type: "tip",
-        text: "If you lost access to your primary email, contact support via live chat for identity verification."
+        type: "note",
+        text: "Generated platform identifiers are not mailboxes and must never receive verification codes."
       },
       relatedArticleIds: ["art-2"]
     }
@@ -308,36 +288,34 @@ export const POPULAR_ARTICLES: HelpArticle[] = [
   {
     id: "art-7",
     categoryId: "payments-subscriptions",
-    title: "How does the Friends Plan work?",
-    description: "Add more seats and devices to your account.",
+    title: "How do multi-seat purchases work?",
+    description: "Understand capacity and pricing eligibility.",
     iconName: "Users",
     readTime: "3 min read",
-    lastUpdated: "1 month ago",
-    views: "5.4k",
     isPopular: true,
     content: {
       overview:
-        "The Friends & Family bundle allows up to 4 learners to share a discounted subscription while keeping individual course progress separate.",
+        "A purchase uses a Semester Offering and a supported capacity. Capacity alone does not qualify a purchase for friend pricing; any qualifying group discount must be confirmed for the actual purchasers.",
       steps: [
         {
           stepNumber: 1,
-          title: "Upgrade your tier",
-          description: "Choose 'Friends Plan' in the Billing section."
+          title: "Choose a supported capacity",
+          description: "Current capacities are 1, 3, or 5 seats. The selected Offering defines which included courses are covered."
         },
         {
           stepNumber: 2,
-          title: "Invite your members",
-          description: "Send invitation links to up to 3 email addresses."
+          title: "Assign eligible Students",
+          description: "Each Student must match the Offering's Brand, Institution, academic year, and semester."
         },
         {
           stepNumber: 3,
-          title: "Separate profiles & XP",
-          description: "Each member gets their own private XP, streak, certificates, and course progress."
+          title: "Confirm any group pricing",
+          description: "Friend pricing is not automatic; the Admin must confirm the purchase qualifies. Independent purchases use individual pricing."
         }
       ],
       callout: {
         type: "note",
-        text: "The primary account owner manages billing and member seats."
+        text: "Do not combine independent purchases or apply a group discount based only on the number of Students."
       },
       relatedArticleIds: ["art-5"]
     }
@@ -349,32 +327,30 @@ export const POPULAR_ARTICLES: HelpArticle[] = [
     description: "Download and verify your certificates.",
     iconName: "Award",
     readTime: "2 min read",
-    lastUpdated: "3 days ago",
-    views: "13.6k",
     isPopular: true,
     content: {
       overview:
-        "Earn verifiable digital certificates upon achieving a 100% completion rate and passing all module quizzes.",
+        "Certificates are issued by an authorized Admin. Course progress or assessment completion does not automatically create a certificate.",
       steps: [
         {
           stepNumber: 1,
           title: "Check course completion",
-          description: "Ensure all video lessons, readings, and quizzes have green checkmarks."
+          description: "Check your Profile for certificates that have actually been issued to your account."
         },
         {
           stepNumber: 2,
           title: "Visit Profile > Achievements",
-          description: "Your digital certificates are stored in your profile under the Achievements tab."
+          description: "Open the issued certificate from your Profile. Access is checked by the backend and the document is not a public URL."
         },
         {
           stepNumber: 3,
-          title: "Download PDF or copy verification link",
-          description: "Each certificate includes a unique verification hash and QR code shareable on LinkedIn."
+          title: "Open or download securely",
+          description: "The document is delivered through the authorized protected access flow."
         }
       ],
       callout: {
         type: "tip",
-        text: "Certificates are issued in high-res vector PDF format ready for printing."
+        text: "If no certificate is listed, none has been issued to the account."
       },
       relatedArticleIds: ["art-4"]
     }
@@ -386,32 +362,30 @@ export const POPULAR_ARTICLES: HelpArticle[] = [
     description: "Contact our support team.",
     iconName: "LifeBuoy",
     readTime: "1 min read",
-    lastUpdated: "Just now",
-    views: "22.1k",
     isPopular: true,
     content: {
       overview:
-        "Can't find what you're looking for? Our dedicated GreenLearn support specialists are standing by.",
+        "Can't find what you're looking for? Start a support conversation and continue it in Messages.",
       steps: [
         {
           stepNumber: 1,
-          title: "Start a Live Chat",
-          description: "Get real-time answers within 3 minutes during active support hours (9:00 AM – 9:00 PM GMT+3)."
+          title: "Start a support conversation",
+          description: "Use the support action to create a persisted conversation with the Admin support team."
         },
         {
           stepNumber: 2,
           title: "Submit a Ticket",
-          description: "Open an asynchronous support ticket with screenshots and diagnostic logs."
+          description: "Describe the issue in the support conversation. Use only supported secure attachment flows."
         },
         {
           stepNumber: 3,
-          title: "Community Forum",
-          description: "Ask mentors, instructors, and fellow students in the GreenLearn Community Hub."
+          title: "Student Community",
+          description: "Use the Brand- and Institution-scoped Community for Student discussions."
         }
       ],
       callout: {
         type: "note",
-        text: "Priority response is granted to urgent exam and payment questions."
+        text: "The platform does not promise a response time or priority service level."
       },
       relatedArticleIds: ["art-1", "art-5"]
     }
@@ -419,39 +393,38 @@ export const POPULAR_ARTICLES: HelpArticle[] = [
 ];
 
 export const ALL_CATEGORY_ARTICLES: Record<string, HelpArticle[]> = {
-  "account-login": [
-    POPULAR_ARTICLES[1], // How to reset your password?
-    POPULAR_ARTICLES[5], // How to change my email or phone?
+    "account-login": [
+    POPULAR_ARTICLES[1], // Account activation and sign-in
+    POPULAR_ARTICLES[5], // Verified email linking
     {
       id: "art-al-3",
       categoryId: "account-login",
-      title: "Setting up Two-Factor Authentication (2FA)",
-      description: "Protect your account with Google Authenticator or SMS codes.",
+      title: "Link a real email in Student Settings",
+      description: "Verify email ownership before using an email for returning Student sign-in.",
       iconName: "KeyRound",
       readTime: "3 min read",
-      lastUpdated: "1 week ago",
       content: {
-        overview: "Two-factor authentication adds an extra layer of security to your student profile.",
+        overview: "First-time activation does not require an email. After entering the Student area, link an email address that can receive verification codes.",
         steps: [
-          { stepNumber: 1, title: "Go to Security Settings", description: "Navigate to Profile > Settings > Security." },
-          { stepNumber: 2, title: "Scan the QR code", description: "Open Google Authenticator or Authy to scan the secret key." },
-          { stepNumber: 3, title: "Verify code", description: "Enter the generated 6-digit code to complete setup." }
+          { stepNumber: 1, title: "Open Settings", description: "Enter Settings after your first account activation." },
+          { stepNumber: 2, title: "Enter your real email", description: "Use an address you control; a generated Account Identifier is not a mailbox." },
+          { stepNumber: 3, title: "Complete verification", description: "Follow the code verification flow. Only after verification is the email linked for future sign-in." }
         ]
       }
     },
     {
       id: "art-al-4",
       categoryId: "account-login",
-      title: "Trouble receiving verification emails",
-      description: "Steps if your activation or reset email hasn't arrived.",
+      title: "Trouble receiving an email verification code",
+      description: "Check the address and mailbox used for email verification.",
       iconName: "User",
       readTime: "2 min read",
-      lastUpdated: "2 weeks ago",
       content: {
-        overview: "Ensure your email provider is not blocking automated notifications from GreenLearn.",
+        overview: "Email codes are sent only to a real email address entered in the relevant verification flow. Internal platform identifiers are not mailboxes.",
         steps: [
-          { stepNumber: 1, title: "Check Spam folder", description: "Inspect spam and bulk filters." },
-          { stepNumber: 2, title: "Whitelist no-reply@greenlearn.org", description: "Add our address to your trusted contacts." }
+          { stepNumber: 1, title: "Confirm the address", description: "Check that the email address was entered correctly and that you can access its inbox." },
+          { stepNumber: 2, title: "Check filtered mail", description: "Look in Spam or other filtered folders for the verification message." },
+          { stepNumber: 3, title: "Ask for help", description: "If the code still does not arrive, start a support conversation from Help." }
         ]
       }
     }
@@ -460,50 +433,47 @@ export const ALL_CATEGORY_ARTICLES: Record<string, HelpArticle[]> = {
     {
       id: "art-cl-1",
       categoryId: "courses-learning",
-      title: "How to download lecture slides and course notes",
-      description: "Access course materials offline on your device.",
+      title: "How to access lesson resources",
+      description: "Open resources attached to an available lesson.",
       iconName: "BookOpen",
       readTime: "2 min read",
-      lastUpdated: "4 days ago",
       content: {
-        overview: "Instructors frequently provide supplementary lecture slides, PDF summaries, and datasets.",
+        overview: "Resources appear only when they have been attached to a lesson and released. Access is checked by the backend; offline availability is not guaranteed.",
         steps: [
-          { stepNumber: 1, title: "Open the Lesson Player", description: "Go to the relevant lecture in your course." },
-          { stepNumber: 2, title: "Click 'Resources' tab", description: "Locate the file list below or next to the video." }
+          { stepNumber: 1, title: "Open an available lesson", description: "Use My Courses to open a course and lesson you are allowed to access." },
+          { stepNumber: 2, title: "Open its resources", description: "Choose a listed resource and use the protected delivery action shown in the player." }
         ]
       }
     },
     {
       id: "art-cl-2",
       categoryId: "courses-learning",
-      title: "Tracking your course completion and XP rewards",
-      description: "Understand how XP points and lesson checkpoints work.",
+      title: "How is course progress recorded?",
+      description: "Understand server-recorded lesson progress and weekly goals.",
       iconName: "BookOpen",
       readTime: "3 min read",
-      lastUpdated: "6 days ago",
       content: {
-        overview: "Every lesson finished gives 50 XP, and weekly goals boost your streak multiplier.",
+        overview: "Course progress is derived from persisted lesson completion. The weekly lesson goal is a preference and does not guarantee XP or streak rewards.",
         steps: [
-          { stepNumber: 1, title: "Finish video lessons completely", description: "Ensure the progress bar reaches 100%." }
+          { stepNumber: 1, title: "Complete a lesson", description: "Use the lesson player’s completion action; the backend records progress and updates course totals." }
         ]
       }
     }
   ],
   "payments-subscriptions": [
-    POPULAR_ARTICLES[4], // Can I get a refund?
-    POPULAR_ARTICLES[6], // Friends Plan
+    POPULAR_ARTICLES[4], // Manual payment review
+    POPULAR_ARTICLES[6], // Multi-seat purchase rules
     {
       id: "art-ps-3",
       categoryId: "payments-subscriptions",
-      title: "Accepted payment methods and currencies",
-      description: "Visa, Mastercard, PayPal, and regional payment providers.",
+      title: "Manual payment methods",
+      description: "Learn how to submit a payment for Admin review.",
       iconName: "CreditCard",
       readTime: "2 min read",
-      lastUpdated: "2 weeks ago",
       content: {
-        overview: "GreenLearn supports international credit cards, debit cards, and secure wallet transfers.",
+        overview: "The current payment flow is manual Admin review. Available methods are InstaPay, Wallet, Bank Transfer, Cash, and Other, according to the order form.",
         steps: [
-          { stepNumber: 1, title: "Select your currency", description: "Pricing auto-adjusts based on your billing region." }
+          { stepNumber: 1, title: "Follow the order form", description: "Enter only the payment details requested by the manual order form. A submitted order remains Pending Review until an Admin approves or rejects it." }
         ]
       }
     }
@@ -518,7 +488,6 @@ export const ALL_CATEGORY_ARTICLES: Record<string, HelpArticle[]> = {
       description: "How to fix audio playback lag in browsers.",
       iconName: "Settings2",
       readTime: "2 min read",
-      lastUpdated: "5 days ago",
       content: {
         overview: "Desynchronized audio is often caused by Bluetooth latency or browser tab suspension.",
         steps: [
@@ -532,15 +501,15 @@ export const ALL_CATEGORY_ARTICLES: Record<string, HelpArticle[]> = {
     {
       id: "art-ae-2",
       categoryId: "assignments-exams",
-      title: "What happens if I miss an assignment deadline?",
-      description: "Late submission policies and requesting extensions.",
+      title: "What if I miss an assignment deadline?",
+      description: "Check the assignment’s saved availability and submission status.",
       iconName: "FileText",
       readTime: "3 min read",
-      lastUpdated: "1 week ago",
       content: {
-        overview: "Instructors may allow grace periods or partial credit depending on course rules.",
+        overview: "Submission availability and late rules are controlled by the assignment. The platform does not promise an extension or partial credit.",
         steps: [
-          { stepNumber: 1, title: "Contact your course instructor", description: "Send a direct message via the Course discussion board." }
+          { stepNumber: 1, title: "Check the assignment details", description: "Review the deadline and the current submission state shown in Assignments." },
+          { stepNumber: 2, title: "Contact support if needed", description: "Use the support conversation for questions about the saved assignment rules." }
         ]
       }
     }
@@ -550,16 +519,15 @@ export const ALL_CATEGORY_ARTICLES: Record<string, HelpArticle[]> = {
     {
       id: "art-cert-2",
       categoryId: "certificates",
-      title: "Fixing a misspelled name on your certificate",
-      description: "Update your legal name displayed on completed certificates.",
+      title: "Fixing a name on an issued certificate",
+      description: "Contact support about a certificate that has already been issued.",
       iconName: "Award",
       readTime: "2 min read",
-      lastUpdated: "1 month ago",
       content: {
-        overview: "Certificates reflect the legal name registered in your profile account settings.",
+        overview: "Certificates are issued by an Admin. Updating profile data does not automatically regenerate or replace an issued certificate.",
         steps: [
-          { stepNumber: 1, title: "Update profile name", description: "Save the corrected legal name in Profile Settings." },
-          { stepNumber: 2, title: "Regenerate certificate", description: "Click 'Refresh Certificate' on your achievements card." }
+          { stepNumber: 1, title: "Open a support conversation", description: "Include the certificate title and explain the correction needed." },
+          { stepNumber: 2, title: "Wait for Admin review", description: "Only an authorized Admin can issue a corrected certificate." }
         ]
       }
     }
@@ -572,7 +540,6 @@ export const ALL_CATEGORY_ARTICLES: Record<string, HelpArticle[]> = {
       description: "Our standards for respectful learning discussions.",
       iconName: "Users",
       readTime: "4 min read",
-      lastUpdated: "2 weeks ago",
       content: {
         overview: "Help us keep GreenLearn an encouraging, inclusive space for every student.",
         steps: [
@@ -590,70 +557,40 @@ export const ALL_CATEGORY_ARTICLES: Record<string, HelpArticle[]> = {
       description: "Share your ideas to improve the student experience.",
       iconName: "MoreHorizontal",
       readTime: "2 min read",
-      lastUpdated: "3 weeks ago",
       content: {
-        overview: "We actively review community requests every month to build new features.",
+      overview: "For product questions or feedback, use the persisted support conversation in Help or Messages.",
         steps: [
-          { stepNumber: 1, title: "Submit a feedback ticket", description: "Choose category 'Other' in the support form." }
+          { stepNumber: 1, title: "Start a support conversation", description: "Choose the support action and describe the request clearly." }
         ]
       }
     }
   ]
 };
 
-export const RECENT_SUPPORT_TICKETS: SupportTicket[] = [
-  {
-    id: "tick-1",
-    ticketNumber: "#GL-4821",
-    title: "Video not playing on Module 2",
-    status: "Open",
-    createdAt: "2 hours ago",
-    category: "Technical Issues",
-    description: "The video buffer pauses at 04:12 with an HTTP 403 error on Chrome macOS.",
-    iconType: "video"
-  },
-  {
-    id: "tick-2",
-    ticketNumber: "#GL-4790",
-    title: "Refund request",
-    status: "In review",
-    createdAt: "1 day ago",
-    category: "Payments & Subscriptions",
-    description: "Accidentally bought duplicate course seat. Requesting refund for order #ORD-9821.",
-    iconType: "credit-card"
-  },
-  {
-    id: "tick-3",
-    ticketNumber: "#GL-4712",
-    title: "Device change request",
-    status: "Resolved",
-    createdAt: "3 days ago",
-    category: "Account & Login",
-    description: "Reached maximum allowed devices on account after buying new laptop.",
-    iconType: "smartphone"
-  }
-];
+export function getHelpCategoryArticleCount(categoryId: string): number {
+  return ALL_CATEGORY_ARTICLES[categoryId]?.length ?? 0;
+}
 
 export const HELP_RESOURCES: HelpResourceLink[] = [
   {
     id: "res-guides",
-    title: "User guides",
-    subtitle: "Step-by-step tutorials.",
+    title: "My Courses",
+    subtitle: "Open your enrolled courses and lessons.",
     iconName: "FileText",
-    url: "#"
+    url: "/my-courses"
   },
   {
     id: "res-videos",
-    title: "Video tutorials",
-    subtitle: "Watch and learn.",
+    title: "Assignments",
+    subtitle: "Review and submit assigned work.",
     iconName: "PlayCircle",
-    url: "#"
+    url: "/assignments"
   },
   {
     id: "res-announcements",
-    title: "Announcements",
-    subtitle: "Platform updates and new features.",
+    title: "Messages",
+    subtitle: "Continue a support conversation.",
     iconName: "Megaphone",
-    url: "#"
+    url: "/messages"
   }
 ];

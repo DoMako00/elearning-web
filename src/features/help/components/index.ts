@@ -5,6 +5,5 @@ export { SupportSidebar } from "./SupportSidebar";
 export { CategoryArticlesModal } from "./CategoryArticlesModal";
 export { ArticleDetailModal } from "./ArticleDetailModal";
 export { CreateTicketModal } from "./CreateTicketModal";
-export { LiveChatDrawer } from "./LiveChatDrawer";
 export { TicketsListModal } from "./TicketsListModal";
 export { RobotIllustration } from "./RobotIllustration";

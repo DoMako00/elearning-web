@@ -10,39 +10,39 @@ import {
 } from "../shared";
 import { useScreenStack } from "../ScreenStack";
 import { useToast } from "../../../hooks/useToast";
-import {
-  ASSIGNMENT_ITEMS,
-  ASSIGNMENT_DETAILS,
-} from "../../ui/Assignments/assignments.data";
 import type {
   AssignmentFilter,
   AssignmentItem,
-  AssignmentDetailItem,
 } from "../../ui/Assignments/assignments.types";
 import { AssignmentDetailScreen } from "./AssignmentDetailScreen";
 import { BookOpen } from "lucide-react";
+import { useStudentAssignments } from "../../../features/student/api/useStudentAssignments";
+import { mapStudentAssignment } from "../../../features/student/api/studentAssignmentMapper";
+import type { StudentAssignmentDto } from "../../../features/student/api/studentAssignmentsApi";
 
 export const AssignmentsScreen: React.FC = () => {
   const { push } = useScreenStack();
   const { toastMessage, showToast } = useToast();
+  const assignmentsQuery = useStudentAssignments();
+  const assignments = useMemo(() => assignmentsQuery.data ?? [], [assignmentsQuery.data]);
+  const items = useMemo(() => assignments.map(mapStudentAssignment), [assignments]);
 
   const [activeTab, setActiveTab] = useState<AssignmentFilter>("all");
 
-  // Reusing desktop's exact counts logic from AssignmentsWorkspace.tsx:225-238
   const counts = useMemo(() => {
-    const inProgress = ASSIGNMENT_ITEMS.filter((item) => item.status === "in-progress").length;
-    const submitted = ASSIGNMENT_ITEMS.filter((item) => item.status === "submitted").length;
-    const graded = ASSIGNMENT_ITEMS.filter((item) => item.status === "graded").length;
-    const notStarted = ASSIGNMENT_ITEMS.filter((item) => item.status === "not-started").length;
+    const inProgress = items.filter((item) => item.status === "in-progress").length;
+    const submitted = items.filter((item) => item.status === "submitted").length;
+    const graded = items.filter((item) => item.status === "graded").length;
+    const notStarted = items.filter((item) => item.status === "not-started").length;
     return {
-      all: ASSIGNMENT_ITEMS.length,
+      all: items.length,
       "in-progress": inProgress,
       submitted,
       graded,
       notStarted,
       completed: submitted + graded,
     };
-  }, []);
+  }, [items]);
 
   // Filter tabs array (All / In progress / Submitted / Graded)
   const filterTabs = [
@@ -54,74 +54,14 @@ export const AssignmentsScreen: React.FC = () => {
 
   // Filtered assignments list
   const filteredItems = useMemo(() => {
-    if (activeTab === "all") return ASSIGNMENT_ITEMS;
-    return ASSIGNMENT_ITEMS.filter((item) => item.status === activeTab);
-  }, [activeTab]);
+    if (activeTab === "all") return items;
+    return items.filter((item) => item.status === activeTab);
+  }, [activeTab, items]);
 
   // Navigate to Assignment Detail screen
   const handleOpenDetail = (item: AssignmentItem) => {
-    // Find rich detail if present in ASSIGNMENT_DETAILS, or create a complete fallback
-    const detailData: AssignmentDetailItem =
-      ASSIGNMENT_DETAILS[item.id] ||
-      (item.id === "asg-1" ? ASSIGNMENT_DETAILS["upper-limb-clinical-case-review"] : null) || {
-        ...item,
-        courseName: item.category,
-        courseSlug: item.category.toLowerCase().replace(/\s+/g, "-"),
-        moduleName: "Core Clinical Module",
-        instructor: "Faculty of Medicine",
-        dueFullDate: `${item.dueLabel}, 2026 at 11:59 PM`,
-        estimatedTime: "3-5 hours",
-        attemptsUsed: item.status === "submitted" || item.status === "graded" ? 1 : 0,
-        attemptsAllowed: 2,
-        submissionType: "File upload",
-        acceptedFormats: ["PDF", "DOCX", "PPTX"],
-        maxFileSizeMb: 20,
-        brief: {
-          description: item.description,
-          instructions: [
-            "Review the patient case presentation and clinical findings.",
-            "Analyze diagnostic criteria and differential diagnoses.",
-            "Formulate an evidence-based clinical management plan.",
-            "Cite relevant medical guidelines in APA format.",
-          ],
-        },
-        whatToSubmit: {
-          requirements: [
-            "Clinical analysis report (PDF or DOCX)",
-            "Annotated diagnostic readings or laboratory chart",
-            "Structured management algorithm",
-          ],
-          tip: "Verify your reference values against current clinical benchmarks.",
-        },
-        resources: [
-          {
-            id: `res-${item.id}-1`,
-            name: `${item.title.replace(/\s+/g, "_")}_Case_Packet.pdf`,
-            fileType: "pdf",
-            size: "1.8 MB",
-          },
-          {
-            id: `res-${item.id}-2`,
-            name: "Clinical_Guidelines_Summary.docx",
-            fileType: "docx",
-            size: "420 KB",
-          },
-        ],
-        rubric: {
-          items: [
-            { criterion: "Clinical diagnosis & accuracy", points: Math.round(item.points * 0.4) },
-            { criterion: "Management strategy", points: Math.round(item.points * 0.35) },
-            { criterion: "References & presentation", points: Math.round(item.points * 0.25) },
-          ],
-          totalPoints: item.points,
-        },
-        timeline: {
-          assignedDate: "May 15, 2026 • 09:00 AM",
-          dueDate: item.dueLabel,
-          gradesReleasedDate: "May 31, 2026 • 05:00 PM",
-        },
-      };
-
+    const detailData: StudentAssignmentDto | undefined = assignments.find((assignment) => assignment.id === item.id);
+    if (!detailData) return;
     push({
       id: `assignment-${item.id}`,
       title: item.title,
@@ -129,10 +69,6 @@ export const AssignmentsScreen: React.FC = () => {
       backLabel: "Assignments",
       component: <AssignmentDetailScreen assignment={detailData} />,
     });
-  };
-
-  const handleBookmarkToast = (isSaved: boolean) => {
-    showToast(isSaved ? "Saved to your bookmarks." : "Removed from bookmarks.");
   };
 
   return (
@@ -172,7 +108,7 @@ export const AssignmentsScreen: React.FC = () => {
             inProgress={counts["in-progress"]}
             notStarted={counts.notStarted}
             total={counts.all}
-            onViewStats={() => showToast("Full statistics coming soon")}
+            onViewStats={() => showToast("Assignment totals reflect your saved assignment records.")}
           />
 
           {/* 5. Assignment Cards List */}
@@ -187,12 +123,14 @@ export const AssignmentsScreen: React.FC = () => {
             </div>
 
             <div className="space-y-3">
-              {filteredItems.map((item) => (
+              {assignmentsQuery.isLoading ? <p role="status" className="rounded-2xl bg-white p-4 text-sm text-slate-500">Loading assignments…</p>
+                : assignmentsQuery.isError ? <div role="alert" className="rounded-2xl bg-white p-4 text-sm text-rose-700"><p>{assignmentsQuery.error instanceof Error ? assignmentsQuery.error.message : "Assignments could not be loaded."}</p><button type="button" className="mt-2 font-bold" onClick={() => void assignmentsQuery.refetch()}>Try again</button></div>
+                  : filteredItems.length === 0 ? <p role="status" className="rounded-2xl bg-white p-4 text-sm text-slate-500">No assignments are available in this view.</p>
+                    : filteredItems.map((item) => (
                 <AssignmentCard
                   key={item.id}
                   item={item}
                   onOpenDetail={handleOpenDetail}
-                  onBookmarkToast={handleBookmarkToast}
                 />
               ))}
             </div>
