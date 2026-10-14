@@ -3,6 +3,7 @@ import { Navigate, type RouteObject } from "react-router-dom";
 import { StudentLayout } from "../../features/student/pages/StudentLayout";
 import { RouteErrorBoundary } from "../../components/layout/RouteErrorBoundary";
 import { RouteLoadingFallback } from "../../components/layout/RouteLoadingFallback";
+import { StudentRouteProviders } from "../providers/StudentRouteProviders";
 import "./student-dashboard.css";
 
 // Lazy-loaded student pages — all sourced from the canonical feature location
@@ -51,7 +52,7 @@ if (import.meta.env.DEV) {
 export const studentRoutes: RouteObject[] = [
   {
     path: "/",
-    element: <StudentLayout />,
+    element: <StudentRouteProviders><StudentLayout /></StudentRouteProviders>,
     children: [
       { index: true, element: withSuspense(HomePage) },
       { path: "profile", element: withSuspense(ProfilePage) },

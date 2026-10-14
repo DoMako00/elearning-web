@@ -65,6 +65,7 @@ export interface ContentResource {
 export interface StudentRecord {
   id: string; accountIdentifier: string; setupCode?: string; fullName: string; email: string; phone?: string; brand: BrandCode;
   institution: string; academicInstitutionId?: string | null; academicLevel: string; academicLevelId?: string | null; semester: string; academicSemesterId?: string | null; program: string; activeDeviceCount?: number;
+  claimStatus?: "unclaimed" | "claimed" | "setup_expired" | "locked"; claimBootstrapRequired?: boolean;
   status: AccountStatus; createdAt: string; lastActivity: string;
 }
 export interface SubscriptionPlan { id: "individual" | "trio" | "group"; name: string; capacity: 1 | 3 | 5; amount: number; currency: "EGP"; termMonths: 12; }
