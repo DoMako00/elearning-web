@@ -1,17 +1,16 @@
 import React from "react";
 import { BottomSheet } from "./BottomSheet";
-import { Star } from "lucide-react";
-
 export interface FilterState {
-  level: "all" | "beginner" | "intermediate" | "advanced";
-  duration: "any" | "under5" | "5to10" | "over10";
-  minRating: number; // 0 for any, or 1 to 5
+  level: string;
+  semester: string;
 }
 
 export interface AdvancedFilterSheetProps {
   isOpen: boolean;
   onClose: () => void;
   filters: FilterState;
+  levels: readonly string[];
+  semesters: readonly string[];
   onApply: (newFilters: FilterState) => void;
   onReset: () => void;
 }
@@ -20,6 +19,8 @@ export const AdvancedFilterSheet: React.FC<AdvancedFilterSheetProps> = ({
   isOpen,
   onClose,
   filters,
+  levels,
+  semesters,
   onApply,
   onReset,
 }) => {
@@ -50,21 +51,16 @@ export const AdvancedFilterSheet: React.FC<AdvancedFilterSheetProps> = ({
             Level
           </label>
           <div className="flex flex-wrap gap-2">
-            {[
-              { id: "all", label: "All Levels" },
-              { id: "beginner", label: "Beginner" },
-              { id: "intermediate", label: "Intermediate" },
-              { id: "advanced", label: "Advanced" },
-            ].map((item) => {
-              const isSelected = localFilters.level === item.id;
+            {[{ value: "all", label: "All levels" }, ...levels.map((level) => ({ value: level, label: level }))].map((item) => {
+              const isSelected = localFilters.level === item.value;
               return (
                 <button
-                  key={item.id}
+                  key={item.value}
                   type="button"
                   onClick={() =>
                     setLocalFilters((prev) => ({
                       ...prev,
-                      level: item.id as FilterState["level"],
+                      level: item.value,
                     }))
                   }
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
@@ -80,27 +76,22 @@ export const AdvancedFilterSheet: React.FC<AdvancedFilterSheetProps> = ({
           </div>
         </div>
 
-        {/* Duration Select */}
+        {/* Semester Select */}
         <div>
           <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-            Duration
+            Semester
           </label>
-          <div className="grid grid-cols-4 gap-2">
-            {[
-              { id: "any", label: "Any" },
-              { id: "under5", label: "< 5h" },
-              { id: "5to10", label: "5–10h" },
-              { id: "over10", label: "10h+" },
-            ].map((item) => {
-              const isSelected = localFilters.duration === item.id;
+          <div className="flex flex-wrap gap-2">
+            {[{ value: "all", label: "All semesters" }, ...semesters.map((semester) => ({ value: semester, label: semester }))].map((item) => {
+              const isSelected = localFilters.semester === item.value;
               return (
                 <button
-                  key={item.id}
+                  key={item.value}
                   type="button"
                   onClick={() =>
                     setLocalFilters((prev) => ({
                       ...prev,
-                      duration: item.id as FilterState["duration"],
+                      semester: item.value,
                     }))
                   }
                   className={`py-2 rounded-xl text-xs font-semibold text-center transition-all cursor-pointer ${
@@ -113,45 +104,6 @@ export const AdvancedFilterSheet: React.FC<AdvancedFilterSheetProps> = ({
                 </button>
               );
             })}
-          </div>
-        </div>
-
-        {/* Minimum Rating */}
-        <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-            Minimum Rating
-          </label>
-          <div className="flex items-center gap-2">
-            {[1, 2, 3, 4, 5].map((star) => {
-              const isActive = localFilters.minRating >= star;
-              return (
-                <button
-                  key={star}
-                  type="button"
-                  onClick={() =>
-                    setLocalFilters((prev) => ({
-                      ...prev,
-                      minRating: prev.minRating === star ? 0 : star,
-                    }))
-                  }
-                  className="p-1.5 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
-                  aria-label={`${star} stars and above`}
-                >
-                  <Star
-                    className={`w-6 h-6 transition-colors ${
-                      isActive
-                        ? "text-amber-400 fill-amber-400"
-                        : "text-slate-300"
-                    }`}
-                  />
-                </button>
-              );
-            })}
-            <span className="text-xs font-bold text-slate-600 ml-2">
-              {localFilters.minRating > 0
-                ? `${localFilters.minRating}.0+`
-                : "Any rating"}
-            </span>
           </div>
         </div>
 

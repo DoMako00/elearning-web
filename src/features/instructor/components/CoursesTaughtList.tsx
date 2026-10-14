@@ -52,18 +52,18 @@ export const CoursesTaughtList: React.FC<CoursesTaughtListProps> = ({ courses })
                 {course.title}
               </h4>
               <p className="text-xs text-slate-500 truncate mt-0.5">
-                {course.type} • {course.studentsCount.toLocaleString()} students
+                {course.category}{course.studentsCount === null ? "" : ` • ${course.studentsCount.toLocaleString()} students`}
               </p>
             </div>
 
             {/* Progress Bar */}
             <div className="w-20 shrink-0 text-right">
-              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+              {course.progressPercentage !== null && <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-emerald-600 rounded-full transition-all duration-500"
                   style={{ width: `${course.progressPercentage}%` }}
                 />
-              </div>
+              </div>}
             </div>
           </div>
         ))}

@@ -1,4 +1,5 @@
 import { requireApiClient } from "../../../app/api/client";
+import { toEnglishStudentName } from "./studentDisplay";
 
 type Envelope<T> = { ok: true; correlationId: string; data: T };
 const key = () => crypto.randomUUID();
@@ -10,6 +11,21 @@ async function unwrap<T>(request: Promise<{ data?: unknown; error?: unknown }>):
   if (!payload?.data) throw new Error("The server returned an incomplete response.");
   return payload.data;
 }
+
+const mapOrderNames = (order: SemesterOfferingOrder): SemesterOfferingOrder => ({
+  ...order,
+  students: order.students?.map((student) => ({ ...student, fullName: toEnglishStudentName(student.fullName) })),
+});
+
+const mapSubscriptionName = (subscription: Subscription): Subscription => ({
+  ...subscription,
+  studentName: toEnglishStudentName(subscription.studentName),
+});
+
+const mapSeatNames = (seat: SubscriptionSeat): SubscriptionSeat => ({
+  ...seat,
+  student: seat.student ? { ...seat.student, fullName: toEnglishStudentName(seat.student.fullName) } : seat.student,
+});
 
 export type ManualPaymentStatus = "pending_review" | "approved" | "rejected" | "cancelled";
 export type BrandCode = "medway" | "elite" | "nexus";
@@ -68,11 +84,12 @@ export interface SubscriptionSeatList { subscriptionId: string; subscription?: S
 
 export async function listSemesterOfferingOrders(filters: { brand?: string; status?: ManualPaymentStatus } = {}) {
   const api = await requireApiClient();
-  return unwrap<{ items: SemesterOfferingOrder[] }>(api.GET("/v1/admin/semester-offering-orders" as never, { params: { query: filters } }));
+  const result = await unwrap<{ items: SemesterOfferingOrder[] }>(api.GET("/v1/admin/semester-offering-orders" as never, { params: { query: filters } }));
+  return { ...result, items: result.items.map(mapOrderNames) };
 }
 export async function getSemesterOfferingOrder(orderId: string) {
   const api = await requireApiClient();
-  return unwrap<SemesterOfferingOrder>(api.GET("/v1/admin/semester-offering-orders/{orderId}" as never, { params: { path: { orderId } } }));
+  return mapOrderNames(await unwrap<SemesterOfferingOrder>(api.GET("/v1/admin/semester-offering-orders/{orderId}" as never, { params: { path: { orderId } } })));
 }
 export async function createSemesterOfferingOrder(input: CreateSemesterOfferingOrderInput) {
   const api = await requireApiClient();
@@ -87,11 +104,12 @@ export async function reviewSemesterOfferingOrder(orderId: string, action: "appr
 }
 export async function listSubscriptions(filters: { brand?: string; status?: string; studentProfileId?: string } = {}) {
   const api = await requireApiClient();
-  return unwrap<{ items: Subscription[] }>(api.GET("/v1/admin/subscriptions" as never, { params: { query: filters } }));
+  const result = await unwrap<{ items: Subscription[] }>(api.GET("/v1/admin/subscriptions" as never, { params: { query: filters } }));
+  return { ...result, items: result.items.map(mapSubscriptionName) };
 }
 export async function getSubscription(subscriptionId: string) {
   const api = await requireApiClient();
-  return unwrap<Subscription>(api.GET("/v1/admin/subscriptions/{subscriptionId}" as never, { params: { path: { subscriptionId } } }));
+  return mapSubscriptionName(await unwrap<Subscription>(api.GET("/v1/admin/subscriptions/{subscriptionId}" as never, { params: { path: { subscriptionId } } })));
 }
 export async function cancelSubscription(subscriptionId: string, reason: string) {
   const api = await requireApiClient();
@@ -99,9 +117,14 @@ export async function cancelSubscription(subscriptionId: string, reason: string)
 }
 export async function listSubscriptionSeats(subscriptionId: string) {
   const api = await requireApiClient();
-  return unwrap<SubscriptionSeatList>(api.GET("/v1/admin/subscriptions/{subscriptionId}/seats" as never, { params: { path: { subscriptionId } } }));
+  const result = await unwrap<SubscriptionSeatList>(api.GET("/v1/admin/subscriptions/{subscriptionId}/seats" as never, { params: { path: { subscriptionId } } }));
+  return {
+    ...result,
+    ...(result.subscription ? { subscription: mapSubscriptionName(result.subscription) } : {}),
+    seats: result.seats.map(mapSeatNames),
+  };
 }
 export async function mutateSeat(subscriptionId: string, seatId: string, action: "assign" | "release" | "replace" | "revoke", input: Record<string, unknown>) {
   const api = await requireApiClient();
-  return unwrap<SubscriptionSeat>(api.POST(`/v1/admin/subscriptions/{subscriptionId}/seats/{seatId}/${action}` as never, { params: { path: { subscriptionId, seatId } }, headers: { "Idempotency-Key": key() }, body: input }));
+  return mapSeatNames(await unwrap<SubscriptionSeat>(api.POST(`/v1/admin/subscriptions/{subscriptionId}/seats/{seatId}/${action}` as never, { params: { path: { subscriptionId, seatId } }, headers: { "Idempotency-Key": key() }, body: input })));
 }

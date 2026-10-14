@@ -1,6 +1,4 @@
-import { env } from "../../../app/config/env";
-// [AUTH-BACKEND DISABLED] Supabase token import commented out
-// import { getSupabaseAccessToken } from "../../auth/api/supabaseAuth";
+import { ApiClientUnauthenticatedError, extractApiErrorMessage, requireApiClient } from "../../../app/api/client";
 
 export type StudentCommercialBrand = "medway" | "elite" | "nexus";
 export type CataloguePresentation = "subject_based" | "module_based";
@@ -20,8 +18,11 @@ export interface StudentLessonItem {
   readonly sortOrder: number;
   readonly status: "published";
   readonly mediaStatus: LessonMediaStatus;
+  readonly resourceType: "video" | "pdf" | null;
+  readonly resourceTitle: string | null;
   readonly resourceId: string | null;
-  readonly playbackAvailable: false;
+  readonly playbackAvailable: boolean;
+  readonly progressStatus: "not_started" | "in_progress" | "completed";
 }
 
 export interface StudentChapterItem {
@@ -71,10 +72,32 @@ export interface StudentLessonsResponse {
   readonly lessons: readonly StudentLessonItem[];
 }
 
-interface ApiEnvelope {
+export interface StudentProtectedMediaDelivery {
+  readonly assetId: string;
+  readonly delivery: { readonly url: string; readonly expiresAt: string };
+  readonly policy: { readonly documentDeliveryMode?: "inline" | "attachment" | null; readonly watermarkRequired: boolean };
+  readonly watermark: { readonly required: boolean; readonly resourceReference: string; readonly sessionReference?: string };
+}
+
+export interface StudentVideoPlaybackState {
+  readonly playbackSessionId: string;
+  readonly durationSeconds: number;
+  readonly completedViews: number;
+  readonly maxCompletedViews: number;
+  readonly viewsRemaining: number;
+  readonly furthestPositionSeconds: number;
+  readonly completed: boolean;
+}
+
+export interface StudentVideoPlaybackStart extends Omit<StudentProtectedMediaDelivery, "policy"> {
+  readonly playback: StudentVideoPlaybackState;
+  readonly policy: { readonly watermarkRequired: boolean };
+}
+
+interface ApiEnvelope<T> {
   readonly ok?: boolean;
   readonly correlationId?: unknown;
-  readonly data?: unknown;
+  readonly data?: T;
   readonly error?: { readonly code?: unknown; readonly message?: unknown };
 }
 
@@ -90,50 +113,76 @@ export class StudentCoursesApiError extends Error {
   }
 }
 
-function apiBaseUrl() {
-  const baseUrl = env.apiBaseUrl.trim().replace(/\/$/, "");
-  if (!baseUrl) throw new StudentCoursesApiError("The learning API is not configured.", 0, "not_configured");
-  return baseUrl;
-}
-
 async function studentRequest<T>(path: string, signal?: AbortSignal): Promise<T> {
-  // [AUTH-BACKEND DISABLED] Supabase token fetch commented out — will always be unauthenticated
-  // const token = await getSupabaseAccessToken();
-  // if (!token) throw new StudentCoursesApiError("Sign in to view your courses.", 401, "unauthenticated");
-  const token: string | null = null;
-  if (!token) throw new StudentCoursesApiError("Sign in to view your courses.", 401, "unauthenticated");
-
-  let response: Response;
+  let client;
   try {
-    response = await fetch(`${apiBaseUrl()}${path}`, {
-      method: "GET",
-      signal,
-      headers: {
-        accept: "application/json",
-        authorization: `Bearer ${token}`,
-      },
-    });
+    client = await requireApiClient();
+  } catch (error) {
+    if (error instanceof ApiClientUnauthenticatedError) throw new StudentCoursesApiError("Sign in to view your courses.", 401, "unauthenticated");
+    throw new StudentCoursesApiError("The learning API could not be reached.", 0, "network_error");
+  }
+
+  let result;
+  try {
+    result = await client.getJson<ApiEnvelope<T>>(path, { signal });
   } catch {
     throw new StudentCoursesApiError("The learning API could not be reached.", 0, "network_error");
   }
 
-  const body = (await response.json().catch(() => ({}))) as ApiEnvelope;
-  if (!response.ok || !body.ok || body.data === undefined) {
-    const message = typeof body.error?.message === "string" ? body.error.message : "The learning API request failed.";
-    const code = typeof body.error?.code === "string" ? body.error.code : "unknown_error";
-    throw new StudentCoursesApiError(message, response.status, code);
+  const envelope = result.data;
+  if (result.error || !envelope?.ok || envelope.data === undefined) {
+    const error = result.error as { error?: { code?: unknown } } | undefined;
+    const code = typeof error?.error?.code === "string" ? error.error.code : "unknown_error";
+    throw new StudentCoursesApiError(
+      extractApiErrorMessage(result.error, "The learning API request failed."),
+      result.response.status,
+      code,
+    );
   }
 
-  return body.data as T;
+  return envelope.data;
 }
 
-export function listStudentCourses(input: Readonly<{ brand?: StudentCommercialBrand; page?: number; pageSize?: number; signal?: AbortSignal }>) {
+async function studentWrite<T>(path: string, body: unknown, options: Readonly<{ signal?: AbortSignal; idempotencyKey?: string }> = {}): Promise<T> {
+  let client;
+  try { client = await requireApiClient(); }
+  catch (error) {
+    if (error instanceof ApiClientUnauthenticatedError) throw new StudentCoursesApiError("Sign in to continue.", 401, "unauthenticated");
+    throw new StudentCoursesApiError("The learning API could not be reached.", 0, "network_error");
+  }
+  let result;
+  try {
+    result = await client.writeJson<ApiEnvelope<T>>("POST", path, body, {
+      signal: options.signal,
+      headers: options.idempotencyKey ? { "Idempotency-Key": options.idempotencyKey } : undefined,
+    });
+  } catch { throw new StudentCoursesApiError("The learning API could not be reached.", 0, "network_error"); }
+  const envelope = result.data;
+  if (result.error || !envelope?.ok || envelope.data === undefined) {
+    const error = result.error as { error?: { code?: unknown } } | undefined;
+    const code = typeof error?.error?.code === "string" ? error.error.code : "unknown_error";
+    throw new StudentCoursesApiError(extractApiErrorMessage(result.error, "The learning API request failed."), result.response.status, code);
+  }
+  return envelope.data;
+}
+
+export function listStudentCourses(input: Readonly<{ brand?: StudentCommercialBrand; view?: "explore" | "mine"; page?: number; pageSize?: number; signal?: AbortSignal }>) {
   const query = new URLSearchParams({
     page: String(input.page ?? 1),
     pageSize: String(input.pageSize ?? 25),
   });
   if (input.brand) query.set("brand", input.brand);
+  if (input.view) query.set("view", input.view);
   return studentRequest<StudentCourseList>(`/v1/student/courses?${query}`, input.signal);
+}
+
+export async function listAllStudentCourses(input: Readonly<{ brand?: StudentCommercialBrand; view?: "explore" | "mine"; signal?: AbortSignal }>) {
+  const first = await listStudentCourses({ ...input, page: 1, pageSize: 100 });
+  const pageCount = Math.max(1, Math.ceil(first.pagination.totalItems / first.pagination.pageSize));
+  const remaining = await Promise.all(Array.from({ length: pageCount - 1 }, (_, index) =>
+    listStudentCourses({ ...input, page: index + 2, pageSize: 100 }),
+  ));
+  return [...first.items, ...remaining.flatMap((page) => page.items)];
 }
 
 export function getStudentCourse(input: Readonly<{ courseId: string; brand?: StudentCommercialBrand; signal?: AbortSignal }>) {
@@ -148,4 +197,33 @@ export function listStudentCourseLessons(input: Readonly<{ courseId: string; bra
   if (input.brand) query.set("brand", input.brand);
   const suffix = query.size > 0 ? `?${query}` : "";
   return studentRequest<StudentLessonsResponse>(`/v1/student/courses/${encodeURIComponent(input.courseId)}/lessons${suffix}`, input.signal);
+}
+
+/** Returns a short-lived URL only after the backend rechecks Student session, device, Seat, grant, and release state. */
+export function getStudentProtectedMedia(input: Readonly<{ assetId: string; signal?: AbortSignal }>) {
+  return studentRequest<StudentProtectedMediaDelivery>(`/v1/student/media/${encodeURIComponent(input.assetId)}`, input.signal);
+}
+
+export function startStudentVideoPlayback(input: Readonly<{ assetId: string; signal?: AbortSignal }>) {
+  return studentWrite<StudentVideoPlaybackStart>(
+    `/v1/student/media/${encodeURIComponent(input.assetId)}/playback`,
+    {},
+    { signal: input.signal, idempotencyKey: crypto.randomUUID() },
+  );
+}
+
+export function reportStudentVideoPlaybackHeartbeat(input: Readonly<{ assetId: string; playbackSessionId: string; positionSeconds: number; signal?: AbortSignal }>) {
+  return studentWrite<{ playback: StudentVideoPlaybackState }>(
+    `/v1/student/media/${encodeURIComponent(input.assetId)}/playback/${encodeURIComponent(input.playbackSessionId)}/heartbeat`,
+    { positionSeconds: input.positionSeconds },
+    { signal: input.signal },
+  );
+}
+
+export function completeStudentVideoPlayback(input: Readonly<{ assetId: string; playbackSessionId: string; signal?: AbortSignal }>) {
+  return studentWrite<{ playback: StudentVideoPlaybackState }>(
+    `/v1/student/media/${encodeURIComponent(input.assetId)}/playback/${encodeURIComponent(input.playbackSessionId)}/complete`,
+    {},
+    { signal: input.signal },
+  );
 }

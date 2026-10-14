@@ -12,6 +12,10 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../app/providers/AuthProvider";
+import { listAllStudentCourses, listStudentCourseLessons } from "../../../features/student/api/studentCoursesApi";
+import { studentInstructorApi } from "../../../features/student/api/studentInstructorApi";
+import { studentCommunityApi } from "../../../features/student/api/studentCommunityApi";
 
 export interface SearchItem {
   id: string;
@@ -22,133 +26,76 @@ export interface SearchItem {
   badge?: string;
 }
 
-const SEARCH_DATABASE: SearchItem[] = [
-  // Courses
-  {
-    id: "c-1",
-    category: "courses",
-    title: "Human Anatomy I",
-    subtitle: "Structure & Organization • 14 Lessons • 4.8 ★",
-    route: "/my-courses/human-anatomy-i",
-    badge: "Enrolled",
-  },
-  {
-    id: "c-2",
-    category: "courses",
-    title: "Medical Physiology",
-    subtitle: "Body Functions & Regulation • 10 Lessons • 4.8 ★",
-    route: "/explore",
-    badge: "Popular",
-  },
-  {
-    id: "c-3",
-    category: "courses",
-    title: "Histology Basics",
-    subtitle: "Tissues of the Human Body • 6 Lessons • 4.7 ★",
-    route: "/explore",
-    badge: "Beginner",
-  },
-  {
-    id: "c-4",
-    category: "courses",
-    title: "Biochemistry Essentials",
-    subtitle: "Molecules of Life • 7 Lessons • 4.6 ★",
-    route: "/explore",
-  },
-  {
-    id: "c-5",
-    category: "courses",
-    title: "Embryology Foundations",
-    subtitle: "Development of Human Life • 5 Lessons • 4.8 ★",
-    route: "/explore",
-  },
+async function loadSearchItems(signal: AbortSignal): Promise<SearchItem[]> {
+  const [courses, instructors, posts] = await Promise.all([
+    listAllStudentCourses({ view: "explore", signal }),
+    studentInstructorApi.list(signal),
+    studentCommunityApi.listPosts(signal),
+  ]);
 
-  // Lessons
-  {
-    id: "l-1",
-    category: "lessons",
-    title: "Upper Limb Osteology & Shoulder Girdle",
-    subtitle: "Human Anatomy I • Lesson 1 • 45 mins",
-    route: "/my-courses/human-anatomy-i/lessons/human-anatomy-i-lesson-1",
-    badge: "Lesson",
-  },
-  {
-    id: "l-2",
-    category: "lessons",
-    title: "Brachial Plexus & Peripheral Infiltration",
-    subtitle: "Human Anatomy I • Lesson 2 • 50 mins",
-    route: "/my-courses/human-anatomy-i/lessons/human-anatomy-i-lesson-1",
-    badge: "Lesson",
-  },
-  {
-    id: "l-3",
-    category: "lessons",
-    title: "Cardiac Cycle & Hemodynamic Pressures",
-    subtitle: "Medical Physiology • Lesson 4 • 40 mins",
-    route: "/explore",
-    badge: "Lesson",
-  },
-  {
-    id: "l-4",
-    category: "lessons",
-    title: "Epithelial Junctions & Basal Lamina",
-    subtitle: "Histology Basics • Lesson 3 • 35 mins",
-    route: "/explore",
-    badge: "Lesson",
-  },
+  const items: SearchItem[] = courses.map((course) => ({
+    id: `course:${course.courseId}`,
+    category: "courses",
+    title: course.title,
+    subtitle: `${course.academicInstitution.name} · ${course.academicLevel.title} · ${course.academicSemester.title}`,
+    route: `/my-courses/${encodeURIComponent(course.courseId)}`,
+    badge: course.access.isEnrolled ? "Enrolled" : "Available",
+  }));
 
-  // Instructors
-  {
-    id: "i-1",
-    category: "instructors",
-    title: "Dr. Ahmed Hassan, MD",
-    subtitle: "Clinical Neuroanatomy & Surgical Anatomy Lead",
-    route: "/instructor-profile",
-    badge: "Faculty",
-  },
-  {
-    id: "i-2",
-    category: "instructors",
-    title: "Prof. Sarah Johnson, PhD",
-    subtitle: "Cell Biology & Medical Histology Fellow",
-    route: "/community",
-    badge: "Faculty",
-  },
-  {
-    id: "i-3",
-    category: "instructors",
-    title: "Dr. Alexander Ross, MD, FACS",
-    subtitle: "Thoracic & Cardiovascular Surgery",
-    route: "/community",
-    badge: "Faculty",
-  },
+  const accessibleCourses = courses.filter((course) => course.access.canOpen);
+  const lessonsByCourse = await Promise.all(accessibleCourses.map(async (course) => ({
+    course,
+    lessons: await listStudentCourseLessons({ courseId: course.courseId, signal }),
+  })));
 
-  // Community & Resources
-  {
-    id: "cm-1",
-    category: "community",
-    title: "Brachial Plexus High-Yield Case Discussion",
-    subtitle: "Clinical Case Study • 28 replies • Active now",
-    route: "/community",
-    badge: "Discussion",
-  },
-  {
-    id: "cm-2",
-    category: "community",
-    title: "Gross Anatomy Practical Exam Prep Tips",
-    subtitle: "Study Group • 42 replies • By Juliana Mohammed",
-    route: "/community",
-    badge: "Group",
-  },
-  {
-    id: "r-1",
-    category: "resources",
-    title: "Upper Limb Complete Dissection Atlas (PDF)",
-    subtitle: "Reference Guide • 14.2 MB • High Resolution",
-    route: "/my-courses/human-anatomy-i",
-    badge: "PDF",
-  },
-];
+  for (const { course, lessons } of lessonsByCourse) {
+    for (const lesson of lessons.lessons) {
+      const route = `/my-courses/${encodeURIComponent(course.courseId)}/lessons/${encodeURIComponent(lesson.lessonId)}`;
+      items.push({
+        id: `lesson:${lesson.lessonId}`,
+        category: "lessons",
+        title: lesson.title,
+        subtitle: `${course.title} · ${lesson.mediaStatus === "ready" ? "Released lesson" : "Lesson"}`,
+        route,
+        badge: "Lesson",
+      });
+      if (lesson.resourceId && lesson.resourceTitle) {
+        items.push({
+          id: `resource:${lesson.resourceId}`,
+          category: "resources",
+          title: lesson.resourceTitle,
+          subtitle: `${course.title} · ${lesson.title}`,
+          route,
+          badge: lesson.resourceType === "pdf" ? "PDF" : "Video",
+        });
+      }
+    }
+  }
+
+  for (const instructor of instructors) {
+    items.push({
+      id: `instructor:${instructor.id}`,
+      category: "instructors",
+      title: instructor.displayName,
+      subtitle: instructor.specialties.join(" · ") || instructor.courses.map((course) => course.title).join(" · "),
+      route: `/instructors/${encodeURIComponent(instructor.id)}`,
+      badge: "Instructor",
+    });
+  }
+
+  for (const post of posts) {
+    items.push({
+      id: `community:${post.id}`,
+      category: "community",
+      title: post.title?.trim() || post.body.slice(0, 88).trim(),
+      subtitle: `${post.categoryKey} · ${post.commentCount} ${post.commentCount === 1 ? "reply" : "replies"}`,
+      route: "/community",
+      badge: "Discussion",
+    });
+  }
+
+  return items;
+}
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -157,8 +104,13 @@ interface SearchModalProps {
 
 export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
+  const auth = useAuth();
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [items, setItems] = useState<SearchItem[]>([]);
+  const [loadState, setLoadState] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryIndex, setRetryIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -170,18 +122,42 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen || auth.status !== "authenticated") {
+      setItems([]);
+      setLoadState("idle");
+      setLoadError(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    setLoadState("loading");
+    setLoadError(null);
+    void loadSearchItems(controller.signal)
+      .then((nextItems) => {
+        if (controller.signal.aborted) return;
+        setItems(nextItems);
+        setLoadState("success");
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        setItems([]);
+        setLoadError(error instanceof Error ? error.message : "Search data could not be loaded.");
+        setLoadState("error");
+      });
+    return () => controller.abort();
+  }, [isOpen, auth.status, retryIndex]);
+
   const filteredItems = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) {
-      return SEARCH_DATABASE.slice(0, 8);
-    }
-    return SEARCH_DATABASE.filter(
+    const results = items.filter(
       (item) =>
         item.title.toLowerCase().includes(q) ||
         item.subtitle.toLowerCase().includes(q) ||
         item.category.toLowerCase().includes(q)
     );
-  }, [query]);
+    return q ? results : results.slice(0, 8);
+  }, [items, query]);
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -202,7 +178,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
         );
       } else if (e.key === "Enter") {
         e.preventDefault();
-        if (filteredItems[selectedIndex]) {
+        if (loadState === "success" && filteredItems[selectedIndex]) {
           navigate(filteredItems[selectedIndex].route);
           onClose();
         }
@@ -211,7 +187,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, filteredItems, selectedIndex, navigate, onClose]);
+  }, [isOpen, loadState, filteredItems, selectedIndex, navigate, onClose]);
 
   if (!isOpen) return null;
 
@@ -267,7 +243,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
             ref={inputRef}
             type="text"
             className="flex-1 bg-transparent px-3 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none"
-            placeholder="Search enrolled courses, lessons, faculty, community..."
+            placeholder="Search courses, lessons, instructors, community..."
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -295,14 +271,30 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
           ref={listRef}
           className="max-h-[60vh] overflow-y-auto p-3 space-y-4"
         >
-          {filteredItems.length === 0 ? (
+          {loadState === "loading" ? (
+            <div className="py-12 text-center" role="status">
+              <Search className="mx-auto size-8 text-slate-300" />
+              <p className="mt-2 text-sm font-medium text-slate-700">Loading your learning-space results…</p>
+            </div>
+          ) : loadState === "error" ? (
+            <div className="py-12 text-center" role="alert">
+              <Search className="mx-auto size-8 text-slate-300" />
+              <p className="mt-2 text-sm font-medium text-slate-700">{loadError ?? "Search data could not be loaded."}</p>
+              <button type="button" className="mt-3 text-sm font-semibold text-emerald-700 hover:text-emerald-800" onClick={() => setRetryIndex((value) => value + 1)}>Try again</button>
+            </div>
+          ) : auth.status !== "authenticated" ? (
+            <div className="py-12 text-center" role="status">
+              <Search className="mx-auto size-8 text-slate-300" />
+              <p className="mt-2 text-sm font-medium text-slate-700">Sign in to search your learning space.</p>
+            </div>
+          ) : filteredItems.length === 0 ? (
             <div className="py-12 text-center">
               <Search className="mx-auto size-8 text-slate-300" />
               <p className="mt-2 text-sm font-medium text-slate-700">
-                No matching results found for &ldquo;{query}&rdquo;
+                {items.length === 0 ? "No learning-space results are available yet." : `No matching results found for “${query}”`}
               </p>
               <p className="text-xs text-slate-400 mt-1">
-                Try searching for Anatomy, Physiology, Dr. Hassan, or Quiz
+                Try another course, lesson, instructor, or discussion.
               </p>
             </div>
           ) : (
@@ -383,7 +375,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
         <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/70 px-4 py-2 text-xs text-slate-500">
           <div className="flex items-center gap-2">
             <Sparkles className="size-3.5 text-emerald-600" />
-            <span>Universal Search across entire Medical Learning Space</span>
+          <span>Search real courses, released learning resources, instructors, and community discussions</span>
           </div>
           <div className="flex items-center gap-3">
             <span>

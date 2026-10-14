@@ -5,7 +5,7 @@ import { AdminV2DomainStatus, useAdminV2 } from "../layout/AdminV2Layout";
 import { ConfirmDialog, Drawer, FormActions, FormField, StatusBadge } from "../shared/AdminV2Primitives";
 import type { ContentResource, ContentResourceType, CourseChapter, CourseLesson, CourseRecord } from "../types/adminV2.types";
 import { listBrandAccess, listCourses, listStructure } from "../api/adminAcademicApi";
-import { archiveLessonResource, createLessonResource, createMediaAsset, listLessonMedia, listLessonResources, publishMedia, updateLessonResource, uploadAndVerifyMedia, withdrawMedia } from "../api/adminContentApi";
+import { archiveLessonResource, configureVideoViewLimit, createLessonResource, createMediaAsset, listLessonMedia, listLessonResources, publishMedia, updateLessonResource, uploadAndVerifyMedia, withdrawMedia } from "../api/adminContentApi";
 
 type ContentTab = "Resources" | "Details";
 type ResourceAction = "preview" | "edit" | "publish" | "draft" | "withdraw" | "delete";
@@ -158,6 +158,9 @@ export function ContentPage() {
     const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
     const valid = type === "PDF" ? extension === "pdf" || file.type === "application/pdf" : file.type === "mp4" || file.type === "video/mp4" || extension === "mp4";
     if (!valid) { setError(type === "PDF" ? "Choose a PDF file." : "Choose a supported video file."); return; }
+    const videoDurationSeconds = type === "Video" ? Number(form.get("videoDurationSeconds")) : undefined;
+    const maxCompletedViews = type === "Video" ? Number(form.get("maxCompletedViews") ?? 3) : undefined;
+    if (type === "Video" && (!Number.isSafeInteger(videoDurationSeconds) || videoDurationSeconds! < 1 || videoDurationSeconds! > 86400 || !Number.isSafeInteger(maxCompletedViews) || maxCompletedViews! < 1 || maxCompletedViews! > 100)) { setError("Enter a video duration in seconds and a completed-view limit from 1 to 100."); return; }
     setMutationPending(true);
     try {
       const courseRecord = data.courses.find((candidate) => candidate.id === courseId);
@@ -173,7 +176,7 @@ export function ContentPage() {
       const scope = { brand: apiBrand, course: apiCourse, chapter: apiChapter, lesson: apiLesson };
       const resourceId = await createLessonResource(scope, title || file.name.replace(/\.[^.]+$/, ""), data.contentResources.filter((item) => item.lessonId === lesson.id).length, type === "PDF" ? "document" : "video");
       const inventory = await listLessonMedia(scope);
-      const asset = await createMediaAsset(scope, resourceId, title || file.name.replace(/\.[^.]+$/, ""), file);
+      const asset = await createMediaAsset(scope, resourceId, title || file.name.replace(/\.[^.]+$/, ""), file, videoDurationSeconds, maxCompletedViews);
       await uploadAndVerifyMedia(scope, asset, file, inventory.uploadPolicy);
       setResourceId(resourceId);
       setFile(null);
@@ -212,6 +215,16 @@ export function ContentPage() {
       finally { setMutationPending(false); }
     }
     if (action === "delete") setConfirmId(item.id);
+  };
+  const saveVideoConfiguration = async (item: ContentResource, videoDurationSeconds: number, maxCompletedViews: number, reason: string) => {
+    if (mutationPending || !item.mediaAssetId || !Number.isSafeInteger(item.mediaVersion) || !reason.trim()) return;
+    setMutationPending(true);
+    try {
+      const { scope } = await resolveResourceScope(item);
+      await configureVideoViewLimit(scope, { id: item.mediaAssetId, version: item.mediaVersion! }, { videoDurationSeconds, maxCompletedViews, reason });
+      refreshServerDomains();
+    } catch (cause) { reportDomainError(cause instanceof Error ? cause.message : "Video playback settings could not be saved."); }
+    finally { setMutationPending(false); }
   };
   const handleFileDrop = (event: DragEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -328,10 +341,12 @@ export function ContentPage() {
       onAction={runResourceAction}
       onOpenLesson={openMediaLesson}
       onUpload={() => openUpload()}
+      onConfigureVideo={saveVideoConfiguration}
+      mutationPending={mutationPending}
     />}
     {editor && <Drawer title={editor.kind === "upload" ? "Upload resource" : "Edit resource"} subtitle={editor.kind === "upload" ? "Upload privately and verify the file through the backend." : "Update the saved resource metadata."} onClose={() => { setEditor(null); setFile(null); setError(""); }} footer={<FormActions><button type="button" className="admin-v2__button" onClick={() => { setEditor(null); setFile(null); }}>Cancel</button><button type="submit" disabled={mutationPending} className="admin-v2__button is-primary" form="content-resource-form">{mutationPending ? "Saving…" : editor.kind === "upload" ? "Upload resource" : "Save metadata"}</button></FormActions>}>
       <form id="content-resource-form" className="admin-v2__form" onSubmit={submitResource}>
-        {editor.kind === "upload" && <><FormField label="Resource type"><select value={type} onChange={(event) => setType(event.target.value as ContentResourceType)}><option>Video</option><option>PDF</option></select></FormField><FormField label="File" wide><input type="file" accept={type === "PDF" ? ".pdf,application/pdf" : ".mp4,video/mp4"} required onChange={(event: ChangeEvent<HTMLInputElement>) => { setFile(event.target.files?.[0] ?? null); setError(""); }} />{file && <small className="v2-file-note">{file.name} | {formatSize(file.size)} | private backend upload</small>}</FormField></>}
+        {editor.kind === "upload" && <><FormField label="Resource type"><select value={type} onChange={(event) => setType(event.target.value as ContentResourceType)}><option>Video</option><option>PDF</option></select></FormField><FormField label="File" wide><input type="file" accept={type === "PDF" ? ".pdf,application/pdf" : ".mp4,video/mp4"} required onChange={(event: ChangeEvent<HTMLInputElement>) => { setFile(event.target.files?.[0] ?? null); setError(""); }} />{file && <small className="v2-file-note">{file.name} | {formatSize(file.size)} | private backend upload</small>}</FormField>{type === "Video" && <><FormField label="Video duration (seconds)"><input name="videoDurationSeconds" type="number" min={1} max={86400} step={1} required defaultValue="" /></FormField><FormField label="Maximum completed views"><input name="maxCompletedViews" type="number" min={1} max={100} step={1} defaultValue={3} required /></FormField><p className="v2-helper-note">A completed view is counted after the backend observes at least 90% plausible forward playback. The default is 3 views per Student.</p></>}</>}
         <FormField label="Title" wide><input name="title" required defaultValue={editingResource?.title ?? file?.name.replace(/\.[^.]+$/, "") ?? ""} key={editingResource?.id ?? file?.name ?? "new"} /></FormField>
         <FormField label="Description" wide><textarea name="description" rows={4} defaultValue={editingResource?.description ?? ""} key={editingResource?.id ?? "new-description"} /></FormField>
         {editor.kind === "edit" && editingResource && <p className="v2-helper-note">Original file: {editingResource.fileName}. File bytes are not persisted or replaceable here.</p>}
@@ -363,6 +378,8 @@ function MediaLibrary({
   onAction,
   onOpenLesson,
   onUpload,
+  onConfigureVideo,
+  mutationPending,
 }: {
   entries: MediaResourceEntry[];
   totalCount: number;
@@ -384,6 +401,8 @@ function MediaLibrary({
   onAction: (action: ResourceAction, item: ContentResource) => void;
   onOpenLesson: (entry: MediaResourceEntry) => void;
   onUpload: () => void;
+  onConfigureVideo: (item: ContentResource, videoDurationSeconds: number, maxCompletedViews: number, reason: string) => Promise<void>;
+  mutationPending: boolean;
 }) {
   const selected = entries.find((entry) => entry.item.id === selectedId);
   return <div className="v2-media-library">
@@ -412,6 +431,14 @@ function MediaLibrary({
         {selected ? <div className="v2-media-library__inspector-body">
           <div className="v2-media-library__identity"><span className={"v2-resource-icon is-" + selected.item.type.toLowerCase()}>{selected.item.type === "Video" ? <Video size={19} /> : <FileText size={19} />}</span><div><strong>{selected.item.title}</strong><span>{selected.item.type} resource</span></div></div>
           <dl className="v2-detail-grid"><div><dt>File</dt><dd>{selected.item.fileName}</dd></div><div><dt>Size</dt><dd>{formatSize(selected.item.fileSize)}</dd></div><div><dt>Duration / pages</dt><dd>{formatMediaMeta(selected.item)}</dd></div><div><dt>Updated</dt><dd>{selected.item.updatedAt}</dd></div><div><dt>Visibility</dt><dd>{selected.item.visibility}</dd></div></dl>
+          {selected.item.type === "Video" ? <form className="admin-v2__form" onSubmit={(event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const values = new FormData(event.currentTarget); void onConfigureVideo(selected.item, Number(values.get("videoDurationSeconds")), Number(values.get("maxCompletedViews")), String(values.get("reason") ?? "")); }}>
+            <p className="v2-helper-note">Completed views count after the backend observes at least 90% plausible forward playback. Default limit: 3 per Student.</p>
+            <FormField label="Video duration (seconds)"><input name="videoDurationSeconds" type="number" min={1} max={86400} step={1} required defaultValue={selected.item.durationSeconds ?? ""} /></FormField>
+            <FormField label="Maximum completed views"><input name="maxCompletedViews" type="number" min={1} max={100} step={1} required defaultValue={selected.item.maxCompletedViews ?? 3} /></FormField>
+            <FormField label="Reason"><input name="reason" minLength={3} maxLength={500} required defaultValue="Configure protected video playback policy" /></FormField>
+            <button type="submit" className="admin-v2__button" disabled={mutationPending || !selected.item.mediaAssetId || !Number.isSafeInteger(selected.item.mediaVersion)} title={!selected.item.mediaAssetId ? "Upload a media asset before configuring playback" : undefined}>{mutationPending ? "Saving…" : "Save playback settings"}</button>
+            {!selected.item.mediaAssetId && <p className="v2-helper-note">Playback limits are available after a video media asset is uploaded.</p>}
+          </form> : null}
           <div className="v2-media-library__context"><span>Attached to</span><strong>{selected.lesson.title}</strong><small>{selected.chapter?.title ?? "Course structure"} · {selected.course.title}</small></div>
           <button type="button" className="admin-v2__button is-primary v2-media-library__open" onClick={() => onOpenLesson(selected)}><ExternalLink size={14} />Open lesson in Content Library</button>
         </div> : <div className="v2-resource-inspector-empty"><HardDrive size={22} /><strong>Select a resource</strong><span>Choose a Video or PDF to view its metadata and lesson context.</span></div>}

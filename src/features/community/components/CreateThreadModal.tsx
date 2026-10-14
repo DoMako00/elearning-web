@@ -7,25 +7,31 @@ interface CreateThreadModalProps {
   onClose: () => void;
   onSubmit: (post: {
     title: string;
+    body: string;
     categoryKey: string;
     categoryLabel: string;
     topicIcon: DiscussionPost["topicIcon"];
-  }) => void;
+  }) => void | Promise<void>;
+  isSubmitting?: boolean;
+  errorMessage?: string | null;
 }
 
 export function CreateThreadModal({
   isOpen,
   onClose,
   onSubmit,
+  isSubmitting = false,
+  errorMessage = null,
 }: CreateThreadModalProps) {
   const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
   const [category, setCategory] = useState("react");
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim() || !body.trim() || isSubmitting) return;
 
     let topicIcon: DiscussionPost["topicIcon"] = "atom";
     let categoryLabel = "React";
@@ -41,14 +47,20 @@ export function CreateThreadModal({
       categoryLabel = "Backend";
     }
 
-    onSubmit({
-      title: title.trim(),
-      categoryKey: category,
-      categoryLabel,
-      topicIcon,
-    });
+    try {
+      await onSubmit({
+        title: title.trim(),
+        body: body.trim(),
+        categoryKey: category,
+        categoryLabel,
+        topicIcon,
+      });
+    } catch {
+      return;
+    }
 
     setTitle("");
+    setBody("");
     onClose();
   };
 
@@ -71,6 +83,21 @@ export function CreateThreadModal({
 
         {/* Modal Form */}
         <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Discussion
+            </label>
+            <textarea
+              required
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              maxLength={20000}
+              rows={4}
+              placeholder="Share the question or idea you want to discuss."
+              className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-[14px] text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 resize-y"
+            />
+          </div>
+
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
               Topic / Question Title
@@ -102,6 +129,7 @@ export function CreateThreadModal({
           </div>
 
           <div className="mt-4 flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            {errorMessage && <p role="alert" className="mr-auto text-xs text-rose-700">{errorMessage}</p>}
             <button
               type="button"
               onClick={onClose}
@@ -111,9 +139,10 @@ export function CreateThreadModal({
             </button>
             <button
               type="submit"
+              disabled={!title.trim() || !body.trim() || isSubmitting}
               className="px-5 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs transition-colors cursor-pointer"
             >
-              Publish thread
+              {isSubmitting ? "Publishing…" : "Publish thread"}
             </button>
           </div>
         </form>

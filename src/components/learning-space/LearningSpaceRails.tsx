@@ -1,26 +1,24 @@
-import { Download, ExternalLink, FileSpreadsheet, FileText, Pin, Presentation } from "lucide-react";
-import {
-  COURSE_MODULE_SUMMARIES,
-  KEY_TERMS,
-  PINNED_RESOURCES,
-  RECENT_DOWNLOADS,
-  type CourseModuleSummary,
-} from "./learningSpaceData";
+import { ExternalLink, FileText, Pin, Play } from "lucide-react";
+import type { LearningSpaceModuleSummary, LearningSpaceResource } from "./learningSpaceMappers";
 
-function FileGlyph({ extension }: { extension: string }) {
-  if (extension === "pptx") return <Presentation aria-hidden="true" />;
-  if (extension === "csv") return <FileSpreadsheet aria-hidden="true" />;
-  return <FileText aria-hidden="true" />;
+function FileGlyph({ extension }: { extension: LearningSpaceResource["extension"] }) {
+  return extension === "video" ? <Play aria-hidden="true" /> : <FileText aria-hidden="true" />;
 }
 
 interface WorkspaceCurriculumProps {
+  modules: readonly LearningSpaceModuleSummary[];
   activeModuleId?: string;
   actionLabel?: string;
+  onSelectModule?: (lessonId: string) => void;
+  onAction?: () => void;
 }
 
 export function WorkspaceCurriculum({
-  activeModuleId = "module-1",
+  modules,
+  activeModuleId,
   actionLabel = "View full curriculum",
+  onSelectModule,
+  onAction,
 }: WorkspaceCurriculumProps) {
   return (
     <article className="course-overview-card workspace-rail-card">
@@ -28,12 +26,13 @@ export function WorkspaceCurriculum({
         <h2>Course curriculum</h2>
       </header>
       <ul className="workspace-curriculum">
-        {COURSE_MODULE_SUMMARIES.map((module) => (
+        {modules.map((module) => (
           <li key={module.id}>
             <button
               type="button"
               className={module.id === activeModuleId ? "is-active" : ""}
               aria-current={module.id === activeModuleId ? "true" : undefined}
+              onClick={() => module.firstLessonId && onSelectModule?.(module.firstLessonId)}
             >
               <span>
                 <strong>
@@ -43,9 +42,10 @@ export function WorkspaceCurriculum({
               <small>{module.lessonCount} lessons</small>
             </button>
           </li>
-        ))}
+          ))}
+        {modules.length === 0 ? <li><span>No published chapters are available.</span></li> : null}
       </ul>
-      <button type="button" className="workspace-rail-link">
+      <button type="button" className="workspace-rail-link" onClick={onAction}>
         {actionLabel}
       </button>
     </article>
@@ -58,40 +58,31 @@ export function KeyTermsCard() {
       <header>
         <h2>Key terms to know</h2>
       </header>
-      <dl>
-        {KEY_TERMS.map((item) => (
-          <div key={item.term}>
-            <dt>{item.term}</dt>
-            <dd>{item.definition}</dd>
-          </div>
-        ))}
-      </dl>
-      <button type="button" className="workspace-rail-action">
-        View full study guide <ExternalLink aria-hidden="true" />
+      <p className="workspace-rail-copy">No course-specific key terms have been published.</p>
+      <button type="button" className="workspace-rail-action" disabled>
+        Study guide not available <ExternalLink aria-hidden="true" />
       </button>
     </article>
   );
 }
 
-export function PinnedResourcesCard() {
+export function PinnedResourcesCard({ resources, onOpenResource }: { resources: readonly LearningSpaceResource[]; onOpenResource: (resource: LearningSpaceResource) => void }) {
   return (
     <article className="course-overview-card workspace-rail-card">
       <header>
-        <h2>Pinned resources</h2>
+        <h2>Course resources</h2>
       </header>
       <ul className="workspace-pin-list">
-        {PINNED_RESOURCES.map((resource) => (
+        {resources.map((resource) => (
           <li key={resource.id}>
-            <span className={`workspace-file-icon workspace-file-icon--${resource.extension}`}>
-              <FileGlyph extension={resource.extension} />
-            </span>
-            <span>
-              <strong>{resource.title}</strong>
-              <small>{resource.size}</small>
-            </span>
-            <Pin aria-hidden="true" />
+            <button type="button" disabled={!resource.available} onClick={() => onOpenResource(resource)} aria-label={`Open protected ${resource.title}`}>
+              <span className={`workspace-file-icon workspace-file-icon--${resource.extension}`}><FileGlyph extension={resource.extension} /></span>
+              <span><strong>{resource.title}</strong><small>{resource.chapterTitle}</small></span>
+              <Pin aria-hidden="true" />
+            </button>
           </li>
         ))}
+        {resources.length === 0 ? <li><span>No published course resources are available.</span></li> : null}
       </ul>
     </article>
   );
@@ -103,49 +94,34 @@ export function RecentDownloadsCard() {
       <header>
         <h2>Recent downloads</h2>
       </header>
-      <ul className="workspace-pin-list">
-        {RECENT_DOWNLOADS.map((resource) => (
-          <li key={resource.id}>
-            <span className={`workspace-file-icon workspace-file-icon--${resource.extension}`}>
-              <FileGlyph extension={resource.extension} />
-            </span>
-            <span>
-              <strong>{resource.title}</strong>
-              <small>
-                {resource.downloaded} · {resource.size}
-              </small>
-            </span>
-            <Download aria-hidden="true" />
-          </li>
-        ))}
-      </ul>
+      <p className="workspace-rail-copy">Download history is not available for this account.</p>
     </article>
   );
 }
 
-export function NotesWorkspaceRail() {
+export function NotesWorkspaceRail({ modules, onSelectModule, onAction }: { modules: readonly LearningSpaceModuleSummary[]; onSelectModule?: (lessonId: string) => void; onAction?: () => void }) {
   return (
     <>
-      <WorkspaceCurriculum activeModuleId="module-1" actionLabel="View full curriculum" />
+      <WorkspaceCurriculum modules={modules} activeModuleId={modules[0]?.id} actionLabel="View full curriculum" onSelectModule={onSelectModule} onAction={onAction} />
       <KeyTermsCard />
     </>
   );
 }
 
-export function ResourcesWorkspaceRail() {
+export function ResourcesWorkspaceRail({ modules, resources, onSelectModule, onAction, onOpenResource }: { modules: readonly LearningSpaceModuleSummary[]; resources: readonly LearningSpaceResource[]; onSelectModule?: (lessonId: string) => void; onAction?: () => void; onOpenResource: (resource: LearningSpaceResource) => void }) {
   return (
     <>
-      <WorkspaceCurriculum activeModuleId="module-2" />
-      <PinnedResourcesCard />
+      <WorkspaceCurriculum modules={modules} activeModuleId={modules[0]?.id} onSelectModule={onSelectModule} onAction={onAction} />
+      <PinnedResourcesCard resources={resources} onOpenResource={onOpenResource} />
       <RecentDownloadsCard />
     </>
   );
 }
 
-export function DiscussionWorkspaceRail({ modules = COURSE_MODULE_SUMMARIES }: { modules?: CourseModuleSummary[] }) {
+export function DiscussionWorkspaceRail({ modules, onSelectModule }: { modules: readonly LearningSpaceModuleSummary[]; onSelectModule?: (lessonId: string) => void }) {
   return (
     <>
-      <WorkspaceCurriculum activeModuleId={modules[0]?.id} />
+      <WorkspaceCurriculum modules={modules} activeModuleId={modules[0]?.id} onSelectModule={onSelectModule} />
       <article className="course-overview-card workspace-rail-card">
         <header>
           <h2>Discussion tips</h2>

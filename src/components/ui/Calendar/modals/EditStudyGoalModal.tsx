@@ -38,12 +38,12 @@ export function EditStudyGoalModal({
         </div>
 
         <div className="calendar-form-group">
-          <label htmlFor="target-hours">Weekly Target (Hours)</label>
+          <label htmlFor="target-hours">Weekly Target (Completed Lessons)</label>
           <input
             id="target-hours"
             type="number"
             min="1"
-            max="60"
+            max="100"
             value={targetGoalInput}
             onChange={(e) => onTargetChange(Number(e.target.value))}
             autoFocus

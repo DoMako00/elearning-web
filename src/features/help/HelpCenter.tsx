@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   HelpHeroBanner,
   CategoryGrid,
@@ -7,27 +8,37 @@ import {
   CategoryArticlesModal,
   ArticleDetailModal,
   CreateTicketModal,
-  LiveChatDrawer,
   TicketsListModal,
 } from "./components";
 import {
   HELP_CATEGORIES,
   POPULAR_ARTICLES,
-  RECENT_SUPPORT_TICKETS,
   HELP_RESOURCES,
   ALL_CATEGORY_ARTICLES,
 } from "./data/helpCenterData";
 import type { HelpCategory, HelpArticle, SupportTicket, HelpResourceLink } from "../../types/help";
 import { ToastNotification } from "../../components/ui/ToastNotification";
 import { useToast } from "../../hooks/useToast";
+import { useStudentConversations, useStudentMessageMutations } from "../student/api/useStudentMessages";
 
 export const HelpCenter: React.FC = () => {
+  const navigate = useNavigate();
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Tickets state
-  const [tickets, setTickets] = useState<SupportTicket[]>(RECENT_SUPPORT_TICKETS);
+  const conversationsQuery = useStudentConversations();
+  const messages = useStudentMessageMutations();
+  const tickets: SupportTicket[] = (conversationsQuery.data ?? []).filter(item => item.type === "admin_support").map(item => ({
+    id: item.id,
+    ticketNumber: `#${item.id.slice(0, 8).toUpperCase()}`,
+    title: item.title,
+    category: "Support",
+    description: item.lastMessage?.body,
+    createdAt: new Date(item.updatedAt).toLocaleString(),
+    status: item.status === "open" ? "Open" : "Resolved",
+    iconType: "file-text",
+  }));
 
   // Modals state
   const [selectedCategory, setSelectedCategory] = useState<HelpCategory | null>(null);
@@ -38,7 +49,6 @@ export const HelpCenter: React.FC = () => {
 
   const [isCreateTicketOpen, setIsCreateTicketOpen] = useState(false);
   const [isTicketsListOpen, setIsTicketsListOpen] = useState(false);
-  const [isLiveChatOpen, setIsLiveChatOpen] = useState(false);
 
   // Toast notifications
   const { toastMessage, showToast } = useToast();
@@ -98,30 +108,18 @@ export const HelpCenter: React.FC = () => {
     }
   };
 
-  const handleCreateTicketSubmit = (
+  const handleCreateTicketSubmit = async (
     newTicketData: Omit<SupportTicket, "id" | "ticketNumber" | "createdAt" | "status">
   ) => {
-    const newTicket: SupportTicket = {
-      ...newTicketData,
-      id: `tick-${Date.now()}`,
-      ticketNumber: `#GL-${Math.floor(Math.random() * 9000 + 1000)}`,
-      createdAt: "Just now",
-      status: "Open",
-    };
-    setTickets((prev) => [newTicket, ...prev]);
-    showToast("Support ticket created successfully! We will contact you soon.");
+    await messages.startSupport.mutateAsync({
+      subject: `${newTicketData.category}: ${newTicketData.title}`.slice(0, 240),
+      body: newTicketData.description ?? "",
+    });
+    showToast("Support conversation saved. Replies will appear in Messages.");
   };
 
   const handleResourceClick = (res: HelpResourceLink) => {
-    if (res.title.toLowerCase().includes("video")) {
-      const videoArticle = POPULAR_ARTICLES.find((a) => a.iconName === "PlayCircle");
-      if (videoArticle) {
-        setSelectedArticle(videoArticle);
-        setIsArticleModalOpen(true);
-        return;
-      }
-    }
-    showToast(`Opening ${res.title}...`);
+    navigate(res.url);
   };
 
   return (
@@ -170,14 +168,15 @@ export const HelpCenter: React.FC = () => {
           tickets={tickets}
           resources={HELP_RESOURCES}
           onCreateTicketClick={() => setIsCreateTicketOpen(true)}
-          onStartLiveChatClick={() => setIsLiveChatOpen(true)}
+          onStartLiveChatClick={() => navigate("/messages")}
           onViewAllTicketsClick={() => setIsTicketsListOpen(true)}
-          onSelectTicket={(ticket) => {
-            showToast(`Viewing ticket ${ticket.ticketNumber}: ${ticket.title}`);
+          onSelectTicket={() => {
             setIsTicketsListOpen(true);
           }}
           onSelectResource={handleResourceClick}
         />
+        {conversationsQuery.isLoading && <p role="status" className="px-2 text-xs text-gray-500">Loading saved support conversations…</p>}
+        {conversationsQuery.isError && <p role="alert" className="px-2 text-xs text-rose-700">{conversationsQuery.error instanceof Error ? conversationsQuery.error.message : "Saved support conversations could not be loaded."} <button type="button" onClick={() => void conversationsQuery.refetch()}>Retry</button></p>}
       </div>
 
       {/* Interactive Modals */}
@@ -217,11 +216,6 @@ export const HelpCenter: React.FC = () => {
         onCreateTicketClick={() => setIsCreateTicketOpen(true)}
       />
 
-      {/* Live Chat Floating Drawer */}
-      <LiveChatDrawer
-        isOpen={isLiveChatOpen}
-        onClose={() => setIsLiveChatOpen(false)}
-      />
     </div>
   );
 };

@@ -13,21 +13,30 @@ import { ExploreCourseArt } from "./ExploreCourseArt";
 import { type ExploreCourse } from "./exploreData";
 
 interface ExploreCoursesProps {
-  courses: ExploreCourse[];
+  courses: readonly ExploreCourse[];
+  savedCourseIds: readonly string[] | null;
+  saving: boolean;
+  onToggleSaved: (courseId: string, saved: boolean) => void;
+  loading?: boolean;
+  error?: string;
   searchQuery?: string;
   onClearSearch?: () => void;
 }
 
 export function ExploreCourses({
   courses,
+  savedCourseIds,
+  saving,
+  onToggleSaved,
+  loading = false,
+  error,
   searchQuery = "",
   onClearSearch,
 }: ExploreCoursesProps) {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [sortBy, setSortBy] = useState<"relevant" | "rating" | "popular">("relevant");
+  const [sortBy, setSortBy] = useState<"relevant" | "recent" | "lessons">("relevant");
   const [isSortOpen, setIsSortOpen] = useState(false);
-  const [bookmarked, setBookmarked] = useState<Record<string, boolean>>({});
 
   const viewportRef = useRef<HTMLDivElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
@@ -36,12 +45,9 @@ export function ExploreCourses({
 
   // Sorting
   const sortedCourses = [...courses].sort((a, b) => {
-    if (sortBy === "rating") return b.rating - a.rating;
-    if (sortBy === "popular") {
-      const getCount = (str: string) => parseFloat(str.replace(/[^0-9.]/g, "")) || 0;
-      return getCount(b.learners) - getCount(a.learners);
-    }
-    return 0;
+    if (sortBy === "recent") return b.updatedAt.localeCompare(a.updatedAt);
+    if (sortBy === "lessons") return b.lessonCount - a.lessonCount;
+    return a.title.localeCompare(b.title);
   });
 
   const checkScroll = () => {
@@ -89,29 +95,25 @@ export function ExploreCourses({
     }
   };
 
-  const toggleBookmark = (id: string) => {
-    setBookmarked((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
   const getSortLabel = () => {
     switch (sortBy) {
-      case "rating":
-        return "Most relevant";
-      case "popular":
-        return "Most popular";
+      case "recent":
+        return "Recently updated";
+      case "lessons":
+        return "Most lessons";
       default:
-        return "Most relevant";
+        return "Course title";
     }
   };
 
   return (
-    <section className="explore-courses" aria-labelledby="courses-for-you-title">
+    <section id="explore-courses-section" className="explore-courses" aria-labelledby="courses-for-you-title">
       <header className="explore-courses__header">
         <div className="explore-courses__heading-wrap">
           <h2 id="courses-for-you-title" className="explore-courses__title">
-            Medical Modules For You
+            Courses for your placement
           </h2>
-          <span className="explore-courses__subtitle">Tailored to your medical track</span>
+          <span className="explore-courses__subtitle">Published courses from your current academic placement</span>
         </div>
 
         <div className="explore-courses__controls">
@@ -138,29 +140,29 @@ export function ExploreCourses({
                     setIsSortOpen(false);
                   }}
                 >
-                  Most relevant
+                Course title
                 </li>
                 <li
                   role="option"
-                  aria-selected={sortBy === "rating"}
-                  className={sortBy === "rating" ? "is-selected" : ""}
+                  aria-selected={sortBy === "recent"}
+                  className={sortBy === "recent" ? "is-selected" : ""}
                   onClick={() => {
-                    setSortBy("rating");
+                    setSortBy("recent");
                     setIsSortOpen(false);
                   }}
                 >
-                  Highest rated
+                  Recently updated
                 </li>
                 <li
                   role="option"
-                  aria-selected={sortBy === "popular"}
-                  className={sortBy === "popular" ? "is-selected" : ""}
+                  aria-selected={sortBy === "lessons"}
+                  className={sortBy === "lessons" ? "is-selected" : ""}
                   onClick={() => {
-                    setSortBy("popular");
+                    setSortBy("lessons");
                     setIsSortOpen(false);
                   }}
                 >
-                  Most popular
+                  Most lessons
                 </li>
               </ul>
             )}
@@ -189,9 +191,13 @@ export function ExploreCourses({
         </div>
       </header>
 
-      {sortedCourses.length === 0 ? (
+      {error ? (
+        <div className="explore-courses__empty" role="alert">{error}</div>
+      ) : loading ? (
+        <div className="explore-courses__empty" role="status">Loading published courses…</div>
+      ) : sortedCourses.length === 0 ? (
         <div className="explore-courses__empty">
-          <p>No courses found matching &quot;{searchQuery}&quot;</p>
+          <p>{searchQuery ? `No published courses found matching “${searchQuery}”.` : "No published courses are available for this placement and selection."}</p>
           {onClearSearch && (
             <button type="button" onClick={onClearSearch}>
               Clear search & filters
@@ -213,28 +219,29 @@ export function ExploreCourses({
                 <p className="explore-course-list-item__meta">
                   <span>{course.level}</span>
                   <span className="explore-course-dot">•</span>
-                  <span>{course.duration}</span>
+                  <span>{course.semester}</span>
                   <span className="explore-course-dot">•</span>
-                  <span className="explore-course-rating">★ {course.rating}</span>
-                  <span className="explore-course-dot">•</span>
-                  <span>{course.learners}</span>
+                  <span>{course.lessonCount} lessons</span>
                 </p>
               </div>
               <div className="explore-course-list-item__actions">
+                {!course.canOpen && <span className="explore-course-access-label">Access required</span>}
                 <button
                   type="button"
-                  className={`explore-action-btn ${bookmarked[course.id] ? "is-saved" : ""}`}
-                  onClick={() => toggleBookmark(course.id)}
-                  aria-label={bookmarked[course.id] ? `Remove ${course.title} from bookmarks` : `Bookmark ${course.title}`}
-                  aria-pressed={bookmarked[course.id]}
+                  className={`explore-action-btn ${savedCourseIds?.includes(course.id) ? "is-saved" : ""}`}
+                  onClick={() => onToggleSaved(course.id, !savedCourseIds?.includes(course.id))}
+                  aria-label={savedCourseIds?.includes(course.id) ? `Remove ${course.title} from saved courses` : `Save ${course.title}`}
+                  aria-pressed={savedCourseIds?.includes(course.id) ?? false}
+                  disabled={saving || savedCourseIds === null}
                 >
-                  <Bookmark className={`size-3.5 ${bookmarked[course.id] ? "fill-current" : ""}`} aria-hidden="true" />
+                  <Bookmark className={`size-3.5 ${savedCourseIds?.includes(course.id) ? "fill-current" : ""}`} aria-hidden="true" />
                 </button>
                 <button
                   type="button"
                   className="explore-action-btn explore-action-btn--arrow"
-                  aria-label={`Open ${course.title}`}
-                  onClick={() => navigate("/explore")}
+                  aria-label={course.canOpen ? `Open ${course.title}` : `${course.title} is not currently accessible`}
+                  disabled={!course.canOpen}
+                  onClick={() => navigate(`/my-courses/${encodeURIComponent(course.id)}`)}
                 >
                   <ArrowRight className="size-3.5" aria-hidden="true" />
                 </button>
@@ -267,8 +274,8 @@ export function ExploreCourses({
                 <article key={course.id} className="explore-course-card" aria-label={course.title}>
                   <div
                     className="explore-course-card__art"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => navigate("/explore")}
+                    style={{ cursor: course.canOpen ? "pointer" : "default" }}
+                    onClick={() => course.canOpen && navigate(`/my-courses/${encodeURIComponent(course.id)}`)}
                   >
                     <ExploreCourseArt artType={course.artType} />
                   </div>
@@ -280,8 +287,8 @@ export function ExploreCourses({
                     <h3
                       className="explore-course-card__title"
                       title={course.title}
-                      style={{ cursor: "pointer" }}
-                      onClick={() => navigate("/explore")}
+                      style={{ cursor: course.canOpen ? "pointer" : "default" }}
+                      onClick={() => course.canOpen && navigate(`/my-courses/${encodeURIComponent(course.id)}`)}
                     >
                       {course.title}
                     </h3>
@@ -289,27 +296,28 @@ export function ExploreCourses({
                       <p className="explore-course-card__meta">
                         <span>{course.level}</span>
                         <span className="explore-course-dot">•</span>
-                        <span>{course.duration}</span>
+                        <span>{course.semester}</span>
                         <span className="explore-course-dot">•</span>
-                        <span className="explore-course-rating">★ {course.rating}</span>
-                        <span className="explore-course-dot">•</span>
-                        <span>{course.learners}</span>
+                        <span>{course.lessonCount} lessons</span>
                       </p>
                       <div className="explore-course-card__actions">
+                        {!course.canOpen && <span className="explore-course-access-label">Access required</span>}
                         <button
                           type="button"
-                          className={`explore-action-btn ${bookmarked[course.id] ? "is-saved" : ""}`}
-                          onClick={() => toggleBookmark(course.id)}
-                          aria-label={bookmarked[course.id] ? `Remove ${course.title} from bookmarks` : `Bookmark ${course.title}`}
-                          aria-pressed={bookmarked[course.id]}
+                          className={`explore-action-btn ${savedCourseIds?.includes(course.id) ? "is-saved" : ""}`}
+                          onClick={() => onToggleSaved(course.id, !savedCourseIds?.includes(course.id))}
+                          aria-label={savedCourseIds?.includes(course.id) ? `Remove ${course.title} from saved courses` : `Save ${course.title}`}
+                          aria-pressed={savedCourseIds?.includes(course.id) ?? false}
+                          disabled={saving || savedCourseIds === null}
                         >
-                          <Bookmark className={`size-3.5 ${bookmarked[course.id] ? "fill-current" : ""}`} aria-hidden="true" />
+                          <Bookmark className={`size-3.5 ${savedCourseIds?.includes(course.id) ? "fill-current" : ""}`} aria-hidden="true" />
                         </button>
                         <button
                           type="button"
                           className="explore-action-btn explore-action-btn--arrow"
-                          aria-label={`Open ${course.title}`}
-                          onClick={() => navigate("/explore")}
+                          aria-label={course.canOpen ? `Open ${course.title}` : `${course.title} is not currently accessible`}
+                          disabled={!course.canOpen}
+                          onClick={() => navigate(`/my-courses/${encodeURIComponent(course.id)}`)}
                         >
                           <ArrowRight className="size-3.5" aria-hidden="true" />
                         </button>

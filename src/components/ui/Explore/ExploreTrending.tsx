@@ -1,47 +1,31 @@
-import { Activity, Microscope, Stethoscope, TrendingUp } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { TRENDING_ITEMS, type TrendingItem } from "./exploreData";
+import { ArrowRight, BookOpen } from "lucide-react";
+import type { ExploreCourse } from "./exploreData";
 
 interface ExploreTrendingProps {
-  onSelectTopic?: (topic: TrendingItem) => void;
+  courses: readonly ExploreCourse[];
+  onSelectTopic?: (course: ExploreCourse) => void;
 }
 
-export function ExploreTrending({ onSelectTopic }: ExploreTrendingProps) {
-  const navigate = useNavigate();
-
-  const renderIcon = (item: TrendingItem) => {
-    switch (item.iconType) {
-      case "anatomy":
-        return <Stethoscope className="size-4" aria-hidden="true" />;
-      case "microscope":
-        return <Microscope className="size-4" aria-hidden="true" />;
-      case "heart":
-        return <Activity className="size-4" aria-hidden="true" />;
-    }
-  };
-
+export function ExploreTrending({ courses, onSelectTopic }: ExploreTrendingProps) {
   return (
     <article className="explore-trending" aria-labelledby="explore-trending-title">
       <header className="explore-trending__header">
-        <h3 id="explore-trending-title">Trending now</h3>
+        <h3 id="explore-trending-title">Recently updated</h3>
       </header>
 
       <ul className="explore-trending__list" role="list">
-        {TRENDING_ITEMS.map((item) => (
+        {courses.map((item, index) => (
           <li key={item.id} className="explore-trending__item">
             <button
               type="button"
               className="explore-trending__button"
-              onClick={() => {
-                if (onSelectTopic) onSelectTopic(item);
-                else navigate("/my-courses/human-anatomy-i");
-              }}
-              aria-label={`${item.title}, ${item.level}, ${item.duration}, rated ${item.rating}`}
+              onClick={() => onSelectTopic?.(item)}
+              aria-label={`${item.title}, ${item.level}, ${item.semester}, ${item.lessonCount} lessons`}
             >
-              <span className="explore-trending__rank">{item.rank}</span>
+              <span className="explore-trending__rank">{String(index + 1).padStart(2, "0")}</span>
 
-              <div className={`explore-trending__icon ${item.bgClass}`}>
-                {renderIcon(item)}
+              <div className={`explore-trending__icon ${["trending-icon--green", "trending-icon--purple", "trending-icon--yellow"][index % 3]}`}>
+                <BookOpen className="size-4" aria-hidden="true" />
               </div>
 
               <div className="explore-trending__details">
@@ -49,14 +33,12 @@ export function ExploreTrending({ onSelectTopic }: ExploreTrendingProps) {
                 <p className="explore-trending__meta">
                   <span>{item.level}</span>
                   <span className="explore-trending__dot">•</span>
-                  <span>{item.duration}</span>
-                  <span className="explore-trending__dot">•</span>
-                  <span className="explore-trending__rating">★ {item.rating}</span>
+                  <span>{item.lessonCount} lessons</span>
                 </p>
               </div>
 
               <div className="explore-trending__trend" aria-hidden="true">
-                <TrendingUp className="size-4" />
+                <ArrowRight className="size-4" />
               </div>
             </button>
           </li>

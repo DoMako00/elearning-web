@@ -1054,6 +1054,14 @@
   color: #e11d48;
 }
 
+.explore-course-tag--subject {
+  color: #16a34a;
+}
+
+.explore-course-tag--module {
+  color: #7c3aed;
+}
+
 .explore-course-card__body {
   display: flex;
   flex-direction: column;
@@ -1137,6 +1145,13 @@
   flex-shrink: 0;
 }
 
+.explore-course-access-label {
+  color: var(--color-text-secondary, #64748b);
+  font-size: 9px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
 .explore-action-btn {
   display: grid;
   place-items: center;
@@ -1154,6 +1169,11 @@
   border-color: #9ed2b3;
   background: #f0fdf4;
   color: #16a34a;
+}
+
+.explore-action-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .explore-action-btn.is-saved {

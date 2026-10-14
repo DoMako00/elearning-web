@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import type { RouteObject } from "react-router-dom";
+import { Navigate, type RouteObject } from "react-router-dom";
 import { StudentLayout } from "../../features/student/pages/StudentLayout";
 import { RouteErrorBoundary } from "../../components/layout/RouteErrorBoundary";
 import { RouteLoadingFallback } from "../../components/layout/RouteLoadingFallback";
@@ -15,6 +15,8 @@ const LessonPlayerPage = lazy(() => import("../../features/student/pages/LessonP
 const ExplorePage = lazy(() => import("../../features/student/pages/ExplorePage").then((m) => ({ default: m.ExplorePage })));
 const CalendarPage = lazy(() => import("../../features/student/pages/CalendarPage").then((m) => ({ default: m.CalendarPage })));
 const AssignmentsPage = lazy(() => import("../../features/student/pages/AssignmentsPage").then((m) => ({ default: m.AssignmentsPage })));
+const AssessmentsPage = lazy(() => import("../../features/student/pages/AssessmentsPage").then((m) => ({ default: m.AssessmentsPage })));
+const AssessmentDetailPage = lazy(() => import("../../features/student/pages/AssessmentDetailPage").then((m) => ({ default: m.AssessmentDetailPage })));
 const AssignmentDetailPage = lazy(() => import("../../components/ui/Assignments/AssignmentDetailPage").then((m) => ({ default: m.AssignmentDetailPage })));
 const MessagesPage = lazy(() => import("../../features/student/pages/MessagesPage").then((m) => ({ default: m.MessagesPage })));
 const CommunityPage = lazy(() => import("../../features/student/pages/CommunityPage").then((m) => ({ default: m.CommunityPage })));
@@ -59,13 +61,17 @@ export const studentRoutes: RouteObject[] = [
       { path: "my-courses", element: withSuspense(MyCoursesPage) },
       { path: "my-courses/:slug", element: withSuspense(CourseOverviewPage) },
       { path: "my-courses/:slug/lessons/:lessonId", element: withSuspense(LessonPlayerPage) },
-      { path: "my-courses/human-anatomy-i", element: withSuspense(CourseOverviewPage) },
-      { path: "my-courses/human-anatomy-i/lessons/:lessonId", element: withSuspense(LessonPlayerPage) },
+      // Retire the old demo-specific URL aliases. Real course routes use IDs
+      // returned by the authenticated course API.
+      { path: "my-courses/human-anatomy-i", element: <Navigate to="/my-courses" replace /> },
+      { path: "my-courses/human-anatomy-i/lessons/:lessonId", element: <Navigate to="/my-courses" replace /> },
       { path: "explore", element: withSuspense(ExplorePage) },
       { path: "explore/paths/:slug", element: withSuspense(ExplorePage) },
       { path: "calendar", element: withSuspense(CalendarPage) },
       { path: "assignments", element: withSuspense(AssignmentsPage) },
       { path: "assignments/:assignmentId", element: withSuspense(AssignmentDetailPage) },
+      { path: "assessments", element: withSuspense(AssessmentsPage) },
+      { path: "assessments/:assessmentId", element: withSuspense(AssessmentDetailPage) },
       { path: "messages", element: withSuspense(MessagesPage) },
       { path: "community", element: withSuspense(CommunityPage) },
       { path: "help", element: withSuspense(HelpCenterPage) },

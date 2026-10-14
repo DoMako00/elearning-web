@@ -13,6 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { HelpCategory } from "../../../types/help";
+import { getHelpCategoryArticleCount } from "../data/helpCenterData";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   User,
@@ -87,7 +88,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
               {/* Bottom Badge: Article Count */}
               <div className="pt-1.5 border-t border-gray-50 flex items-center">
                 <span className="text-[11px] font-semibold text-emerald-600">
-                  {cat.articleCount} articles
+                  {getHelpCategoryArticleCount(cat.id)} articles
                 </span>
               </div>
             </button>

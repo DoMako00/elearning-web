@@ -35,7 +35,7 @@ export interface DiscussionReply {
   author: {
     id: string;
     name: string;
-    avatarUrl: string;
+    avatarUrl?: string;
     role?: string;
   };
   content: string;
@@ -51,7 +51,7 @@ export interface DiscussionPost {
   author: {
     id: string;
     name: string;
-    avatarUrl: string;
+    avatarUrl?: string;
     role?: string;
   };
   category: {
@@ -65,7 +65,7 @@ export interface DiscussionPost {
   timeAgo: string;
   timestamp: number;
   repliesCount: number;
-  viewsCount: number;
+  viewsCount?: number;
   upvotesCount?: number;
   isTrending?: boolean;
   isOptimistic?: boolean;

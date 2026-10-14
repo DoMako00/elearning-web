@@ -18,7 +18,6 @@ import {
   MoreHorizontal,
   Pause,
   Play,
-  Presentation,
   RotateCcw,
   RotateCw,
   StickyNote,
@@ -30,13 +29,9 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { listStudentCourseLessons } from "../api/studentCoursesApi";
-import { useXPRewards, XPRewardModal } from "../../../components/ui/XPRewards";
-import type { XPRewardData } from "../../../components/ui/XPRewards";
+import { completeStudentVideoPlayback, getStudentCourse, getStudentProtectedMedia, reportStudentVideoPlaybackHeartbeat, startStudentVideoPlayback, StudentCoursesApiError, type StudentCourseDetail, type StudentLessonItem, type StudentVideoPlaybackState } from "../api/studentCoursesApi";
+import { useStudentProgress, useStudentLessonProgressMutation } from "../api/useStudentLearning";
 import { useInactivityPrompt, InactivityModal } from "../../../components/ui/InactivityPrompt";
-import { useBackgroundLearningTracker } from "../../../hooks/useBackgroundLearningTracker";
-import { useGamification } from "../../../app/providers/GamificationProvider";
-import anatomyArt from "../../../Assets/image copy.webp";
 import { CourseDiscussionPanel } from "../../../components/learning-space/CourseDiscussionPanel";
 import { CourseResourcesPanel } from "../../../components/learning-space/CourseResourcesPanel";
 import {
@@ -45,11 +40,11 @@ import {
   ResourcesWorkspaceRail,
 } from "../../../components/learning-space/LearningSpaceRails";
 import { LearningNotesPanel } from "../../../components/learning-space/LearningNotesPanel";
+import { mapCourseModules, mapCourseResources } from "../../../components/learning-space/learningSpaceMappers";
 import "../../../components/learning-space/learningSpace.css";
 import "./CourseOverviewPage.css";
 import "./LessonPlayerPage.css";
 
-const COURSE_PATH = "/my-courses/human-anatomy-i";
 const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5, 2] as const;
 
 const TABS = [
@@ -61,85 +56,19 @@ const TABS = [
 
 type LessonTabId = (typeof TABS)[number]["id"];
 
-interface Lesson {
-  id: string;
-  number: number;
-  title: string;
-  duration: string;
-  ready?: boolean;
-  complete?: boolean;
-}
-
 interface CourseModule {
   id: string;
   number: number;
   title: string;
   lessonCount: number;
-  lessons?: Lesson[];
+  lessons: readonly StudentLessonItem[];
 }
 
 interface LessonMaterial {
   id: string;
   title: string;
-  extension: "pdf" | "pptx";
-  size: string;
+  extension: "pdf" | "video";
 }
-
-const COURSE_MODULES: CourseModule[] = [
-  {
-    id: "module-1",
-    number: 1,
-    title: "Introduction to Anatomy",
-    lessonCount: 3,
-    lessons: [
-      {
-        id: "human-anatomy-i-lesson-1",
-        number: 1,
-        title: "Introduction to Anatomy & Anatomical Terms",
-        duration: "19:45",
-        ready: true,
-      },
-      {
-        id: "human-anatomy-i-lesson-2",
-        number: 2,
-        title: "History of Anatomy",
-        duration: "15:20",
-        ready: true,
-        complete: true,
-      },
-      {
-        id: "human-anatomy-i-lesson-3",
-        number: 3,
-        title: "Levels of Organization",
-        duration: "18:10",
-        ready: true,
-        complete: true,
-      },
-    ],
-  },
-  { id: "module-2", number: 2, title: "Upper Limb", lessonCount: 5 },
-  { id: "module-3", number: 3, title: "Thorax", lessonCount: 4 },
-  { id: "module-4", number: 4, title: "Abdomen & Pelvis", lessonCount: 5 },
-  { id: "module-5", number: 5, title: "Lower Limb", lessonCount: 4 },
-  { id: "module-6", number: 6, title: "Neuroanatomy Foundations", lessonCount: 3 },
-];
-
-const LESSON_OUTCOMES = [
-  "Define anatomy and its major subdivisions",
-  "Use standard anatomical position correctly",
-  "Apply directional terms in clinical context",
-  "Identify the major body planes and sections",
-] as const;
-
-const LESSON_MATERIALS: LessonMaterial[] = [
-  { id: "slides", title: "Lecture Slides", extension: "pptx", size: "8.6 MB" },
-  { id: "terms", title: "Anatomical Terms", extension: "pdf", size: "420 KB" },
-  { id: "diagrams", title: "Key Diagrams", extension: "pdf", size: "1.2 MB" },
-];
-
-const ALL_LESSONS = COURSE_MODULES.flatMap((module) =>
-  (module.lessons ?? []).map((lesson) => ({ ...lesson, module })),
-);
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "00:00";
@@ -149,10 +78,11 @@ function formatTime(seconds: number) {
   return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
-function LessonVideoPlayer({ lessonId }: { lessonId: string }) {
+function LessonVideoPlayer({ title, mediaUrl, mediaType, onStarted, onHeartbeat, onComplete }: { title: string; mediaUrl: string; mediaType: "video" | "pdf"; onStarted: () => void; onHeartbeat: (positionSeconds: number) => void; onComplete: (positionSeconds: number) => void }) {
   const playerRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hideTimer = useRef<number | null>(null);
+  const lastHeartbeatPosition = useRef(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.85);
@@ -160,21 +90,9 @@ function LessonVideoPlayer({ lessonId }: { lessonId: string }) {
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [captionsOn, setCaptionsOn] = useState(false);
   const [showControls, setShowControls] = useState(true);
 
-  // Background learning tracker — logs real watch-time into GamificationContext
-  const gamification = useGamification();
-  const { isTracking, flushProgress, pauseTracking } = useBackgroundLearningTracker({
-    lessonId,
-    userId: 'current-user',
-    videoElement: videoRef.current ?? null,
-    enableOfflineSync: false, // SW not deployed; disable to avoid 404 noise
-    idleThresholdMs: 5 * 60 * 1000,
-    batchIntervalMs: 30_000,
-  });
-
-  // Inactivity detection — lives here so it shares scope with videoRef, flushProgress, pauseTracking
+  // The prompt pauses playback but does not fabricate watch-time or progress.
   const {
     state: inactivityState,
     countdown: inactivityCountdown,
@@ -190,36 +108,12 @@ function LessonVideoPlayer({ lessonId }: { lessonId: string }) {
     },
   });
 
-  /**
-   * "End Session" / Escape / backdrop click — dismiss WITHOUT confirming presence.
-   * - Sets inactivityState to 'paused' (tracking does not resume).
-   * - Explicitly pauses the video if it's playing.
-   * - Flushes accumulated progress to the worker so it isn't lost in memory.
-   */
-  const handleInactivityDismiss = useCallback(async () => {
+  const handleInactivityDismiss = useCallback(() => {
     handleInactivityDismissState();
     if (videoRef.current && !videoRef.current.paused) {
       videoRef.current.pause();
     }
-    pauseTracking();
-    await flushProgress();
-  }, [handleInactivityDismissState, pauseTracking, flushProgress]);
-
-  // Log a video_watch activity event to gamification when actively tracking
-  useEffect(() => {
-    if (!isTracking) return;
-    const TICK_INTERVAL_MS = 60_000; // every minute of active watch time
-    const id = setInterval(() => {
-      const video = videoRef.current;
-      if (!video || video.paused) return;
-      gamification.logActivity({
-        type: 'video_watch',
-        xpAwarded: 0,
-        metadata: { durationMinutes: 1, lessonId },
-      });
-    }, TICK_INTERVAL_MS);
-    return () => clearInterval(id);
-  }, [isTracking, gamification, lessonId]);
+  }, [handleInactivityDismissState]);
 
   const revealControls = useCallback(() => {
     setShowControls(true);
@@ -233,7 +127,13 @@ function LessonVideoPlayer({ lessonId }: { lessonId: string }) {
     const video = videoRef.current;
     if (!video) return undefined;
 
-    const onTime = () => setCurrentTime(video.currentTime);
+    const onTime = () => {
+      setCurrentTime(video.currentTime);
+      if (!video.paused && video.currentTime - lastHeartbeatPosition.current >= 10) {
+        lastHeartbeatPosition.current = video.currentTime;
+        onHeartbeat(video.currentTime);
+      }
+    };
     const onMeta = () => setDuration(video.duration || 0);
     const onPlay = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);
@@ -251,7 +151,7 @@ function LessonVideoPlayer({ lessonId }: { lessonId: string }) {
       video.removeEventListener("play", onPlay);
       video.removeEventListener("pause", onPause);
     };
-  }, []);
+  }, [onHeartbeat]);
 
   useEffect(() => {
     const onFullscreen = () => setIsFullscreen(Boolean(document.fullscreenElement));
@@ -374,29 +274,28 @@ function LessonVideoPlayer({ lessonId }: { lessonId: string }) {
         }}
         onTouchEnd={handleTouchEnd}
       >
-        <video
+        {mediaType === "video" ? <video
           ref={videoRef}
           className="lesson-player__video"
-          poster={anatomyArt}
+          src={mediaUrl}
           preload="metadata"
           playsInline
+          onPlay={onStarted}
+          onEnded={() => onComplete(videoRef.current?.currentTime ?? 0)}
           onClick={togglePlay}
-        />
-        {!isPlaying ? (
+        /> : <iframe className="lesson-player__video" src={mediaUrl} title={title} />}
+        {mediaType === "video" && !isPlaying ? (
           <div className="lesson-player__overlay" aria-hidden="true">
-            <span>Introduction to Anatomy</span>
-            <small>Understanding the human body and basic anatomical terminology.</small>
+            <span>{title}</span>
+            <small>Protected lesson video</small>
           </div>
         ) : null}
-        {!isPlaying ? (
+        {mediaType === "video" && !isPlaying ? (
           <button type="button" className="lesson-player__play-center" onClick={togglePlay} aria-label="Play lesson video">
             <Play aria-hidden="true" />
           </button>
         ) : null}
-        {captionsOn ? (
-          <p className="lesson-player__captions">Anatomical terms describe location, direction, and body planes.</p>
-        ) : null}
-        <div className="lesson-player__controls">
+        {mediaType === "video" ? <div className="lesson-player__controls">
           <div
             className="lesson-player__timeline"
             role="slider"
@@ -434,14 +333,13 @@ function LessonVideoPlayer({ lessonId }: { lessonId: string }) {
                   onChange={(event) => changeVolume(Number(event.target.value))}
                 />
               </span>
-              <time>{formatTime(currentTime)} / {formatTime(duration || 19 * 60 + 45)}</time>
+              <time>{formatTime(currentTime)} / {formatTime(duration)}</time>
             </div>
             <div className="lesson-player__cluster">
               <button
                 type="button"
-                className={captionsOn ? "is-active" : ""}
-                onClick={() => setCaptionsOn((on) => !on)}
-                aria-pressed={captionsOn}
+                disabled
+                title="Captions are not available for this lesson."
                 aria-label="Closed captions"
               >
                 <Captions aria-hidden="true" />
@@ -454,7 +352,7 @@ function LessonVideoPlayer({ lessonId }: { lessonId: string }) {
               </button>
             </div>
           </div>
-        </div>
+        </div> : null}
       </article>
       <InactivityModal
         isOpen={inactivityState === 'countdown'}
@@ -467,7 +365,7 @@ function LessonVideoPlayer({ lessonId }: { lessonId: string }) {
   );
 }
 
-function MaterialsGrid({ materials = LESSON_MATERIALS }: { materials?: LessonMaterial[] }) {
+function MaterialsGrid({ materials = [], onOpen }: { materials?: LessonMaterial[]; onOpen: () => void }) {
   if (!materials || materials.length === 0) {
     return (
       <div className="course-overview-materials__empty">
@@ -480,13 +378,14 @@ function MaterialsGrid({ materials = LESSON_MATERIALS }: { materials?: LessonMat
   return (
     <div className="course-overview-materials__grid lesson-player-materials__grid">
       {materials.map((material) => {
-        const MaterialIcon = material.extension === "pptx" ? Presentation : FileText;
+        const MaterialIcon = material.extension === "video" ? Play : FileText;
         return (
           <button
             type="button"
             className={`course-overview-material course-overview-material--${material.extension}`}
             key={material.id}
-            aria-label={`Download ${material.title}, ${material.size}`}
+            aria-label={`Open ${material.title}`}
+            onClick={onOpen}
           >
             <span className="course-overview-material__icon">
               <MaterialIcon aria-hidden="true" />
@@ -494,7 +393,7 @@ function MaterialsGrid({ materials = LESSON_MATERIALS }: { materials?: LessonMat
             </span>
             <span className="course-overview-material__copy">
               <strong>{material.title}</strong>
-              <small>{material.size}</small>
+              <small>{material.extension.toUpperCase()}</small>
             </span>
             <Download className="course-overview-material__download" aria-hidden="true" />
           </button>
@@ -508,9 +407,10 @@ interface MaterialsCardProps {
   className?: string;
   hidden?: boolean;
   materials?: LessonMaterial[];
+  onOpen?: () => void;
 }
 
-function MaterialsCard({ className = "", hidden = false, materials = LESSON_MATERIALS }: MaterialsCardProps) {
+function MaterialsCard({ className = "", hidden = false, materials = [], onOpen = () => undefined }: MaterialsCardProps) {
   return (
     <article
       className={`course-overview-card course-overview-materials${className ? ` ${className}` : ""}`}
@@ -518,80 +418,89 @@ function MaterialsCard({ className = "", hidden = false, materials = LESSON_MATE
     >
       <header>
         <h2>Lesson materials</h2>
-        <button type="button">View all materials <ArrowRight aria-hidden="true" /></button>
+        <button type="button" onClick={onOpen}>View all materials <ArrowRight aria-hidden="true" /></button>
       </header>
-      <MaterialsGrid materials={materials} />
+      <MaterialsGrid materials={materials} onOpen={onOpen} />
     </article>
   );
 }
 
-function StudentLessonPlayerContent() {
-  const { lessonId = ALL_LESSONS[0].id } = useParams();
+function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, videoPlayback }: { course: StudentCourseDetail; lessonId: string; mediaAssetId: string; mediaUrl: string; videoPlayback?: StudentVideoPlaybackState }) {
   const navigate = useNavigate();
-  const [isBookmarked, setIsBookmarked] = useState(false);
-  const [isComplete, setIsComplete] = useState(false);
   const [activeTab, setActiveTab] = useState<LessonTabId>("overview");
-  const [expandedModuleId, setExpandedModuleId] = useState<string | null>("module-1");
+  const modules: CourseModule[] = course.chapters.map((chapter, index) => ({
+    id: chapter.chapterId,
+    number: index + 1,
+    title: chapter.title,
+    lessonCount: chapter.lessons.length,
+    lessons: chapter.lessons,
+  }));
+  const allLessons = modules.flatMap((module) => module.lessons.map((lesson, index) => ({
+    ...lesson,
+    id: lesson.lessonId,
+    number: index + 1,
+    module,
+    ready: lesson.playbackAvailable,
+    complete: lesson.progressStatus === "completed",
+  })));
+  const lessonIndex = allLessons.findIndex((lesson) => lesson.id === lessonId);
+  const current = allLessons[lessonIndex] ?? allLessons[0];
+  const learningSpaceModules = mapCourseModules(course);
+  const learningSpaceResources = mapCourseResources(course);
+  const previous = lessonIndex > 0 ? allLessons[lessonIndex - 1] : undefined;
+  const next = lessonIndex >= 0 ? allLessons[lessonIndex + 1] : undefined;
+  const [expandedModuleId, setExpandedModuleId] = useState<string | null>(current?.module.id ?? null);
+  const [progressStatus, setProgressStatus] = useState(current?.progressStatus ?? "not_started");
+  const [progressError, setProgressError] = useState<string | null>(null);
+  const [videoViewState, setVideoViewState] = useState(videoPlayback);
+  const progressMutation = useStudentLessonProgressMutation();
+  const progressQuery = useStudentProgress();
+  const courseProgress = progressQuery.data?.courses.find((item) => item.courseId === course.courseId);
+  const percent = courseProgress?.completionPercent;
+  const isAlreadyCompleted = progressStatus === "completed";
+  const isComplete = isAlreadyCompleted;
+  const isBookmarked = false;
+  const materials: LessonMaterial[] = current?.resourceId && current.resourceType
+    ? [{ id: current.resourceId, title: current.resourceTitle ?? current.title, extension: current.resourceType }]
+    : [];
 
-  // Initialize completed lessons from localStorage synchronously
-  const getInitialCompletedLessons = (): Set<string> => {
-    if (typeof window === 'undefined') return new Set();
+  useEffect(() => {
+    setProgressStatus(current?.progressStatus ?? "not_started");
+    setProgressError(null);
+  }, [lessonId, current?.progressStatus]);
+
+  const handleProgress = async (status: "in_progress" | "completed") => {
+    if (!current || progressMutation.isPending || (status === "completed" && isAlreadyCompleted)) return;
+    setProgressError(null);
     try {
-      const stored = localStorage.getItem('greenlearn-completed-lessons');
-      if (stored) {
-        return new Set(JSON.parse(stored));
-      }
-    } catch {
-      // ignore parse errors
+      const persisted = await progressMutation.mutateAsync({ lessonId: current.lessonId, status });
+      setProgressStatus(persisted.status);
+    } catch (error) {
+      setProgressError(error instanceof Error ? error.message : "Lesson progress could not be saved.");
     }
-    return new Set();
   };
 
-  const [completedLessons, setCompletedLessons] = useState<Set<string>>(getInitialCompletedLessons);
-  const isAlreadyCompleted = completedLessons.has(lessonId);
+  const handlePlaybackHeartbeat = useCallback((positionSeconds: number) => {
+    if (!videoViewState) return;
+    void reportStudentVideoPlaybackHeartbeat({ assetId: mediaAssetId, playbackSessionId: videoViewState.playbackSessionId, positionSeconds })
+      .then(({ playback }) => setVideoViewState(playback))
+      .catch((error: unknown) => setProgressError(error instanceof Error ? error.message : "Video playback progress could not be confirmed."));
+  }, [mediaAssetId, videoViewState]);
 
-  // Save completed lessons to localStorage
-  useEffect(() => {
-    localStorage.setItem('greenlearn-completed-lessons', JSON.stringify([...completedLessons]));
-  }, [completedLessons]);
-
-  // Initialize isComplete based on whether this lesson is already completed
-  useEffect(() => {
-    setIsComplete(completedLessons.has(lessonId));
-  }, [lessonId, completedLessons]);
-
-  const {
-    earnXP,
-    isModalOpen,
-    rewardData,
-    closeRewardModal,
-  } = useXPRewards({
-    // initialXP intentionally omitted — hook reads live value from GamificationContext
-    onLevelUp: (level: number, reward: XPRewardData) => {
-      console.log('🎉 Level Up!', { level, reward });
-    },
-    onXPEarned: (reward: XPRewardData) => {
-      console.log('✨ XP Earned:', reward);
-    },
-  });
-
-
-  const handleMarkComplete = () => {
-    // Prevent marking complete if already completed (permanent completion)
-    if (isAlreadyCompleted) return;
-    
-    // Mark as complete permanently
-    setIsComplete(true);
-    setCompletedLessons(prev => new Set(prev).add(lessonId));
-    earnXP(50, 'lesson_complete');
+  const handleVideoComplete = async (positionSeconds: number) => {
+    if (!videoViewState) return;
+    try {
+      await reportStudentVideoPlaybackHeartbeat({ assetId: mediaAssetId, playbackSessionId: videoViewState.playbackSessionId, positionSeconds });
+      const { playback } = await completeStudentVideoPlayback({ assetId: mediaAssetId, playbackSessionId: videoViewState.playbackSessionId });
+      setVideoViewState(playback);
+      await handleProgress("completed");
+    } catch (error) {
+      setProgressError(error instanceof Error ? error.message : "Video completion could not be confirmed by the server.");
+    }
   };
 
-  const lessonIndex = Math.max(0, ALL_LESSONS.findIndex((lesson) => lesson.id === lessonId));
-  const current = ALL_LESSONS[lessonIndex] ?? ALL_LESSONS[0];
-  const previous = ALL_LESSONS[lessonIndex - 1];
-  const next = ALL_LESSONS[lessonIndex + 1];
-
-  const openLesson = (id: string) => navigate(`${COURSE_PATH}/lessons/${id}`);
+  const handleMarkComplete = () => void handleProgress("completed");
+  const openLesson = (id: string) => navigate(`/my-courses/${course.courseId}/lessons/${id}`);
 
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, tabIndex: number) => {
     let nextIndex = tabIndex;
@@ -614,7 +523,7 @@ function StudentLessonPlayerContent() {
         {/* <nav className="course-overview-breadcrumb" aria-label="Breadcrumb">
           <Link to="/my-courses">My Courses</Link>
           <ChevronRight aria-hidden="true" />
-          <Link to={COURSE_PATH}>Human Anatomy I</Link>
+          <Link to={COURSE_PATH}>{course.title}</Link>
           <ChevronRight aria-hidden="true" />
           <span aria-current="page">Lesson {current.number}</span>
         </nav> */}
@@ -622,24 +531,26 @@ function StudentLessonPlayerContent() {
           <div>
             <h1 id="lesson-player-title">{current.title}</h1>
             <p>
-              Lesson {current.number} of 14
+              Lesson {current.number} of {allLessons.length}
               <i />
               Module {current.module.number}: {current.module.title}
               <i />
               <em className={`lesson-player-status${isComplete ? " is-complete" : ""}`}>
-                {isComplete ? "Completed" : "In progress"}
+                {isComplete ? "Completed" : progressStatus === "in_progress" ? "In progress" : "Not started"}
               </em>
               <i />
-              20 min
+              {course.unitLabel}
+              {videoViewState ? <><i /><span role="status">Views used: {videoViewState.completedViews} / {videoViewState.maxCompletedViews} · {videoViewState.viewsRemaining} remaining</span></> : null}
             </p>
           </div>
           <div className="lesson-player-heading__actions">
             <button
               type="button"
               className="course-overview-heading__bookmark"
-              aria-label={isBookmarked ? "Remove lesson bookmark" : "Bookmark this lesson"}
+              aria-label="Lesson bookmarks are not available yet"
               aria-pressed={isBookmarked}
-              onClick={() => setIsBookmarked((currentValue) => !currentValue)}
+              disabled
+              title="Lesson bookmarks are not available yet"
             >
               <Bookmark aria-hidden="true" fill={isBookmarked ? "currentColor" : "none"} />
             </button>
@@ -652,7 +563,7 @@ function StudentLessonPlayerContent() {
 
       <div className="course-overview-layout">
         <div className={`course-overview-primary${activeTab === "overview" ? "" : " is-tab-expanded"}`}>
-          {activeTab === "overview" ? <LessonVideoPlayer lessonId={lessonId} /> : null}
+          {activeTab === "overview" ? <LessonVideoPlayer title={current.title} mediaUrl={mediaUrl} mediaType={current.resourceType ?? "video"} onStarted={() => void handleProgress("in_progress")} onHeartbeat={handlePlaybackHeartbeat} onComplete={(positionSeconds) => void handleVideoComplete(positionSeconds)} /> : null}
 
           <div className="course-overview-tabs" role="tablist" aria-label="Lesson sections">
             {TABS.map(({ id, label, icon: Icon }, index) => (
@@ -683,36 +594,30 @@ function StudentLessonPlayerContent() {
             <div className="course-overview-info-row">
               <article className="course-overview-card course-overview-about">
                 <h2>About this lesson</h2>
-                <p>
-                  This lesson introduces human anatomy and the language clinicians use to describe body structure, orientation, and movement.
-                </p>
+                <p>{current.resourceTitle ? `Protected learning resource: ${current.resourceTitle}.` : `Published lesson in ${course.title}.`}</p>
                 <dl>
-                  <div><Clock3 aria-hidden="true" /><span><dt>Duration</dt><dd>{current.duration}</dd></span></div>
-                  <div><Gauge aria-hidden="true" /><span><dt>Level</dt><dd>Beginner</dd></span></div>
-                  <div><LayoutGrid aria-hidden="true" /><span><dt>Topic</dt><dd>Anatomy</dd></span></div>
-                  <div><UsersRound aria-hidden="true" /><span><dt>Students learned</dt><dd>8.4K</dd></span></div>
+                  <div><Clock3 aria-hidden="true" /><span><dt>Duration</dt><dd>Not provided</dd></span></div>
+                  <div><Gauge aria-hidden="true" /><span><dt>Level</dt><dd>{course.academicLevel.title}</dd></span></div>
+                  <div><LayoutGrid aria-hidden="true" /><span><dt>{course.unitLabel}</dt><dd>{course.academicUnit.label}</dd></span></div>
+                  <div><UsersRound aria-hidden="true" /><span><dt>Semester</dt><dd>{course.academicSemester.title}</dd></span></div>
                 </dl>
               </article>
               <article className="course-overview-card course-overview-learn lesson-player-learn">
                 <h2>What you’ll learn</h2>
                 <div className="lesson-player-learn__body">
-                  <ul>
-                    {LESSON_OUTCOMES.map((outcome) => (
-                      <li key={outcome}><CheckCircle2 aria-hidden="true" /><span>{outcome}</span></li>
-                    ))}
-                  </ul>
-                  <img src={anatomyArt} alt="" className="lesson-player-learn__art" />
+                  <p>Lesson outcomes have not been published for this lesson.</p>
+                  <div className="lesson-player-learn__art" aria-hidden="true" />
                 </div>
               </article>
             </div>
-            <MaterialsCard className="course-overview-materials--primary" />
+            <MaterialsCard className="course-overview-materials--primary" materials={materials} onOpen={() => setActiveTab("overview")} />
           </div>
 
           <div className="course-overview-panel course-overview-panel--notes" role="tabpanel" id="lesson-player-panel-notes" aria-labelledby="lesson-player-tab-notes" hidden={activeTab !== "notes"}>
-            <LearningNotesPanel onViewResources={() => setActiveTab("resources")} />
+            <LearningNotesPanel lessonId={current?.lessonId} lessonTitle={current?.title} resources={learningSpaceResources} onOpenLesson={openLesson} onViewResources={() => setActiveTab("resources")} />
           </div>
           <div className="course-overview-panel course-overview-panel--resources" role="tabpanel" id="lesson-player-panel-resources" aria-labelledby="lesson-player-tab-resources" hidden={activeTab !== "resources"}>
-            <CourseResourcesPanel />
+            <CourseResourcesPanel resources={learningSpaceResources} courseTitle={course.title} onOpenLesson={openLesson} />
           </div>
           <div className="course-overview-panel course-overview-panel--discussion" role="tabpanel" id="lesson-player-panel-discussion" aria-labelledby="lesson-player-tab-discussion" hidden={activeTab !== "discussion"}>
             <CourseDiscussionPanel />
@@ -727,34 +632,35 @@ function StudentLessonPlayerContent() {
                 type="button"
                 className={`lesson-player-nav__complete${isAlreadyCompleted ? " is-done" : ""}`}
                 onClick={handleMarkComplete}
-                disabled={isAlreadyCompleted}
-                aria-disabled={isAlreadyCompleted}
+                disabled={isAlreadyCompleted || progressMutation.isPending}
+                aria-disabled={isAlreadyCompleted || progressMutation.isPending}
               >
-                <CheckCircle2 aria-hidden="true" /> {isAlreadyCompleted ? "Completed" : "Mark as complete"}
+                <CheckCircle2 aria-hidden="true" /> {isAlreadyCompleted ? "Completed" : progressMutation.isPending ? "Saving…" : "Mark as complete"}
               </button>
               <button type="button" className="lesson-player-nav__ghost" disabled={!next} onClick={() => next && openLesson(next.id)}>
                 Next lesson <ChevronRight aria-hidden="true" />
               </button>
             </nav>
           ) : null}
+          {progressError ? <p role="alert" className="dashboard-feedback--error">{progressError}</p> : null}
         </div>
 
         <aside className="course-overview-rail" aria-label="Course support information">
           {activeTab === "notes" ? (
-            <NotesWorkspaceRail />
+            <NotesWorkspaceRail modules={learningSpaceModules} onSelectModule={openLesson} onAction={() => setActiveTab("overview")} />
           ) : activeTab === "resources" ? (
-            <ResourcesWorkspaceRail />
+            <ResourcesWorkspaceRail modules={learningSpaceModules} resources={learningSpaceResources} onSelectModule={openLesson} onAction={() => setActiveTab("overview")} onOpenResource={(resource) => openLesson(resource.lessonId)} />
           ) : activeTab === "discussion" ? (
-            <DiscussionWorkspaceRail />
+            <DiscussionWorkspaceRail modules={learningSpaceModules} onSelectModule={openLesson} />
           ) : (
             <>
           <article className="course-overview-card course-overview-curriculum">
             <header>
               <h2>Course curriculum</h2>
-              <span>0% complete</span>
+              <span>{percent === undefined ? "Progress unavailable" : `${percent}% complete`}</span>
             </header>
             <div className="course-overview-curriculum__modules">
-              {COURSE_MODULES.map((module) => {
+              {modules.map((module) => {
                 const isExpanded = expandedModuleId === module.id;
                 return (
                   <section className={`course-overview-module${isExpanded ? " is-expanded" : ""}`} key={module.id}>
@@ -771,25 +677,23 @@ function StudentLessonPlayerContent() {
                       <ChevronDown className="course-overview-module__trailing-chevron" aria-hidden="true" />
                     </button>
                     <div className="course-overview-module__lessons" id={`lesson-player-${module.id}-lessons`} hidden={!isExpanded}>
-                      {module.lessons?.map((lesson) => (
+                      {module.lessons.map((lesson, index) => (
                         <button
                           type="button"
-                          className={`course-overview-lesson${lesson.ready ? " is-ready" : ""}${lesson.id === current.id ? " is-current" : ""}${lesson.complete && lesson.id !== current.id ? " is-complete" : ""}`}
-                          key={lesson.id}
-                          aria-current={lesson.id === current.id ? "page" : undefined}
-                          onClick={lesson.ready ? () => openLesson(lesson.id) : undefined}
+                          className={`course-overview-lesson${lesson.playbackAvailable ? " is-ready" : ""}${lesson.lessonId === current.id ? " is-current" : ""}${lesson.progressStatus === "completed" && lesson.lessonId !== current.id ? " is-complete" : ""}`}
+                          key={lesson.lessonId}
+                          aria-current={lesson.lessonId === current.id ? "page" : undefined}
+                          onClick={lesson.playbackAvailable ? () => openLesson(lesson.lessonId) : undefined}
+                          disabled={!lesson.playbackAvailable}
                         >
                           <span className="course-overview-lesson__marker">
-                            {lesson.id === current.id ? <Play aria-hidden="true" /> : lesson.complete ? <CheckCircle2 aria-hidden="true" /> : lesson.ready ? <Play aria-hidden="true" /> : <i />}
+                            {lesson.lessonId === current.id ? <Play aria-hidden="true" /> : lesson.progressStatus === "completed" ? <CheckCircle2 aria-hidden="true" /> : lesson.playbackAvailable ? <Play aria-hidden="true" /> : <i />}
                           </span>
-                          <span className="course-overview-lesson__number">{lesson.number}</span>
+                          <span className="course-overview-lesson__number">{index + 1}</span>
                           <strong>{lesson.title}</strong>
-                          {lesson.id === current.id ? <em>Playing</em> : null}
-                          <time>{lesson.duration}</time>
+                          {lesson.lessonId === current.id ? <em>Playing</em> : null}
                         </button>
-                      )) ?? (
-                        <p className="course-overview-module__summary"><BookOpen aria-hidden="true" /> {module.lessonCount} lessons in this module</p>
-                      )}
+                      ))}
                     </div>
                   </section>
                 );
@@ -798,13 +702,13 @@ function StudentLessonPlayerContent() {
           </article>
 
           <article className="course-overview-card course-overview-progress">
-            <header><h2>Course progress</h2><strong>0%</strong></header>
-            <div className="course-overview-progress__track" role="progressbar" aria-label="Course progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={0}><span /></div>
+            <header><h2>Course progress</h2><strong>{percent === undefined ? "—" : `${percent}%`}</strong></header>
+            <div className="course-overview-progress__track" role="progressbar" aria-label="Course progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} aria-busy={progressQuery.isLoading}><span style={{ width: `${percent ?? 0}%` }} /></div>
             <dl className="course-overview-progress__metrics">
-              <div><dt>Lessons</dt><dd>14</dd></div>
-              <div><dt>Modules</dt><dd>6</dd></div>
-              <div><dt>Total duration</dt><dd>12h 40m</dd></div>
-              <div><dt>Certificate</dt><dd>1</dd></div>
+              <div><dt>Lessons</dt><dd>{course.lessonCount}</dd></div>
+              <div><dt>Chapters</dt><dd>{course.chapters.length}</dd></div>
+              <div><dt>Total duration</dt><dd>Not provided</dd></div>
+              <div><dt>Certificate</dt><dd>Admin issued</dd></div>
             </dl>
           </article>
 
@@ -812,9 +716,8 @@ function StudentLessonPlayerContent() {
             <article className="course-overview-card lesson-player-upnext">
               <h2>Up next</h2>
               <button type="button" className="lesson-player-upnext__card" onClick={() => openLesson(next.id)}>
-                <img src={anatomyArt} alt="" />
                 <strong>{next.title}</strong>
-                <small>Lesson {next.number} • {next.duration}</small>
+                <small>Lesson {next.number} · {next.module.title}</small>
                 <b><Play aria-hidden="true" /> Play next</b>
               </button>
             </article>
@@ -824,18 +727,10 @@ function StudentLessonPlayerContent() {
         </aside>
       </div>
 
-      <XPRewardModal
-        isOpen={isModalOpen}
-        onClose={closeRewardModal}
-        rewardData={rewardData}
-        onKeepLearning={() => console.log('Keep learning clicked')}
-      />
     </section>
   );
 }
 
-
-const STUDENT_COURSE_BRAND = "elite" as const;
 
 function LessonUnavailable({ message, isError = false }: { message: string; isError?: boolean }) {
   return (
@@ -851,7 +746,11 @@ function LessonUnavailable({ message, isError = false }: { message: string; isEr
 
 export function LessonPlayerPage() {
   const { slug = "", lessonId = "" } = useParams();
-  const [state, setState] = useState<{ status: "loading" | "ready" | "unavailable" | "error"; message?: string }>({ status: "loading" });
+  const [state, setState] = useState<
+    | { status: "loading" }
+    | { status: "ready"; course: StudentCourseDetail; lesson: StudentLessonItem; mediaAssetId: string; mediaUrl: string; videoPlayback?: StudentVideoPlaybackState }
+    | { status: "unavailable" | "error"; message: string }
+  >({ status: "loading" });
 
   useEffect(() => {
     if (!slug || !lessonId) {
@@ -861,23 +760,33 @@ export function LessonPlayerPage() {
 
     const controller = new AbortController();
     setState({ status: "loading" });
-    listStudentCourseLessons({ courseId: slug, brand: STUDENT_COURSE_BRAND, signal: controller.signal })
-      .then((payload) => {
-        const lesson = payload.lessons.find((item) => item.lessonId === lessonId);
-        setState(lesson?.playbackAvailable
-          ? { status: "ready" }
-          : { status: "unavailable", message: "This enrolled subject does not have released lesson media yet." });
+    getStudentCourse({ courseId: slug, signal: controller.signal })
+      .then(async (course) => {
+        const lesson = course.chapters.flatMap((chapter) => chapter.lessons).find((item) => item.lessonId === lessonId);
+        if (!lesson || !lesson.playbackAvailable || !lesson.resourceId || !lesson.resourceType) {
+          setState({ status: "unavailable", message: "This lesson has no published, authorized media resource yet." });
+          return;
+        }
+        const media = lesson.resourceType === "video"
+          ? await startStudentVideoPlayback({ assetId: lesson.resourceId, signal: controller.signal })
+          : await getStudentProtectedMedia({ assetId: lesson.resourceId, signal: controller.signal });
+        if (controller.signal.aborted) return;
+        setState({ status: "ready", course, lesson, mediaAssetId: lesson.resourceId!, mediaUrl: media.delivery.url, ...("playback" in media ? { videoPlayback: media.playback } : {}) });
       })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
-        setState({ status: "error", message: error instanceof Error ? error.message : "Lesson access could not be confirmed." });
+        const message = error instanceof StudentCoursesApiError && error.code === "video_view_limit_exhausted"
+          ? "You have used all completed views available for this video. Contact your administrator if you believe this is incorrect."
+          : error instanceof Error ? error.message : "Lesson access could not be confirmed.";
+        setState({ status: "error", message });
       });
 
     return () => controller.abort();
   }, [slug, lessonId]);
 
   if (state.status === "loading") return <LessonUnavailable message="Checking lesson access and media release..." />;
-  if (state.status === "error") return <LessonUnavailable message={state.message ?? "Lesson access could not be confirmed."} isError />;
-  if (state.status === "unavailable") return <LessonUnavailable message={state.message ?? "Lesson media is not available."} />;
-  return <StudentLessonPlayerContent />;
+  if (state.status === "error") return <LessonUnavailable message={state.message} isError />;
+  if (state.status === "unavailable") return <LessonUnavailable message={state.message} />;
+  if (state.status !== "ready") return <LessonUnavailable message="Lesson access could not be confirmed." isError />;
+  return <StudentLessonPlayerContent key={`${slug}:${lessonId}`} course={state.course} lessonId={lessonId} mediaAssetId={state.mediaAssetId} mediaUrl={state.mediaUrl} videoPlayback={state.videoPlayback} />;
 }

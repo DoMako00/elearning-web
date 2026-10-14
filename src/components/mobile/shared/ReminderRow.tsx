@@ -1,5 +1,5 @@
 import React from "react";
-import { FileText, CheckCircle2, ChevronRight } from "lucide-react";
+import { FileText, CheckCircle2, ChevronRight, CalendarCheck } from "lucide-react";
 import type { ReminderItem } from "../../ui/Calendar/calendar.types";
 
 export interface ReminderRowProps {
@@ -54,6 +54,7 @@ const REMINDER_CONFIG: Record<
     badgeBg: "bg-amber-50 text-amber-700 border-amber-200",
     badgeText: "Quiz",
   },
+  reminder: { label: "Reminder", icon: CalendarCheck, bg: "bg-slate-50", border: "border-slate-200", text: "text-slate-700", badgeBg: "bg-slate-100", badgeText: "text-slate-600" },
 };
 
 export const ReminderRow: React.FC<ReminderRowProps> = ({ reminder, onClick }) => {

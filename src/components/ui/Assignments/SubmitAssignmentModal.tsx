@@ -1,13 +1,6 @@
-import React, { useState, useRef } from "react";
-import { 
-  X, 
-  UploadCloud, 
-  FileText, 
-  Trash2, 
-  CheckCircle2, 
-  AlertCircle,
-  Loader2
-} from "lucide-react";
+import React, { useState } from "react";
+import { X, CheckCircle2, AlertCircle, Loader2, Paperclip } from "lucide-react";
+import type { StudentAssignmentAttachmentDto } from "../../../features/student/api/studentAssignmentsApi";
 import "./SubmitAssignmentModal.css";
 
 interface SubmitAssignmentModalProps {
@@ -15,258 +8,84 @@ interface SubmitAssignmentModalProps {
   onClose: () => void;
   assignmentTitle: string;
   courseName: string;
-  maxFileSizeMb?: number;
-  acceptedFormats?: string[];
-  onSubmitSuccess: (data: { fileName: string; fileSize: string; note: string }) => void;
+  onUploadFile: (file: File, idempotencyKey: string) => Promise<StudentAssignmentAttachmentDto>;
+  onSubmitSuccess: (responseText: string, attachmentIds: string[]) => Promise<void>;
 }
 
-export function SubmitAssignmentModal({
-  isOpen,
-  onClose,
-  assignmentTitle,
-  courseName,
-  maxFileSizeMb = 20,
-  acceptedFormats = ["PDF", "DOCX", "PPTX"],
-  onSubmitSuccess,
-}: SubmitAssignmentModalProps) {
-  const [selectedFile, setSelectedFile] = useState<{
-    name: string;
-    sizeFormatted: string;
-    rawSize: number;
-    type: string;
-  } | null>({
-    name: "Upper_Limb_Clinical_Case.pdf",
-    sizeFormatted: "1.8 MB",
-    rawSize: 1.8 * 1024 * 1024,
-    type: "application/pdf",
-  });
+interface FileDraft { file: File; key: string; attachment?: StudentAssignmentAttachmentDto; error?: string; }
 
-  const [note, setNote] = useState("");
-  const [isConfirmed, setIsConfirmed] = useState(true);
-  const [isDragging, setIsDragging] = useState(false);
+export function SubmitAssignmentModal({ isOpen, onClose, assignmentTitle, courseName, onUploadFile, onSubmitSuccess }: SubmitAssignmentModalProps) {
+  const [responseText, setResponseText] = useState("");
+  const [files, setFiles] = useState<FileDraft[]>([]);
+  const [isConfirmed, setIsConfirmed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      processFile(e.target.files[0]);
-    }
-  };
-
-  const processFile = (file: File) => {
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!responseText.trim() && files.length === 0) { setErrorMessage("Write a response or attach at least one file."); return; }
+    if (!isConfirmed) { setErrorMessage("Please confirm that this is your original work."); return; }
     setErrorMessage(null);
-    const sizeInMb = file.size / (1024 * 1024);
-    if (sizeInMb > maxFileSizeMb) {
-      setErrorMessage(`File size exceeds maximum allowed limit (${maxFileSizeMb}MB).`);
-      return;
-    }
-
-    const sizeFormatted = sizeInMb < 1 
-      ? `${(file.size / 1024).toFixed(1)} KB` 
-      : `${sizeInMb.toFixed(1)} MB`;
-
-    setSelectedFile({
-      name: file.name,
-      sizeFormatted,
-      rawSize: file.size,
-      type: file.type || "application/octet-stream",
-    });
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      processFile(e.dataTransfer.files[0]);
-    }
-  };
-
-  const handleRemoveFile = () => {
-    setSelectedFile(null);
-    setErrorMessage(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedFile) {
-      setErrorMessage("Please upload a file before submitting.");
-      return;
-    }
-    if (!isConfirmed) {
-      setErrorMessage("Please confirm that this is your original work.");
-      return;
-    }
-
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      onSubmitSuccess({
-        fileName: selectedFile.name,
-        fileSize: selectedFile.sizeFormatted,
-        note,
-      });
+    try {
+      const uploaded: StudentAssignmentAttachmentDto[] = [];
+      for (let index = 0; index < files.length; index += 1) {
+        const draft = files[index]!;
+        if (draft.attachment) { uploaded.push(draft.attachment); continue; }
+        setUploadingIndex(index);
+        try {
+          const attachment = await onUploadFile(draft.file, draft.key);
+          uploaded.push(attachment);
+          setFiles(current => current.map((item, itemIndex) => itemIndex === index ? { ...item, attachment, error: undefined } : item));
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "This file could not be uploaded and verified.";
+          setFiles(current => current.map((item, itemIndex) => itemIndex === index ? { ...item, error: message } : item));
+          throw new Error(`${draft.file.name}: ${message}`);
+        }
+      }
+      await onSubmitSuccess(responseText.trim(), uploaded.map(item => item.id));
+      setResponseText("");
+      setFiles([]);
+      setIsConfirmed(false);
       onClose();
-    }, 800);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "The response could not be submitted.");
+    } finally {
+      setUploadingIndex(null);
+      setIsSubmitting(false);
+    }
+  };
+
+  const addFiles = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    if (!selected.length) return;
+    const allowed = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
+    if (files.length + selected.length > 5) { setErrorMessage("Attach up to five files."); return; }
+    const invalid = selected.find(file => !allowed.has(file.type) || file.size <= 0 || file.size > 25 * 1024 * 1024);
+    if (invalid) { setErrorMessage(`${invalid.name} must be a PDF, JPEG, PNG, or WebP file up to 25 MiB.`); return; }
+    setErrorMessage(null);
+    setFiles(current => [...current, ...selected.map(file => ({ file, key: crypto.randomUUID() }))]);
   };
 
   return (
-    <div className="submit-modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
-      <div className="submit-modal-card" onClick={(e) => e.stopPropagation()}>
-        {/* Modal Header */}
-        <div className="submit-modal-header">
-          <div>
-            <h2 className="submit-modal-title">Submit assignment</h2>
-            <p className="submit-modal-subtitle">
-              {assignmentTitle} &bull; {courseName}
-            </p>
-          </div>
-          <button 
-            type="button" 
-            className="submit-modal-close" 
-            onClick={onClose}
-            aria-label="Close modal"
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        {/* Error Alert if any */}
-        {errorMessage && (
-          <div className="submit-modal-error">
-            <AlertCircle size={16} />
-            <span>{errorMessage}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="submit-modal-form">
-          {/* File Upload Zone */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="submit-modal-file-input"
-            onChange={handleFileChange}
-            accept=".pdf,.docx,.pptx"
-            id="assignment-file-upload"
-          />
-
-          {!selectedFile ? (
-            <div
-              className={`submit-modal-dropzone ${isDragging ? "is-dragging" : ""}`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <div className="submit-modal-dropzone-icon">
-                <UploadCloud size={28} />
-              </div>
-              <p className="submit-modal-dropzone-title">
-                Drag and drop your file here
-              </p>
-              <p className="submit-modal-dropzone-action">
-                or <span>click to browse</span>
-              </p>
-              <p className="submit-modal-dropzone-formats">
-                {acceptedFormats.join(", ")} up to {maxFileSizeMb}MB
-              </p>
-            </div>
-          ) : (
-            <div className="submit-modal-file-card">
-              <div className="submit-modal-file-art">
-                <FileText size={20} />
-              </div>
-              <div className="submit-modal-file-info">
-                <span className="submit-modal-file-name" title={selectedFile.name}>
-                  {selectedFile.name}
-                </span>
-                <span className="submit-modal-file-size">{selectedFile.sizeFormatted}</span>
-              </div>
-              <span className="submit-modal-file-badge">
-                <CheckCircle2 size={12} /> Ready to submit
-              </span>
-              <button
-                type="button"
-                className="submit-modal-file-delete"
-                onClick={handleRemoveFile}
-                aria-label="Remove attached file"
-                title="Remove file"
-              >
-                <Trash2 size={16} />
-              </button>
-            </div>
-          )}
-
-          {/* Submission Note */}
+    <div className="submit-modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="submit-assignment-title">
+      <div className="submit-modal-card" onClick={(event) => event.stopPropagation()}>
+        <div className="submit-modal-header"><div><h2 id="submit-assignment-title" className="submit-modal-title">Submit assignment</h2><p className="submit-modal-subtitle">{assignmentTitle} &bull; {courseName}</p></div><button type="button" className="submit-modal-close" onClick={onClose} aria-label="Close modal" disabled={isSubmitting}><X size={18} /></button></div>
+        {errorMessage && <div className="submit-modal-error" role="alert"><AlertCircle size={16} /><span>{errorMessage}</span></div>}
+        <form onSubmit={(event) => void handleSubmit(event)} className="submit-modal-form">
+          <div className="submit-modal-field"><label htmlFor="assignment-response" className="submit-modal-label">Your response</label><div className="submit-modal-textarea-wrapper"><textarea id="assignment-response" className="submit-modal-textarea" placeholder="Write your assignment response…" value={responseText} onChange={(event) => setResponseText(event.target.value.slice(0, 50000))} rows={9} maxLength={50000} /><span className="submit-modal-char-count">{responseText.length}/50000</span></div></div>
           <div className="submit-modal-field">
-            <label htmlFor="submission-note" className="submit-modal-label">
-              Submission note (optional)
-            </label>
-            <div className="submit-modal-textarea-wrapper">
-              <textarea
-                id="submission-note"
-                className="submit-modal-textarea"
-                placeholder="Add a note for your instructor..."
-                value={note}
-                onChange={(e) => setNote(e.target.value.slice(0, 500))}
-                rows={3}
-              />
-              <span className="submit-modal-char-count">{note.length}/500</span>
-            </div>
+            <label className="submit-modal-label" htmlFor="assignment-attachments">Attachments</label>
+            <label className="submit-modal-btn-cancel inline-flex w-fit cursor-pointer items-center gap-2"><Paperclip size={15} />Add files<input id="assignment-attachments" className="sr-only" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" multiple disabled={isSubmitting || files.length >= 5} onChange={addFiles} /></label>
+            <p className="text-xs text-gray-500">PDF, JPEG, PNG, or WebP · up to 25 MiB each · five files maximum. Files are privately uploaded and verified before submission.</p>
+            {files.length > 0 && <ul className="mt-2 space-y-2" aria-label="Selected attachments">{files.map((draft, index) => <li key={draft.key} className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm"><span className="min-w-0 truncate">{draft.file.name} <span className="text-xs text-gray-500">({(draft.file.size / (1024 * 1024)).toFixed(1)} MiB)</span>{draft.error && <span className="block text-xs text-rose-600">{draft.error}</span>}</span><span className="shrink-0 text-xs font-semibold text-emerald-700">{uploadingIndex === index ? <><Loader2 size={13} className="inline animate-spin" /> Uploading</> : draft.attachment?.status === "verified" ? "Verified" : draft.error ? "Retry on submit" : "Ready"}</span></li>)}</ul>}
           </div>
-
-          {/* Honor Code Checkbox */}
-          <label className="submit-modal-checkbox-label">
-            <input
-              type="checkbox"
-              className="submit-modal-checkbox"
-              checked={isConfirmed}
-              onChange={(e) => setIsConfirmed(e.target.checked)}
-            />
-            <span>I confirm that this work is my own and all sources are properly cited.</span>
-          </label>
-
-          {/* Action Buttons */}
-          <div className="submit-modal-actions">
-            <button
-              type="button"
-              className="submit-modal-btn-cancel"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="submit-modal-btn-submit"
-              disabled={isSubmitting || !selectedFile || !isConfirmed}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" /> Submitting...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 size={16} /> Submit assignment
-                </>
-              )}
-            </button>
-          </div>
+          <label className="submit-modal-checkbox-label"><input type="checkbox" className="submit-modal-checkbox" checked={isConfirmed} onChange={(event) => setIsConfirmed(event.target.checked)} /><span>I confirm that this work is my own and all sources are properly cited.</span></label>
+          <div className="submit-modal-actions"><button type="button" className="submit-modal-btn-cancel" onClick={onClose} disabled={isSubmitting}>Cancel</button><button type="submit" className="submit-modal-btn-submit" disabled={isSubmitting || (!responseText.trim() && files.length === 0) || !isConfirmed}>{isSubmitting ? <><Loader2 size={16} className="animate-spin" /> {uploadingIndex === null ? "Submitting…" : "Uploading…"}</> : <><CheckCircle2 size={16} /> Submit response</>}</button></div>
         </form>
       </div>
     </div>

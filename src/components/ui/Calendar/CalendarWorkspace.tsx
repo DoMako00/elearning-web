@@ -1,10 +1,4 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import {
-  INITIAL_CALENDAR_EVENTS,
-  INITIAL_AGENDA_ITEMS,
-  INITIAL_STUDY_GOAL,
-  INITIAL_REMINDERS,
-} from "./calendar.data";
 import type {
   CalendarEvent,
   EventType,
@@ -17,8 +11,11 @@ import {
   formatLocalDate,
   getEgyptNow,
   parseTimeToMinutes,
-  formatHour,
+  cairoDateTimeToIso,
 } from "./calendar-helpers";
+import { useStudentCalendar, useStudentCalendarMutations } from "../../../features/student/api/useStudentCalendar";
+import { useSetWeeklyLessonGoal, useStudentLearningPreferences, useStudentProgress } from "../../../features/student/api/useStudentLearning";
+import { mapStudentCalendarItem } from "../../../features/student/api/studentCalendarMapper";
 import { CalendarToolbar } from "./CalendarToolbar";
 import { CalendarGridView } from "./CalendarGridView";
 import { CalendarSidebar } from "./CalendarSidebar";
@@ -32,15 +29,9 @@ import "./Calendar.css";
 export { formatLocalDate, getEgyptNow };
 
 export function CalendarWorkspace() {
-  // ── Data state ──────────────────────────────────────────────────────────────
-  const [events, setEvents] = useState<CalendarEvent[]>(INITIAL_CALENDAR_EVENTS);
-  const [agendaItems] = useState<AgendaItem[]>(INITIAL_AGENDA_ITEMS);
-  const [reminders, setReminders] = useState<ReminderItem[]>(INITIAL_REMINDERS);
-  const [studyGoal, setStudyGoal] = useState<StudyGoalProgress>(INITIAL_STUDY_GOAL);
-
   // ── View / navigation state ──────────────────────────────────────────────────
   const [viewMode, setViewMode] = useState<CalendarViewMode>("week");
-  const [activeDate, setActiveDate] = useState<Date>(new Date(2026, 7, 31)); // Aug 31, 2026
+  const [activeDate, setActiveDate] = useState<Date>(new Date());
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filterTypes, setFilterTypes] = useState<Record<EventType, boolean>>({
     quiz: true,
@@ -48,24 +39,31 @@ export function CalendarWorkspace() {
     assignment: true,
     office_hours: true,
     study_block: true,
+    reminder: true,
+    academic_event: true,
+    course_release: true,
+    exam: true,
+    holiday: true,
   });
 
   // ── Modal state ──────────────────────────────────────────────────────────────
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [isNewEventModalOpen, setIsNewEventModalOpen] = useState(false);
   const [newEventDraft, setNewEventDraft] = useState<Partial<CalendarEvent>>({
-    type: "quiz",
+    type: "study_block",
     startTime: "10:00",
     endTime: "11:00",
-    date: "2026-08-30",
+    date: getEgyptNow().dateStr,
   });
 
   const [isEditGoalModalOpen, setIsEditGoalModalOpen] = useState(false);
-  const [targetGoalInput, setTargetGoalInput] = useState<number>(studyGoal.targetHours);
+  const [targetGoalInput, setTargetGoalInput] = useState<number>(1);
 
   const [isAddReminderModalOpen, setIsAddReminderModalOpen] = useState(false);
   const [newReminderTitle, setNewReminderTitle] = useState("");
-  const [newReminderType, setNewReminderType] = useState<"assignment" | "goal" | "quiz">("assignment");
+  const [newReminderDate, setNewReminderDate] = useState(getEgyptNow().dateStr);
+  const [newReminderTime, setNewReminderTime] = useState("10:00");
+  const [mutationError, setMutationError] = useState<string | null>(null);
 
   // ── Drag-and-drop state ──────────────────────────────────────────────────────
   const [draggedEventId, setDraggedEventId] = useState<string | null>(null);
@@ -76,6 +74,43 @@ export function CalendarWorkspace() {
   const egyptNow = useMemo(() => getEgyptNow(), [currentTime]);
 
   const filterRef = useRef<HTMLDivElement>(null);
+
+  const queryRange = useMemo(() => {
+    const start = new Date(activeDate);
+    if (viewMode === "week") {
+      const diffToMonday = (start.getDay() + 6) % 7;
+      start.setDate(start.getDate() - diffToMonday);
+    } else {
+      start.setDate(1);
+      start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+    }
+    const end = new Date(start);
+    end.setDate(start.getDate() + (viewMode === "week" ? 7 : 42));
+    return { from: formatLocalDate(start), to: formatLocalDate(end) };
+  }, [activeDate, viewMode]);
+  const calendarQuery = useStudentCalendar(queryRange.from, queryRange.to);
+  const progressQuery = useStudentProgress();
+  const preferencesQuery = useStudentLearningPreferences();
+  const calendarMutations = useStudentCalendarMutations();
+  const weeklyGoalMutation = useSetWeeklyLessonGoal();
+  const events = useMemo(() => (calendarQuery.data ?? []).map(mapStudentCalendarItem), [calendarQuery.data]);
+  const currentDate = egyptNow.dateStr;
+  const agendaItems = useMemo<AgendaItem[]>(() => events
+    .filter((event) => event.date === currentDate)
+    .sort((a, b) => a.startTime.localeCompare(b.startTime))
+    .map((event) => ({ id: event.id, time: event.displayTime.split(" - ")[0] ?? event.startTime, title: event.title, subtitle: event.courseTitle ?? "", type: event.type })), [events, currentDate]);
+  const reminders = useMemo<ReminderItem[]>(() => events
+    .filter((event) => event.type === "reminder" && event.editable)
+    .map((event) => ({ id: event.id, title: event.title, dateLabel: `${event.date} · ${event.displayTime}`, type: "reminder", completed: event.status === "completed" })), [events]);
+  const progress = progressQuery.data;
+  const goalValue = preferencesQuery.data?.weeklyLessonGoal ?? progress?.weeklyGoalLessons ?? null;
+  const studyGoal = useMemo<StudyGoalProgress>(() => {
+    const completed = progress?.weeklyCompletedLessons ?? 0;
+    const weeklyPercentage = goalValue ? Math.min(100, Math.round(completed * 100 / goalValue)) : 0;
+    const days = progress?.weekDays ?? [];
+    const labels = ["M", "T", "W", "T", "F", "S", "S"] as const;
+    return { completedLessons: completed, targetLessons: goalValue, weeklyPercentage, streakDays: labels.map((day, index) => ({ day, completed: (days[index]?.completedLessons ?? 0) > 0, isCurrent: days[index]?.date === currentDate })) };
+  }, [progress, goalValue, currentDate]);
 
   // ── Effects ──────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -97,6 +132,8 @@ export function CalendarWorkspace() {
 
   // ── Drag handlers ─────────────────────────────────────────────────────────────
   const handleDragStart = (e: React.DragEvent, eventId: string) => {
+    const event = events.find((item) => item.id === eventId);
+    if (!event?.editable || !event.version) { e.preventDefault(); return; }
     e.stopPropagation();
     setDraggedEventId(eventId);
     e.dataTransfer.setData("text/plain", eventId);
@@ -132,7 +169,7 @@ export function CalendarWorkspace() {
     if (!eventId) return;
 
     const existing = events.find((evt) => evt.id === eventId);
-    if (!existing) return;
+    if (!existing?.editable || !existing.version) return;
 
     const [startH, startM] = existing.startTime.split(":").map(Number);
     const [endH, endM] = existing.endTime.split(":").map(Number);
@@ -142,11 +179,13 @@ export function CalendarWorkspace() {
     const newStartM = startM;
     const newEndMinutes = newStartH * 60 + newStartM + durationMinutes;
 
-    const newStartStr = `${String(newStartH).padStart(2, "0")}:${String(newStartM).padStart(2, "0")}`;
+    const nextDate = new Date(`${targetDate}T00:00:00`);
+    const normalizedStartHour = newStartH % 24;
+    if (newStartH >= 24) nextDate.setDate(nextDate.getDate() + 1);
+    const normalizedDate = formatLocalDate(nextDate);
+    const newStartStr = `${String(normalizedStartHour).padStart(2, "0")}:${String(newStartM).padStart(2, "0")}`;
     const endHH = Math.floor(newEndMinutes / 60);
     const endMM = newEndMinutes % 60;
-    const newEndStr = `${String(endHH).padStart(2, "0")}:${String(endMM).padStart(2, "0")}`;
-
     if (hasTimeConflict(targetDate, newStartH * 60 + newStartM, newEndMinutes, eventId)) {
       alert("⚠️ Time conflict: An event is already scheduled at this time on that date.");
       setDraggedEventId(null);
@@ -154,22 +193,9 @@ export function CalendarWorkspace() {
       return;
     }
 
-    const displayStart = formatHour(newStartH);
-    const displayEnd = formatHour(endHH);
-
-    setEvents((prev) =>
-      prev.map((evt) =>
-        evt.id === eventId
-          ? {
-              ...evt,
-              date: targetDate,
-              startTime: newStartStr,
-              endTime: newEndStr,
-              displayTime: `${displayStart} - ${displayEnd}`,
-            }
-          : evt
-      )
-    );
+    const endDate = new Date(`${normalizedDate}T00:00:00`);
+    if (endHH >= 24) endDate.setDate(endDate.getDate() + Math.floor(endHH / 24));
+    void calendarMutations.update.mutateAsync({ id: existing.id, expectedVersion: existing.version, startsAt: cairoDateTimeToIso(normalizedDate, newStartStr), endsAt: cairoDateTimeToIso(formatLocalDate(endDate), `${String(endHH % 24).padStart(2, "0")}:${String(endMM).padStart(2, "0")}`) }).catch((error: unknown) => setMutationError(error instanceof Error ? error.message : "Calendar item could not be moved."));
 
     setDraggedEventId(null);
     setDragOverTarget(null);
@@ -181,7 +207,7 @@ export function CalendarWorkspace() {
     if (!eventId) return;
 
     const existing = events.find((evt) => evt.id === eventId);
-    if (!existing) return;
+    if (!existing?.editable || !existing.version) return;
 
     const startMinutes = parseTimeToMinutes(existing.startTime);
     const endMinutes = parseTimeToMinutes(existing.endTime);
@@ -193,9 +219,13 @@ export function CalendarWorkspace() {
       return;
     }
 
-    setEvents((prev) =>
-      prev.map((evt) => (evt.id === eventId ? { ...evt, date: targetDate } : evt))
-    );
+    const duration = Math.max(0, parseTimeToMinutes(existing.endTime) - parseTimeToMinutes(existing.startTime));
+    const start = cairoDateTimeToIso(targetDate, existing.startTime);
+    const totalEndMinutes = parseTimeToMinutes(existing.startTime) + duration;
+    const endDate = new Date(`${targetDate}T00:00:00`);
+    endDate.setDate(endDate.getDate() + Math.floor(totalEndMinutes / 1440));
+    const endTime = `${String(Math.floor((totalEndMinutes % 1440) / 60)).padStart(2, "0")}:${String(totalEndMinutes % 60).padStart(2, "0")}`;
+    void calendarMutations.update.mutateAsync({ id: existing.id, expectedVersion: existing.version, startsAt: start, endsAt: cairoDateTimeToIso(formatLocalDate(endDate), endTime) }).catch((error: unknown) => setMutationError(error instanceof Error ? error.message : "Calendar item could not be moved."));
 
     setDraggedEventId(null);
     setDragOverTarget(null);
@@ -286,7 +316,7 @@ export function CalendarWorkspace() {
   );
 
   // ── Event CRUD handlers ───────────────────────────────────────────────────────
-  const handleCreateEvent = (e: React.FormEvent) => {
+  const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newEventDraft.title || !newEventDraft.date) return;
 
@@ -303,56 +333,35 @@ export function CalendarWorkspace() {
       return;
     }
 
-    const displayStart = formatHour(Math.floor(startMinutes / 60));
-    const displayEnd = formatHour(Math.floor(endMinutes / 60));
-
-    const created: CalendarEvent = {
-      id: `evt-${Date.now()}`,
-      title: newEventDraft.title,
-      type: newEventDraft.type || "quiz",
-      date: newEventDraft.date,
-      startTime: newEventDraft.startTime || "09:00",
-      endTime: newEventDraft.endTime || "10:00",
-      displayTime: `${displayStart} - ${displayEnd}`,
-      courseTitle: newEventDraft.courseTitle || "General Curriculum",
-      description: newEventDraft.description || "",
-      locationOrUrl: newEventDraft.locationOrUrl || "",
-    };
-
-    setEvents((prev) => [...prev, created]);
-    setIsNewEventModalOpen(false);
-    setNewEventDraft({ type: "quiz", startTime: "10:00", endTime: "11:00", date: "2026-08-30" });
+    setMutationError(null);
+    try {
+      await calendarMutations.create.mutateAsync({ id: crypto.randomUUID(), itemType: "study_block", title: newEventDraft.title.trim(), description: newEventDraft.description?.trim() || null, startsAt: cairoDateTimeToIso(newEventDraft.date, newEventDraft.startTime || "09:00"), endsAt: cairoDateTimeToIso(newEventDraft.date, newEventDraft.endTime || "10:00") });
+      setIsNewEventModalOpen(false);
+      setNewEventDraft({ type: "study_block", startTime: "10:00", endTime: "11:00", date: currentDate });
+    } catch (error) { setMutationError(error instanceof Error ? error.message : "Calendar item could not be saved."); }
   };
 
-  const handleDeleteEvent = (id: string) => {
-    setEvents((prev) => prev.filter((e) => e.id !== id));
-    setSelectedEvent(null);
+  const handleDeleteEvent = async (id: string) => {
+    const event = events.find((item) => item.id === id);
+    if (!event?.editable || !event.version) return;
+    setMutationError(null);
+    try { await calendarMutations.update.mutateAsync({ id, expectedVersion: event.version, status: "cancelled" }); setSelectedEvent(null); }
+    catch (error) { setMutationError(error instanceof Error ? error.message : "Calendar item could not be cancelled."); }
   };
 
-  const handleSaveGoal = (e: React.FormEvent) => {
+  const handleSaveGoal = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newTarget = Math.max(1, targetGoalInput);
-    const newPct = Math.min(100, Math.round((studyGoal.completedHours / newTarget) * 100));
-    setStudyGoal((prev) => ({ ...prev, targetHours: newTarget, weeklyPercentage: newPct }));
-    setIsEditGoalModalOpen(false);
+    setMutationError(null);
+    try { await weeklyGoalMutation.mutateAsync({ weeklyLessonGoal: Math.max(1, Math.min(100, targetGoalInput)), expectedVersion: preferencesQuery.data?.version ?? null }); setIsEditGoalModalOpen(false); }
+    catch (error) { setMutationError(error instanceof Error ? error.message : "Weekly goal could not be saved."); }
   };
 
-  const handleAddReminder = (e: React.FormEvent) => {
+  const handleAddReminder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newReminderTitle.trim()) return;
-
-    setReminders((prev) => [
-      ...prev,
-      {
-        id: `rem-${Date.now()}`,
-        title: newReminderTitle.trim(),
-        dateLabel: "Upcoming this week",
-        type: newReminderType,
-        completed: false,
-      },
-    ]);
-    setNewReminderTitle("");
-    setIsAddReminderModalOpen(false);
+    setMutationError(null);
+    try { await calendarMutations.create.mutateAsync({ id: crypto.randomUUID(), itemType: "reminder", title: newReminderTitle.trim(), description: null, startsAt: cairoDateTimeToIso(newReminderDate, newReminderTime), endsAt: null }); setNewReminderTitle(""); setIsAddReminderModalOpen(false); }
+    catch (error) { setMutationError(error instanceof Error ? error.message : "Reminder could not be saved."); }
   };
 
   // ── Nav helpers ───────────────────────────────────────────────────────────────
@@ -375,6 +384,10 @@ export function CalendarWorkspace() {
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <div className="calendar-container">
+      {mutationError && <p role="alert" className="calendar-inline-error">{mutationError}</p>}
+      {calendarQuery.isLoading && <p role="status" className="calendar-inline-status">Loading your calendar…</p>}
+      {calendarQuery.isError && <p role="alert" className="calendar-inline-error">{calendarQuery.error instanceof Error ? calendarQuery.error.message : "Your calendar could not be loaded."} <button type="button" onClick={() => void calendarQuery.refetch()}>Retry</button></p>}
+      {progressQuery.isError && <p role="alert" className="calendar-inline-error">Study progress is temporarily unavailable.</p>}
       {/* Main Layout: Left Calendar Grid + Right Widgets */}
       <div className="calendar-layout">
         {/* Left Section */}
@@ -411,7 +424,7 @@ export function CalendarWorkspace() {
             onSetDragOverTarget={setDragOverTarget}
             onSelectEvent={setSelectedEvent}
             onOpenNewEvent={(draft) => {
-              setNewEventDraft(draft);
+              setNewEventDraft({ ...draft, type: "study_block" });
               setIsNewEventModalOpen(true);
             }}
           />
@@ -423,16 +436,16 @@ export function CalendarWorkspace() {
           studyGoal={studyGoal}
           reminders={reminders}
           onOpenNewEventForToday={() => {
-            setNewEventDraft({ date: "2025-05-14", startTime: "12:00", endTime: "13:00", type: "quiz" });
+            setNewEventDraft({ date: currentDate, startTime: "12:00", endTime: "13:00", type: "study_block" });
             setIsNewEventModalOpen(true);
           }}
           onViewFullAgenda={() => setViewMode("week")}
           onEditGoal={() => {
-            setTargetGoalInput(studyGoal.targetHours);
+            setTargetGoalInput(goalValue ?? 1);
             setIsEditGoalModalOpen(true);
           }}
-          onAddReminder={() => setIsAddReminderModalOpen(true)}
-          onViewAllReminders={() => setIsAddReminderModalOpen(true)}
+          onAddReminder={() => { setNewReminderDate(currentDate); setIsAddReminderModalOpen(true); }}
+          onViewAllReminders={() => { setNewReminderDate(currentDate); setIsAddReminderModalOpen(true); }}
         />
       </div>
 
@@ -444,6 +457,7 @@ export function CalendarWorkspace() {
       {selectedEvent && (
         <EventDetailModal
           event={selectedEvent}
+          canEdit={selectedEvent.editable}
           onClose={() => setSelectedEvent(null)}
           onDelete={handleDeleteEvent}
         />
@@ -473,11 +487,13 @@ export function CalendarWorkspace() {
       {isAddReminderModalOpen && (
         <AddReminderModal
           title={newReminderTitle}
-          reminderType={newReminderType}
+          date={newReminderDate}
+          time={newReminderTime}
           onClose={() => setIsAddReminderModalOpen(false)}
           onSubmit={handleAddReminder}
           onTitleChange={setNewReminderTitle}
-          onTypeChange={setNewReminderType}
+          onDateChange={setNewReminderDate}
+          onTimeChange={setNewReminderTime}
         />
       )}
     </div>

@@ -14,6 +14,7 @@ export interface DocumentListRowProps {
   document: DocumentItem;
   onClick?: () => void;
   onMoreClick?: (e: React.MouseEvent) => void;
+  moreActionLabel?: string;
   className?: string;
 }
 
@@ -65,6 +66,7 @@ export const DocumentListRow: React.FC<DocumentListRowProps> = ({
   document,
   onClick,
   onMoreClick,
+  moreActionLabel = "More options",
   className = "",
 }) => {
   const fileStyle = getFileTypeStyle(document.extension);
@@ -98,17 +100,19 @@ export const DocumentListRow: React.FC<DocumentListRowProps> = ({
         <span className="text-[11px] text-slate-400 font-medium whitespace-nowrap">
           {document.timestamp}
         </span>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onMoreClick?.(e);
-          }}
-          aria-label="More options"
-          className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-        >
-          <MoreVertical className="w-4 h-4" />
-        </button>
+        {onMoreClick && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMoreClick(e);
+            }}
+            aria-label={moreActionLabel}
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            <MoreVertical className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </div>
   );

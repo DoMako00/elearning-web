@@ -11,15 +11,18 @@ import {
   ProfileTabContent,
 } from "./components";
 import {
-  ChangePhotoModal,
-  ChangePasswordModal,
-  CloseAccountModal,
   ManageDevicesModal,
 } from "./components/modals";
 import { useSettingsForm } from "./hooks/useSettingsForm";
 import { ToastNotification } from "../../components/ui/ToastNotification";
 import { useToast } from "../../hooks/useToast";
 import { completeStudentEmailLink, getStudentAuthMethods, initiateOtpLogin, initiateStudentEmailLink, verifyOtpProof } from "../auth/api/identityApi";
+import { useStudentProfile } from "../student/api/useStudentLearning";
+import { useStudentSettingsDevices, useStudentCommercialSettings, useStudentLearningPreferences, useRevokeOtherStudentSessions } from "../student/api/useStudentSettings";
+import { studentLearningApi } from "../student/api/studentLearningApi";
+import { studentSettingsApi } from "../student/api/studentSettingsApi";
+import { downloadStudentAccountData } from "./studentDataExport";
+import { useAuth } from "../../app/providers/AuthProvider";
 
 export const Settings: React.FC = () => {
   const {
@@ -27,17 +30,15 @@ export const Settings: React.FC = () => {
     setActiveTab,
     profile,
     updateProfileField,
+    setProfile,
     devices,
-    removeDevice,
-    removeAllOtherDevices,
+    setDevices,
     subscription,
+    setSubscription,
     paymentMethods,
-    security,
-    updateSecurity,
     notifications,
+    setNotifications,
     toggleNotification,
-    privacy,
-    updatePrivacyField,
     appearance,
     updateAppearanceField,
     contactSubTab,
@@ -46,19 +47,48 @@ export const Settings: React.FC = () => {
     setNewContactValue,
   } = useSettingsForm("profile");
 
+  const profileQuery=useStudentProfile();
+  const devicesQuery=useStudentSettingsDevices();
+  const revokeOtherSessions=useRevokeOtherStudentSessions();
+  const commercialQuery=useStudentCommercialSettings();
+  const preferencesQuery=useStudentLearningPreferences();
+  const auth=useAuth();
+
   const { toastMessage, showToast } = useToast();
 
-  // Modals state
-  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
-  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
+  // Device revocation remains an Admin-authorized action; Students can end other sessions.
   const [isDevicesModalOpen, setIsDevicesModalOpen] = useState(false);
+  const [isExportingData, setIsExportingData] = useState(false);
   const [linkedEmail, setLinkedEmail] = useState("");
   const [emailStage,setEmailStage]=useState<"idle"|"current"|"new">("idle");
   const [emailCode,setEmailCode]=useState("");
   const [emailChallengeId,setEmailChallengeId]=useState("");
   const [emailLinkTicket,setEmailLinkTicket]=useState("");
   const [studentBrand,setStudentBrand]=useState<"medway"|"elite"|"nexus">("elite");
+
+  useEffect(()=>{const dto=profileQuery.data;if(!dto)return;const phone=dto.phone??"";const phoneParts=phone.match(/^(\+\d{1,3})(.*)$/);setProfile({fullName:dto.fullName,studentId:dto.studentCode??"—",email:dto.verifiedEmail??"",phoneCountryCode:phoneParts?.[1]??"",phoneCountryFlag:"",phoneNumber:phoneParts?.[2]??phone,university:dto.institution.name,academicYear:dto.level.title,major:"—",avatarUrl:""});setLinkedEmail(dto.verifiedEmail??"");setStudentBrand(dto.brand.code as "medway"|"elite"|"nexus");},[profileQuery.data,setProfile]);
+  useEffect(()=>{const devices=devicesQuery.devices.data;if(!devices)return;const currentDeviceId=devicesQuery.session.data?.deviceId;setDevices(devices.filter(device=>!device.revokedAt).map(device=>({id:device.id,name:device.platform??"Registered device",os:device.platform??"",browser:device.browser??"",location:"",ipAddress:"",lastActive:new Date(device.lastSeenAt).toLocaleString(),isCurrent:device.id===currentDeviceId,deviceType:/mobile|phone/i.test(device.platform??"")?"mobile":/tablet|ipad/i.test(device.platform??"")?"tablet":"desktop"})));},[devicesQuery.devices.data,devicesQuery.session.data?.deviceId,setDevices]);
+  useEffect(()=>{const value=commercialQuery.data;if(!value)return;setSubscription({name:value.semesterOffering?.title??"No active Offering",status:value.subscriptionStatus==="active"?"Active":value.subscriptionStatus==="expired"||value.subscriptionStatus==="cancelled"?"Expired":"Unavailable",seats:value.seatStatus==="assigned"?1:0,duration:"",renewDate:value.subscriptionEndsAt?new Date(value.subscriptionEndsAt).toLocaleDateString():"",planType:"individual"});},[commercialQuery.data,setSubscription]);
+  useEffect(()=>{const value=preferencesQuery.data?.notificationPreferences;if(!value)return;setNotifications({learningAlerts:{assignmentDeadlines:value.assignmentDeadlines,lessonReminders:value.lessonReminders,dailyStreakWarnings:value.dailyStreakWarnings},socialCommunity:{directMessages:value.directMessages,mentionsInCommunity:value.mentionsInCommunity,repliesToPosts:value.repliesToPosts},systemAlerts:{securityAlerts:value.securityAlerts,billingUpdates:value.billingUpdates}});},[preferencesQuery.data,setNotifications]);
+
+  const handleSaveProfile=async()=>{const dto=profileQuery.data;if(!dto)throw new Error("Student profile is still loading.");const phoneInput=profile.phoneNumber.trim();const phone=phoneInput?`${profile.phoneCountryCode}${phoneInput.replace(/[^0-9]/g,"")}`:null;try{await studentLearningApi.updateProfile({fullName:profile.fullName.trim(),phone,expectedVersion:dto.version});await profileQuery.refetch();showToast("Profile updated from your account.");}catch(error){showToast(error instanceof Error?error.message:"Profile update failed.");throw error;}};
+  const handleSignOut=async()=>{try{await studentSettingsApi.logoutCurrentSession();auth.signOut();window.location.assign("/auth/sign-in");}catch(error){showToast(error instanceof Error?error.message:"Sign out failed.");}};
+  const handleDownloadData=async()=>{if(isExportingData)return;setIsExportingData(true);try{await downloadStudentAccountData();showToast("Your account data download is ready.");}catch(error){showToast(error instanceof Error?error.message:"Your account data could not be exported.");}finally{setIsExportingData(false);}};
+  const handleRevokeOtherSessions=async()=>{try{await revokeOtherSessions.mutateAsync();await Promise.all([devicesQuery.devices.refetch(),devicesQuery.session.refetch()]);showToast("Other active sessions were revoked. This device remains signed in.");}catch(error){showToast(error instanceof Error?error.message:"Other sessions could not be revoked.");}};
+
+  const handleNotificationToggle=async(group:keyof typeof notifications,key:string,value:boolean)=>{
+    const current=preferencesQuery.data;
+    if(!current?.version && current?.version!==null){showToast("Notification preferences are still loading.");return;}
+    const field=key as keyof NonNullable<typeof current>['notificationPreferences'];
+    const notificationPreferences={...current.notificationPreferences,[field]:value};
+    try{
+      const saved=await studentLearningApi.setNotificationPreferences({notificationPreferences,expectedVersion:current.version});
+      toggleNotification(group,key,value);
+      await preferencesQuery.refetch();
+      showToast("Notification preference saved to your account.");
+      void saved;
+    }catch(error){showToast(error instanceof Error?error.message:"Notification preference could not be saved.");}
+  };
 
   useEffect(()=>{void getStudentAuthMethods().then(methods=>{setLinkedEmail(methods.verifiedEmail??"");if(methods.brandCode)setStudentBrand(methods.brandCode);}).catch(()=>undefined);},[]);
 
@@ -106,25 +136,25 @@ export const Settings: React.FC = () => {
     <ProfileTabContent
       profile={profile}
       onUpdateProfile={updateProfileField}
+      onSaveProfile={handleSaveProfile}
       devices={devices}
       subscription={subscription}
       contactSubTab={contactSubTab}
       setContactSubTab={setContactSubTab}
       newContactValue={newContactValue}
       setNewContactValue={setNewContactValue}
-      onChangePhotoClick={() => setIsPhotoModalOpen(true)}
-      onChangePasswordClick={() => setIsPasswordModalOpen(true)}
+      onChangePhotoClick={() => showToast("Profile photo changes are not supported by the current account API.")}
       onManageDevicesClick={() => setIsDevicesModalOpen(true)}
-      onCloseAccountClick={() => setIsCloseModalOpen(true)}
+      onCloseAccountClick={() => showToast("Account closure is not available as a self-service action.")}
       onSendVerificationCode={handleSendVerificationCode}
       onVerifyEmail={handleVerifyEmail}
       emailCode={emailCode}
       setEmailCode={setEmailCode}
       emailFlowStep={emailStage}
       linkedEmail={linkedEmail}
-      onDownloadDataClick={() => showToast("Preparing your learning data export...")}
-      onSwitchAccountClick={() => showToast("Redirecting to account switcher...")}
-      onViewPlansClick={() => showToast("Opening subscription plans...")}
+      onDownloadDataClick={() => { void handleDownloadData(); }}
+      onSwitchAccountClick={() => { void handleSignOut(); }}
+      onViewPlansClick={() => showToast("Subscription purchases and seat changes are managed by an authorized Admin.")}
       rightColumnOnly
     />
   );
@@ -133,6 +163,9 @@ export const Settings: React.FC = () => {
     <>
       <ToastNotification message={toastMessage} />
 
+      {(profileQuery.isLoading || devicesQuery.devices.isLoading || devicesQuery.session.isLoading || commercialQuery.isLoading || preferencesQuery.isLoading) && <p role="status" className="px-3 py-2 text-xs text-gray-500">Loading saved account settings…</p>}
+      {(profileQuery.isError || devicesQuery.devices.isError || devicesQuery.session.isError || commercialQuery.isError || preferencesQuery.isError) && <p role="alert" className="mx-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">Some saved settings could not be loaded. <button type="button" onClick={() => { void Promise.all([profileQuery.refetch(), devicesQuery.devices.refetch(), devicesQuery.session.refetch(), commercialQuery.refetch(), preferencesQuery.refetch()]); }}>Retry</button></p>}
+
       <SettingsLayout
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -140,74 +173,59 @@ export const Settings: React.FC = () => {
       >
         {/* Tab 1: Profile (Identity & Demographics) */}
         {activeTab === "profile" && (
-          <ProfileTab
+          profileQuery.isLoading ? <p role="status" className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">Loading your saved Student profile…</p> : profileQuery.isError ? <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">{profileQuery.error instanceof Error ? profileQuery.error.message : "Your Student profile could not be loaded."}</p> : <ProfileTab
             profile={profile}
             verifiedEmail={linkedEmail}
             onUpdateProfile={updateProfileField}
-            onChangePhotoClick={() => setIsPhotoModalOpen(true)}
-            onSave={() => showToast("Profile changes saved successfully!")}
+          onChangePhotoClick={() => showToast("Profile photo changes are not supported by the current account API.")}
+          onSave={() => { void handleSaveProfile().catch(()=>undefined); }}
           />
         )}
 
         {/* Tab 2: Account (Lifecycle & Billing) */}
         {activeTab === "account" && (
-          <AccountTab
+          commercialQuery.isLoading ? <p role="status" className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">Loading your saved Offering and Seat…</p> : commercialQuery.isError ? <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">{commercialQuery.error instanceof Error ? commercialQuery.error.message : "Your commercial summary could not be loaded."}</p> : <AccountTab
             subscription={subscription}
             paymentMethods={paymentMethods}
-            onUpgradePlanClick={() => showToast("Opening subscription upgrade plans...")}
-            onAddPaymentMethodClick={() => showToast("Opening payment method provider...")}
-            onDownloadDataClick={() => showToast("Preparing learning portfolio download...")}
-            onCloseAccountClick={() => setIsCloseModalOpen(true)}
+            onUpgradePlanClick={() => showToast("Purchases are managed by an authorized Admin.")}
+            onAddPaymentMethodClick={() => showToast("Stored card and payment-method management are not part of manual payment review.")}
+            onDownloadDataClick={() => { void handleDownloadData(); }}
+            isDownloadingData={isExportingData}
+            onCloseAccountClick={() => showToast("Account closure is not available as a self-service action.")}
           />
         )}
 
         {/* Tab 3: Security (Access Control) */}
         {activeTab === "security" && (
           <SecurityTab
-            security={security}
-            onUpdateSecurity={(newSettings) => {
-              updateSecurity(newSettings);
-              showToast("Security settings updated.");
-            }}
-            onSavePassword={() => showToast("Password updated successfully!")}
+            linkedEmail={linkedEmail}
+            onSignOut={() => { void handleSignOut(); }}
           />
         )}
 
         {/* Tab 4: Devices (Session Management) */}
         {activeTab === "devices" && (
-          <DevicesTab
+          (devicesQuery.devices.isLoading || devicesQuery.session.isLoading) ? <p role="status" className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">Loading registered devices and current session…</p> : (devicesQuery.devices.isError || devicesQuery.session.isError) ? <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">Registered devices or the current session could not be loaded.</p> : <DevicesTab
             devices={devices}
-            onRevokeDevice={(id) => {
-              removeDevice(id);
-              showToast("Device session revoked.");
-            }}
-            onRevokeAllOther={() => {
-              removeAllOtherDevices();
-              showToast("All other device sessions terminated.");
-            }}
+            onRevokeDevice={() => showToast("Ask an authorized Admin to revoke this device from Admin > Security.")}
+            onRevokeAllOther={() => void handleRevokeOtherSessions()}
+            canRevokeOtherSessions={!revokeOtherSessions.isPending}
           />
         )}
 
         {/* Tab 5: Notifications (Communication Preferences) */}
         {activeTab === "notifications" && (
-          <NotificationsTab
+          preferencesQuery.isLoading ? <p role="status" className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">Loading saved notification preferences…</p> : preferencesQuery.isError ? <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">{preferencesQuery.error instanceof Error ? preferencesQuery.error.message : "Notification preferences could not be loaded."}</p> : <NotificationsTab
             notifications={notifications}
             onToggle={(group, key, value) => {
-              toggleNotification(group, key, value);
-              showToast("Notification preferences saved.");
+              void handleNotificationToggle(group,key,value);
             }}
           />
         )}
 
         {/* Tab 6: Privacy (Visibility & Tracking) */}
         {activeTab === "privacy" && (
-          <PrivacyTab
-            privacy={privacy}
-            onUpdate={(key, value) => {
-              updatePrivacyField(key, value);
-              showToast("Privacy preference updated.");
-            }}
-          />
+          <PrivacyTab />
         )}
 
         {/* Tab 7: Appearance (Accessibility & Theming) */}
@@ -216,49 +234,21 @@ export const Settings: React.FC = () => {
             appearance={appearance}
             onUpdate={(key, value) => {
               updateAppearanceField(key, value);
-              showToast("Appearance preference updated.");
+              showToast("Appearance preference changed for this view only.");
             }}
           />
         )}
       </SettingsLayout>
 
       {/* Modals */}
-      <ChangePhotoModal
-        isOpen={isPhotoModalOpen}
-        currentAvatar={profile.avatarUrl}
-        onClose={() => setIsPhotoModalOpen(false)}
-        onSavePhoto={(newUrl: string) => {
-          updateProfileField("avatarUrl", newUrl);
-          showToast("Profile photo updated successfully!");
-        }}
-      />
-
-      <ChangePasswordModal
-        isOpen={isPasswordModalOpen}
-        onClose={() => setIsPasswordModalOpen(false)}
-        onSuccess={() => showToast("Password updated successfully!")}
-      />
-
       <ManageDevicesModal
         isOpen={isDevicesModalOpen}
         devices={devices}
+        canRevokeDevice={false}
+        canRevokeOtherSessions={!revokeOtherSessions.isPending}
         onClose={() => setIsDevicesModalOpen(false)}
-        onRevokeDevice={(id: string) => {
-          removeDevice(id);
-          showToast("Device session revoked.");
-        }}
-        onRevokeAllOther={() => {
-          removeAllOtherDevices();
-          showToast("All other device sessions terminated.");
-        }}
-      />
-
-      <CloseAccountModal
-        isOpen={isCloseModalOpen}
-        onClose={() => setIsCloseModalOpen(false)}
-        onConfirmClose={() => {
-          showToast("Account deletion initiated. You will be signed out.");
-        }}
+        onRevokeDevice={() => showToast("Ask an authorized Admin to revoke this device from Admin > Security.")}
+        onRevokeAllOther={() => void handleRevokeOtherSessions()}
       />
     </>
   );

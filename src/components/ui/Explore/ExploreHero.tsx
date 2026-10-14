@@ -1,18 +1,21 @@
-import { ArrowRight, Bookmark, Star } from "lucide-react";
-import { useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import anatomyOverlay from "../../../Assets/dashboard/my-courses-anatomy-overlay.webp";
 import heroBackground from "../../../Assets/dashboard/my-courses-hero-background.webp";
-import { HERO_PATH } from "./exploreData";
+import type { StudentLearningPathDto } from "../../../features/student/api/studentLearningApi";
 
-export function ExploreHero() {
+interface ExploreHeroProps {
+  path: StudentLearningPathDto | null;
+}
+
+export function ExploreHero({ path }: ExploreHeroProps) {
   const navigate = useNavigate();
-  const [isSaved, setIsSaved] = useState(false);
+  const updatedAt = path ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(path.updatedAt)) : null;
 
   return (
     <article
       className="explore-hero"
-      aria-label={`Featured: ${HERO_PATH.title}`}
+      aria-label={path ? `Learning path: ${path.title}` : "Published courses for your academic placement"}
       style={{ backgroundImage: `url(${heroBackground})` }}
     >
       <div className="explore-hero__art" aria-hidden="true">
@@ -51,53 +54,27 @@ export function ExploreHero() {
 
       <div className="explore-hero__content">
         <div className="explore-hero__badges">
-          <span className="explore-badge explore-badge--highlight">{HERO_PATH.badge1}</span>
-          <span className="explore-badge explore-badge--subtle">{HERO_PATH.badge2}</span>
+          <span className="explore-badge explore-badge--highlight">{path ? "PUBLISHED PATH" : "COURSE CATALOGUE"}</span>
+          <span className="explore-badge explore-badge--subtle">{path ? `${path.courseCount} courses` : "Current placement"}</span>
         </div>
-        <h2 className="explore-hero__title">{HERO_PATH.title}</h2>
-        <p className="explore-hero__desc">{HERO_PATH.description}</p>
+        <h2 className="explore-hero__title">{path?.title ?? "Explore your courses"}</h2>
+        <p className="explore-hero__desc">{path?.description || "Browse published courses available for your current academic placement."}</p>
         <div className="explore-hero__meta">
-          <span>{HERO_PATH.level}</span>
-          <span className="explore-hero__meta-dot">•</span>
-          <span className="explore-hero__rating">
-            <Star className="explore-hero__star-icon" aria-hidden="true" />
-            {HERO_PATH.rating}
-          </span>
-          <span className="explore-hero__meta-dot">•</span>
-          <span>{HERO_PATH.learners}</span>
+          <span>{path?.levelTitle ?? "Academic placement catalogue"}</span>
+          {path && <><span className="explore-hero__meta-dot">•</span><span>{path.courseCount} courses</span></>}
         </div>
 
         <div className="explore-hero__instructors">
-          <div className="explore-hero__avatars" aria-label="Course instructors">
-            {HERO_PATH.avatars.map((url, idx) => (
-              <img
-                key={idx}
-                src={url}
-                alt=""
-                className="explore-hero__avatar"
-                loading="lazy"
-              />
-            ))}
-          </div>
-          <span className="explore-hero__instructors-count">{HERO_PATH.instructorsCount}</span>
+          {path && <span className="explore-hero__instructors-count">Updated {updatedAt}</span>}
         </div>
 
         <div className="explore-hero__actions">
           <button
             type="button"
             className="explore-hero__cta"
-            onClick={() => navigate("/explore")}
+            onClick={() => path ? navigate(`/explore/paths/${encodeURIComponent(path.id)}`) : document.getElementById("explore-courses-section")?.scrollIntoView({ behavior: "smooth" })}
           >
-            Explore path <ArrowRight className="size-4" aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            className={`explore-hero__bookmark ${isSaved ? "is-saved" : ""}`}
-            onClick={() => setIsSaved(!isSaved)}
-            aria-label={isSaved ? "Remove from saved paths" : "Save learning path"}
-            aria-pressed={isSaved}
-          >
-            <Bookmark className={`size-4 ${isSaved ? "fill-current" : ""}`} aria-hidden="true" />
+            {path ? "Explore path" : "Browse courses"} <ArrowRight className="size-4" aria-hidden="true" />
           </button>
         </div>
       </div>

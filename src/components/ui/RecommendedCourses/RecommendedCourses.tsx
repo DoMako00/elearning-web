@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "../../../hooks/useToast";
 import { ToastNotification } from "../ToastNotification";
 import type { StudentCourseItem } from "../../../features/student/api/studentCoursesApi";
+import { useStudentSavedCourses, useToggleStudentSavedCourse } from "../../../features/student/api/useStudentLearning";
 
 interface RecommendedCoursesProps {
   courses?: readonly StudentCourseItem[];
@@ -43,7 +44,8 @@ function orderedCourses(courses: readonly StudentCourseItem[]) {
 export function RecommendedCourses({ courses = [] }: RecommendedCoursesProps) {
   const navigate = useNavigate();
   const displayCourses = useMemoSafeCourses(courses).filter((course) => !canOpenCourse(course));
-  const [bookmarkedCourses, setBookmarkedCourses] = useState<Record<string, boolean>>({});
+  const savedCoursesQuery = useStudentSavedCourses();
+  const toggleSavedCourse = useToggleStudentSavedCourse();
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(displayCourses.length > 2);
   const rowRef = useRef<HTMLDivElement>(null);
@@ -63,14 +65,12 @@ export function RecommendedCourses({ courses = [] }: RecommendedCoursesProps) {
     return () => window.removeEventListener("resize", checkScroll);
   }, [displayCourses.length]);
 
-  const toggleBookmark = (title: string, e?: MouseEvent) => {
+  const toggleBookmark = (course: StudentCourseItem, saved: boolean, e?: MouseEvent) => {
     e?.stopPropagation();
-    const isCurrentlyBookmarked = !!bookmarkedCourses[title];
-    setBookmarkedCourses((prev) => ({
-      ...prev,
-      [title]: !prev[title],
-    }));
-    showToast(isCurrentlyBookmarked ? `Removed "${title}" from saved subjects` : `"${title}" saved`);
+    toggleSavedCourse.mutate({ courseId: course.courseId, saved }, {
+      onSuccess: () => showToast(saved ? `Saved "${course.title}"` : `Removed "${course.title}" from saved courses`),
+      onError: (error) => showToast(error.message || "Saved courses could not be updated."),
+    });
   };
 
   const handleScrollPrev = () => {
@@ -120,7 +120,7 @@ export function RecommendedCourses({ courses = [] }: RecommendedCoursesProps) {
 
         <div className="recommended-row" ref={rowRef} onScroll={checkScroll}>
           {displayCourses.map((course) => {
-            const isBookmarked = !!bookmarkedCourses[course.title];
+            const isBookmarked = savedCoursesQuery.data?.some((savedCourse) => savedCourse.courseId === course.courseId) ?? false;
             const subtitle = `${course.academicInstitution.name} • ${course.academicLevel.title} • ${course.academicSemester.title}`;
             return (
               <article
@@ -141,7 +141,8 @@ export function RecommendedCourses({ courses = [] }: RecommendedCoursesProps) {
                   />
                   <button
                     type="button"
-                    onClick={(e) => toggleBookmark(course.title, e)}
+                    onClick={(e) => toggleBookmark(course, !isBookmarked, e)}
+                    disabled={savedCoursesQuery.isLoading || savedCoursesQuery.isError || toggleSavedCourse.isPending}
                     className={`recommended-bookmark ${isBookmarked ? "recommended-bookmark--active" : ""}`}
                     aria-label={isBookmarked ? `Remove bookmark for ${course.title}` : `Bookmark ${course.title}`}
                     aria-pressed={isBookmarked}

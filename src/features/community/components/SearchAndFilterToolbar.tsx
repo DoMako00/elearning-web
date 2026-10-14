@@ -1,13 +1,10 @@
 import {
   ChevronDown,
   Compass,
-  FolderPlus,
   HelpCircle,
   MessageSquare,
   Plus,
   Search,
-  Users2,
-  Calendar,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import type { TopicCategory } from "../types/community";
@@ -28,7 +25,6 @@ const DROPDOWN_TOPICS = [
   "UI/UX Design Systems",
   "Backend & APIs",
   "Data Science & AI",
-  "Career & Portfolios",
 ];
 
 export function SearchAndFilterToolbar({
@@ -62,11 +58,8 @@ export function SearchAndFilterToolbar({
     icon?: React.ComponentType<{ className?: string }>;
   }> = [
     { id: "all", label: "All" },
-    { id: "groups", label: "Study Groups", icon: Users2 },
     { id: "discussions", label: "Discussions", icon: MessageSquare },
     { id: "qa", label: "Q&A", icon: HelpCircle },
-    { id: "resources", label: "Resources", icon: FolderPlus },
-    { id: "events", label: "Events", icon: Calendar },
   ];
 
   return (
@@ -82,7 +75,7 @@ export function SearchAndFilterToolbar({
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search discussions, topics, or members..."
+            placeholder="Search saved discussions..."
             className="w-full h-11 pl-10 pr-4 bg-white border border-slate-200/90 rounded-xl text-[14px] text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-xs"
           />
         </div>
@@ -169,8 +162,8 @@ export function SearchAndFilterToolbar({
           type="button"
           onClick={onCreateThreadClick}
           className="size-8.5 grid place-items-center rounded-lg bg-white border border-slate-200/80 text-slate-500 hover:text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50 transition-all shrink-0 cursor-pointer shadow-2xs ml-0.5"
-          title="Create discussion or study group"
-          aria-label="Create discussion or study group"
+          title="Create discussion"
+          aria-label="Create discussion"
         >
           <Plus className="size-4" strokeWidth={2.2} />
         </button>

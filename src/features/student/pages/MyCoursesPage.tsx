@@ -22,14 +22,10 @@ import { CourseLibrary } from "../../../components/ui/CourseLibrary";
 import { SearchBar } from "../../../components/ui/SearchBar";
 import heroBackground from "../../../Assets/dashboard/my-courses-hero-background.webp";
 import { MyCoursesSkeleton } from "../../../components/ui/Skeleton";
-import { INITIAL_COURSES, type StudentCourse } from "../../../components/ui/CourseLibrary/courses.data";
-import { listStudentCourses, type StudentCourseItem } from "../api/studentCoursesApi";
+import { COURSE_VISUAL_PRESETS, type StudentCourse } from "../../../components/ui/CourseLibrary/courses.data";
+import { listAllStudentCourses, type StudentCourseItem } from "../api/studentCoursesApi";
 
 export type { StudentCourse };
-
-const STUDENT_COURSE_BRAND = "elite" as const;
-void listStudentCourses;
-void STUDENT_COURSE_BRAND;
 
 function normalizeCategory(title: string) {
   const lower = title.toLowerCase();
@@ -43,7 +39,7 @@ function normalizeCategory(title: string) {
 
 function visualPresetForCourse(course: StudentCourseItem) {
   const title = course.title.toLowerCase();
-  return INITIAL_COURSES.find((item) => title.includes(item.categoryId) || title.includes(item.category.toLowerCase())) ?? INITIAL_COURSES[0];
+  return COURSE_VISUAL_PRESETS.find((preset) => preset.keywords.some((keyword) => title.includes(keyword))) ?? COURSE_VISUAL_PRESETS[0]!;
 }
 
 function toDisplayCourse(course: StudentCourseItem): StudentCourse {
@@ -152,44 +148,30 @@ export function MyCoursesPage() {
       return;
     }
 
-    // [AUTH-MOCK] Commented out backend call to listStudentCourses:
-    // const controller = new AbortController();
-    // setIsCoursesLoading(true);
-    // setCoursesError(null);
-    // listStudentCourses({ brand: STUDENT_COURSE_BRAND, page: 1, pageSize: 25, signal: controller.signal })
-    //   .then((payload) => {
-    //     const nextCourses = payload.items.map(toDisplayCourse);
-    //     const nextEnrolledCourses = nextCourses.filter(canOpenDisplayCourse);
-    //     setCourses(nextCourses);
-    //     setSelectedCourseId((current) => {
-    //       if (nextEnrolledCourses.some((course) => course.id === current)) return current;
-    //       return nextEnrolledCourses[0]?.id || "";
-    //     });
-    //   })
-    //   .catch((error: unknown) => {
-    //     if (controller.signal.aborted) return;
-    //     setCourses([]);
-    //     setSelectedCourseId("");
-    //     setCoursesError(error instanceof Error ? error.message : "The learning API request failed.");
-    //   })
-    //   .finally(() => {
-    //     if (!controller.signal.aborted) setIsCoursesLoading(false);
-    //   });
-    // return () => controller.abort();
-
-    // [AUTH-MOCK] Provide INITIAL_COURSES with enrolled status for previewing Courses section
-    const previewCourses: StudentCourse[] = INITIAL_COURSES.map((c) => ({
-      ...c,
-      access: {
-        isEnrolled: true,
-        canOpen: true,
-        enrollmentStatus: c.status === "completed" ? "completed" : "active",
-      },
-    }));
-    setCourses(previewCourses);
-    setSelectedCourseId(previewCourses[0]?.id || "");
+    const controller = new AbortController();
+    setIsCoursesLoading(true);
     setCoursesError(null);
-    setIsCoursesLoading(false);
+    void listAllStudentCourses({ view: "explore", signal: controller.signal })
+      .then((payload) => {
+        if (controller.signal.aborted) return;
+        const nextCourses = payload.map(toDisplayCourse);
+        const nextEnrolledCourses = nextCourses.filter(canOpenDisplayCourse);
+        setCourses(nextCourses);
+        setSelectedCourseId((current) => {
+          if (nextEnrolledCourses.some((course) => course.id === current)) return current;
+          return nextEnrolledCourses[0]?.id || "";
+        });
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        setCourses([]);
+        setSelectedCourseId("");
+        setCoursesError(error instanceof Error ? error.message : "The learning API request failed.");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsCoursesLoading(false);
+      });
+    return () => controller.abort();
   }, [auth.status, retryIndex]);
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -322,7 +304,7 @@ export function MyCoursesPage() {
           <MyCoursesSkeleton />
         ) : auth.status !== "authenticated" ? (
           <div className="dashboard-feedback" role="status">
-            <strong>Sign in to view your Elite subjects.</strong>
+            <strong>Sign in to view your courses.</strong>
             <button type="button" onClick={() => navigate("/auth/sign-in", { state: { from: "/" } })}>Sign in</button>
           </div>
         ) : coursesError ? (

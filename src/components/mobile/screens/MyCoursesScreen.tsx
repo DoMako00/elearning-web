@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { TopAppBar } from "../TopAppBar";
 import {
@@ -12,10 +13,10 @@ import {
 } from "../shared";
 import { Clock, ChevronDown, Check, BookOpen, Sparkles } from "lucide-react";
 import { useSavedItems } from "../../../state/useSavedItems";
+import { listAllStudentCourses } from "../../../features/student/api/studentCoursesApi";
+import { useStudentProgress } from "../../../features/student/api/useStudentLearning";
+import { mapStudentCourseToCard } from "../shared/mapStudentCourse";
 
-import { SHARED_COURSES_DATA } from "../data/courses.data";
-
-const MY_COURSES_DATA: CourseCardData[] = SHARED_COURSES_DATA;
 
 type FilterTabKey = "in-progress" | "completed" | "saved";
 type SortOptionKey = "opened" | "progress" | "title";
@@ -29,6 +30,9 @@ const SORT_OPTIONS: { key: SortOptionKey; label: string; shortLabel: string }[] 
 export const MyCoursesScreen: React.FC = () => {
   const navigate = useNavigate();
   const { isSaved, getSavedCountByType } = useSavedItems();
+  const coursesQuery = useQuery({ queryKey: ["student", "courses", "mine"], queryFn: ({ signal }) => listAllStudentCourses({ view: "mine", signal }) });
+  const progressQuery = useStudentProgress();
+  const courses = useMemo(() => (coursesQuery.data ?? []).map((course) => mapStudentCourseToCard(course, progressQuery.data?.courses.find((item) => item.courseId === course.courseId))), [coursesQuery.data, progressQuery.data]);
 
   // State
   const [searchQuery, setSearchQuery] = useState("");
@@ -37,14 +41,8 @@ export const MyCoursesScreen: React.FC = () => {
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
 
   // Counts derived from data and saved items store
-  const inProgressCount = useMemo(
-    () => MY_COURSES_DATA.filter((c) => c.status === "IN PROGRESS").length,
-    []
-  );
-  const completedCount = useMemo(
-    () => MY_COURSES_DATA.filter((c) => c.status === "COMPLETED").length,
-    []
-  );
+  const inProgressCount = useMemo(() => coursesQuery.data?.filter((course) => course.access.enrollmentStatus === "active").length ?? 0, [coursesQuery.data]);
+  const completedCount = useMemo(() => coursesQuery.data?.filter((course) => course.access.enrollmentStatus === "completed").length ?? 0, [coursesQuery.data]);
   const savedCount = getSavedCountByType("course");
 
   const filterTabs = [
@@ -55,7 +53,7 @@ export const MyCoursesScreen: React.FC = () => {
 
   // Filtering + Sorting
   const filteredCourses = useMemo(() => {
-    let list = [...MY_COURSES_DATA];
+    let list = [...courses];
 
     // 1. Tab filter
     if (activeTab === "in-progress") {
@@ -91,7 +89,7 @@ export const MyCoursesScreen: React.FC = () => {
     });
 
     return list;
-  }, [activeTab, searchQuery, sortBy, isSaved]);
+  }, [activeTab, searchQuery, sortBy, isSaved, courses]);
 
   const activeSortOption = SORT_OPTIONS.find((s) => s.key === sortBy);
   const activeSortLabel = activeSortOption?.label || "Last opened";
@@ -99,7 +97,7 @@ export const MyCoursesScreen: React.FC = () => {
 
   const handleCourseClick = (course: CourseCardData) => {
     // Navigate to actual refresh-safe route
-    navigate(`/my-courses/${course.slug || "human-anatomy-i"}`);
+    navigate(`/my-courses/${course.id}`);
   };
 
   return (
@@ -143,7 +141,7 @@ export const MyCoursesScreen: React.FC = () => {
           />
 
           {/* 5. Course List or Empty State */}
-          {filteredCourses.length > 0 ? (
+          {coursesQuery.isLoading ? <p role="status" className="px-2 py-4 text-xs text-slate-500">Loading your courses…</p> : coursesQuery.isError ? <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800">Your courses could not be loaded. <button type="button" className="underline" onClick={() => void coursesQuery.refetch()}>Retry</button></div> : filteredCourses.length > 0 ? (
             <div className="space-y-3 pt-1">
               {filteredCourses.map((course) => (
                 <CourseCard

@@ -140,7 +140,7 @@ export function CalendarGridView({
                           <button
                             key={evt.id}
                             type="button"
-                            draggable
+                            draggable={Boolean(evt.editable)}
                             onDragStart={(e) => onDragStart(e, evt.id)}
                             onDragEnd={onDragEnd}
                             className={`calendar-event-card calendar-event-card--${evt.type} ${
@@ -218,7 +218,7 @@ export function CalendarGridView({
                   return (
                     <div
                       key={evt.id}
-                      draggable
+                      draggable={Boolean(evt.editable)}
                       onDragStart={(e) => onDragStart(e, evt.id)}
                       onDragEnd={onDragEnd}
                       className={`calendar-month-pill calendar-event-card--${evt.type} ${
@@ -278,7 +278,7 @@ export function CalendarGridView({
               date: "2025-05-14",
               startTime: "10:00",
               endTime: "11:00",
-              type: "quiz",
+                    type: "study_block",
             })
           }
           aria-label="Add new schedule item"

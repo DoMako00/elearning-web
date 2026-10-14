@@ -101,6 +101,63 @@ export class ApiClient {
     }
   }
 
+  /** Typed adapter escape hatch for newly mounted backend paths before the
+   * generated OpenAPI client types have been refreshed. Requests still share
+   * this client's bearer, JSON, abort and normalized-error behavior. */
+  getJson<T>(endpoint: string, options?: Pick<RequestOptions, "signal">): Promise<ApiResponse<T>> {
+    return this.request<T>("GET", endpoint, options);
+  }
+
+  /** Fetch a protected same-origin backend document with the current bearer.
+   * Used for issued documents whose API response is intentionally not JSON. */
+  async getBlob(endpoint: string, options?: Pick<RequestOptions, "signal">): Promise<ApiResponse<Blob>> {
+    if (!endpoint.startsWith("/") || endpoint.startsWith("//")) {
+      return { error: new Error("A relative API path is required."), response: new Response(null, { status: 400 }) };
+    }
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${this.token}` },
+        signal: options?.signal,
+      });
+      if (!response.ok) {
+        let error: unknown = { message: "The protected document could not be opened." };
+        if (response.headers.get("content-type")?.includes("application/json")) {
+          try { error = await response.json(); } catch { /* keep safe generic error */ }
+        }
+        return { error, response };
+      }
+      return { data: await response.blob(), response };
+    } catch (error) {
+      return { error, response: new Response(null, { status: 500, statusText: "Network Error" }) };
+    }
+  }
+
+  /** Upload bytes directly to a short-lived backend-signed HTTPS URL. The
+   * browser never sends its API bearer to object storage. */
+  async putSignedObject(url: string, body: Blob, headers: Readonly<Record<string, string>>, signal?: AbortSignal): Promise<ApiResponse<undefined>> {
+    let parsed: URL;
+    try { parsed = new URL(url); } catch {
+      return { error: new Error("The private upload URL is invalid."), response: new Response(null, { status: 400 }) };
+    }
+    if (parsed.protocol !== "https:") {
+      return { error: new Error("The private upload requires HTTPS."), response: new Response(null, { status: 400 }) };
+    }
+    try {
+      const response = await fetch(parsed.toString(), { method: "PUT", headers: { ...headers }, body, signal });
+      if (!response.ok) {
+        return { error: new Error(`The private file upload failed (HTTP ${response.status}).`), response };
+      }
+      return { data: undefined, response };
+    } catch {
+      return { error: new Error("The private file upload could not reach storage."), response: new Response(null, { status: 500, statusText: "Network Error" }) };
+    }
+  }
+
+  writeJson<T>(method: "POST" | "PATCH" | "PUT" | "DELETE", endpoint: string, body?: unknown, options?: Pick<RequestOptions, "signal" | "headers">): Promise<ApiResponse<T>> {
+    return this.request<T>(method, endpoint, { ...options, ...(body === undefined ? {} : { body }) });
+  }
+
   GET<P extends keyof paths & string>(
     path: P,
     options?: paths[P] extends { get: { parameters?: infer Params } }

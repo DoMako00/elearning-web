@@ -34,7 +34,7 @@ export interface DeviceSession {
 
 export interface SubscriptionPlan {
   name: string;
-  status: "Active" | "Expired" | "Pending";
+  status: "Active" | "Expired" | "Pending" | "Unavailable";
   seats: number;
   duration: string;
   renewDate: string;

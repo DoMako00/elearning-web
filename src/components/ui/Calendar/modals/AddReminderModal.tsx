@@ -3,20 +3,24 @@ import { X } from "lucide-react";
 
 interface AddReminderModalProps {
   title: string;
-  reminderType: "assignment" | "goal" | "quiz";
+  date: string;
+  time: string;
   onClose: () => void;
   onSubmit: (e: React.FormEvent) => void;
   onTitleChange: (value: string) => void;
-  onTypeChange: (value: "assignment" | "goal" | "quiz") => void;
+  onDateChange: (value: string) => void;
+  onTimeChange: (value: string) => void;
 }
 
 export function AddReminderModal({
   title,
-  reminderType,
+  date,
+  time,
   onClose,
   onSubmit,
   onTitleChange,
-  onTypeChange,
+  onDateChange,
+  onTimeChange,
 }: AddReminderModalProps) {
   return (
     <div className="calendar-modal-backdrop" onClick={onClose}>
@@ -56,15 +60,16 @@ export function AddReminderModal({
 
         <div className="calendar-form-group">
           <label htmlFor="rem-type">Type</label>
-          <select
-            id="rem-type"
-            value={reminderType}
-            onChange={(e) => onTypeChange(e.target.value as "assignment" | "goal" | "quiz")}
-          >
-            <option value="assignment">Assignment</option>
-            <option value="goal">Goal</option>
-            <option value="quiz">Quiz</option>
-          </select>
+          <input id="rem-type" value="Personal reminder" readOnly />
+        </div>
+
+        <div className="calendar-form-group">
+          <label htmlFor="rem-date">Date</label>
+          <input id="rem-date" type="date" required value={date} onChange={(e) => onDateChange(e.target.value)} />
+        </div>
+        <div className="calendar-form-group">
+          <label htmlFor="rem-time">Time</label>
+          <input id="rem-time" type="time" required value={time} onChange={(e) => onTimeChange(e.target.value)} />
         </div>
 
         <div className="calendar-modal__actions">

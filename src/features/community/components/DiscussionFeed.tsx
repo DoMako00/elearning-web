@@ -1,6 +1,5 @@
 import {
   MessageSquare,
-  Eye,
   Atom,
   Palette,
   BarChart2,
@@ -14,11 +13,15 @@ interface DiscussionFeedProps {
   discussions: DiscussionPost[];
   onPostClick?: (post: DiscussionPost) => void;
   onLikePost?: (postId: string) => void;
+  isLoading?: boolean;
+  errorMessage?: string | null;
 }
 
 export function DiscussionFeed({
   discussions,
   onPostClick,
+  isLoading = false,
+  errorMessage = null,
 }: DiscussionFeedProps) {
   const renderTopicBadgeIcon = (icon: DiscussionPost["topicIcon"]) => {
     switch (icon) {
@@ -95,6 +98,7 @@ export function DiscussionFeed({
 
       {/* Scrollable Threads List */}
       <div className="flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col gap-2 scrollbar-thin scrollbar-thumb-slate-200 hover:scrollbar-thumb-slate-300">
+        {errorMessage ? <p role="alert" className="rounded-xl border border-rose-100 bg-rose-50 p-4 text-xs text-rose-700">{errorMessage}</p> : isLoading ? <p role="status" className="rounded-xl border border-slate-100 bg-white p-4 text-xs text-slate-500">Loading persisted discussions…</p> : discussions.length === 0 ? <p className="rounded-xl border border-slate-100 bg-white p-4 text-xs text-slate-500">No discussions in this view yet.</p> : null}
         {discussions.map((post) => (
           <article
             key={post.id}
@@ -133,7 +137,7 @@ export function DiscussionFeed({
               </div>
             </div>
 
-            {/* Right: Metrics (Replies & Views) */}
+            {/* Right: Persisted reply count */}
             <div className="flex items-center gap-2.5 sm:gap-3 text-xs font-medium text-slate-400 shrink-0 pl-1">
               <div
                 className="flex items-center gap-1 hover:text-slate-600 transition-colors"
@@ -143,13 +147,6 @@ export function DiscussionFeed({
                 <span>{post.repliesCount}</span>
               </div>
 
-              <div
-                className="flex items-center gap-1 hover:text-slate-600 transition-colors"
-                title={`${post.viewsCount} views`}
-              >
-                <Eye className="size-3.5" />
-                <span>{post.viewsCount}</span>
-              </div>
             </div>
           </article>
         ))}

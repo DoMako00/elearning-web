@@ -4,7 +4,6 @@ import { BrandProvider } from "./BrandProvider";
 import { GamificationProvider } from "./GamificationProvider";
 import { QueryProvider } from "./QueryProvider";
 import { ThemeProvider } from "./ThemeProvider";
-import { MessagesProvider } from "./MessagesProvider";
 
 export function AppProviders({ children }: PropsWithChildren) {
   return (
@@ -13,9 +12,7 @@ export function AppProviders({ children }: PropsWithChildren) {
         <BrandProvider>
           <AuthProvider>
             <GamificationProvider>
-              <MessagesProvider>
-                {children}
-              </MessagesProvider>
+              {children}
             </GamificationProvider>
           </AuthProvider>
         </BrandProvider>

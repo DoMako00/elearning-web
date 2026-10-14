@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../app/providers/AuthProvider";
-import { activateProvisionedStudent, initiateOtpLogin, verifyOtp, type BrandCode } from "../api/identityApi";
+import { activateProvisionedStudent, IdentityApiError, initiateOtpLogin, verifyOtp, type BrandCode } from "../api/identityApi";
 import { getAdminOverview } from "../../admin-v2/api/adminOperationsApi";
 import authBotanicalBg from "../../../Assets/onboarding/auth-botanical-bg.jpg";
 import "../styles/SignInModern.css";
@@ -75,7 +75,13 @@ export function SignInPage() {
         window.location.reload();
       }
     } catch (error) {
-      setErrors({ form: error instanceof Error ? error.message : "Unable to complete sign-in." });
+      const loginEligibilityFailure = error instanceof IdentityApiError && error.code === "student_email_link_required";
+      const loginEligibilityMessage = adminReturn
+        ? "This email is not recognized as an active Admin for the selected brand. Choose the correct brand or ask the platform owner to review your Admin access."
+        : "Email sign-in is unavailable for the selected brand. Students must activate their provisioned account and link a verified real email; Admins must have current role access to that brand.";
+      setErrors({ form: loginEligibilityFailure
+        ? loginEligibilityMessage
+        : error instanceof Error ? error.message : "Unable to complete sign-in." });
     } finally { setSubmitting(false); }
   };
 
@@ -124,13 +130,13 @@ export function SignInPage() {
 
           {/* Form */}
           <form className="signin-form" onSubmit={submit} noValidate>
-            {mode === "activate" ? <>
             <div className="signin-field-group">
-              <label htmlFor="signin-brand" className="signin-field-label">Learning brand</label>
+              <label htmlFor="signin-brand" className="signin-field-label">{mode === "activate" ? "Learning brand" : "Account brand"}</label>
               <select id="signin-brand" value={brand} onChange={(e)=>setBrand(e.target.value as BrandCode)} className="signin-input">
                 <option value="medway">Medway</option><option value="elite">Elite</option><option value="nexus">Nexus</option>
               </select>
             </div>
+            {mode === "activate" ? <>
             <div className="signin-field-group">
               <label htmlFor="signin-account-id" className="signin-field-label">Account Identifier</label>
               <input id="signin-account-id" value={accountIdentifier} onChange={e=>setAccountIdentifier(e.target.value)} className="signin-input" autoComplete="off" />

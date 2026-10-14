@@ -1,36 +1,29 @@
 import { Heart, MessageSquareText, Send } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { DISCUSSION_POSTS, type DiscussionPost } from "./learningSpaceData";
+import { useCreateStudentCommunityPost, useSetStudentCommunityReaction, useStudentCommunityPosts } from "../../features/student/api/useStudentCommunity";
 
 export function CourseDiscussionPanel() {
   const [draft, setDraft] = useState("");
-  const [posts, setPosts] = useState<DiscussionPost[]>(DISCUSSION_POSTS);
+  const postsQuery = useStudentCommunityPosts();
+  const createPost = useCreateStudentCommunityPost();
+  const setReaction = useSetStudentCommunityReaction();
+  const posts = postsQuery.data ?? [];
 
-  const submit = (event: FormEvent) => {
+  const submit = async (event: FormEvent) => {
     event.preventDefault();
     const body = draft.trim();
-    if (!body) return;
-    setPosts((current) => [
-      {
-        id: `post-${Date.now()}`,
-        author: "Juliana",
-        role: "Student",
-        avatar: "https://i.pravatar.cc/72?img=47",
-        time: "Just now",
-        body,
-        replies: 0,
-        likes: 0,
-      },
-      ...current,
-    ]);
-    setDraft("");
+    if (!body || createPost.isPending) return;
+    try {
+      await createPost.mutateAsync({ id: crypto.randomUUID(), title: "Community discussion", categoryKey: "general", body });
+      setDraft("");
+    } catch { /* A persisted API error is rendered below; no local post is created. */ }
   };
 
   return (
     <div className="learning-discussion">
       <header>
-        <h2>Course discussion</h2>
-        <p>Ask questions and share insights on Human Anatomy I with your instructor and classmates.</p>
+        <h2>Community discussion</h2>
+        <p>Discussions are shared within your active Brand and Institution community; no course association is implied.</p>
       </header>
       <form className="learning-discussion__composer" onSubmit={submit}>
         <label className="sr-only" htmlFor="discussion-draft">
@@ -42,34 +35,41 @@ export function CourseDiscussionPanel() {
           value={draft}
           placeholder="Share a question or observation…"
           onChange={(event) => setDraft(event.target.value)}
+          maxLength={20000}
         />
-        <button type="submit">
-          Post <Send aria-hidden="true" />
+        <button type="submit" disabled={!draft.trim() || createPost.isPending}>
+          {createPost.isPending ? "Posting…" : "Post"} <Send aria-hidden="true" />
         </button>
       </form>
+      {postsQuery.isLoading ? <p role="status" className="learning-resources__empty">Loading community discussions…</p> : null}
+      {postsQuery.isError ? <p role="alert" className="learning-resources__empty">{postsQuery.error instanceof Error ? postsQuery.error.message : "Community discussions could not be loaded."}</p> : null}
+      {createPost.isError ? <p role="alert" className="learning-resources__empty">{createPost.error instanceof Error ? createPost.error.message : "Your post could not be saved."}</p> : null}
+      {setReaction.isError ? <p role="alert" className="learning-resources__empty">{setReaction.error instanceof Error ? setReaction.error.message : "Your reaction could not be saved."}</p> : null}
       <ul className="learning-discussion__list">
         {posts.map((post) => (
           <li key={post.id}>
-            <img src={post.avatar} alt="" />
+            <span aria-hidden="true" style={{ width: 34, height: 34, flex: "0 0 auto", borderRadius: "50%", display: "grid", placeItems: "center", background: "var(--color-brand-soft)", color: "var(--color-brand-hover)", fontSize: 11, fontWeight: 700 }}>{post.authorName.trim().charAt(0).toUpperCase()}</span>
             <div>
               <div className="learning-discussion__meta">
-                <strong>{post.author}</strong>
-                <em>{post.role}</em>
-                <time>{post.time}</time>
+                <strong>{post.authorName}</strong>
+                <em>Community member</em>
+                <time dateTime={post.createdAt}>{new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(post.createdAt))}</time>
               </div>
+              {post.title ? <strong>{post.title}</strong> : null}
               <p>{post.body}</p>
               <div className="learning-discussion__actions">
                 <span>
-                  <MessageSquareText aria-hidden="true" /> {post.replies} replies
+                  <MessageSquareText aria-hidden="true" /> {post.commentCount} replies
                 </span>
-                <span>
-                  <Heart aria-hidden="true" /> {post.likes}
-                </span>
+                <button type="button" aria-pressed={post.reacted} disabled={setReaction.isPending} onClick={() => setReaction.mutate({ postId: post.id, active: !post.reacted })}>
+                  <Heart aria-hidden="true" fill={post.reacted ? "currentColor" : "none"} /> {post.reactionCount}
+                </button>
               </div>
             </div>
           </li>
         ))}
       </ul>
+      {postsQuery.isSuccess && posts.length === 0 ? <p role="status" className="learning-resources__empty">No community discussions yet.</p> : null}
     </div>
   );
 }

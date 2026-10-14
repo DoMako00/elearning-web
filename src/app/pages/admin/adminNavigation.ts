@@ -1,4 +1,4 @@
-import { BookOpen, CalendarDays, CreditCard, Files, GraduationCap, LayoutDashboard, LibraryBig, ShieldCheck, UserRound, type LucideIcon } from "lucide-react";
+import { BookOpen, CalendarDays, ClipboardCheck, CreditCard, Files, GraduationCap, LayoutDashboard, LibraryBig, MessageSquare, ShieldCheck, UserRound, type LucideIcon } from "lucide-react";
 import type { AdminPermissionCode } from "../../../features/admin/api";
 
 export interface AdminNavigationItem { label: string; path: string; icon: LucideIcon; permission?: AdminPermissionCode; description: string; }
@@ -14,6 +14,8 @@ export const adminNavigation: readonly AdminNavigationItem[] = [
   { label: "Subscriptions", path: "/admin/subscriptions", icon: CalendarDays, permission: "admin.subscriptions.read", description: "Plans, seats, and subscription lifecycle." },
   { label: "Content", path: "/admin/content", icon: Files, permission: "admin.content.read", description: "Lessons, resources, and release readiness." },
   { label: "Security", path: "/admin/security", icon: ShieldCheck, permission: "admin.security.read", description: "Security events and account risk." },
+  { label: "Support Inbox", path: "/admin/support", icon: MessageSquare, permission: "admin.support.read", description: "Student support requests and replies." },
+  { label: "Assignment Review", path: "/admin/assignments", icon: ClipboardCheck, description: "Review persisted Student Assignment submissions and feedback." },
 ];
 
 const additionalRouteMetadata: readonly Omit<AdminNavigationItem, "icon">[] = [

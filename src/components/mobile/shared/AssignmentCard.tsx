@@ -1,12 +1,10 @@
 import React from "react";
-import { CalendarDays, Bookmark } from "lucide-react";
+import { BookOpen, CalendarDays, Bookmark } from "lucide-react";
 import type { AssignmentItem, AssignmentStatus } from "../../ui/Assignments/assignments.types";
-import { useSavedItems } from "../../../state/useSavedItems";
 
 export interface AssignmentCardProps {
   item: AssignmentItem;
   onOpenDetail: (item: AssignmentItem) => void;
-  onBookmarkToast?: (isSaved: boolean) => void;
 }
 
 // Category Tone styling mapped from desktop Assignments.css
@@ -46,21 +44,11 @@ function getActionLabel(status: AssignmentStatus): string {
 export const AssignmentCard: React.FC<AssignmentCardProps> = ({
   item,
   onOpenDetail,
-  onBookmarkToast,
 }) => {
-  const { isSaved, toggleSaved } = useSavedItems();
-  const saved = isSaved(item.id);
-
   const categoryStyle = CATEGORY_TONE_STYLES[item.categoryTone] || CATEGORY_TONE_STYLES.green;
   const urgencyStyle = URGENCY_STYLES[item.urgency] || URGENCY_STYLES.soon;
   const statusConfig = STATUS_STYLES[item.status] || STATUS_STYLES["not-started"];
   const actionText = getActionLabel(item.status);
-
-  const handleToggleBookmark = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    toggleSaved(item.id, "assignment");
-    onBookmarkToast?.(!saved);
-  };
 
   return (
     <article
@@ -85,14 +73,12 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
           </span>
           <button
             type="button"
-            onClick={handleToggleBookmark}
-            aria-label={saved ? `Remove bookmark from ${item.title}` : `Bookmark ${item.title}`}
-            aria-pressed={saved}
-            className={`p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-slate-50 transition-colors cursor-pointer ${
-              saved ? "text-emerald-600 fill-emerald-600" : ""
-            }`}
+            disabled
+            title="Assignment bookmarks are not supported by the backend."
+            aria-label="Assignment bookmarks are not available"
+            className="p-1.5 rounded-lg text-slate-300 cursor-not-allowed"
           >
-            <Bookmark className={`size-4 ${saved ? "fill-current" : ""}`} />
+            <Bookmark className="size-4" />
           </button>
         </div>
       </div>
@@ -100,12 +86,7 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
       {/* Middle row: Organ Illustration + Title & Description */}
       <div className="flex items-start gap-3.5">
         <div className="size-16 sm:size-18 rounded-2xl bg-slate-50 border border-slate-100/80 p-1.5 shrink-0 flex items-center justify-center overflow-hidden">
-          <img
-            src={item.image}
-            alt=""
-            aria-hidden="true"
-            className="size-full object-contain drop-shadow-xs"
-          />
+          {item.image ? <img src={item.image} alt="" aria-hidden="true" className="size-full object-contain drop-shadow-xs" /> : <BookOpen className="size-7 text-emerald-700" aria-hidden="true" />}
         </div>
 
         <div className="flex-1 min-w-0">
@@ -136,7 +117,7 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
         {/* Points & Progress bar (only for in-progress, matching desktop) */}
         <div className="flex-1 min-w-0 pr-2">
           <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
-            <span>{item.points} points</span>
+            <span>{item.points === null ? "Score not set" : `${item.points} points`}</span>
             {item.status === "in-progress" && typeof item.progress === "number" && (
               <span className="text-emerald-700">{item.progress}%</span>
             )}

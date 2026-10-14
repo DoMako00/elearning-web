@@ -1,7 +1,5 @@
 import type { RouteObject } from "react-router-dom";
 import { Navigate } from "react-router-dom";
-import { AccessGrantedPage } from "../../features/auth/pages/AccessGrantedPage";
-import { AccessPendingPage } from "../../features/auth/pages/AccessPendingPage";
 import { SignInPage } from "../../features/auth/pages/SignInPage";
 
 export const publicRoutes: RouteObject[] = [
@@ -12,6 +10,8 @@ export const publicRoutes: RouteObject[] = [
   { path: "/auth/verify-otp", element: <Navigate to="/auth/sign-in" replace /> },
   { path: "/auth/complete-profile", element: <Navigate to="/auth/sign-in" replace /> },
   { path: "/auth/choose-brand", element: <Navigate to="/auth/sign-in" replace /> },
-  { path: "/auth/access-pending", element: <AccessPendingPage /> },
-  { path: "/auth/access-granted", element: <AccessGrantedPage /> },
+  // Legacy self-signup/access-preview pages are not valid production identity or
+  // entitlement flows. Return users to the real provisioned-account sign-in.
+  { path: "/auth/access-pending", element: <Navigate to="/auth/sign-in" replace /> },
+  { path: "/auth/access-granted", element: <Navigate to="/auth/sign-in" replace /> },
 ];

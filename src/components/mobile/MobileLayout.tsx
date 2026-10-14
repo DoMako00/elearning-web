@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, type ReactNode } from "react";
 import {
   ScreenStackProvider,
   ScreenStackContainer,
@@ -50,7 +50,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { MobileMessagesProvider } from "./data/useMobileMessages";
 
-const MobileLayoutContent: React.FC = () => {
+const MobileLayoutContent: React.FC<{ routeContent?: ReactNode }> = ({ routeContent }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { activeTab, setActiveTab, replace } = useScreenStack();
@@ -79,7 +79,7 @@ const MobileLayoutContent: React.FC = () => {
     <div className="relative  h-dvh max-h-screen w-full bg-slate-50 flex flex-col text-slate-900 antialiased overflow-hidden">
       {/* Active Screen Area with Animated Stack Transitions */}
       <main className="flex-1 min-h-0 w-full flex flex-col pb-14 overflow-hidden">
-        <ScreenStackContainer />
+        {routeContent ? <div className="flex-1 min-h-0 w-full overflow-y-auto">{routeContent}</div> : <ScreenStackContainer />}
       </main>
 
       {/* Fixed Bottom Navigation */}
@@ -88,15 +88,22 @@ const MobileLayoutContent: React.FC = () => {
   );
 };
 
-export const MobileLayout: React.FC = () => {
+export const MobileLayout: React.FC<{ routeContent?: ReactNode }> = ({ routeContent }) => {
   const location = useLocation();
   const initialTab: TabId = location.pathname.startsWith("/my-courses")
+    || location.pathname.startsWith("/assignments")
+    || location.pathname.startsWith("/assessments")
     ? "my-courses"
-    : location.pathname === "/explore"
+    : location.pathname.startsWith("/explore")
+    || location.pathname.startsWith("/instructor")
     ? "explore"
     : location.pathname === "/calendar"
     ? "calendar"
     : location.pathname.startsWith("/settings")
+    || location.pathname === "/profile"
+    || location.pathname === "/messages"
+    || location.pathname === "/community"
+    || location.pathname === "/help"
     ? "settings"
     : "home";
 
@@ -108,7 +115,7 @@ export const MobileLayout: React.FC = () => {
   return (
     <MobileMessagesProvider>
       <ScreenStackProvider initialScreen={initialScreen}>
-        <MobileLayoutContent />
+        <MobileLayoutContent routeContent={routeContent} />
       </ScreenStackProvider>
     </MobileMessagesProvider>
   );

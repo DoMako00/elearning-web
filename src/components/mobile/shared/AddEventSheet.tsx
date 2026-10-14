@@ -1,22 +1,13 @@
 import React, { useState } from "react";
-import { Clock, BookOpen, Tag, AlignLeft, Calendar } from "lucide-react";
+import { Clock, AlignLeft, Calendar } from "lucide-react";
 import { BottomSheet } from "./BottomSheet";
-import type { CalendarEvent, EventType } from "../../ui/Calendar/calendar.types";
 
 export interface AddEventSheetProps {
   isOpen: boolean;
   onClose: () => void;
   defaultDate: string; // YYYY-MM-DD
-  onAddEvent: (event: CalendarEvent) => void;
+  onAddEvent: (event: { title: string; type: "study_block"; date: string; startTime: string; endTime: string; description: string | null }) => Promise<boolean>;
 }
-
-const EVENT_TYPE_OPTIONS: { type: EventType; label: string; colorClass: string }[] = [
-  { type: "study_block", label: "Study Block", colorClass: "bg-amber-50 text-amber-800 border-amber-200" },
-  { type: "live_session", label: "Live Session", colorClass: "bg-blue-50 text-blue-800 border-blue-200" },
-  { type: "quiz", label: "Quiz", colorClass: "bg-emerald-50 text-emerald-800 border-emerald-200" },
-  { type: "assignment", label: "Assignment", colorClass: "bg-indigo-50 text-indigo-800 border-indigo-200" },
-  { type: "office_hours", label: "Office Hours", colorClass: "bg-purple-50 text-purple-800 border-purple-200" },
-];
 
 export const AddEventSheet: React.FC<AddEventSheetProps> = ({
   isOpen,
@@ -25,8 +16,6 @@ export const AddEventSheet: React.FC<AddEventSheetProps> = ({
   onAddEvent,
 }) => {
   const [title, setTitle] = useState("");
-  const [eventType, setEventType] = useState<EventType>("study_block");
-  const [courseTitle, setCourseTitle] = useState("");
   const [date, setDate] = useState(defaultDate);
   const [startTime, setStartTime] = useState("10:00");
   const [endTime, setEndTime] = useState("11:30");
@@ -39,40 +28,16 @@ export const AddEventSheet: React.FC<AddEventSheetProps> = ({
     }
   }, [defaultDate, isOpen]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
-    // Format display time
-    const formatHourDisplay = (time24: string) => {
-      const [hStr, mStr] = time24.split(":");
-      let h = parseInt(hStr, 10);
-      const ampm = h >= 12 ? "PM" : "AM";
-      if (h === 0) h = 12;
-      else if (h > 12) h -= 12;
-      return `${h}:${mStr} ${ampm}`;
-    };
+    const newEvent = { title: title.trim(), type: "study_block" as const, date, startTime, endTime, description: description.trim() || null };
 
-    const startDisplay = formatHourDisplay(startTime);
-    const endDisplay = formatHourDisplay(endTime);
-
-    const newEvent: CalendarEvent = {
-      id: `evt-${Date.now()}`,
-      title: title.trim(),
-      type: eventType,
-      date,
-      startTime: startDisplay,
-      endTime: endDisplay,
-      displayTime: `${startDisplay} - ${endDisplay}`,
-      courseTitle: courseTitle.trim() || undefined,
-      description: description.trim() || undefined,
-      status: "upcoming",
-    };
-
-    onAddEvent(newEvent);
+    const saved = await onAddEvent(newEvent);
+    if (!saved) return;
     // Reset fields
     setTitle("");
-    setCourseTitle("");
     setDescription("");
     onClose();
   };
@@ -95,47 +60,7 @@ export const AddEventSheet: React.FC<AddEventSheetProps> = ({
           />
         </div>
 
-        {/* Type Selector Pills */}
-        <div>
-          <label className=" text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
-            <Tag className="size-3.5 text-slate-400" />
-            <span>Event Type</span>
-          </label>
-          <div className="flex flex-wrap gap-1.5">
-            {EVENT_TYPE_OPTIONS.map((opt) => {
-              const isSelected = opt.type === eventType;
-              return (
-                <button
-                  key={opt.type}
-                  type="button"
-                  onClick={() => setEventType(opt.type)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer select-none ${
-                    isSelected
-                      ? `${opt.colorClass} ring-2 ring-emerald-500/30 font-black shadow-xs scale-102`
-                      : "bg-slate-50 text-slate-600 border-slate-200/80 hover:bg-slate-100"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Course / Module */}
-        <div>
-          <label className=" text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
-            <BookOpen className="size-3.5 text-slate-400" />
-            <span>Course / Module (Optional)</span>
-          </label>
-          <input
-            type="text"
-            value={courseTitle}
-            onChange={(e) => setCourseTitle(e.target.value)}
-            placeholder="e.g. Medical Physiology or Anatomy"
-            className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
-          />
-        </div>
+        <p className="text-[11px] text-slate-500">Personal study block. Academic dates are supplied by your institution.</p>
 
         {/* Date & Time Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">

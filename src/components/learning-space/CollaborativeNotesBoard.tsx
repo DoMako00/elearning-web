@@ -1,49 +1,24 @@
-import Collaboration from "@tiptap/extension-collaboration";
-import CollaborationCaret from "@tiptap/extension-collaboration-caret";
 import Placeholder from "@tiptap/extension-placeholder";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { Lock, Radio } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import * as Y from "yjs";
-import { WebrtcProvider } from "y-webrtc";
-import { AnatomyFigure, INITIAL_NOTES_CONTENT, NoteColumn, NoteColumns } from "./notesBoardSchema";
-
-const ROOM_NAME = "greenlearn-human-anatomy-i-notes";
-const LOCAL_USER = { name: "Juliana", color: "#20a862" };
-
-const sharedDocs = new Map<string, Y.Doc>();
-const sharedProviders = new Map<string, WebrtcProvider>();
-
-function getSharedDoc(room: string) {
-  const existing = sharedDocs.get(room);
-  if (existing) return existing;
-  const doc = new Y.Doc();
-  sharedDocs.set(room, doc);
-  return doc;
-}
-
-function getSharedProvider(room: string, doc: Y.Doc) {
-  const existing = sharedProviders.get(room);
-  if (existing) return existing;
-  const provider = new WebrtcProvider(room, doc, {
-    signaling: ["wss://signaling.yjs.dev"],
-  });
-  provider.awareness.setLocalStateField("user", LOCAL_USER);
-  sharedProviders.set(room, provider);
-  return provider;
-}
+import { CheckCircle2, Lock, Save } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSaveStudentLessonNote, useStudentLessonNote } from "../../features/student/api/useStudentLearning";
+import { AnatomyFigure, NoteColumn, NoteColumns } from "./notesBoardSchema";
 
 interface CollaborativeNotesBoardProps {
+  lessonId?: string;
   title?: string;
 }
 
 export function CollaborativeNotesBoard({
-  title = "Lesson Notes — Introduction to Anatomy & Anatomical Terms",
+  lessonId,
+  title = "Lesson notes",
 }: CollaborativeNotesBoardProps) {
-  const ydoc = useMemo(() => getSharedDoc(ROOM_NAME), []);
-  const provider = useMemo(() => getSharedProvider(ROOM_NAME, ydoc), [ydoc]);
-  const [peerCount, setPeerCount] = useState(1);
+  const noteQuery = useStudentLessonNote(lessonId);
+  const saveNote = useSaveStudentLessonNote(lessonId);
+  const [isDirty, setIsDirty] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -55,12 +30,12 @@ export function CollaborativeNotesBoard({
       Placeholder.configure({
         placeholder: "Add a note to this shared board…",
       }),
-      Collaboration.configure({ document: ydoc }),
-      CollaborationCaret.configure({
-        provider,
-        user: LOCAL_USER,
-      }),
     ],
+    editable: Boolean(lessonId) && noteQuery.isSuccess && !noteQuery.isFetching,
+    onUpdate: () => {
+      setIsDirty(true);
+      setSaved(false);
+    },
     editorProps: {
       attributes: {
         class: "notes-board__editor",
@@ -70,41 +45,47 @@ export function CollaborativeNotesBoard({
   });
 
   useEffect(() => {
-    if (!editor) return;
-    const fragment = ydoc.getXmlFragment("default");
-    if (fragment.length === 0 && editor.isEmpty) {
-      editor.commands.setContent(INITIAL_NOTES_CONTENT);
-    }
-  }, [editor, ydoc]);
+    if (!editor || !noteQuery.isSuccess) return;
+    editor.commands.setContent(noteQuery.data.body || "", { emitUpdate: false });
+    editor.setEditable(Boolean(lessonId));
+    setIsDirty(false);
+    setSaved(false);
+  }, [editor, lessonId, noteQuery.data?.version, noteQuery.isSuccess]);
 
-  useEffect(() => {
-    const awareness = provider.awareness;
-    const syncPeers = () => setPeerCount(Math.max(1, awareness.getStates().size));
-    syncPeers();
-    awareness.on("change", syncPeers);
-    return () => {
-      awareness.off("change", syncPeers);
-    };
-  }, [provider]);
+  const handleSave = async () => {
+    if (!editor || !lessonId || saveNote.isPending || !isDirty) return;
+    try {
+      const body = editor.isEmpty ? "" : editor.getHTML();
+      await saveNote.mutateAsync({ body, expectedVersion: noteQuery.data?.version ?? null });
+      setIsDirty(false);
+      setSaved(true);
+    } catch {
+      // The mutation error is rendered below; the unsaved editor content remains intact.
+    }
+  };
 
   return (
     <article className="notes-board">
       <header className="notes-board__header">
         <h2>{title}</h2>
         <div className="notes-board__status">
-          <span className="notes-board__live">
-            <Radio aria-hidden="true" />
-            Live board · {peerCount} {peerCount === 1 ? "editor" : "editors"}
+          <span className="notes-board__live" role="status">
+            <CheckCircle2 aria-hidden="true" />
+            {noteQuery.isLoading ? "Loading note" : saveNote.isPending ? "Saving" : saved ? "Saved" : isDirty ? "Unsaved changes" : "Private note"}
           </span>
           <span className="notes-board__hint">
             <Lock aria-hidden="true" />
-            Shared lesson board
+            Only you can see this
           </span>
+          <button type="button" className="workspace-rail-action" onClick={() => void handleSave()} disabled={!lessonId || !isDirty || saveNote.isPending || noteQuery.isLoading || noteQuery.isError}>
+            <Save aria-hidden="true" /> {saveNote.isPending ? "Saving…" : "Save note"}
+          </button>
         </div>
       </header>
-      <p className="notes-board__lede">
-        Collaborate on this lesson board in real time. Edits sync with classmates on the same course notes.
-      </p>
+      <p className="notes-board__lede">Your note is private and saved to this lesson when you choose Save note.</p>
+      {noteQuery.isError ? <p role="alert" className="dashboard-feedback--error">{noteQuery.error instanceof Error ? noteQuery.error.message : "The lesson note could not be loaded."}</p> : null}
+      {saveNote.isError ? <p role="alert" className="dashboard-feedback--error">{saveNote.error instanceof Error ? saveNote.error.message : "The lesson note could not be saved."}</p> : null}
+      {!lessonId ? <p role="status">A published lesson is required before a note can be saved.</p> : null}
       <div className="notes-board__surface">
         <EditorContent editor={editor} />
       </div>

@@ -21,9 +21,8 @@ export function YourStreak({
   const gamification = useContext(GamificationContext);
 
   const effectiveStreakDays = streakDays ?? gamification?.currentStreak;
-  const freezePasses = gamification?.streakFreezePasses;
-  const safeStreakDays = effectiveStreakDays === undefined ? null : Math.max(0, Math.floor(effectiveStreakDays));
-  const safeTotalMilestones = totalMilestones === undefined ? 0 : Math.max(1, Math.floor(totalMilestones));
+  const safeStreakDays = effectiveStreakDays == null ? null : Math.max(0, Math.floor(effectiveStreakDays));
+  const safeTotalMilestones = totalMilestones === undefined ? 0 : Math.max(0, Math.floor(totalMilestones));
   const safeCompletedMilestones = completedMilestones === undefined ? 0 : Math.min(safeTotalMilestones, Math.max(0, Math.floor(completedMilestones)));
   const milestonesLabel = totalMilestones === undefined ? "Streak milestone data unavailable" : `${safeCompletedMilestones} of ${safeTotalMilestones} streak milestones completed`;
 
@@ -54,7 +53,7 @@ export function YourStreak({
                 <span>Streak Rules</span>
               </div>
               <p className="text-[11px] text-slate-200 leading-tight">
-                {safeStreakDays === null ? "Streak activity is unavailable." : `Study activity has not refreshed today. ${freezePasses === undefined ? "" : `${freezePasses} streak freezes remaining.`}`}
+                {safeStreakDays === null ? "Streak activity is unavailable." : "Streaks use completed lessons recorded by the learning service."}
               </p>
               <div className="absolute -bottom-1.5 left-6 border-4 border-transparent border-t-slate-900" />
             </div>

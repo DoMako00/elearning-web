@@ -3,6 +3,7 @@ import {
   Edit3,
   ArrowRight,
   Bookmark,
+  BookOpen,
   CheckCircle2,
   FileText,
   Award,
@@ -22,7 +23,6 @@ interface OverviewTabProps {
   profile: UserProfileData;
   enrolledCourses: EnrolledCourseItem[];
   goals: GoalItem[];
-  onToggleGoal: (id: string) => void;
   upcomingEvents: UpcomingEventItem[];
   recentActivities: RecentActivityItem[];
   onEditProfile: () => void;
@@ -34,7 +34,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   profile,
   enrolledCourses,
   goals,
-  onToggleGoal,
   upcomingEvents,
   recentActivities,
   onEditProfile,
@@ -58,8 +57,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               About Me
             </h2>
             <p className="text-sm lg:text-[15px] leading-relaxed text-gray-700 font-medium">
-              I&apos;m a medical student interested in anatomy, physiology, and clinical applications.
-              I love visual learning and aim to become a better, more confident healthcare professional.
+              {profile.bio || "Profile identity and academic placement are managed from your account record."}
             </p>
           </div>
 
@@ -101,11 +99,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-gray-50/70 hover:bg-emerald-50/50 transition-colors"
                 >
                   <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                    <img
-                      src={course.image}
-                      alt={course.title}
-                      className="size-13 rounded-xl object-cover bg-emerald-50 shrink-0 border border-gray-200 shadow-2xs"
-                    />
+                    <div className="grid size-13 place-items-center rounded-xl bg-emerald-50 shrink-0 border border-gray-200 shadow-2xs" aria-hidden="true"><BookOpen className="size-5 text-emerald-700" /></div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm sm:text-[15px] font-extrabold text-gray-900">
                         {course.title}
@@ -153,18 +147,13 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             <ul className="space-y-3">
               {goals.slice(0, 4).map((goal) => (
                 <li key={goal.id} className="flex items-center gap-3 text-sm sm:text-[14px] text-gray-800 font-semibold">
-                  <button
-                    type="button"
-                    onClick={() => onToggleGoal(goal.id)}
-                    className="text-gray-400 hover:text-emerald-600 transition-colors focus-visible:outline-none shrink-0"
-                    aria-label={`Toggle goal: ${goal.title}`}
-                  >
+                  <span className="text-gray-400 shrink-0" aria-label={`Goal progress: ${goal.title}`}>
                     {goal.completed ? (
                       <CheckCircle2 className="size-5 text-emerald-600" />
                     ) : (
                       <Bookmark className="size-5 text-gray-400" />
                     )}
-                  </button>
+                  </span>
                   <span className={`truncate leading-snug ${goal.completed ? "line-through text-gray-400" : ""}`}>
                     {goal.title}
                   </span>
@@ -259,14 +248,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             </div>
 
             <div className="flex flex-wrap gap-2.5 pt-1">
-              {profile.interests.map((interest) => (
+              {profile.interests.length ? profile.interests.map((interest) => (
                 <span
                   key={interest}
                   className="inline-flex items-center rounded-xl bg-gray-100 hover:bg-emerald-100/70 hover:text-emerald-800 px-3.5 py-2 text-xs sm:text-sm font-bold text-gray-700 transition-colors cursor-default"
                 >
                   {interest}
                 </span>
-              ))}
+              )) : <p className="text-sm text-gray-500">No interests are recorded on your profile.</p>}
             </div>
           </div>
         </section>

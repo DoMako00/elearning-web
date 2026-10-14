@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React from "react";
 import { Camera, Calendar, MapPin, Edit3, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { ProfileTabId, UserProfileData } from "../types/profile.types";
@@ -27,16 +27,6 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   onAvatarUpload,
 }) => {
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const tempUrl = URL.createObjectURL(file);
-      onAvatarUpload?.(tempUrl);
-    }
-  };
-
   return (
     <div className="w-full shrink-0">
       {/* Top Back Nav Link */}
@@ -115,31 +105,19 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             {/* Avatar with Camera Trigger */}
             <div className="group relative shrink-0">
               <div className="relative size-16 sm:size-18 lg:size-20 overflow-hidden rounded-full ring-3 ring-white shadow-md bg-emerald-100">
-                <img
-                  src={profile.avatarUrl}
-                  alt={profile.name}
-                  className="size-full object-cover"
-                />
+                {profile.avatarUrl ? <img src={profile.avatarUrl} alt={profile.name} className="size-full object-cover" /> : <span className="grid size-full place-items-center text-xl font-black text-emerald-800" aria-hidden="true">{profile.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("")}</span>}
               </div>
 
               {/* Upload trigger button */}
-              <button
+              {onAvatarUpload && <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => undefined}
                 className="absolute bottom-0 right-0 grid size-6 sm:size-7 place-items-center rounded-full bg-white text-gray-700 shadow-md ring-1 ring-emerald-50 transition-all hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 title="Change profile avatar"
                 aria-label="Upload new avatar image"
               >
                 <Camera className="size-3 sm:size-3.5" />
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleAvatarChange}
-                aria-hidden="true"
-              />
+              </button>}
             </div>
 
             {/* User Meta Information */}
@@ -156,20 +134,12 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 <span className="text-gray-600 font-medium">{profile.institution}</span>
               </p>
 
-              <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-lg hidden xs:block">
-                {profile.bio}
-              </p>
+              {profile.bio && <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-lg hidden xs:block">{profile.bio}</p>}
 
               {/* Details Tags (Location & Joined Date) */}
               <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-500 pt-0.5">
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="size-3.5 sm:size-4 text-emerald-600 shrink-0" />
-                  <span>{profile.location}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="size-3.5 sm:size-4 text-emerald-600 shrink-0" />
-                  <span>Joined {profile.joinedDate}</span>
-                </div>
+                {profile.location && <div className="flex items-center gap-1.5"><MapPin className="size-3.5 sm:size-4 text-emerald-600 shrink-0" /><span>{profile.location}</span></div>}
+                {profile.joinedDate && <div className="flex items-center gap-1.5"><Calendar className="size-3.5 sm:size-4 text-emerald-600 shrink-0" /><span>Joined {profile.joinedDate}</span></div>}
               </div>
             </div>
           </div>

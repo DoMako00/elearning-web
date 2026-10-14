@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { TopAppBar } from "../TopAppBar";
 import { useScreenStack } from "../ScreenStack";
 import {
@@ -9,7 +11,6 @@ import {
   CourseCard,
   DocumentListRow,
   MobileWeeklyStudyGoal,
-  type CourseCardData,
   type DocumentItem,
 } from "../shared";
 import {
@@ -23,37 +24,42 @@ import {
 
 // Existing illustration and course images from desktop LMS
 import emptyLearningJourney from "../../../Assets/empty-learning-journey.webp";
-import courseAnatomyImage from "../../../Assets/dashboard/human-anatomy.webp";
 // Reusable screen stubs
 import { AssignmentsScreen } from "./AssignmentsScreen";
 import { HelpCenterScreen } from "./HelpCenterScreen";
-import { SHARED_COURSES_DATA } from "../data/courses.data";
-
-// Mock courses matching desktop data (first two for Home compact display)
-const MOCK_HOME_COURSES: CourseCardData[] = SHARED_COURSES_DATA.slice(0, 2);
-
-// Mock recent documents matching prompt and screenshot
-const MOCK_RECENT_DOCS: DocumentItem[] = [
-  {
-    id: "doc-1",
-    filename: "Brachial Plexus Diagram.pdf",
-    extension: "pdf",
-    courseTitle: "Human Anatomy I",
-    fileSize: "1.2 MB",
-    timestamp: "10:32 AM",
-  },
-  {
-    id: "doc-2",
-    filename: "Upper Limb Anatomy Guide.pptx",
-    extension: "pptx",
-    courseTitle: "Human Anatomy I",
-    fileSize: "5.8 MB",
-    timestamp: "Yesterday",
-  },
-];
+import { listAllStudentCourses } from "../../../features/student/api/studentCoursesApi";
+import { useStudentProfile, useStudentProgress, useStudentLearningPreferences } from "../../../features/student/api/useStudentLearning";
+import { mapStudentCourseToCard } from "../shared/mapStudentCourse";
 
 export const HomeScreen: React.FC = () => {
   const { push } = useScreenStack();
+  const navigate = useNavigate();
+  const profileQuery = useStudentProfile();
+  const progressQuery = useStudentProgress();
+  const preferencesQuery = useStudentLearningPreferences();
+  const coursesQuery = useQuery({ queryKey: ["student", "courses", "mine"], queryFn: ({ signal }) => listAllStudentCourses({ view: "mine", signal }) });
+  const progress = progressQuery.data;
+  const goal = preferencesQuery.data?.weeklyLessonGoal ?? progress?.weeklyGoalLessons ?? null;
+  const courses = useMemo(() => (coursesQuery.data ?? []).map((course) => mapStudentCourseToCard(course, progress?.courses.find((item) => item.courseId === course.courseId))), [coursesQuery.data, progress]);
+  const recentActivity = progress?.recentActivity ?? [];
+  const currentActivity = recentActivity[0];
+  const activityCourse = currentActivity ? coursesQuery.data?.find((course) => course.courseId === currentActivity.courseId) : undefined;
+  const currentActivityProgress = currentActivity ? progress?.courses.find((course) => course.courseId === currentActivity.courseId) : undefined;
+  const handleOpenNotes = () => {
+    if (currentActivity && activityCourse?.access.canOpen) {
+      navigate(`/my-courses/${currentActivity.courseId}/lessons/${currentActivity.lessonId}`);
+      return;
+    }
+    navigate("/my-courses");
+  };
+  const recentRows: DocumentItem[] = recentActivity.slice(0, 3).map((activity) => ({
+    id: activity.lessonId,
+    filename: activity.lessonTitle,
+    extension: "lesson",
+    courseTitle: activity.courseTitle,
+    fileSize: activity.status === "completed" ? "Completed lesson" : "In progress",
+    timestamp: new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(activity.occurredAt)),
+  }));
 
   // Navigation handlers
   const handleOpenAssignments = () => {
@@ -76,46 +82,6 @@ export const HomeScreen: React.FC = () => {
     });
   };
 
-  const handleOpenDocumentReader = (docTitle: string) => {
-    push({
-      id: `doc-${docTitle}`,
-      title: docTitle,
-      tabRoot: "home",
-      variant: "detail",
-      backLabel: "Home",
-      component: (
-        <div className="flex-1 flex flex-col min-h-0 w-full bg-slate-50/50">
-          <TopAppBar
-            variant="detail"
-            title={docTitle}
-            backLabel="Home"
-            onBack={() => window.history.back()}
-          />
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            <DocsOnlyBanner variant="full" />
-            <div className="p-8 text-center bg-white rounded-2xl border border-slate-100 shadow-xs">
-              <h2 className="text-base font-bold text-slate-900">{docTitle}</h2>
-              <p className="text-xs text-slate-500 mt-2 max-w-sm mx-auto">
-                Interactive mobile document reader with markdown and PDF annotations will render here.
-              </p>
-              <span className="mt-4 inline-block px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">
-                Document Viewer Stub
-              </span>
-            </div>
-          </div>
-        </div>
-      ),
-    });
-  };
-
-  const handleNotesStub = () => {
-    handleOpenDocumentReader("My Study Notes");
-  };
-
-  const handleDownloadsStub = () => {
-    handleOpenDocumentReader("Offline Downloads");
-  };
-
   return (
     <div className="flex-1 flex flex-col min-h-0 w-full bg-slate-50/50">
       {/* 1. Fixed TopAppBar main variant */}
@@ -126,7 +92,7 @@ export const HomeScreen: React.FC = () => {
         {/* 1. HeroBand Section */}
         <HeroBand
           eyebrow="Good morning,"
-          heading="Juliana"
+          heading={profileQuery.data?.fullName ?? (profileQuery.isLoading ? "Loading your profile…" : "Student")}
           subtitle="Keep learning, keep growing."
           banner={<DocsOnlyBanner variant="compact" />}
           illustration={
@@ -143,19 +109,19 @@ export const HomeScreen: React.FC = () => {
         />
 
         <div className="px-4 pt-2 pb-8 space-y-6 max-w-lg mx-auto">
-          {/* 2. Continue Reading Card (Home-specific hero card) */}
+          {/* 2. Continue Reading Card */}
           <div className="relative w-full bg-white rounded-3xl border border-slate-100/80 p-4 sm:p-5 shadow-xs overflow-hidden">
             <div className="flex items-start justify-between gap-2">
               {/* Left Details */}
               <div className="flex-1 min-w-0 pr-1">
                 <span className="inline-block px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold tracking-wider uppercase mb-1 border border-emerald-200/50">
-                  IN PROGRESS
+                  {currentActivity?.status === "completed" ? "COMPLETED" : currentActivity ? "IN PROGRESS" : "NO RECENT ACTIVITY"}
                 </span>
                 <h2 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">
-                  Human Anatomy I
+                  {currentActivity?.lessonTitle ?? (progressQuery.isLoading ? "Loading learning activity…" : "No recent lesson activity")}
                 </h2>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  Structure & Organization
+                  {currentActivity?.courseTitle ?? "Completed lessons will appear here when recorded."}
                 </p>
 
                 {/* Document Progress */}
@@ -163,26 +129,22 @@ export const HomeScreen: React.FC = () => {
                   <div className="flex items-center justify-between text-xs text-slate-600 font-semibold mb-1.5">
                     <span className="flex items-center gap-1.5">
                       <FileText className="w-3.5 h-3.5 text-emerald-600" />
-                      6 of 12 documents
+                      {currentActivityProgress?.completedLessons ?? 0} of {currentActivityProgress?.totalLessons ?? 0} lessons
                     </span>
-                    <span className="font-bold text-emerald-600">50%</span>
+                    <span className="font-bold text-emerald-600">{currentActivityProgress?.completionPercent ?? 0}%</span>
                   </div>
                   <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-emerald-500 rounded-full transition-all duration-300"
-                      style={{ width: "50%" }}
+                      style={{ width: `${currentActivityProgress?.completionPercent ?? 0}%` }}
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Right Skeleton/Anatomy Graphic */}
+              {/* Existing illustration remains decorative; it is not course data. */}
               <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-slate-50 overflow-hidden shrink-0 border border-slate-100/80">
-                <img
-                  src={courseAnatomyImage}
-                  alt="Human Anatomy skeleton and muscular system"
-                  className="w-full h-full object-cover object-top"
-                />
+                <img src={emptyLearningJourney} alt="" aria-hidden="true" className="w-full h-full object-contain p-2" />
               </div>
             </div>
 
@@ -193,9 +155,9 @@ export const HomeScreen: React.FC = () => {
                   <BookOpen className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] text-slate-400 font-medium">Last opened today</p>
+                  <p className="text-[10px] text-slate-400 font-medium">{currentActivity ? "Last learning activity" : "Activity status"}</p>
                   <p className="text-[10px] font-semibold text-slate-500 truncate">
-                    Chapter 3: Muscular System Notes.pdf
+                    {currentActivity?.lessonTitle ?? "No lesson progress recorded yet"}
                   </p>
                 </div>
               </div>
@@ -203,10 +165,11 @@ export const HomeScreen: React.FC = () => {
               {/* Continue Reading Button */}
               <button
                 type="button"
-                onClick={() => handleOpenDocumentReader("Chapter 3: Muscular System Notes.pdf")}
+                onClick={() => currentActivity && activityCourse?.access.canOpen && navigate(`/my-courses/${currentActivity.courseId}/lessons/${currentActivity.lessonId}`)}
+                disabled={!currentActivity || !activityCourse?.access.canOpen}
                 className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
               >
-                <span>Continue Reading</span>
+                <span>{currentActivity && activityCourse?.access.canOpen ? "Continue Learning" : "No lesson to continue"}</span>
                 <ArrowRight className="w-3.5 h-3.5 stroke-[2.2]" />
               </button>
             </div>
@@ -217,20 +180,20 @@ export const HomeScreen: React.FC = () => {
             <SectionHeader
               title="Quick Actions"
               actionLabel="See all"
-              onAction={() => handleNotesStub()}
+              onAction={() => handleOpenAssignments()}
             />
             <div className="grid grid-cols-4 gap-2 sm:gap-3">
               <QuickActionTile
                 icon={<FileText className="w-5 h-5" strokeWidth={2} />}
-                title="Notes"
-                subtitle="View your study notes"
-                onPress={handleNotesStub}
+                title="Recent Lesson"
+                subtitle="Open your latest activity"
+                onPress={handleOpenNotes}
               />
               <QuickActionTile
                 icon={<Download className="w-5 h-5" strokeWidth={2} />}
-                title="Downloads"
-                subtitle="Saved files offline"
-                onPress={handleDownloadsStub}
+                title="Resources"
+                subtitle="Open course materials"
+                onPress={() => navigate("/my-courses")}
               />
               <QuickActionTile
                 icon={<CalendarCheck className="w-5 h-5" strokeWidth={2} />}
@@ -252,17 +215,18 @@ export const HomeScreen: React.FC = () => {
             <SectionHeader
               title="My Courses"
               actionLabel="View all"
-              onAction={() => {}}
+              onAction={() => navigate("/my-courses")}
             />
             <div className="flex items-stretch gap-3">
-              {MOCK_HOME_COURSES.map((course) => (
+              {coursesQuery.isLoading ? <p role="status" className="text-xs text-slate-500">Loading your courses…</p> : coursesQuery.isError ? <p role="alert" className="text-xs text-rose-700">Courses could not be loaded.</p> : courses.slice(0, 2).map((course) => (
                 <CourseCard
                   key={course.id}
                   course={course}
                   layout="compact"
-                  onClick={() => handleOpenDocumentReader(`${course.title} Syllabus`)}
+                  onClick={() => navigate(`/my-courses/${course.id}`)}
                 />
               ))}
+              {!coursesQuery.isLoading && !coursesQuery.isError && courses.length === 0 && <p className="text-xs text-slate-500">No enrolled courses yet.</p>}
             </div>
           </section>
 
@@ -271,27 +235,32 @@ export const HomeScreen: React.FC = () => {
             <SectionHeader
               title="Weekly Study Goal"
               actionLabel="Edit"
-              onAction={() => {}}
+              onAction={() => navigate("/settings")}
             />
-            <MobileWeeklyStudyGoal completedHours={9} targetHours={12} />
+            <MobileWeeklyStudyGoal completedLessons={progress?.weeklyCompletedLessons ?? 0} targetLessons={goal} weekDays={progress?.weekDays ?? []} currentDate={new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Cairo" }).format(new Date())} />
           </section>
 
           {/* 6. Recent Documents Section */}
           <section aria-label="Recent Documents">
             <SectionHeader
-              title="Recent Documents"
-              actionLabel="View all"
-              onAction={() => {}}
+              title="Recent Learning"
+              actionLabel="View courses"
+              onAction={() => navigate("/my-courses")}
             />
             <div className="space-y-2.5">
-              {MOCK_RECENT_DOCS.map((doc) => (
+              {recentRows.map((doc) => (
                 <DocumentListRow
                   key={doc.id}
                   document={doc}
-                  onClick={() => handleOpenDocumentReader(doc.filename)}
-                  onMoreClick={() => {}}
+                  onClick={() => { const activity = recentActivity.find((item) => item.lessonId === doc.id); if (activity) navigate(`/my-courses/${activity.courseId}/lessons/${activity.lessonId}`); }}
+                  onMoreClick={() => {
+                    const activity = recentActivity.find((item) => item.lessonId === doc.id);
+                    if (activity) navigate(`/my-courses/${activity.courseId}/lessons/${activity.lessonId}`);
+                  }}
+                  moreActionLabel="Open lesson"
                 />
               ))}
+              {!progressQuery.isLoading && recentRows.length === 0 && <p className="text-xs text-slate-500">No persisted learning activity yet.</p>}
             </div>
           </section>
         </div>

@@ -1,4 +1,5 @@
 import { requireApiClient } from "../../../app/api/client";
+import { toEnglishStudentName } from "./studentDisplay";
 
 type Envelope<T> = { ok: true; correlationId: string; data: T };
 const key = () => crypto.randomUUID();
@@ -17,6 +18,7 @@ export type AdminStudentStatus =
   "active" | "pending" | "disabled" | "suspended";
 export interface AdminStudentListItem {
   id: string;
+  createdAt: string;
   displayName: string | null;
   emailMasked: string | null;
   phoneMasked: string | null;
@@ -54,12 +56,14 @@ export interface AdminStudentSession {
   revokedAt: string | null;
 }
 export interface AdminStudentDetail extends AdminStudentListItem {
-  createdAt?: string;
+  createdAt: string;
   updatedAt?: string;
   access?: {
     activeSubscriptionCount?: number;
     activeSeatCount?: number | null;
     activeGrantCount?: number;
+    expiredGrantCount?: number;
+    revokedGrantCount?: number;
     enrollmentCount?: number;
   };
   devices?: readonly AdminStudentDevice[];
@@ -77,18 +81,23 @@ export async function listAdminStudents(
   }> = {},
 ) {
   const api = await requireApiClient();
-  return unwrap<{
+  const result = await unwrap<{
     data: AdminStudentListItem[];
     pagination: { page: number; pageSize: number; totalItems: number };
   }>(api.GET("/v1/admin/students" as never, { params: { query: filters } }));
+  return { ...result, data: result.data.map((student) => ({
+    ...student,
+    displayName: toEnglishStudentName(student.displayName) || null,
+  })) };
 }
 export async function getAdminStudent(studentId: string, brand?: string) {
   const api = await requireApiClient();
-  return unwrap<AdminStudentDetail>(
+  const student = await unwrap<AdminStudentDetail>(
     api.GET("/v1/admin/students/{studentId}" as never, {
       params: { path: { studentId }, query: brand ? { brand } : undefined },
     }),
   );
+  return { ...student, displayName: toEnglishStudentName(student.displayName) || null };
 }
 export async function createAdminStudent(
   input: Readonly<{
@@ -158,4 +167,31 @@ export async function resetAdminStudentClaim(
       body: { reason },
     }),
   );
+}
+
+export async function revokeAdminStudentSessions(brandCode: "medway" | "elite" | "nexus", studentProfileId: string, reason: string) {
+  const api = await requireApiClient();
+  return unwrap<{ revoked: true }>(api.POST("/v1/admin/brands/{brandCode}/students/{studentProfileId}/sessions/revoke" as never, {
+    params: { path: { brandCode, studentProfileId } },
+    headers: { "Idempotency-Key": key() },
+    body: { reason },
+  }));
+}
+
+export async function revokeAdminStudentDevice(brandCode: "medway" | "elite" | "nexus", studentProfileId: string, deviceId: string, reason: string) {
+  const api = await requireApiClient();
+  return unwrap<{ revoked: true }>(api.POST("/v1/admin/brands/{brandCode}/students/{studentProfileId}/devices/{deviceId}/revoke" as never, {
+    params: { path: { brandCode, studentProfileId, deviceId } },
+    headers: { "Idempotency-Key": key() },
+    body: { reason },
+  }));
+}
+
+export async function authorizeAdminStudentDeviceReplacement(brandCode: "medway" | "elite" | "nexus", studentProfileId: string, deviceId: string, reason: string, expiresAt: string) {
+  const api = await requireApiClient();
+  return unwrap<{ overrideId: string; expiresAt: string }>(api.POST("/v1/admin/brands/{brandCode}/students/{studentProfileId}/devices/{deviceId}/replacement-override" as never, {
+    params: { path: { brandCode, studentProfileId, deviceId } },
+    headers: { "Idempotency-Key": key() },
+    body: { reason, expiresAt },
+  }));
 }

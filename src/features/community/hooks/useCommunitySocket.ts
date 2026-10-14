@@ -235,7 +235,7 @@ export function useCommunitySocket({
         if (prev.length === 0) return prev;
         const randomIndex = Math.floor(Math.random() * Math.min(prev.length, 5));
         const target = prev[randomIndex];
-        const nextViews = target.viewsCount + Math.floor(Math.random() * 3) + 1;
+        const nextViews = (target.viewsCount ?? 0) + Math.floor(Math.random() * 3) + 1;
         const updated = [...prev];
         updated[randomIndex] = { ...target, viewsCount: nextViews };
         return updated;

@@ -1,5 +1,5 @@
 import type { EventType } from "./calendar.types";
-import { FileText, Video, Clock, User } from "lucide-react";
+import { FileText, Video, Clock, User, Bell, BookOpen, CalendarDays, GraduationCap } from "lucide-react";
 import type React from "react";
 
 // Hours shown in the week/day time grid (24-h wrapping starting at 8 AM)
@@ -14,6 +14,11 @@ export const EVENT_TYPE_CONFIG: Record<
   assignment: { label: "Assignment", icon: FileText },
   office_hours: { label: "Office Hours", icon: User },
   study_block: { label: "Study Block", icon: Clock },
+  reminder: { label: "Reminder", icon: Bell },
+  academic_event: { label: "Academic Event", icon: CalendarDays },
+  course_release: { label: "Course Release", icon: BookOpen },
+  exam: { label: "Exam", icon: GraduationCap },
+  holiday: { label: "Holiday", icon: CalendarDays },
 };
 
 export function formatHour(h: number): string {
@@ -21,6 +26,26 @@ export function formatHour(h: number): string {
   if (h === 12) return "12 PM";
   if (h > 12) return `${h - 12} PM`;
   return `${h} AM`;
+}
+
+/** Convert a Cairo wall-clock date/time to an ISO instant without relying on the browser's local timezone. */
+export function cairoDateTimeToIso(date: string, time: string): string {
+  const target = Date.parse(`${date}T${time}:00Z`);
+  let candidate = target;
+  const formatter = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Cairo", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const parts = Object.fromEntries(formatter.formatToParts(new Date(candidate)).map((part) => [part.type, part.value]));
+    const shown = Date.parse(`${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:00Z`);
+    const delta = target - shown;
+    if (delta === 0) break;
+    candidate += delta;
+  }
+  return new Date(candidate).toISOString();
+}
+
+export function cairoDateTimeParts(value: string): { date: string; time: string } {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Cairo", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date(value)).map((part) => [part.type, part.value]));
+  return { date: `${parts.year}-${parts.month}-${parts.day}`, time: `${parts.hour}:${parts.minute}` };
 }
 
 export function parseTimeToMinutes(timeStr: string): number {

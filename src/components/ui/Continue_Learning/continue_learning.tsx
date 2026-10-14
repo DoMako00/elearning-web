@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "../../../hooks/useToast";
 import { ToastNotification } from "../ToastNotification";
 import type { StudentCourseItem } from "../../../features/student/api/studentCoursesApi";
+import { useStudentSavedCourses, useToggleStudentSavedCourse } from "../../../features/student/api/useStudentLearning";
 import anatomyImage from "../../../Assets/dashboard/human-anatomy.webp";
 import physioImage from "../../../Assets/dashboard/medical-physiology.webp";
 import histologyImage from "../../../Assets/dashboard/histology-basics.webp";
@@ -37,11 +38,6 @@ function imageForCourse(course: StudentCourseItem) {
   return anatomyImage;
 }
 
-function isBiochemistry(course: StudentCourseItem) {
-  const source = `${course.code} ${course.title}`.toLowerCase();
-  return source.includes("bio") || source.includes("biochem");
-}
-
 function canOpenCourse(course: StudentCourseItem) {
   return course.access?.isEnrolled === true;
 }
@@ -60,29 +56,25 @@ function toCourseOption(course: StudentCourseItem): CourseOption {
 }
 
 function orderedCourseOptions(courses: readonly StudentCourseItem[]) {
-  const options = courses.map(toCourseOption);
-  return [...options].sort((a, b) => {
-    const aIsBio = /bio|biochem/i.test(a.name);
-    const bIsBio = /bio|biochem/i.test(b.name);
-    if (aIsBio !== bIsBio) return aIsBio ? -1 : 1;
-    return a.name.localeCompare(b.name);
-  });
+  return courses.map(toCourseOption);
 }
 
 const ContinueLearning: React.FC<ContinueLearningProps> = ({
   title = "Continue Learning",
-  status = "Ready to start",
+  status = "Enrolled",
   courses = [],
   onContinue,
 }) => {
   const navigate = useNavigate();
   const enrolledCourses = useMemo(() => courses.filter(canOpenCourse), [courses]);
   const courseOptions = useMemo(() => orderedCourseOptions(enrolledCourses), [enrolledCourses]);
-  const preferredCourse = useMemo(() => enrolledCourses.find(isBiochemistry) ?? enrolledCourses[0] ?? null, [enrolledCourses]);
+  const preferredCourse = enrolledCourses[0] ?? null;
   const preferredCourseId = preferredCourse?.courseId ?? "";
   const [selectedCourseId, setSelectedCourseId] = useState(preferredCourseId);
   const selectedCourse = courseOptions.find((course) => course.id === selectedCourseId) ?? courseOptions[0] ?? null;
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const savedCoursesQuery = useStudentSavedCourses();
+  const toggleSavedCourse = useToggleStudentSavedCourse();
+  const isBookmarked = selectedCourse ? savedCoursesQuery.data?.some((course) => course.courseId === selectedCourse.id) ?? false : false;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -116,14 +108,16 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
   const toggleBookmark = () => {
     if (!selectedCourse) return;
     const nextState = !isBookmarked;
-    setIsBookmarked(nextState);
-    showToast(nextState ? `Saved "${selectedCourse.name}"` : `Removed "${selectedCourse.name}" from saved subjects`);
+    toggleSavedCourse.mutate({ courseId: selectedCourse.id, saved: nextState }, {
+      onSuccess: () => showToast(nextState ? `Saved "${selectedCourse.name}"` : `Removed "${selectedCourse.name}" from saved courses`),
+      onError: (error) => showToast(error.message || "Saved courses could not be updated."),
+    });
   };
 
   const handleSwitchCourse = (course: CourseOption) => {
     setSelectedCourseId(course.id);
     setIsSwitchModalOpen(false);
-    showToast(`Pinned "${course.name}" to your Home banner`);
+    showToast(`Showing "${course.name}" in Continue Learning`);
   };
 
   if (!selectedCourse) {
@@ -133,7 +127,7 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
           <h2 className="continue-learning-title text-section-title font-bold text-(--text-color-black) tracking-tight">
             {title}
           </h2>
-          <p className="continue-learning-course-subtitle">No enrolled Elite subjects are available yet.</p>
+          <p className="continue-learning-course-subtitle">No enrolled courses are available yet.</p>
         </div>
       </section>
     );
@@ -251,6 +245,7 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
           <button
             type="button"
             onClick={toggleBookmark}
+            disabled={savedCoursesQuery.isLoading || savedCoursesQuery.isError || toggleSavedCourse.isPending}
             aria-label={isBookmarked ? "Remove subject bookmark" : "Bookmark subject"}
             aria-pressed={isBookmarked}
             data-bookmarked={isBookmarked}
@@ -287,7 +282,7 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
             </div>
 
             <p className="text-xs text-slate-500 mt-2 mb-4">
-              Select one of your enrolled Elite Year 1 subjects to feature on Home.
+              Select one of your enrolled courses to feature on Home.
             </p>
 
             <div className="space-y-2.5">

@@ -3,19 +3,25 @@ import type { AdminV2Data, AcademicYearRecord, CourseChapter, CourseLesson, Cour
 
 const dateLabel = (value?: string) => value ? new Date(value).toLocaleDateString() : "—";
 const titleCase = (value: string) => value ? value[0].toUpperCase() + value.slice(1) : value;
+export function canonicalAcademicUnitType(institutionCode:string,levelNumber:number):"Subject"|"Module"{
+  const code=institutionCode.trim().toLowerCase();
+  if(code==="buc")return levelNumber===1?"Subject":"Module";
+  if(code==="delta")return levelNumber===1?"Module":"Subject";
+  return "Module";
+}
 
 export function mapInstitutionsToCurriculum(institutions: AcademicInstitution[]) {
   const result = { institutions: [] as InstitutionRecord[], curricula: [] as CurriculumRecord[], academicYears: [] as AcademicYearRecord[], semesters: [] as SemesterRecord[], curriculumUnits: [] as CurriculumUnitRecord[] };
   for (const institution of institutions) {
     const status = institution.status === "active" ? "Active" as const : "Archived" as const;
-    result.institutions.push({ id: institution.id, name: institution.displayName, shortName: institution.code, status });
+    result.institutions.push({ id: institution.id, name: institution.displayName, shortName: institution.code, status, version:institution.version });
     // The accepted page groups the academic tree under a curriculum node; the persisted institution ID is its stable grouping key.
     result.curricula.push({ id: institution.id, institutionId: institution.id, title: `${institution.displayName} Curriculum`, status: "Approved", updatedAt: "—" });
     for (const level of institution.levels ?? []) {
-      result.academicYears.push({ id: level.id, curriculumId: institution.id, title: level.displayTitle, order: level.sortOrder ?? level.levelNumber, status: level.status === "active" ? "Active" : "Archived" });
+      result.academicYears.push({ id: level.id, curriculumId: institution.id, title: level.displayTitle, order: level.sortOrder ?? level.levelNumber, levelNumber:level.levelNumber, status: level.status === "active" ? "Active" : "Archived", version:level.version });
       for (const semester of level.semesters ?? []) {
-        result.semesters.push({ id: semester.id, academicYearId: level.id, title: semester.displayTitle, order: semester.sortOrder ?? semester.semesterNumber, status: semester.status === "active" ? "Active" : "Archived" });
-        for (const unit of semester.modules ?? []) result.curriculumUnits.push({ id: unit.id, institutionId: institution.id, academicYearId: level.id, semesterId: semester.id, type: "Module", code: unit.code, title: unit.sourceDisplayLabel, description: "", status: unit.reviewStatus === "approved" ? "Approved" : unit.reviewStatus === "retired" ? "Archived" : "Draft", order: unit.sortOrder ?? 0, version: unit.version });
+        result.semesters.push({ id: semester.id, academicYearId: level.id, title: semester.displayTitle, order: semester.sortOrder ?? semester.semesterNumber, semesterNumber:semester.semesterNumber, status: semester.status === "active" ? "Active" : "Archived", version:semester.version });
+        for (const unit of semester.modules ?? []) result.curriculumUnits.push({ id: unit.id, institutionId: institution.id, academicYearId: level.id, semesterId: semester.id, type: canonicalAcademicUnitType(institution.code,level.levelNumber), code: unit.code, title: unit.displayTitle?.trim() || unit.sourceDisplayLabel, description: unit.description ?? "", status: unit.reviewStatus === "approved" ? "Approved" : unit.reviewStatus === "retired" ? "Archived" : "Draft", credits:unit.credits===null||unit.credits===undefined?undefined:Number(unit.credits), order: unit.sortOrder ?? 0, version: unit.version });
       }
     }
   }
@@ -27,7 +33,7 @@ export function mapCourseDtoToAdminCourse(course: BrandCourse, brand: BrandAcces
 }
 
 export function mapInstructorDto(instructor: Instructor): InstructorRecord {
-  return { id: instructor.id, fullName: instructor.displayName, email: "", specialties: ["Not provided"], status: instructor.status === "active" ? "Active" : "Inactive", createdAt: dateLabel(instructor.createdAt), updatedAt: dateLabel(instructor.updatedAt), version: instructor.version, code: instructor.code };
+  return { id: instructor.id, fullName: instructor.displayName, email: instructor.publicEmail ?? "", specialties: instructor.specialties ?? [], status: instructor.status === "active" ? "Active" : "Inactive", createdAt: dateLabel(instructor.createdAt), updatedAt: dateLabel(instructor.updatedAt), version: instructor.version, code: instructor.code };
 }
 
 export function mapBrandAssignments(assignments: Array<{ id: string; instructorId: string; brandId: string; status: string; createdAt?: string }>, brands: BrandAccess[]): InstructorBrandAssignment[] {

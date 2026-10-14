@@ -14,7 +14,7 @@ export interface ProfileDropdownProps {
   isOpen: boolean;
   onClose: () => void;
   triggerRef?: React.RefObject<HTMLElement | null>;
-  avatarSrc: string;
+  avatarSrc?: string;
   avatarAlt?: string;
   userName?: string;
   userRole?: string;
@@ -30,14 +30,15 @@ export function ProfileDropdown({
   triggerRef,
   avatarSrc,
   avatarAlt = "User",
-  userName = "Juliana Silva",
+  userName = "Student",
   userRole = "Student",
-  unreadNotificationsCount = 3,
+  unreadNotificationsCount = 0,
   onViewProfile,
   onMenuItemClick,
   onLogOut,
 }: ProfileDropdownProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const initials = userName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "S";
 
   // Close when clicking outside
   useEffect(() => {
@@ -142,7 +143,7 @@ export function ProfileDropdown({
 
         <div className="profile-dropdown-header__content">
           <div className="profile-dropdown-avatar">
-            <img src={avatarSrc} alt={avatarAlt} />
+            {avatarSrc ? <img src={avatarSrc} alt={avatarAlt} /> : <span aria-hidden="true">{initials}</span>}
           </div>
 
           <div className="profile-dropdown-user-info">

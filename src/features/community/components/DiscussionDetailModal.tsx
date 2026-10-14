@@ -1,11 +1,9 @@
 import {
   MessageSquare,
-  Eye,
   ThumbsUp,
   X,
   Send,
   Sparkles,
-  Wifi,
 } from "lucide-react";
 import { useState, type FormEvent, useEffect, useRef } from "react";
 import type { DiscussionPost } from "../types/community";
@@ -16,7 +14,7 @@ interface DiscussionDetailModalProps {
   onClose: () => void;
   onLike: (postId: string) => void;
   onAddReply: (postId: string, content: string) => void;
-  isConnected?: boolean;
+  isLoadingReplies?: boolean;
 }
 
 export function DiscussionDetailModal({
@@ -25,7 +23,7 @@ export function DiscussionDetailModal({
   onClose,
   onLike,
   onAddReply,
-  isConnected = true,
+  isLoadingReplies = false,
 }: DiscussionDetailModalProps) {
   const [replyText, setReplyText] = useState("");
   const repliesEndRef = useRef<HTMLDivElement>(null);
@@ -73,15 +71,8 @@ export function DiscussionDetailModal({
             >
               {post.category.label}
             </span>
-            <span
-              className={`flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md border ${
-                isConnected
-                  ? "text-emerald-600 bg-emerald-50 border-emerald-200/60"
-                  : "text-amber-600 bg-amber-50 border-amber-200/60"
-              }`}
-            >
-              <Wifi className="size-3" />
-              {isConnected ? "Live thread sync" : "Syncing..."}
+            <span className="text-[11px] font-medium px-2 py-0.5 rounded-md border text-slate-600 bg-slate-50 border-slate-200/60">
+              Saved discussion
             </span>
           </div>
 
@@ -99,11 +90,7 @@ export function DiscussionDetailModal({
           {/* Post Header */}
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img
-                src={post.author.avatarUrl}
-                alt={post.author.name}
-                className="size-11 rounded-full object-cover ring-2 ring-slate-100 shadow-xs"
-              />
+              {post.author.avatarUrl ? <img src={post.author.avatarUrl} alt={post.author.name} className="size-11 rounded-full object-cover ring-2 ring-slate-100 shadow-xs" /> : <span aria-hidden="true" className="size-11 rounded-full bg-emerald-50 text-emerald-700 ring-2 ring-slate-100 shadow-xs grid place-items-center text-sm font-bold">{post.author.name.slice(0, 1).toUpperCase()}</span>}
               <div>
                 <h4 className="text-[15px] font-bold text-slate-900 leading-tight">
                   {post.author.name}
@@ -143,10 +130,6 @@ export function DiscussionDetailModal({
               <MessageSquare className="size-3.5" />
               <span>{post.repliesCount} replies</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Eye className="size-3.5" />
-              <span>{post.viewsCount} views</span>
-            </div>
           </div>
 
           {/* Replies Section */}
@@ -156,7 +139,9 @@ export function DiscussionDetailModal({
               <span>Discussion Replies ({post.replies?.length || 0})</span>
             </h5>
 
-            {(!post.replies || post.replies.length === 0) ? (
+            {isLoadingReplies ? (
+              <div role="status" className="py-6 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-slate-100">Loading saved replies…</div>
+            ) : (!post.replies || post.replies.length === 0) ? (
               <div className="py-6 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-slate-100">
                 No replies yet. Be the first to start the conversation!
               </div>
@@ -169,11 +154,7 @@ export function DiscussionDetailModal({
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <img
-                          src={reply.author.avatarUrl}
-                          alt={reply.author.name}
-                          className="size-6 rounded-full object-cover"
-                        />
+                        {reply.author.avatarUrl ? <img src={reply.author.avatarUrl} alt={reply.author.name} className="size-6 rounded-full object-cover" /> : <span aria-hidden="true" className="size-6 rounded-full bg-slate-100 text-slate-600 grid place-items-center text-[9px] font-bold">{reply.author.name.slice(0, 1).toUpperCase()}</span>}
                         <span className="text-xs font-bold text-slate-800">
                           {reply.author.name}
                         </span>
