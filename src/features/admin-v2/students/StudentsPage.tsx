@@ -388,8 +388,8 @@ export function StudentsPage() {
         ? "Initial setup credential issued by an authorized Admin."
         : "Setup credential reset by an authorized Admin.";
       const result = selected.claimBootstrapRequired
-        ? await bootstrapAdminStudentClaim(selected.id, reason)
-        : await resetAdminStudentClaim(selected.id, reason);
+        ? await bootstrapAdminStudentClaim(selected.id, reason, selected.brand)
+        : await resetAdminStudentClaim(selected.id, reason, selected.brand);
       setCreatedStudent({
         student: { ...selected, accountIdentifier: result.accountIdentifier },
         setupCode: result.setupCode,

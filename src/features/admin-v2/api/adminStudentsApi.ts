@@ -157,6 +157,7 @@ export async function setAdminStudentStatus(
 export async function resetAdminStudentClaim(
   studentId: string,
   reason: string,
+  brand: "medway" | "elite" | "nexus",
 ) {
   const api = await requireApiClient();
   return unwrap<{
@@ -165,7 +166,7 @@ export async function resetAdminStudentClaim(
     setupExpiresAt: string;
   }>(
     api.POST("/v1/admin/students/{studentId}/claim/reset" as never, {
-      params: { path: { studentId } },
+      params: { path: { studentId }, query: { brand } },
       headers: { "Idempotency-Key": key() },
       body: { reason },
     }),
@@ -175,6 +176,7 @@ export async function resetAdminStudentClaim(
 export async function bootstrapAdminStudentClaim(
   studentId: string,
   reason: string,
+  brand: "medway" | "elite" | "nexus",
 ) {
   const api = await requireApiClient();
   return unwrap<{
@@ -183,7 +185,7 @@ export async function bootstrapAdminStudentClaim(
     setupExpiresAt: string;
   }>(
     api.POST("/v1/admin/students/{studentId}/claim/bootstrap" as never, {
-      params: { path: { studentId } },
+      params: { path: { studentId }, query: { brand } },
       headers: { "Idempotency-Key": key() },
       body: { reason },
     }),
