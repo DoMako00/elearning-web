@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { DashboardEnrollmentState } from "../../../app/config/env";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import { listAllStudentCourses, type StudentCourseItem } from "../api/studentCoursesApi";
@@ -61,4 +62,14 @@ export function useDashboardEnrollment() {
   }, [auth, auth.status, retryIndex]);
 
   return { ...viewModel, retry };
+}
+
+/** Explore is a separate real catalogue read: the enrolled-course list cannot supply recommendations. */
+export function useStudentExploreCourses() {
+  const auth = useAuth();
+  return useQuery({
+    queryKey: ["student", "courses", "explore"],
+    queryFn: ({ signal }) => listAllStudentCourses({ view: "explore", signal }),
+    enabled: auth.status === "authenticated",
+  });
 }

@@ -38,6 +38,11 @@ export function Upcoming({
   count,
   items = DEFAULT_ITEMS,
   onViewCalendar,
+  actionPath,
+  actionLabel,
+  loading = false,
+  errorMessage,
+  emptyMessage,
 }: UpcomingProps) {
   const navigate = useNavigate();
   const displayCount = count ?? items.length;
@@ -132,7 +137,7 @@ export function Upcoming({
           <div
             className="upcoming-count-badge cursor-pointer"
             title={`${displayCount} ${title.toLowerCase()} items`}
-            onClick={() => navigate('/calendar')}
+            onClick={() => navigate(actionPath ?? '/calendar')}
             aria-label={`${displayCount} ${title.toLowerCase()} items`}
           >
             <Calendar className="upcoming-count-icon" aria-hidden="true" />
@@ -142,8 +147,11 @@ export function Upcoming({
       </div>
 
       {/* ── Carousel Track (Vertical Items) ── */}
-      <div className="upcoming-carousel-track" ref={trackRef}>
-        {items.map((item) => (
+      <div className="upcoming-carousel-track" ref={trackRef} aria-busy={loading}>
+        {loading ? <p className="upcoming-state" role="status">Loading {title.toLowerCase()}…</p>
+          : errorMessage ? <p className="upcoming-state upcoming-state--error" role="alert">{errorMessage}</p>
+          : items.length === 0 ? <p className="upcoming-state" role="status">{emptyMessage ?? `No ${title.toLowerCase()} to show.`}</p>
+          : items.map((item) => (
           <article
             key={item.id}
             className="upcoming-item-card cursor-pointer hover:shadow-xs hover:border-emerald-200 transition-all"
@@ -174,12 +182,16 @@ export function Upcoming({
         <button
           type="button"
           onClick={onViewCalendar ?? (() => {
+            if (actionPath) {
+              navigate(actionPath);
+              return;
+            }
             showToast('Opening your calendar');
             navigate('/calendar');
           })}
           className="upcoming-cta cursor-pointer"
         >
-          View Calendar
+          {actionLabel ?? 'View Calendar'}
         </button>
       </div>
 

@@ -24,18 +24,21 @@ function DashboardErrorState({ onRetry }: { onRetry: () => void }) {
 }
 
 export function HomePage() {
-  const { status, enrolledCourses, courses, retry } = useDashboardEnrollment();
+  const { status, courses, retry } = useDashboardEnrollment();
   const auth = useAuth();
 
   if (status === "loading") return <DashboardLoadingState />;
   if (status === "error") return <DashboardErrorState onRetry={retry} />;
 
-  return enrolledCourses.length > 0 ? (
-    <DashboardBento courses={courses} />
-  ) : (
+  if (auth.status === "authenticated") {
+    // New Students still need the real assignment, recommendation, and zero-progress widgets.
+    return <DashboardBento courses={courses} />;
+  }
+
+  return (
     <EmptyLearningState
       topics={courses.map((course: { title: string }) => course.title)}
-      isAuthenticated={auth.status === "authenticated"}
+      isAuthenticated={false}
     />
   );
 }

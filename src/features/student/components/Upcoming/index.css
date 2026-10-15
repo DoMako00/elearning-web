@@ -121,6 +121,23 @@
   display: none;
 }
 
+.upcoming-state {
+  display: grid;
+  min-width: 100%;
+  min-height: 100%;
+  place-items: center;
+  margin: 0;
+  padding: 12px;
+  color: var(--paragraphs);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.upcoming-state--error {
+  color: #b42318;
+}
+
 .upcoming-item-card {
   display: flex;
   min-width: 0;
