@@ -11,6 +11,24 @@ export interface Instructor { id: string; code: string; instructorCode?:string; 
 export interface InstructorBrand { id:string;brandId:string;instructorId:string;status:"active"|"inactive";version:number;createdAt?:string;updatedAt?:string; }
 export interface CourseInstructor { id:string;brandId:string;courseId:string;instructorId:string;status:"active"|"inactive";version:number;displayName?:string; }
 export interface StructureItem { id: string; brandCourseId:string; title: string; sortOrder: number; status: "draft"|"published"|"archived"; version: number; courseChapterId?: string; createdAt?:string;updatedAt?:string; }
+export type StructureEntity = "chapters" | "lessons";
+export interface StructureWriteBody {
+  reason: string;
+  expectedVersion?: number;
+  title?: string;
+  sortOrder?: number;
+  status?: StructureItem["status"];
+  courseChapterId?: string;
+}
+export interface StructureCommandResult {
+  brandId: string;
+  courseId: string;
+  entity: StructureEntity;
+  recordId: string;
+  correlationId?: string;
+  mutated?: boolean;
+  replayed?: boolean;
+}
 export interface AdminApiError extends Error { status?:number; code?:string; correlationId?:string; }
 
 const idempotencyKey=()=>crypto.randomUUID();
@@ -56,8 +74,22 @@ export const setInstructorStatus=(id:string,body:Record<string,unknown>)=>call<u
 export const assignInstructorToBrand=(brandId:string,instructorId:string,reason="Instructor brand assignment")=>call<unknown>((api)=>api.POST("/v1/admin/brands/{brandId}/instructors" as never,{params:{path:{brandId}},...writeHeaders(),body:{instructorId,reason}}));
 export const setInstructorBrandStatus=(brandId:string,instructorId:string,status:"active"|"inactive",expectedVersion:number,reason="Instructor brand assignment update")=>call<unknown>((api)=>api.PATCH("/v1/admin/brands/{brandId}/instructors/{instructorId}/status" as never,{params:{path:{brandId,instructorId}},...writeHeaders(),body:{status,expectedVersion,reason}}));
 export const listStructure=async(brandId:string,courseId:string)=>{const [chapters,lessons]=await Promise.all([call<StructureItem[]>((api)=>api.GET("/v1/admin/brands/{brandId}/courses/{courseId}/chapters" as never,path(brandId,courseId))),call<StructureItem[]>((api)=>api.GET("/v1/admin/brands/{brandId}/courses/{courseId}/lessons" as never,path(brandId,courseId)))]);return{chapters,lessons};};
-export const writeStructure=(brandId:string,courseId:string,entity:"chapters"|"lessons",id:string|undefined,body:Record<string,unknown>)=>call<unknown>((api)=>{
-  if(entity==="chapters")return id?api.PATCH("/v1/admin/brands/{brandId}/courses/{courseId}/chapters/{chapterId}" as never,{params:{path:{brandId,courseId,chapterId:id}},...writeHeaders(),body}):api.POST("/v1/admin/brands/{brandId}/courses/{courseId}/chapters" as never,{...path(brandId,courseId),...writeHeaders(),body});
-  return id?api.PATCH("/v1/admin/brands/{brandId}/courses/{courseId}/lessons/{lessonId}" as never,{params:{path:{brandId,courseId,lessonId:id}},...writeHeaders(),body}):api.POST("/v1/admin/brands/{brandId}/courses/{courseId}/lessons" as never,{...path(brandId,courseId),...writeHeaders(),body});
+export const writeStructure=(brandId:string,courseId:string,entity:StructureEntity,id:string|undefined,body:Record<string,unknown>,requestKey:string=idempotencyKey())=>call<StructureCommandResult>((api)=>{
+  const headers={headers:{"Idempotency-Key":requestKey}};
+  if(entity==="chapters")return id?api.PATCH("/v1/admin/brands/{brandId}/courses/{courseId}/chapters/{chapterId}" as never,{params:{path:{brandId,courseId,chapterId:id}},...headers,body}):api.POST("/v1/admin/brands/{brandId}/courses/{courseId}/chapters" as never,{...path(brandId,courseId),...headers,body});
+  return id?api.PATCH("/v1/admin/brands/{brandId}/courses/{courseId}/lessons/{lessonId}" as never,{params:{path:{brandId,courseId,lessonId:id}},...headers,body}):api.POST("/v1/admin/brands/{brandId}/courses/{courseId}/lessons" as never,{...path(brandId,courseId),...headers,body});
 });
-export async function createStructureRecord(brandId:string,courseId:string,entity:"chapters"|"lessons",body:Record<string,unknown>){const result=await writeStructure(brandId,courseId,entity,undefined,body) as {recordId?:string};if(!result.recordId)throw new Error("The server did not return the created Course structure ID.");return result.recordId;}
+export async function createStructureRecord(brandId:string,courseId:string,entity:StructureEntity,body:StructureWriteBody,requestKey:string=idempotencyKey()){
+  const result=await writeStructure(brandId,courseId,entity,undefined,{...body},requestKey);
+  if(!result.recordId||result.brandId!==brandId||result.courseId!==courseId||result.entity!==entity)throw new Error("The server response did not match the created Brand Course structure.");
+  return result.recordId;
+}
+export async function updateStructureRecord(brandId:string,courseId:string,entity:StructureEntity,id:string,body:StructureWriteBody,requestKey:string=idempotencyKey()):Promise<StructureItem>{
+  if(body.expectedVersion===undefined)throw new Error("The latest server version is required before editing this Course structure item. Reload and try again.");
+  const result=await writeStructure(brandId,courseId,entity,id,{...body},requestKey);
+  if(result.recordId!==id||result.brandId!==brandId||result.courseId!==courseId||result.entity!==entity)throw new Error("The server response did not match the requested Brand Course structure item.");
+  const structure=await listStructure(brandId,courseId);
+  const updated=structure[entity].find((item)=>item.id===id);
+  if(!updated)throw new Error("The saved Course structure item was not returned by the server. Reload the Course Builder.");
+  return updated;
+}

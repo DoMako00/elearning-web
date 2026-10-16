@@ -23,10 +23,12 @@ interface AdminV2ContextValue {
   setGlobalSearch: (value: string) => void;
   domainLoading: boolean;
   domainError: string;
-  refreshServerDomains: () => void;
+  refreshServerDomains: () => Promise<AdminV2RefreshResult>;
   reportDomainError: (message: string) => void;
   overview: AdminOverviewView | null;
 }
+
+type AdminV2RefreshResult = { ok: true; data: ServerDomainData } | { ok: false; message: string };
 
 const AdminV2Context = createContext<AdminV2ContextValue | null>(null);
 const brandChoices: BrandFilter[] = ["all", "medway", "elite", "nexus"];
@@ -57,7 +59,11 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
   const [domainLoading, setDomainLoading] = useState(true);
   const [domainError, setDomainError] = useState("");
   const [refreshSequence, setRefreshSequence] = useState(0);
-  const refreshServerDomains = () => setRefreshSequence((value) => value + 1);
+  const refreshWaiters = useRef<Array<(result: AdminV2RefreshResult) => void>>([]);
+  const refreshServerDomains = () => new Promise<AdminV2RefreshResult>((resolve) => {
+    refreshWaiters.current.push(resolve);
+    setRefreshSequence((value) => value + 1);
+  });
   const data: AdminV2Data = { ...localData, ...serverDomains };
   const mutationQueue = useRef<Promise<void>>(Promise.resolve());
   const setData: Dispatch<SetStateAction<AdminV2Data>> = (next) => {
@@ -110,6 +116,7 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
     setDomainLoading(true);
     setOverview(null);
     (async () => {
+      let refreshResult: AdminV2RefreshResult;
       try {
         const loaded = await loadAdminV2ServerData(builderCourseId);
         let operational: Partial<AdminV2Data> = {};
@@ -118,10 +125,21 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
         if (pathname === "/admin/security") operational = await loadAdminSecurityData(brand);
         if (pathname === "/admin/instructors") operational = { auditEvents: await loadAdminSecurityEvents(brand) };
         if (pathname === "/admin" || pathname === "/admin/overview") { const result = await loadAdminOverviewData(brand, loaded.courses); operational = result.data; overviewResult = result.overview; }
-        if (!controller.signal.aborted) { setServerDomains({ ...loaded, ...operational } as ServerDomainData); setOverview(overviewResult); setDomainError(""); }
+        if (!controller.signal.aborted) {
+          const refreshed = { ...loaded, ...operational } as ServerDomainData;
+          refreshResult = { ok: true, data: refreshed };
+          setServerDomains(refreshed); setOverview(overviewResult); setDomainError("");
+        }
       } catch (error: unknown) {
-        if (!controller.signal.aborted) { setServerDomains(emptyAdminV2ServerDomainData()); setOverview(null); setDomainError(error instanceof Error ? error.message : "Admin data could not be loaded."); }
-      } finally { if (!controller.signal.aborted) setDomainLoading(false); }
+        const message = error instanceof Error ? error.message : "Admin data could not be loaded.";
+        if (!controller.signal.aborted) { refreshResult = { ok: false, message }; setServerDomains(emptyAdminV2ServerDomainData()); setOverview(null); setDomainError(message); }
+      } finally {
+        if (!controller.signal.aborted) {
+          setDomainLoading(false);
+          const result = refreshResult!;
+          for (const resolve of refreshWaiters.current.splice(0)) resolve(result);
+        }
+      }
     })();
     return () => controller.abort();
   }, [adminAccess, builderCourseId, pathname, brand, refreshSequence]);
