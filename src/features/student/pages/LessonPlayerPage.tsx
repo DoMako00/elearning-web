@@ -1,34 +1,29 @@
 import {
   ArrowRight,
   BookOpen,
-  Bookmark,
   Captions,
   CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Clock3,
   Download,
   FileText,
-  Gauge,
   LayoutGrid,
   Maximize,
   MessageSquareText,
   Minimize,
-  MoreHorizontal,
   Pause,
   Play,
   RotateCcw,
   RotateCw,
   StickyNote,
-  UsersRound,
   Volume2,
   VolumeX,
   Paperclip,
   FolderOpen
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { completeStudentVideoPlayback, getStudentCourse, getStudentProtectedMedia, reportStudentVideoPlaybackHeartbeat, startStudentVideoPlayback, StudentCoursesApiError, type StudentCourseDetail, type StudentLessonItem, type StudentVideoPlaybackState } from "../api/studentCoursesApi";
 import { useStudentProgress, useStudentLessonProgressMutation } from "../api/useStudentLearning";
 import { useInactivityPrompt, InactivityModal } from "../../../components/ui/InactivityPrompt";
@@ -44,6 +39,7 @@ import { mapCourseModules, mapCourseResources } from "../../../components/learni
 import "../../../components/learning-space/learningSpace.css";
 import "./CourseOverviewPage.css";
 import "./LessonPlayerPage.css";
+import "./LessonPlayerLayout.css";
 
 const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5, 2] as const;
 
@@ -459,7 +455,6 @@ function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, 
   const percent = courseProgress?.completionPercent;
   const isAlreadyCompleted = progressStatus === "completed";
   const isComplete = isAlreadyCompleted;
-  const isBookmarked = false;
   const materials: LessonMaterial[] = current?.resourceId && current.resourceType
     ? [{ id: current.resourceId, title: current.resourceTitle ?? current.title, extension: current.resourceType }]
     : [];
@@ -519,51 +514,43 @@ function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, 
 
   return (
     <section className="course-overview-page lesson-player-page" aria-labelledby="lesson-player-title">
-      <header className="course-overview-heading">
-        {/* <nav className="course-overview-breadcrumb" aria-label="Breadcrumb">
-          <Link to="/my-courses">My Courses</Link>
-          <ChevronRight aria-hidden="true" />
-          <Link to={COURSE_PATH}>{course.title}</Link>
-          <ChevronRight aria-hidden="true" />
-          <span aria-current="page">Lesson {current.number}</span>
-        </nav> */}
-        <div className="course-overview-heading__row">
-          <div>
-            <h1 id="lesson-player-title">{current.title}</h1>
-            <p>
-              Lesson {current.number} of {allLessons.length}
-              <i />
-              Module {current.module.number}: {current.module.title}
-              <i />
-              <em className={`lesson-player-status${isComplete ? " is-complete" : ""}`}>
-                {isComplete ? "Completed" : progressStatus === "in_progress" ? "In progress" : "Not started"}
-              </em>
-              <i />
-              {course.unitLabel}
-              {videoViewState ? <><i /><span role="status">Views used: {videoViewState.completedViews} / {videoViewState.maxCompletedViews} · {videoViewState.viewsRemaining} remaining</span></> : null}
-            </p>
-          </div>
-          <div className="lesson-player-heading__actions">
-            <button
-              type="button"
-              className="course-overview-heading__bookmark"
-              aria-label="Lesson bookmarks are not available yet"
-              aria-pressed={isBookmarked}
-              disabled
-              title="Lesson bookmarks are not available yet"
-            >
-              <Bookmark aria-hidden="true" fill={isBookmarked ? "currentColor" : "none"} />
-            </button>
-            <button type="button" className="lesson-player-heading__more" aria-label="More lesson actions">
-              <MoreHorizontal aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-      </header>
 
       <div className="course-overview-layout">
         <div className={`course-overview-primary${activeTab === "overview" ? "" : " is-tab-expanded"}`}>
           {activeTab === "overview" ? <LessonVideoPlayer title={current.title} mediaUrl={mediaUrl} mediaType={current.resourceType ?? "video"} onStarted={() => void handleProgress("in_progress")} onHeartbeat={handlePlaybackHeartbeat} onComplete={(positionSeconds) => void handleVideoComplete(positionSeconds)} /> : null}
+          {activeTab === "overview" ? (
+            <div className="lp-bar">
+              <div className="lp-bar__copy">
+                <p className="lp-bar__eyebrow">
+                  <span>Lesson {lessonIndex + 1} of {allLessons.length}</span>
+                  <span>Chapter {current.module.number}: {current.module.title}</span>
+                </p>
+                <h1 id="lesson-player-title">{current.title}</h1>
+                <p className="lp-bar__meta">
+                  <em className={`lesson-player-status${isComplete ? " is-complete" : ""}`}>
+                    {isComplete ? "Completed" : progressStatus === "in_progress" ? "In progress" : "Not started"}
+                  </em>
+                  {videoViewState ? <span role="status">Views used {videoViewState.completedViews}/{videoViewState.maxCompletedViews} · {videoViewState.viewsRemaining} remaining</span> : null}
+                </p>
+              </div>
+              <nav className="lp-bar__nav" aria-label="Lesson navigation">
+                <button type="button" className="lp-btn lp-btn--icon" disabled={!previous} onClick={() => previous && openLesson(previous.id)} aria-label="Previous lesson" title="Previous lesson">
+                  <ChevronLeft aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  className={`lp-btn lp-btn--primary${isAlreadyCompleted ? " is-done" : ""}`}
+                  onClick={handleMarkComplete}
+                  disabled={isAlreadyCompleted || progressMutation.isPending}
+                >
+                  <CheckCircle2 aria-hidden="true" /> {isAlreadyCompleted ? "Completed" : progressMutation.isPending ? "Saving…" : "Mark as complete"}
+                </button>
+                <button type="button" className="lp-btn lp-btn--secondary" disabled={!next} onClick={() => next && openLesson(next.id)}>
+                  Next lesson <ChevronRight aria-hidden="true" />
+                </button>
+              </nav>
+            </div>
+          ) : <h1 id="lesson-player-title" className="sr-only">{current.title}</h1>}
 
           <div className="course-overview-tabs" role="tablist" aria-label="Lesson sections">
             {TABS.map(({ id, label, icon: Icon }, index) => (
@@ -591,25 +578,6 @@ function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, 
             aria-labelledby="lesson-player-tab-overview"
             hidden={activeTab !== "overview"}
           >
-            <div className="course-overview-info-row">
-              <article className="course-overview-card course-overview-about">
-                <h2>About this lesson</h2>
-                <p>{current.resourceTitle ? `Protected learning resource: ${current.resourceTitle}.` : `Published lesson in ${course.title}.`}</p>
-                <dl>
-                  <div><Clock3 aria-hidden="true" /><span><dt>Duration</dt><dd>Not provided</dd></span></div>
-                  <div><Gauge aria-hidden="true" /><span><dt>Level</dt><dd>{course.academicLevel.title}</dd></span></div>
-                  <div><LayoutGrid aria-hidden="true" /><span><dt>{course.unitLabel}</dt><dd>{course.academicUnit.label}</dd></span></div>
-                  <div><UsersRound aria-hidden="true" /><span><dt>Semester</dt><dd>{course.academicSemester.title}</dd></span></div>
-                </dl>
-              </article>
-              <article className="course-overview-card course-overview-learn lesson-player-learn">
-                <h2>What you’ll learn</h2>
-                <div className="lesson-player-learn__body">
-                  <p>Lesson outcomes have not been published for this lesson.</p>
-                  <div className="lesson-player-learn__art" aria-hidden="true" />
-                </div>
-              </article>
-            </div>
             <MaterialsCard className="course-overview-materials--primary" materials={materials} onOpen={() => setActiveTab("overview")} />
           </div>
 
@@ -623,25 +591,6 @@ function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, 
             <CourseDiscussionPanel />
           </div>
 
-          {activeTab === "overview" ? (
-            <nav className="lesson-player-nav" aria-label="Lesson navigation">
-              <button type="button" className="lesson-player-nav__ghost" disabled={!previous} onClick={() => previous && openLesson(previous.id)}>
-                <ChevronLeft aria-hidden="true" /> Previous lesson
-              </button>
-              <button
-                type="button"
-                className={`lesson-player-nav__complete${isAlreadyCompleted ? " is-done" : ""}`}
-                onClick={handleMarkComplete}
-                disabled={isAlreadyCompleted || progressMutation.isPending}
-                aria-disabled={isAlreadyCompleted || progressMutation.isPending}
-              >
-                <CheckCircle2 aria-hidden="true" /> {isAlreadyCompleted ? "Completed" : progressMutation.isPending ? "Saving…" : "Mark as complete"}
-              </button>
-              <button type="button" className="lesson-player-nav__ghost" disabled={!next} onClick={() => next && openLesson(next.id)}>
-                Next lesson <ChevronRight aria-hidden="true" />
-              </button>
-            </nav>
-          ) : null}
           {progressError ? <p role="alert" className="dashboard-feedback--error">{progressError}</p> : null}
         </div>
 
@@ -672,7 +621,7 @@ function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, 
                       onClick={() => setExpandedModuleId(isExpanded ? null : module.id)}
                     >
                       <ChevronRight className="course-overview-module__leading-chevron" aria-hidden="true" />
-                      <span><strong>Module {module.number}: {module.title}</strong></span>
+                      <span><strong>Chapter {module.number}: {module.title}</strong></span>
                       <small>{module.lessonCount} lessons</small>
                       <ChevronDown className="course-overview-module__trailing-chevron" aria-hidden="true" />
                     </button>
@@ -707,8 +656,7 @@ function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, 
             <dl className="course-overview-progress__metrics">
               <div><dt>Lessons</dt><dd>{course.lessonCount}</dd></div>
               <div><dt>Chapters</dt><dd>{course.chapters.length}</dd></div>
-              <div><dt>Total duration</dt><dd>Not provided</dd></div>
-              <div><dt>Certificate</dt><dd>Admin issued</dd></div>
+              <div><dt>Completed</dt><dd>{allLessons.filter((lesson) => lesson.complete).length}</dd></div>
             </dl>
           </article>
 
@@ -732,13 +680,22 @@ function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, 
 }
 
 
-function LessonUnavailable({ message, isError = false }: { message: string; isError?: boolean }) {
+function LessonUnavailable({ message, isError = false, loading = false }: { message: string; isError?: boolean; loading?: boolean }) {
+  const notFound = /not found/i.test(message);
   return (
-    <section className="course-overview-page" aria-labelledby="lesson-unavailable-title">
-      <div className={`course-overview-panel--message${isError ? " dashboard-feedback--error" : ""}`} role={isError ? "alert" : "status"}>
-        <BookOpen aria-hidden="true" />
-        <h2 id="lesson-unavailable-title">Lesson playback unavailable</h2>
-        <p>{message}</p>
+    <section className="route-notice-page" aria-labelledby="lesson-unavailable-title" aria-busy={loading || undefined}>
+      <div className={`route-notice${isError ? " route-notice--error" : ""}`} role={isError ? "alert" : "status"}>
+        <span className="route-notice__icon" aria-hidden="true"><BookOpen /></span>
+        <div className="route-notice__copy">
+          <h2 id="lesson-unavailable-title">{loading ? "Opening your lesson…" : notFound ? "This lesson isn't available" : "Lesson can't be played right now"}</h2>
+          <p>{notFound ? "It hasn't been published for your account yet." : message}</p>
+        </div>
+        {loading ? null : (
+          <div className="route-notice__actions">
+            <Link to="/my-courses" className="route-notice__btn route-notice__btn--primary">Back to My Courses</Link>
+            <Link to="/help" className="route-notice__btn">Get help</Link>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -784,7 +741,7 @@ export function LessonPlayerPage() {
     return () => controller.abort();
   }, [slug, lessonId]);
 
-  if (state.status === "loading") return <LessonUnavailable message="Checking lesson access and media release..." />;
+  if (state.status === "loading") return <LessonUnavailable loading message="Checking lesson access and media release." />;
   if (state.status === "error") return <LessonUnavailable message={state.message} isError />;
   if (state.status === "unavailable") return <LessonUnavailable message={state.message} />;
   if (state.status !== "ready") return <LessonUnavailable message="Lesson access could not be confirmed." isError />;

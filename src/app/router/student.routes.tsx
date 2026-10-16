@@ -5,6 +5,7 @@ import { RouteErrorBoundary } from "../../components/layout/RouteErrorBoundary";
 import { RouteLoadingFallback } from "../../components/layout/RouteLoadingFallback";
 import { StudentRouteProviders } from "../providers/StudentRouteProviders";
 import "./student-dashboard.css";
+import "./student-shell.css";
 
 // Lazy-loaded student pages — all sourced from the canonical feature location
 const HomePage = lazy(() => import("../../features/student/pages/HomePage").then((m) => ({ default: m.HomePage })));

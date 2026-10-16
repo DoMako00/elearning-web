@@ -2,34 +2,53 @@
   --font-heading: "Montserrat", ui-sans-serif, system-ui, sans-serif;
   --font-body: "Montserrat", ui-sans-serif, system-ui, sans-serif;
   --color-bg: #ffffff;
+  --color-canvas: #f3f6f4;
   --color-surface: #ffffff;
   --color-surface-hover: #f7faf8;
+  --color-surface-muted: #eef3f0;
   --color-text-primary: #111827;
-  --color-text-secondary: #667085;
-  --color-text-active: #174b35;
-  --color-border-subtle: #e8ecef;
+  --color-text-secondary: #5b6474;
+  --color-text-quiet: #66766f;
+  --color-text-active: #0b5e3c;
+  --color-border-subtle: #e3e9e5;
+  --color-border-control: #d5e0d9;
+  --color-border-strong: #87968f;
   --color-brand: #20a862;
   --color-brand-hover: #188a50;
-  --color-brand-soft: #eff9f2;
+  --color-brand-strong: #087f55;
+  --color-brand-strong-hover: #066a47;
+  --color-brand-soft: #eaf7ef;
   --color-brand-soft-strong: #c9f0d7;
-  --color-focus-ring: #20a862;
+  --color-brand-deep: #0d3b2a;
+  --color-focus-ring: #087f55;
+  --color-warning-text: #b54708;
+  --color-warning-soft: #fff4e5;
+  --color-streak: #f59e0b;
 
-  --sidebar-width: 226px;
-  --sidebar-gutter: 15px;
-  --sidebar-nav-item-height: 56px;
-  --sidebar-nav-gap: 0px;
+  --shadow-tile: 0 1px 2px rgba(16, 40, 28, 0.04), 0 1px 1px rgba(16, 40, 28, 0.02);
+  --shadow-tile-hover: 0 10px 24px -12px rgba(16, 40, 28, 0.18);
+  --shadow-cta: 0 8px 20px -8px rgba(8, 127, 85, 0.55);
+
+  --radius-lg: 20px;
+  --radius-card: 16px;
+  --radius-control: 12px;
+
+  --sidebar-width: 248px;
+  --sidebar-gutter: 16px;
+  --sidebar-nav-item-height: 50px;
+  --sidebar-nav-gap: 4px;
   --topbar-height: 76px;
   --main-padding-x: 32px;
   --main-padding-top: 32px;
 
-  --radius-nav: 11px;
-  --radius-profile: 11px;
+  --radius-nav: 12px;
+  --radius-profile: 14px;
 }
 
 @media (max-width: 1535px) {
   :root {
-    --sidebar-width: 80px;
-    --sidebar-gutter: 10px;
+    --sidebar-width: 84px;
+    --sidebar-gutter: 12px;
   }
 }
 
@@ -42,5 +61,6 @@
 @media (max-height: 760px) {
   :root {
     --sidebar-nav-item-height: 44px;
+    --sidebar-nav-gap: 2px;
   }
 }

@@ -132,7 +132,10 @@ export async function withdrawMedia(scope: ContentScope, resource: LessonResourc
   await postMedia(scope, assetId, "withdraw");
   return updateLessonResource(scope, resource, { status: "archived" });
 }
-export async function archiveLessonResource(scope: ContentScope, resource: LessonResourceDto) {
+export async function archiveLessonResource(scope: ContentScope, resource: LessonResourceDto, assets: readonly Pick<MediaAssetDto, "id" | "status">[] = []) {
+  for (const asset of assets) {
+    if (asset.status === "published") await postMedia(scope, asset.id, "withdraw");
+  }
   return updateLessonResource(scope, resource, { status: "archived" });
 }
 

@@ -3,8 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
 import { useToast } from "../../hooks/useToast";
 import { ToastNotification } from "../../components/ui/ToastNotification";
-import { ProfileHeader } from "./components/ProfileHeader";
-import { OverviewTab } from "./components/tabs/OverviewTab";
+import { AlertTriangle, RefreshCw } from "lucide-react";
+import { ProfileIdentity } from "./components/ProfileIdentity";
+import { ProfileOverview } from "./components/ProfileOverview";
+import { useStudentLearningPreferences, useStudentProfile, useStudentProgress } from "../student/api/useStudentLearning";
+import "./profile.css";
 import { AchievementsTab } from "./components/tabs/AchievementsTab";
 import { SavedTab } from "./components/tabs/SavedTab";
 import { ActivityAnalyticsTab } from "./components/tabs/ActivityAnalyticsTab";
@@ -24,7 +27,6 @@ export function Profile() {
     setActiveTab,
     profile,
     enrolledCourses,
-    goals,
     upcomingEvents,
     recentActivities,
     milestoneBadges,
@@ -42,6 +44,10 @@ export function Profile() {
     retry,
   } = useProfileTabs(tabParam && ["overview", "achievements", "saved", "activity", "settings"].includes(tabParam) ? tabParam : "overview");
   const navigate = useNavigate();
+  const profileQuery = useStudentProfile();
+  const progressQuery = useStudentProgress();
+  const preferencesQuery = useStudentLearningPreferences();
+  const weeklyGoal = preferencesQuery.data?.weeklyLessonGoal ?? progressQuery.data?.weeklyGoalLessons ?? null;
 
   useEffect(() => {
     if (tabParam && ["overview", "achievements", "saved", "activity", "settings"].includes(tabParam)) {
@@ -86,44 +92,46 @@ export function Profile() {
   };
 
   if (isLoading) {
-    return <div className="profile-page flex h-full min-h-0 w-full max-w-550 mx-auto items-center justify-center text-sm font-semibold text-gray-500" role="status">Loading your profile…</div>;
-  }
-
-  if (error) {
-    return <div className="profile-page flex h-full min-h-0 w-full max-w-550 mx-auto items-center justify-center p-5">
-      <div className="w-full rounded-2xl border border-rose-200 bg-white p-6 text-center" role="alert">
-        <h1 className="text-lg font-extrabold text-gray-900">Profile unavailable</h1>
-        <p className="mt-2 text-sm text-gray-600">{error.message}</p>
-        <button type="button" onClick={retry} className="mt-4 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white">Try again</button>
+    return (
+      <div className="pf-page" aria-busy="true" aria-label="Loading your profile">
+        <div className="pf-identity pf-identity--skeleton"><span className="pf-skel" style={{ width: 96, height: 96, borderRadius: 28 }} /><span className="pf-skel" style={{ width: 360, height: 40 }} /></div>
+        <div className="pf-grid">{[0, 1, 2, 3].map((key) => <div key={key} className="pf-card"><span className="pf-skel" style={{ width: "50%", height: 18 }} /><span className="pf-skel" style={{ width: "100%", height: 64 }} /></div>)}</div>
       </div>
-    </div>;
+    );
   }
 
   return (
-    <div className="profile-page flex flex-col h-full min-h-0 w-full max-w-550 mx-auto overflow-y-auto overflow-x-hidden">
+    <div className="pf-page profile-page">
       <ToastNotification message={toastMessage} />
-      {/* 1. Header & Navigation Structure */}
-      <ProfileHeader
-        profile={profile}
+      {error ? (
+        <div className="pf-alert" role="alert">
+          <AlertTriangle aria-hidden="true" />
+          <span>Some profile details couldn&apos;t load. What&apos;s shown below may be incomplete.</span>
+          <button type="button" onClick={retry}><RefreshCw aria-hidden="true" />Try again</button>
+        </div>
+      ) : null}
+
+      <ProfileIdentity
+        profile={profileQuery.data}
+        progress={progressQuery.data}
+        subjectCount={enrolledCourses.length}
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onEditClick={() => navigate("/settings")}
       />
 
-      {/* 2. Tab Content Architecture (scrollable whenever content overflows screen height) */}
-      <main className="profile-tab-content flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden flex flex-col pt-2.5 pb-2">
+      <main className="pf-content">
         {activeTab === "overview" && (
-          <OverviewTab
-            profile={profile}
-            enrolledCourses={enrolledCourses}
-            goals={goals}
-            upcomingEvents={upcomingEvents}
-            recentActivities={recentActivities}
-            onEditProfile={() => navigate("/settings")}
-            onEditGoals={() => navigate("/settings")}
-            onShowToast={showToast}
+          <ProfileOverview
+            progress={progressQuery.data}
+            weeklyGoal={weeklyGoal}
+            courses={enrolledCourses}
+            milestones={milestoneBadges}
+            certificates={certificates}
+            recent={recentActivities}
+            upcoming={upcomingEvents}
+            onOpenAchievements={() => handleTabChange("achievements")}
           />
-
         )}
 
         {activeTab === "achievements" && (
@@ -149,7 +157,6 @@ export function Profile() {
           />
         )}
 
-
         {activeTab === "activity" && (
           <ActivityAnalyticsTab
             studyDistribution={studyDistribution}
@@ -161,7 +168,6 @@ export function Profile() {
 
         {activeTab === "settings" && <SettingsTab />}
       </main>
-
     </div>
   );
 }

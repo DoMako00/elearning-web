@@ -1,99 +1,77 @@
 import {
+  AlertTriangle,
   ArrowRight,
   Bookmark,
-  CalendarDays,
+  BookOpen,
+  CheckCircle2,
   ChevronDown,
-  CirclePlay,
   Clock3,
-  Sparkles,
-  TrendingUp,
+  Compass,
+  Flame,
+  Layers,
+  Lock,
+  Play,
+  RefreshCw,
+  Search,
 } from "lucide-react";
-import { useMemo, useRef, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  Area,
-  AreaChart,
-  ResponsiveContainer,
-  Tooltip,
-  YAxis,
-} from "recharts";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../app/providers/AuthProvider";
-import { CourseLibrary } from "../../../components/ui/CourseLibrary";
-import { SearchBar } from "../../../components/ui/SearchBar";
-import heroBackground from "../../../Assets/dashboard/my-courses-hero-background.webp";
-import { MyCoursesSkeleton } from "../../../components/ui/Skeleton";
 import { COURSE_VISUAL_PRESETS, type StudentCourse } from "../../../components/ui/CourseLibrary/courses.data";
 import { listAllStudentCourses, type StudentCourseItem } from "../api/studentCoursesApi";
+import type { StudentProgressCourseDto } from "../api/studentLearningApi";
+import { useStudentProgress, useStudentSavedCourses, useToggleStudentSavedCourse } from "../api/useStudentLearning";
+import "./MyCoursesPage.css";
 
 export type { StudentCourse };
 
-function normalizeCategory(title: string) {
-  const lower = title.toLowerCase();
-  if (lower.includes("anatomy")) return { label: "Anatomy", id: "anatomy" };
-  if (lower.includes("histology")) return { label: "Histology", id: "histology" };
-  if (lower.includes("physiology")) return { label: "Physiology", id: "physiology" };
-  if (lower.includes("bio")) return { label: "Biochemistry", id: "biochemistry" };
-  if (lower.includes("genetic") || lower.includes("cellular")) return { label: "Cell Biology", id: "histology" };
-  return { label: "Medicine", id: "all" };
-}
+type StatusFilter = "all" | "in-progress" | "completed" | "saved";
+type SortKey = "recent" | "progress" | "title";
 
-function visualPresetForCourse(course: StudentCourseItem) {
+const SORT_LABELS: Record<SortKey, string> = {
+  recent: "Recently studied",
+  progress: "Progress: high to low",
+  title: "Title: A–Z",
+};
+
+function visualFor(course: StudentCourseItem) {
   const title = course.title.toLowerCase();
   return COURSE_VISUAL_PRESETS.find((preset) => preset.keywords.some((keyword) => title.includes(keyword))) ?? COURSE_VISUAL_PRESETS[0]!;
 }
 
-function toDisplayCourse(course: StudentCourseItem): StudentCourse {
-  const visual = visualPresetForCourse(course);
-  const category = normalizeCategory(course.title);
-  const subtitle = `${course.academicInstitution.name} • ${course.academicLevel.title} • ${course.academicSemester.title}`;
-  const mediaReady = course.mediaSummary.lessonsWithMedia;
-
-  return {
-    id: course.courseId,
-    title: course.title,
-    subtitle,
-    category: category.label,
-    categoryId: category.id,
-    level: course.unitLabel,
-    progress: null,
-    lessonText: `${course.lessonCount} ${course.lessonCount === 1 ? "lesson" : "lessons"}`,
-    completedLessons: 0,
-    totalLessons: course.lessonCount,
-    opened: mediaReady > 0 ? `${mediaReady} lessons have media metadata` : "Media or release unavailable",
-    art: visual.art,
-    image: visual.image,
-    heroOverlay: visual.heroOverlay,
-    Icon: visual.Icon,
-    status: course.access.enrollmentStatus === "completed" ? "completed" : "in-progress",
-    instructor: null,
-    summary: `${course.chapterCount} ${course.chapterCount === 1 ? "chapter" : "chapters"} • ${course.lessonCount} lessons`,
-    slug: course.courseId,
-    access: course.access,
-  };
-}
-void toDisplayCourse;
-function canOpenDisplayCourse(course: StudentCourse) {
-  return course.access?.isEnrolled === true;
+interface CourseRow {
+  course: StudentCourseItem;
+  progress: StudentProgressCourseDto | undefined;
+  percent: number;
+  completed: boolean;
+  lastActivityAt: string | null;
+  image: string;
+  category: string;
 }
 
-function courseRouteState(course: StudentCourse) {
-  return { courseTitle: course.title, courseId: course.id };
+function routeState(course: StudentCourseItem) {
+  return { courseTitle: course.title, courseId: course.courseId };
 }
 
-function buildPacePoints(values: number[]) {
-  return values.map((value, index) => ({ index, value }));
-}
-
-interface PaceCustomTooltipProps {
-  active?: boolean;
-  payload?: Array<{ value: number }>;
-}
-
-function PaceCustomTooltip({ active, payload }: PaceCustomTooltipProps) {
-  if (!active || !payload?.length) return null;
+function Bar({ value, label }: { value: number; label: string }) {
+  const safe = Math.max(0, Math.min(100, Math.round(value)));
   return (
-    <div className="pace-tooltip">
-      {payload[0].value}%
+    <div className="mc-bar" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={safe}>
+      <span style={{ width: `${safe}%` }} />
+    </div>
+  );
+}
+
+function MyCoursesLoading() {
+  return (
+    <div className="mc-page" aria-busy="true" aria-label="Loading courses">
+      <div className="mc-top">
+        <div className="mc-feature mc-feature--skeleton"><span className="mc-skel" style={{ width: "100%", height: "100%" }} /></div>
+        <div className="mc-summary"><span className="mc-skel" style={{ width: "60%", height: 20 }} /><span className="mc-skel" style={{ width: "100%", height: 120 }} /></div>
+      </div>
+      <div className="mc-grid">
+        {[0, 1, 2, 3].map((key) => <div key={key} className="mc-card"><span className="mc-skel" style={{ width: "100%", height: 132 }} /><span className="mc-skel" style={{ width: "70%", height: 18, margin: 18 }} /></div>)}
+      </div>
     </div>
   );
 }
@@ -101,409 +79,333 @@ function PaceCustomTooltip({ active, payload }: PaceCustomTooltipProps) {
 export function MyCoursesPage() {
   const navigate = useNavigate();
   const auth = useAuth();
+  const progressQuery = useStudentProgress();
+  const savedQuery = useStudentSavedCourses();
+  const toggleSaved = useToggleStudentSavedCourse();
 
-  const [statusFilter, setStatusFilter] = useState<"in-progress" | "completed" | "saved">("in-progress");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<"opened" | "progress" | "title">("opened");
+  const [courses, setCourses] = useState<StudentCourseItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryIndex, setRetryIndex] = useState(0);
+  const [filter, setFilter] = useState<StatusFilter>("all");
+  const [sortBy, setSortBy] = useState<SortKey>("recent");
   const [isSortOpen, setIsSortOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [featuredId, setFeaturedId] = useState<string | null>(null);
   const sortRef = useRef<HTMLDivElement>(null);
 
-  const [bookmarked, setBookmarked] = useState<Record<string, boolean>>({});
-
-  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
-  const [courses, setCourses] = useState<StudentCourse[]>([]);
-  const [isCoursesLoading, setIsCoursesLoading] = useState(true);
-  const [coursesError, setCoursesError] = useState<string | null>(null);
-  const [retryIndex, setRetryIndex] = useState(0);
-
-  const [isPaceMonthly, setIsPaceMonthly] = useState(false);
-
-  const enrolledCourses = useMemo(() => courses.filter(canOpenDisplayCourse), [courses]);
-  const recommendedCourses = useMemo(() => courses.filter((course) => !canOpenDisplayCourse(course)), [courses]);
-  const recommendedCourseIds = useMemo(() => recommendedCourses.map((course) => course.id), [recommendedCourses]);
-
-  const activeFocusCourse = useMemo(() => {
-    return enrolledCourses.find((c) => c.id === selectedCourseId) ?? enrolledCourses[0] ?? null;
-  }, [enrolledCourses, selectedCourseId]);
-
-  const inProgressCount = useMemo(() => enrolledCourses.filter((c) => c.status === "in-progress").length, [enrolledCourses]);
-  const completedCount = useMemo(() => enrolledCourses.filter((c) => c.status === "completed").length, [enrolledCourses]);
-  const savedCount = useMemo(() => courses.filter((c) => bookmarked[c.id]).length, [bookmarked, courses]);
-
-  const toggleBookmark = (id: string) => {
-    setBookmarked((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
   useEffect(() => {
-    if (auth.status === "loading") {
-      setIsCoursesLoading(true);
-      return;
-    }
-
-    if (auth.status !== "authenticated") {
-      setCourses([]);
-      setSelectedCourseId("");
-      setCoursesError(null);
-      setIsCoursesLoading(false);
-      return;
-    }
-
+    if (auth.status === "loading") { setIsLoading(true); return; }
+    if (auth.status !== "authenticated") { setCourses([]); setError(null); setIsLoading(false); return; }
     const controller = new AbortController();
-    setIsCoursesLoading(true);
-    setCoursesError(null);
+    setIsLoading(true);
+    setError(null);
     void listAllStudentCourses({ view: "explore", signal: controller.signal })
-      .then((payload) => {
-        if (controller.signal.aborted) return;
-        const nextCourses = payload.map(toDisplayCourse);
-        const nextEnrolledCourses = nextCourses.filter(canOpenDisplayCourse);
-        setCourses(nextCourses);
-        setSelectedCourseId((current) => {
-          if (nextEnrolledCourses.some((course) => course.id === current)) return current;
-          return nextEnrolledCourses[0]?.id || "";
-        });
-      })
-      .catch((error: unknown) => {
+      .then((payload) => { if (!controller.signal.aborted) setCourses(payload); })
+      .catch((reason: unknown) => {
         if (controller.signal.aborted) return;
         setCourses([]);
-        setSelectedCourseId("");
-        setCoursesError(error instanceof Error ? error.message : "The learning API request failed.");
+        setError(reason instanceof Error ? reason.message : "Your courses couldn't be loaded.");
       })
-      .finally(() => {
-        if (!controller.signal.aborted) setIsCoursesLoading(false);
-      });
+      .finally(() => { if (!controller.signal.aborted) setIsLoading(false); });
     return () => controller.abort();
   }, [auth.status, retryIndex]);
+
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (sortRef.current && !sortRef.current.contains(e.target as Node)) {
-        setIsSortOpen(false);
-      }
+    const close = (event: MouseEvent) => {
+      if (sortRef.current && !sortRef.current.contains(event.target as Node)) setIsSortOpen(false);
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
   }, []);
 
-  const pacePoints: ReturnType<typeof buildPacePoints> = [];
+  const progress = progressQuery.data;
+  const savedIds = useMemo(() => new Set((savedQuery.data ?? []).map((item) => item.courseId)), [savedQuery.data]);
 
-  const sortLabel = {
-    opened: "Last opened",
-    progress: "Progress: High to Low",
-    title: "Title: A–Z",
-  }[sortBy];
+  const rows = useMemo<CourseRow[]>(() => courses
+    .filter((course) => course.access?.isEnrolled === true)
+    .map((course) => {
+      const entry = progress?.courses.find((item) => item.courseId === course.courseId);
+      const percent = Math.round(entry?.completionPercent ?? 0);
+      const visual = visualFor(course);
+      return {
+        course,
+        progress: entry,
+        percent,
+        completed: course.access.enrollmentStatus === "completed" || percent >= 100,
+        lastActivityAt: entry?.lastActivityAt ?? null,
+        image: visual.image,
+        category: visual.category,
+      };
+    }), [courses, progress]);
+
+  const recommended = useMemo(() => courses.filter((course) => course.access?.isEnrolled !== true), [courses]);
+
+  const counts = {
+    all: rows.length,
+    "in-progress": rows.filter((row) => !row.completed).length,
+    completed: rows.filter((row) => row.completed).length,
+    saved: rows.filter((row) => savedIds.has(row.course.courseId)).length,
+  };
+
+  const visibleRows = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    const filtered = rows.filter((row) => {
+      if (filter === "in-progress" && row.completed) return false;
+      if (filter === "completed" && !row.completed) return false;
+      if (filter === "saved" && !savedIds.has(row.course.courseId)) return false;
+      return !term || `${row.course.title} ${row.course.code}`.toLowerCase().includes(term);
+    });
+    return [...filtered].sort((a, b) => {
+      if (sortBy === "progress") return b.percent - a.percent;
+      if (sortBy === "title") return a.course.title.localeCompare(b.course.title);
+      return (b.lastActivityAt ?? "").localeCompare(a.lastActivityAt ?? "");
+    });
+  }, [rows, filter, query, sortBy, savedIds]);
+
+  const recentRow = useMemo(() => [...rows].sort((a, b) => (b.lastActivityAt ?? "").localeCompare(a.lastActivityAt ?? ""))[0], [rows]);
+  const featured = rows.find((row) => row.course.courseId === featuredId) ?? recentRow;
+  const featuredActivity = featured ? progress?.recentActivity.find((item) => item.courseId === featured.course.courseId) : undefined;
+
+  const toggleBookmark = (course: StudentCourseItem) => {
+    toggleSaved.mutate({ courseId: course.courseId, saved: !savedIds.has(course.courseId) });
+  };
+
+  if (isLoading) return <MyCoursesLoading />;
+
+  if (auth.status !== "authenticated") {
+    return (
+      <div className="mc-page">
+        <div className="mc-notice">
+          <BookOpen aria-hidden="true" />
+          <div><strong>Sign in to see your courses</strong><span>Your enrolled subjects and progress appear here.</span></div>
+          <button type="button" className="mc-btn mc-btn--primary" onClick={() => navigate("/auth/sign-in", { state: { from: "/my-courses" } })}>Sign in</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mc-page">
+        <div className="mc-notice mc-notice--error" role="alert">
+          <AlertTriangle aria-hidden="true" />
+          <div><strong>We couldn&apos;t load your courses</strong><span>Check your connection and try again.</span></div>
+          <button type="button" className="mc-btn mc-btn--secondary" onClick={() => setRetryIndex((value) => value + 1)}><RefreshCw aria-hidden="true" />Try again</button>
+        </div>
+      </div>
+    );
+  }
+
+  const featuredCanOpen = featured ? featured.course.access?.canOpen !== false : false;
+  const featuredLessons = featured ? featured.course.lessonCount || featured.progress?.totalLessons || 0 : 0;
+  const resumeHref = featured
+    ? featuredActivity ? `/my-courses/${featured.course.courseId}/lessons/${featuredActivity.lessonId}` : `/my-courses/${featured.course.courseId}`
+    : "/explore";
 
   return (
-    <section className="student-page student-page--courses" aria-labelledby="my-courses-title">
-      <div className="my-courses-workspace">
-        <header className="my-courses-heading">
-          <div className="my-courses-heading__controls" aria-label="Course status controls">
-            <div className="course-status-tabs" role="tablist" aria-label="Course status">
-              <button
-                type="button"
-                className={`course-status-tabs__tab ${statusFilter === "in-progress" ? "is-active" : ""}`}
-                role="tab"
-                aria-selected={statusFilter === "in-progress"}
-                onClick={() => setStatusFilter("in-progress")}
-              >
-                In progress <b>{inProgressCount}</b>
-              </button>
-              <button
-                type="button"
-                className={`course-status-tabs__tab ${statusFilter === "completed" ? "is-active" : ""}`}
-                role="tab"
-                aria-selected={statusFilter === "completed"}
-                onClick={() => setStatusFilter("completed")}
-              >
-                Completed <b>{completedCount}</b>
-              </button>
-              <button
-                type="button"
-                className={`course-status-tabs__tab ${statusFilter === "saved" ? "is-active" : ""}`}
-                role="tab"
-                aria-selected={statusFilter === "saved"}
-                onClick={() => setStatusFilter("saved")}
-              >
-                Saved <b>{savedCount}</b>
-              </button>
-            </div>
-
-            <div className="relative" ref={sortRef}>
-              <button
-                type="button"
-                className="course-sort cursor-pointer inline-flex items-center gap-2"
-                aria-label="Sort courses"
-                aria-haspopup="listbox"
-                aria-expanded={isSortOpen}
-                onClick={() => setIsSortOpen(!isSortOpen)}
-              >
-                <Clock3 aria-hidden="true" />
-                <span>{sortLabel}</span>
-                <ChevronDown aria-hidden="true" className={`size-3.5 transition-transform ${isSortOpen ? "rotate-180" : ""}`} />
-              </button>
-
-              {isSortOpen && (
-                <ul
-                  className="absolute top-[calc(100%+6px)] right-0 z-30 min-w-47.5 p-1.5 list-none bg-white border border-[#dfe9e3] rounded-xl shadow-lg"
-                  role="listbox"
-                  aria-label="Sort options"
-                >
-                  <li
-                    role="option"
-                    aria-selected={sortBy === "opened"}
-                    className={`px-3 py-2 text-xs font-semibold rounded-lg cursor-pointer transition-colors ${
-                      sortBy === "opened" ? "bg-[#eefaf2] text-[#15803d]" : "text-[#334155] hover:bg-[#f8faf9]"
-                    }`}
-                    onClick={() => {
-                      setSortBy("opened");
-                      setIsSortOpen(false);
-                    }}
-                  >
-                    Last opened
-                  </li>
-                  <li
-                    role="option"
-                    aria-selected={sortBy === "progress"}
-                    className={`px-3 py-2 text-xs font-semibold rounded-lg cursor-pointer transition-colors ${
-                      sortBy === "progress" ? "bg-[#eefaf2] text-[#15803d]" : "text-[#334155] hover:bg-[#f8faf9]"
-                    }`}
-                    onClick={() => {
-                      setSortBy("progress");
-                      setIsSortOpen(false);
-                    }}
-                  >
-                    Progress: High to Low
-                  </li>
-                  <li
-                    role="option"
-                    aria-selected={sortBy === "title"}
-                    className={`px-3 py-2 text-xs font-semibold rounded-lg cursor-pointer transition-colors ${
-                      sortBy === "title" ? "bg-[#eefaf2] text-[#15803d]" : "text-[#334155] hover:bg-[#f8faf9]"
-                    }`}
-                    onClick={() => {
-                      setSortBy("title");
-                      setIsSortOpen(false);
-                    }}
-                  >
-                    Title: A–Z
-                  </li>
-                </ul>
-              )}
-            </div>
-
-            <div className="my-courses-heading__search">
-              <SearchBar
-                value={searchQuery}
-                placeholder="Search your courses..."
-                onChange={(val) => setSearchQuery(val)}
-                isLoading={isCoursesLoading}
-              />
-            </div>
-          </div>
-        </header>
-
-        {isCoursesLoading ? (
-          <MyCoursesSkeleton />
-        ) : auth.status !== "authenticated" ? (
-          <div className="dashboard-feedback" role="status">
-            <strong>Sign in to view your courses.</strong>
-            <button type="button" onClick={() => navigate("/auth/sign-in", { state: { from: "/" } })}>Sign in</button>
-          </div>
-        ) : coursesError ? (
-          <div className="dashboard-feedback dashboard-feedback--error" role="alert">
-            <span>{coursesError}</span>
-            <button type="button" onClick={() => setRetryIndex((current) => current + 1)}>Try again</button>
-          </div>
-        ) : !activeFocusCourse ? (
-          <div className="dashboard-feedback" role="status">No enrolled subjects are available for this student yet.</div>
-        ) : (
-        <div className="my-courses-overview">
-          <article
-            className="course-focus-card"
-            aria-label={`Continue ${activeFocusCourse.title}`}
-            style={{ backgroundImage: `url(${heroBackground})` }}
-          >
-            <div className="course-focus-card__art" aria-hidden="true">
-              <img src={activeFocusCourse.heroOverlay} alt="" />
-              <svg viewBox="0 0 520 320" preserveAspectRatio="xMidYMid meet">
-                <g className="course-focus-card__grid">
-                  <path d="M17 70H170M17 103H170M17 136H170M17 169H170M17 202H170M17 235H170M17 268H170M206 28V295M258 28V295M310 28V295M362 28V295M414 28V295M466 28V295" />
-                </g>
-                <g className="course-focus-card__labels">
-                  <path d="M31 77H160M31 132H160M31 187H160" />
-                  <text x="34" y="68">SKELETAL SYSTEM</text>
-                  <text x="34" y="123">MUSCULAR SYSTEM</text>
-                  <text x="34" y="178">BODY STRUCTURE</text>
-                </g>
-                <g className="course-focus-card__skeleton">
-                  <circle cx="350" cy="71" r="36" />
-                  <path d="M325 69h50M350 37v67M332 95l-23 35 18 15 23-20 23 20 18-15-23-35M350 107v59M327 136l-13 66M373 136l13 66M350 166l-28 85M350 166l28 85M317 205l-13 65M383 205l13 65" />
-                  <path d="M322 117q28 33 56 0M323 128q27 34 54 0M328 140q22 26 44 0" />
-                  <path d="M340 61h20M342 82h16" />
-                </g>
-                <g className="course-focus-card__molecules">
-                  <circle cx="455" cy="77" r="8" />
-                  <circle cx="477" cy="96" r="5" />
-                  <circle cx="449" cy="116" r="6" />
-                  <path d="M460 83 473 92M472 100 454 112" />
-                  <circle cx="431" cy="181" r="6" />
-                  <circle cx="462" cy="190" r="9" />
-                  <path d="M437 183 453 188" />
-                </g>
-              </svg>
-            </div>
-
-            <div className="course-focus-card__content">
-              <span className={`course-focus-card__status ${activeFocusCourse.status === "completed" ? "!bg-[#16a34a]! !text-white!" : ""}`}>
-                {activeFocusCourse.status === "completed" ? "Completed" : "Enrolled"}
-              </span>
-              <h2>{activeFocusCourse.title}</h2>
-              <p className="course-focus-card__subtitle">{activeFocusCourse.subtitle}</p>
-              <p className="course-focus-card__lesson">{activeFocusCourse.lessonText}</p>
-              <p className="course-focus-card__availability">{activeFocusCourse.opened}</p>
-            </div>
-
-            <button
-              type="button"
-              className="course-focus-card__play cursor-pointer"
-              aria-label={activeFocusCourse.access?.canOpen ? `Open ${activeFocusCourse.title}` : `${activeFocusCourse.title} details unavailable`}
-              disabled={!activeFocusCourse.access?.canOpen}
-              onClick={() => { if (activeFocusCourse.access?.canOpen) navigate(`/my-courses/${activeFocusCourse.slug}`, { state: courseRouteState(activeFocusCourse) }); }}
-            >
-              <CirclePlay aria-hidden="true" />
-            </button>
-
-            <footer className="course-focus-card__footer">
-              <div>
-                <small>Course overview</small>
-                <b>{activeFocusCourse.summary}</b>
+    <div className="mc-page">
+      {featured ? (
+        <div className="mc-top">
+          <article className="mc-feature" aria-labelledby="mc-feature-title">
+            <img className="mc-feature__img" src={featured.image} alt="" aria-hidden="true" />
+            <div className="mc-feature__body">
+              <div className="mc-feature__meta">
+                <span className="mc-tag">{featured.completed ? <><CheckCircle2 aria-hidden="true" />Completed</> : featuredActivity ? <><Play aria-hidden="true" />Continue where you left off</> : <><BookOpen aria-hidden="true" />Enrolled</>}</span>
+                <span>{featured.course.academicInstitution.name} · {featured.course.academicLevel.title} · {featured.course.academicSemester.title}</span>
               </div>
-              <div className="course-focus-card__actions">
+              <h2 id="mc-feature-title">{featured.course.title}</h2>
+              <p className="mc-feature__lesson">
+                {featuredActivity ? <><small>{featuredActivity.status === "completed" ? "Last completed" : "Current lesson"}</small>{featuredActivity.lessonTitle}</> : !featuredCanOpen ? <><small>Enrolled</small>Lessons open once your academy publishes them</> : <><small>{featured.course.unitLabel}</small>{featured.course.chapterCount > 0 ? `${featured.course.chapterCount} chapters · ` : ""}{featuredLessons} lessons</>}
+              </p>
+              <div className="mc-feature__progress">
+                <strong>{featured.percent}%</strong>
+                <div>
+                  <Bar value={featured.percent} label={`${featured.course.title} progress`} />
+                  <span>{featured.progress ? `${featured.progress.completedLessons} of ${featured.progress.totalLessons} lessons complete` : `${featured.course.lessonCount} lessons`}</span>
+                </div>
+              </div>
+              <div className="mc-feature__actions">
+                {featuredCanOpen ? (
+                  <>
+                    <button type="button" className="mc-btn mc-btn--primary mc-btn--lg" onClick={() => navigate(resumeHref, { state: routeState(featured.course) })}>
+                      <Play aria-hidden="true" />{featuredActivity ? "Resume lesson" : featured.completed ? "Review subject" : "Start subject"}
+                    </button>
+                    <Link className="mc-btn mc-btn--secondary mc-btn--lg" to={`/my-courses/${featured.course.courseId}`} state={routeState(featured.course)}>Course overview</Link>
+                  </>
+                ) : (
+                  <>
+                    <span className="mc-locked" role="status"><Clock3 aria-hidden="true" />Lessons not open yet</span>
+                    <Link className="mc-btn mc-btn--secondary mc-btn--lg" to="/help">Ask for help</Link>
+                  </>
+                )}
                 <button
                   type="button"
-                  className={`course-focus-card__bookmark cursor-pointer ${bookmarked[activeFocusCourse.id] ? "is-saved text-[#79f3ae]" : ""}`}
-                  aria-label={`Save ${activeFocusCourse.title}`}
-                  onClick={() => toggleBookmark(activeFocusCourse.id)}
+                  className={`mc-icon-btn${savedIds.has(featured.course.courseId) ? " is-saved" : ""}`}
+                  aria-label={savedIds.has(featured.course.courseId) ? `Remove ${featured.course.title} from saved` : `Save ${featured.course.title}`}
+                  aria-pressed={savedIds.has(featured.course.courseId)}
+                  onClick={() => toggleBookmark(featured.course)}
                 >
-                  <Bookmark
-                    aria-hidden="true"
-                    className={bookmarked[activeFocusCourse.id] ? "fill-current" : ""}
-                  />
-                </button>
-                <button
-                  type="button"
-                  className="cursor-pointer"
-                  disabled={!activeFocusCourse.access?.canOpen}
-                  onClick={() => { if (activeFocusCourse.access?.canOpen) navigate(`/my-courses/${activeFocusCourse.slug}`, { state: courseRouteState(activeFocusCourse) }); }}
-                >
-                  {activeFocusCourse.access?.canOpen ? (activeFocusCourse.status === "completed" ? "Review Subject" : "Open Subject") : "Details unavailable"} <ArrowRight aria-hidden="true" />
+                  <Bookmark aria-hidden="true" />
                 </button>
               </div>
-            </footer>
+            </div>
           </article>
 
-          <div className="my-courses-overview__summaries">
-            <article className="course-summary course-summary--week">
-              <header>
-                <h2>This week</h2>
-                <CalendarDays aria-hidden="true" />
-              </header>
-              <div className="week-days" role="status">
-                <p>A study schedule is not available yet.</p>
-              </div>
-              <footer>
-                <Clock3 aria-hidden="true" />
-                <b>Schedule unavailable</b>
-                <span>Study activity has not been provided.</span>
-              </footer>
-            </article>
-
-            <article className="course-summary course-summary--pace">
-              <header className="flex justify-between items-start">
-                <div>
-                  <h2>Your pace</h2>
-                  <strong>—</strong>
-                  <small>Progress unavailable</small>
+          <aside className="mc-summary" aria-labelledby="mc-summary-title">
+            <h2 id="mc-summary-title">Your learning</h2>
+            {progressQuery.isError ? (
+              <p className="mc-summary__error"><AlertTriangle aria-hidden="true" />Progress couldn&apos;t load.<button type="button" onClick={() => void progressQuery.refetch()}>Retry</button></p>
+            ) : (
+              <>
+                <div className="mc-summary__kpi">
+                  <strong>{progress ? Math.round(progress.completionPercent) : "—"}<small>%</small></strong>
+                  <span>overall completion</span>
                 </div>
-                <div className="pace-header-actions">
-                  <div className="pace-switch" role="group" aria-label="Pace timeframe selector">
-                    <button
-                      type="button"
-                      className={`pace-switch__btn ${!isPaceMonthly ? "is-active" : ""}`}
-                      onClick={() => setIsPaceMonthly(false)}
-                      aria-pressed={!isPaceMonthly}
-                    >
-                      Weekly
-                    </button>
-                    <button
-                      type="button"
-                      className={`pace-switch__btn ${isPaceMonthly ? "is-active" : ""}`}
-                      onClick={() => setIsPaceMonthly(true)}
-                      aria-pressed={isPaceMonthly}
-                    >
-                      Monthly
-                    </button>
-                  </div>
-                  <TrendingUp aria-hidden="true" />
-                </div>
-              </header>
-              <div className="pace-chart-container" role="status" aria-label="No progress data available">
-                <p>Progress data will appear after lesson completion activity is provided.</p>
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={pacePoints}
-                    margin={{ top: 8, right: 4, bottom: 0, left: 4 }}
-                  >
-                    <defs>
-                      <linearGradient id="paceFillGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#24ad68" stopOpacity={0.25} />
-                        <stop offset="100%" stopColor="#24ad68" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <YAxis domain={[0, 100]} hide width={0} />
-                    <Tooltip content={<PaceCustomTooltip />} cursor={false} />
-                    <Area
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#24ad68"
-                      strokeWidth={2.5}
-                      fill="url(#paceFillGradient)"
-                      dot={false}
-                      activeDot={{
-                        r: 5,
-                        fill: "#24ad68",
-                        stroke: "#fff",
-                        strokeWidth: 2,
-                      }}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-              <p>
-                <Sparkles aria-hidden="true" />
-                Progress will appear when lesson completion data is available
-              </p>
-            </article>
-          </div>
+                <Bar value={progress?.completionPercent ?? 0} label="Overall completion" />
+                <dl className="mc-summary__facts">
+                  <div><dt><Layers aria-hidden="true" />Subjects</dt><dd>{rows.length}</dd></div>
+                  <div><dt><CheckCircle2 aria-hidden="true" />Lessons done</dt><dd>{progress?.totalCompletedLessons ?? "—"}<span>/{progress?.totalLessons ?? "—"}</span></dd></div>
+                  <div><dt><Flame aria-hidden="true" />Day streak</dt><dd>{progress?.currentStreakDays ?? "—"}</dd></div>
+                  <div><dt><Clock3 aria-hidden="true" />This week</dt><dd>{progress?.weeklyCompletedLessons ?? "—"}<span> lessons</span></dd></div>
+                </dl>
+              </>
+            )}
+          </aside>
         </div>
-        )}
+      ) : (
+        <div className="mc-notice">
+          <Compass aria-hidden="true" />
+          <div><strong>You&apos;re not enrolled in any subjects yet</strong><span>Browse subjects published for your academic year.</span></div>
+          <Link className="mc-btn mc-btn--primary" to="/explore">Explore subjects<ArrowRight aria-hidden="true" /></Link>
+        </div>
+      )}
 
-        {!isCoursesLoading && !coursesError && recommendedCourses.length > 0 ? (
-        <CourseLibrary
-          title="Recommended subjects"
-          courses={recommendedCourses}
-          unitLabel="subject"
-          statusFilter="in-progress"
-          searchQuery={searchQuery}
-          sortBy={sortBy}
-          bookmarked={bookmarked}
-          selectedCourseId=""
-          lockedCourseIds={recommendedCourseIds}
-          lockedMessage="This subject is recommended. Subscribe or get enrolled before opening its lessons."
-          onSelectCourse={(courseId) => setSelectedCourseId(courseId)}
-          onToggleBookmark={toggleBookmark}
-          onClearSearch={() => setSearchQuery("")}
-        />
-        ) : null}
-      </div>
-    </section>
+      {rows.length > 0 ? (
+        <section className="mc-section" aria-labelledby="mc-list-title">
+          <header className="mc-toolbar">
+            <h2 id="mc-list-title">My subjects</h2>
+            <div className="mc-tabs" role="tablist" aria-label="Filter subjects">
+              {(["all", "in-progress", "completed", "saved"] as const).map((key) => (
+                <button key={key} type="button" role="tab" aria-selected={filter === key} className={filter === key ? "is-active" : undefined} onClick={() => setFilter(key)}>
+                  {{ all: "All", "in-progress": "In progress", completed: "Completed", saved: "Saved" }[key]}
+                  <b>{counts[key]}</b>
+                </button>
+              ))}
+            </div>
+            <label className="mc-search">
+              <Search aria-hidden="true" />
+              <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search subjects" aria-label="Search subjects" />
+            </label>
+            <div className="mc-sort" ref={sortRef}>
+              <button type="button" aria-haspopup="listbox" aria-expanded={isSortOpen} onClick={() => setIsSortOpen((open) => !open)}>
+                <Clock3 aria-hidden="true" />{SORT_LABELS[sortBy]}<ChevronDown aria-hidden="true" />
+              </button>
+              {isSortOpen ? (
+                <ul role="listbox" aria-label="Sort subjects">
+                  {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
+                    <li key={key} role="option" aria-selected={sortBy === key} tabIndex={0}
+                      onClick={() => { setSortBy(key); setIsSortOpen(false); }}
+                      onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSortBy(key); setIsSortOpen(false); } }}>
+                      {SORT_LABELS[key]}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          </header>
+
+          {visibleRows.length === 0 ? (
+            <p className="mc-empty">No subjects match this filter.{query ? <button type="button" onClick={() => setQuery("")}>Clear search</button> : null}</p>
+          ) : (
+            <ul className="mc-grid">
+              {visibleRows.map((row) => {
+                const isFeatured = featured?.course.courseId === row.course.courseId;
+                return (
+                  <li key={row.course.courseId} className={`mc-card${isFeatured ? " is-featured" : ""}`}>
+                    <div className="mc-card__media">
+                      <img src={row.image} alt="" aria-hidden="true" loading="lazy" />
+                      <span className="mc-card__category">{row.category}</span>
+                      <button
+                        type="button"
+                        className={`mc-card__save${savedIds.has(row.course.courseId) ? " is-saved" : ""}`}
+                        aria-label={savedIds.has(row.course.courseId) ? `Remove ${row.course.title} from saved` : `Save ${row.course.title}`}
+                        aria-pressed={savedIds.has(row.course.courseId)}
+                        onClick={() => toggleBookmark(row.course)}
+                      >
+                        <Bookmark aria-hidden="true" />
+                      </button>
+                    </div>
+                    <div className="mc-card__body">
+                      <h3>{row.course.title}</h3>
+                      <p>{row.course.academicLevel.title} · {row.course.academicSemester.title}</p>
+                      <div className="mc-card__progress">
+                        <Bar value={row.percent} label={`${row.course.title} progress`} />
+                        <b>{row.percent}%</b>
+                      </div>
+                      <div className="mc-card__foot">
+                        <span>{row.progress ? `${row.progress.completedLessons}/${row.progress.totalLessons} lessons` : `${row.course.lessonCount} lessons`}</span>
+                        <div className="mc-card__actions">
+                          {!isFeatured ? <button type="button" className="mc-text-btn" onClick={() => setFeaturedId(row.course.courseId)}>Feature</button> : null}
+                          {row.course.access?.canOpen === false ? (
+                            <span className="mc-lock"><Clock3 aria-hidden="true" />Not open yet</span>
+                          ) : (
+                            <Link to={`/my-courses/${row.course.courseId}`} state={routeState(row.course)} className="mc-card__cta">
+                              {row.completed ? "Review" : row.percent > 0 ? "Continue" : "Start"}<ArrowRight aria-hidden="true" />
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      ) : null}
+
+      {recommended.length > 0 ? (
+        <section className="mc-section" aria-labelledby="mc-rec-title">
+          <header className="mc-toolbar">
+            <h2 id="mc-rec-title">Available for your year <span className="mc-count">{recommended.length}</span></h2>
+            <Link className="mc-link" to="/explore">Explore all<ArrowRight aria-hidden="true" /></Link>
+          </header>
+          {rows.length <= 2 ? (
+            <ul className="mc-grid mc-grid--catalogue">
+              {recommended.map((course) => (
+                <li key={course.courseId} className="mc-card mc-card--locked">
+                  <div className="mc-card__media">
+                    <img src={visualFor(course).image} alt="" aria-hidden="true" loading="lazy" />
+                    <span className="mc-card__category">{visualFor(course).category}</span>
+                  </div>
+                  <div className="mc-card__body">
+                    <h3>{course.title}</h3>
+                    <p>{course.academicInstitution.name} · {course.academicLevel.title} · {course.academicSemester.title}</p>
+                    <div className="mc-card__foot">
+                      <span>{course.lessonCount > 0 ? `${course.chapterCount} chapters · ${course.lessonCount} lessons` : "Lessons coming soon"}</span>
+                      <span className="mc-lock"><Lock aria-hidden="true" />Not enrolled</span>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+          <ul className="mc-grid mc-grid--compact">
+            {recommended.slice(0, 8).map((course) => (
+              <li key={course.courseId} className="mc-row">
+                <img src={visualFor(course).image} alt="" aria-hidden="true" loading="lazy" />
+                <div>
+                  <strong>{course.title}</strong>
+                  <span>{course.chapterCount} chapters · {course.lessonCount} lessons</span>
+                </div>
+                <span className="mc-lock"><Lock aria-hidden="true" />Not enrolled</span>
+              </li>
+            ))}
+          </ul>
+          )}
+        </section>
+      ) : null}
+    </div>
   );
 }

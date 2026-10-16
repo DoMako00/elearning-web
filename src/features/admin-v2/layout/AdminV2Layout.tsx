@@ -84,6 +84,8 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
     const saved = window.localStorage.getItem(BRAND_FILTER_STORAGE_KEY) as BrandFilter | null;
     return saved && brandChoices.includes(saved) ? saved : "all";
   });
+  const routeBrand = pathname === "/admin/content" && brand === "all" ? "elite" : brand;
+  const routeBrandChoices = pathname === "/admin/content" ? brandChoices.filter((choice) => choice !== "all") : brandChoices;
   const [globalSearch, setGlobalSearch] = useState("");
   const [noticeOpen, setNoticeOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
@@ -91,7 +93,7 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
   const routeLabel = useMemo(() => pathname === "/admin/overview" ? "Overview" : pathname.match(/^\/admin\/courses\/[^/]+\/builder$/) ? "Course Builder" : adminNavigation.find((route) => route.path === pathname)?.label ?? "Admin", [pathname]);
   const routeSubtitle = routeLabel === "Overview" ? "Welcome back, Admin. Here is what is happening across your platform." : routeLabel === "Security" ? "Monitor persisted devices, sessions, and security events." : routeLabel === "Courses" ? "Manage course offerings, curriculum mapping, and instructor assignments." : routeLabel === "Instructors" ? "Manage your global instructor directory, brand assignments, and course allocations." : routeLabel === "Students" ? "Manage student identity, access, devices, and sessions." : routeLabel === "Payments" ? "Review manual payment submissions and approve or reject pending reviews." : routeLabel === "Curriculum" ? "Manage approved academic structures by institution." : routeLabel === "Course Builder" ? "Build chapters and lessons independently from curriculum mapping." : routeLabel === "Content" ? "Manage video and PDF resources attached to course lessons." : routeLabel === "Assignment Review" ? "Review Student submissions, scores, and return-for-revision decisions." : routeLabel === "Support Inbox" ? "Read and reply to persisted Student support conversations." : "Manage subscription plans, seats, and student lifecycle.";
   const reportDomainError = (message: string) => setDomainError(message);
-  const context = useMemo(() => ({ data, setData, brand, setBrand, globalSearch, setGlobalSearch, domainLoading, domainError, refreshServerDomains, reportDomainError, overview }), [data, brand, globalSearch, domainLoading, domainError, overview]);
+  const context = useMemo(() => ({ data, setData, brand: routeBrand, setBrand, globalSearch, setGlobalSearch, domainLoading, domainError, refreshServerDomains, reportDomainError, overview }), [data, routeBrand, globalSearch, domainLoading, domainError, overview]);
   useEffect(() => {
     if (auth.status === "loading") return;
     if (auth.status === "unauthenticated") { setAdminAccess("denied"); return; }
@@ -168,13 +170,13 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
           <div className="admin-v2__route-title"><h1>{routeLabel}</h1><p>{routeSubtitle}</p></div>
           <label className="admin-v2__global-search"><Search aria-hidden="true" /><input ref={searchRef} value={globalSearch} onChange={(event) => setGlobalSearch(event.target.value)} placeholder="Search students, courses, instructors..." aria-label="Global Admin search" /><kbd>Ctrl K</kbd></label>
           <div className="admin-v2__top-actions">
-            <div className="admin-v2__brand-switch" role="group" aria-label="Brand filter">{brandChoices.map((choice) => <button key={choice} type="button" aria-pressed={brand === choice} title={choice === "all" ? "Show all brands across Admin" : `Filter Admin by ${brandName(choice)}`} className={choice === "all" ? "is-all" : `is-${choice}`} onClick={() => setBrand(choice)}>{choice === "all" ? <Layers3 aria-hidden="true" /> : choice === "elite" ? <Crown aria-hidden="true" /> : <ShieldCheck aria-hidden="true" />}<span>{choice === "all" ? "All brands" : brandName(choice)}</span></button>)}</div>
+            <div className="admin-v2__brand-switch" role="group" aria-label="Brand filter">{routeBrandChoices.map((choice) => <button key={choice} type="button" aria-pressed={routeBrand === choice} title={choice === "all" ? "Show all brands across Admin" : `Filter Admin by ${brandName(choice)}`} className={choice === "all" ? "is-all" : `is-${choice}`} onClick={() => setBrand(choice)}>{choice === "all" ? <Layers3 aria-hidden="true" /> : choice === "elite" ? <Crown aria-hidden="true" /> : <ShieldCheck aria-hidden="true" />}<span>{choice === "all" ? "All brands" : brandName(choice)}</span></button>)}</div>
             <div className="admin-v2__notice-wrap"><button className="admin-v2__icon-btn" aria-label="Notifications" aria-expanded={noticeOpen} onClick={() => setNoticeOpen((value) => !value)}><Bell aria-hidden="true" /></button>{noticeOpen && <div className="admin-v2__notice-popover"><strong>Notifications</strong><span>Notifications are not available from the current Admin API.</span></div>}</div>
             <div className="admin-v2__profile" aria-label="Signed-in Admin"><span className="admin-v2__avatar">{(auth.user?.name ?? "A").slice(0, 2).toUpperCase()}</span><span><strong>{auth.user?.name ?? "Authenticated Admin"}</strong><small>Admin session</small></span></div>
             <button type="button" className="admin-v2__logout" onClick={() => { auth.signOut(); navigate("/auth/sign-in", { replace: true }); }}><LogOut aria-hidden="true" /><span>Log out</span></button>
           </div>
         </header>
-        <main className="admin-v2__main"><div className="admin-v2__content">{children ?? <Outlet context={{ brandView: brand === "all" ? "all" : brand }} />}</div></main>
+        <main className="admin-v2__main"><div className="admin-v2__content">{children ?? <Outlet context={{ brandView: routeBrand === "all" ? "all" : routeBrand }} />}</div></main>
       </div>
     </div>
     {resetOpen && <ConfirmDialog title="Reset local Admin cache?" detail="This clears this browser's saved Admin cache. Server records are not changed." confirmLabel="Reset cache" onCancel={() => setResetOpen(false)} onConfirm={() => { resetAdminV2(); setResetOpen(false); }} />}

@@ -345,4 +345,3 @@ export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
     </Drawer>}
   </>;
 }
-

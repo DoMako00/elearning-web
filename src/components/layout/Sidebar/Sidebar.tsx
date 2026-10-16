@@ -69,6 +69,7 @@ export function Sidebar() {
       </div>
 
       <nav className="sidebar-primary-nav mt-4" aria-label="Primary navigation">
+        <p className="sidebar-section-label" aria-hidden="true">Learning</p>
         <ul className="space-y-(--sidebar-nav-gap)">
           {liveNavItems.map((item) => (
             <li key={item.label}>
@@ -81,6 +82,7 @@ export function Sidebar() {
       <div className="min-h-3 flex-1" aria-hidden="true" />
 
       <nav className="sidebar-secondary-nav mb-4" aria-label="Support navigation">
+        <p className="sidebar-section-label" aria-hidden="true">Account</p>
         <ul className="space-y-(--sidebar-nav-gap)">
           {secondarySidebarItems.map((item) => (
             <li key={item.label}>

@@ -3,11 +3,10 @@ import { useDashboardEnrollment } from "../hooks/useDashboardEnrollment";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import { DashboardBento } from "../components/DashboardBento";
 import { EmptyLearningState } from "../components/EmptyLearningState";
-
-import { HomeDashboardSkeleton } from "../../../components/ui/Skeleton";
+import { HomeDashboardSkeletonV2 } from "../components/HomeDashboard/HomeDashboard";
 
 function DashboardLoadingState() {
-  return <HomeDashboardSkeleton />;
+  return <HomeDashboardSkeletonV2 />;
 }
 
 function DashboardErrorState({ onRetry }: { onRetry: () => void }) {
