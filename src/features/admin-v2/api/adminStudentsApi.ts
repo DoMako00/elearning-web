@@ -1,4 +1,4 @@
-import { requireApiClient } from "../../../app/api/client";
+import { extractApiErrorMessage, requireApiClient } from "../../../app/api/client";
 import { toEnglishStudentName } from "./studentDisplay";
 
 type Envelope<T> = { ok: true; correlationId: string; data: T };
@@ -7,7 +7,7 @@ async function unwrap<T>(
   request: Promise<{ data?: unknown; error?: unknown }>,
 ): Promise<T> {
   const response = await request;
-  if (response.error) throw response.error;
+  if (response.error) throw new Error(extractApiErrorMessage(response.error, "Student request failed."));
   const payload = response.data as Envelope<T> | undefined;
   if (!payload?.data)
     throw new Error("The server returned an incomplete response.");
@@ -16,6 +16,7 @@ async function unwrap<T>(
 
 export type AdminStudentStatus =
   "active" | "pending" | "disabled" | "suspended";
+export type AdminStudentClaimStatus = "unclaimed" | "claimed" | "setup_expired" | "locked";
 export interface AdminStudentListItem {
   id: string;
   createdAt: string;
@@ -31,6 +32,8 @@ export interface AdminStudentListItem {
   academicTermOrYear?: string | null;
   version: number;
   status: AdminStudentStatus;
+  claimStatus?: AdminStudentClaimStatus;
+  claimBootstrapRequired?: boolean;
   activeDeviceCount: number;
   activeSessionCount: number;
   lastSeenAt: string | null;
@@ -154,6 +157,7 @@ export async function setAdminStudentStatus(
 export async function resetAdminStudentClaim(
   studentId: string,
   reason: string,
+  brand: "medway" | "elite" | "nexus",
 ) {
   const api = await requireApiClient();
   return unwrap<{
@@ -162,7 +166,26 @@ export async function resetAdminStudentClaim(
     setupExpiresAt: string;
   }>(
     api.POST("/v1/admin/students/{studentId}/claim/reset" as never, {
-      params: { path: { studentId } },
+      params: { path: { studentId }, query: { brand } },
+      headers: { "Idempotency-Key": key() },
+      body: { reason },
+    }),
+  );
+}
+
+export async function bootstrapAdminStudentClaim(
+  studentId: string,
+  reason: string,
+  brand: "medway" | "elite" | "nexus",
+) {
+  const api = await requireApiClient();
+  return unwrap<{
+    accountIdentifier: string;
+    setupCode: string;
+    setupExpiresAt: string;
+  }>(
+    api.POST("/v1/admin/students/{studentId}/claim/bootstrap" as never, {
+      params: { path: { studentId }, query: { brand } },
       headers: { "Idempotency-Key": key() },
       body: { reason },
     }),

@@ -12,5 +12,10 @@ export interface UpcomingProps {
   count?: number;
   items?: UpcomingItem[];
   onViewCalendar?: () => void;
+  actionPath?: string;
+  actionLabel?: string;
+  loading?: boolean;
+  errorMessage?: string;
+  emptyMessage?: string;
 }
 

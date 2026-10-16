@@ -18,6 +18,8 @@ import { useStudentSavedCourses, useToggleStudentSavedCourse } from "../../../fe
 
 interface RecommendedCoursesProps {
   courses?: readonly StudentCourseItem[];
+  loading?: boolean;
+  error?: boolean;
 }
 
 function canOpenCourse(course: StudentCourseItem) {
@@ -41,7 +43,7 @@ function orderedCourses(courses: readonly StudentCourseItem[]) {
   });
 }
 
-export function RecommendedCourses({ courses = [] }: RecommendedCoursesProps) {
+export function RecommendedCourses({ courses = [], loading = false, error = false }: RecommendedCoursesProps) {
   const navigate = useNavigate();
   const displayCourses = useMemoSafeCourses(courses).filter((course) => !canOpenCourse(course));
   const savedCoursesQuery = useStudentSavedCourses();
@@ -100,7 +102,7 @@ export function RecommendedCourses({ courses = [] }: RecommendedCoursesProps) {
       <ToastNotification message={toastMessage} />
       <header className="recommended-header">
         <h2 id="recommended-title">Recommended subjects</h2>
-        <button type="button" className="recommended-view-all cursor-pointer" onClick={() => navigate("/my-courses")}>
+        <button type="button" className="recommended-view-all cursor-pointer" onClick={() => navigate("/explore")}>
           <span>View all</span>
           <ArrowRight aria-hidden="true" />
         </button>
@@ -119,7 +121,10 @@ export function RecommendedCourses({ courses = [] }: RecommendedCoursesProps) {
         )}
 
         <div className="recommended-row" ref={rowRef} onScroll={checkScroll}>
-          {displayCourses.map((course) => {
+          {loading ? <p className="recommended-state" role="status">Loading recommended courses…</p> : null}
+          {!loading && error ? <p className="recommended-state" role="alert">Recommended courses could not be loaded.</p> : null}
+          {!loading && !error && displayCourses.length === 0 ? <p className="recommended-state" role="status">No recommended courses are available for your placement yet.</p> : null}
+          {!loading && !error && displayCourses.map((course) => {
             const isBookmarked = savedCoursesQuery.data?.some((savedCourse) => savedCourse.courseId === course.courseId) ?? false;
             const subtitle = `${course.academicInstitution.name} • ${course.academicLevel.title} • ${course.academicSemester.title}`;
             return (

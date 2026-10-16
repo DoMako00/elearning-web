@@ -167,7 +167,11 @@ export function ContentPage() {
       const apiChapter = structure?.chapters.find((candidate) => candidate.id === apiLesson?.courseChapterId);
       if (!apiCourse || !apiLesson || !apiChapter) throw new Error("The selected Lesson is no longer available.");
       const scope = { brand: apiBrand, course: apiCourse, chapter: apiChapter, lesson: apiLesson };
-      const resourceId = await createLessonResource(scope, title || file.name.replace(/\.[^.]+$/, ""), data.contentResources.filter((item) => item.lessonId === lesson.id).length, type === "PDF" ? "document" : "video");
+      const existingResources = await listLessonResources(apiBrand.id, apiCourse.id);
+      const nextSortOrder = existingResources
+        .filter((resource) => resource.courseLessonId === apiLesson.id)
+        .reduce((highest, resource) => Math.max(highest, resource.sortOrder), 0) + 1;
+      const resourceId = await createLessonResource(scope, title || file.name.replace(/\.[^.]+$/, ""), nextSortOrder, type === "PDF" ? "document" : "video");
       const inventory = await listLessonMedia(scope);
       const asset = await createMediaAsset(scope, resourceId, title || file.name.replace(/\.[^.]+$/, ""), file, videoDurationSeconds, maxCompletedViews);
       await uploadAndVerifyMedia(scope, asset, file, inventory.uploadPolicy);

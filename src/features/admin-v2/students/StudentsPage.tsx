@@ -45,6 +45,7 @@ import {
 } from "../data/adminV2.selectors";
 import { listBrandAccess, listInstitutions, type AcademicInstitution, type BrandAccess } from "../api/adminAcademicApi";
 import {
+  bootstrapAdminStudentClaim,
   createAdminStudent,
   getAdminStudent,
   resetAdminStudentClaim,
@@ -124,6 +125,8 @@ export function StudentsPage() {
     academicSemesterId: item.academicSemesterId,
     program: "",
     activeDeviceCount: item.activeDeviceCount,
+    claimStatus: item.claimStatus,
+    claimBootstrapRequired: item.claimBootstrapRequired,
     status:
       item.status === "suspended"
         ? "Suspended"
@@ -185,17 +188,17 @@ export function StudentsPage() {
   }, [remoteRows, selectedId, searchParams, loading]);
   useEffect(() => {
     let current = true;
-    const hasSelectedStudent = selectedId && remoteRows.some((item) => item.id === selectedId);
+    const selectedRow = remoteRows.find((item) => item.id === selectedId);
     setRemoteDetail(null);
     setDetailError("");
-    if (!hasSelectedStudent) { setDetailLoading(false); return () => { current = false; }; }
+    if (!selectedRow) { setDetailLoading(false); return () => { current = false; }; }
     setDetailLoading(true);
-    void getAdminStudent(selectedId, brand === "all" ? undefined : brand)
+    void getAdminStudent(selectedId, selectedRow.brand)
       .then((detail) => { if (current) setRemoteDetail(detail); })
       .catch((error: unknown) => { if (current) setDetailError(error instanceof Error ? error.message : "Student details could not be loaded."); })
       .finally(() => { if (current) setDetailLoading(false); });
     return () => { current = false; };
-  }, [selectedId, brand, remoteRows]);
+  }, [selectedId, remoteRows]);
   const data = useMemo(() => {
     const detail = remoteDetail?.id === selectedId ? remoteDetail : null;
     return {
@@ -381,16 +384,19 @@ export function StudentsPage() {
     setMutationPending(true);
     setNotice("");
     try {
-      const result = await resetAdminStudentClaim(
-        selected.id,
-        "Setup credential reset by an authorized Admin.",
-      );
+      const reason = selected.claimBootstrapRequired
+        ? "Initial setup credential issued by an authorized Admin."
+        : "Setup credential reset by an authorized Admin.";
+      const result = selected.claimBootstrapRequired
+        ? await bootstrapAdminStudentClaim(selected.id, reason, selected.brand)
+        : await resetAdminStudentClaim(selected.id, reason, selected.brand);
       setCreatedStudent({
         student: { ...selected, accountIdentifier: result.accountIdentifier },
         setupCode: result.setupCode,
         setupExpiresAt: result.setupExpiresAt,
       });
       setNotice("A new setup credential has been issued.");
+      await reload();
     } catch (error) {
       setNotice(
         error instanceof Error
@@ -801,12 +807,14 @@ export function StudentsPage() {
                           ? "Restore account"
                           : "Suspend account"}
                       </button>
-                      <button
-                        disabled={mutationPending}
-                        onClick={() => void resetClaim()}
-                      >
-                        <Copy size={14} /> Reset setup code
-                      </button>
+                      {(selected.claimBootstrapRequired || selected.claimStatus === "unclaimed" || selected.claimStatus === "setup_expired" || selected.claimStatus === "locked") && (
+                        <button
+                          disabled={mutationPending}
+                          onClick={() => void resetClaim()}
+                        >
+                          <Copy size={14} /> {selected.claimBootstrapRequired ? "Issue setup code" : "Reset setup code"}
+                        </button>
+                      )}
                       {import.meta.env.DEV && (
                         <button
                           title="Isolated demo data only; this is not the selected Student account."

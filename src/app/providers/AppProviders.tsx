@@ -1,7 +1,6 @@
 import type { PropsWithChildren } from "react";
 import { AuthProvider } from "./AuthProvider";
 import { BrandProvider } from "./BrandProvider";
-import { GamificationProvider } from "./GamificationProvider";
 import { QueryProvider } from "./QueryProvider";
 import { ThemeProvider } from "./ThemeProvider";
 
@@ -11,9 +10,7 @@ export function AppProviders({ children }: PropsWithChildren) {
       <ThemeProvider>
         <BrandProvider>
           <AuthProvider>
-            <GamificationProvider>
-              {children}
-            </GamificationProvider>
+            {children}
           </AuthProvider>
         </BrandProvider>
       </ThemeProvider>
