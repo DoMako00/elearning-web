@@ -51,7 +51,7 @@ export interface CourseLesson {
   deliverySettingsAvailable?: boolean;
 }
 export type ContentResourceType = "Video" | "PDF";
-export type ContentResourceStatus = "Draft" | "Published" | "Withdrawn";
+export type ContentResourceStatus = "Draft" | "Published" | "Withdrawn" | "Archived";
 export interface ContentResource {
   id: string; lessonId: string; type: ContentResourceType; title: string; description: string; fileName: string;
   fileSize: number; mimeType: string; durationSeconds?: number; pageCount?: number; status: ContentResourceStatus;

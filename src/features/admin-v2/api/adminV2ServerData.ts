@@ -106,12 +106,12 @@ async function persistStructure(before:AdminV2Data,after:AdminV2Data){
     for(const item of updated){
       const prior=old.get(item.id),course=courses.get(item.courseId);if(!course||!course.brandId)throw new Error("The course scope is unavailable; reload the course before editing its structure.");
       const isChapter=entity==="chapters";
-      const fields={...(isChapter?{}:{courseChapterId:(item as CourseLesson).chapterId}),title:item.title,sortOrder:item.order,status:isChapter?(item.status==="Archived"?"archived":(item as CourseChapter).backendStatus??"draft"):item.status.toLowerCase()};
+      const fields={...(isChapter?{}:{courseChapterId:(item as CourseLesson).chapterId,description:(item as CourseLesson).description.trim()||null}),title:item.title,sortOrder:item.order,status:isChapter?(item.status==="Archived"?"archived":(item as CourseChapter).backendStatus??"draft"):item.status.toLowerCase()};
       if(!prior){await writeStructure(course.brandId,course.id,entity,undefined,{...fields,reason});continue;}
       const priorCourse=courses.get(prior.courseId);if(!priorCourse?.brandId)throw new Error("The course scope is unavailable; reload the course before editing its structure.");
-      const changed=prior.title!==item.title||prior.order!==item.order||prior.status!==item.status||(entity==="lessons"&&(prior as CourseLesson).chapterId!==(item as CourseLesson).chapterId);
-      const unsupported=entity==="lessons"&&((prior as CourseLesson).description!==(item as CourseLesson).description||(prior as CourseLesson).releaseMode!==(item as CourseLesson).releaseMode||(prior as CourseLesson).releaseAt!==(item as CourseLesson).releaseAt||(prior as CourseLesson).visibility!==(item as CourseLesson).visibility);
-      if(unsupported)throw new Error("Lesson description and release/visibility settings are not part of the current Course Builder API; no local change was saved.");
+      const changed=prior.title!==item.title||prior.order!==item.order||prior.status!==item.status||(entity==="lessons"&&((prior as CourseLesson).chapterId!==(item as CourseLesson).chapterId||(prior as CourseLesson).description!==(item as CourseLesson).description));
+      const unsupported=entity==="lessons"&&((prior as CourseLesson).releaseMode!==(item as CourseLesson).releaseMode||(prior as CourseLesson).releaseAt!==(item as CourseLesson).releaseAt||(prior as CourseLesson).visibility!==(item as CourseLesson).visibility);
+      if(unsupported)throw new Error("Lesson release/visibility settings are not part of the current Course Builder API; no local change was saved.");
       if(changed)await writeStructure(course.brandId,course.id,entity,item.id,{...fields,expectedVersion:item.version??prior.version??1,reason});
     }
     for(const prior of previous)if(!next.has(prior.id))throw new Error("Course structure is archived, not deleted. Archive the item to preserve teaching history.");

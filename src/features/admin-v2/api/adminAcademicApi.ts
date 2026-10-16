@@ -10,7 +10,7 @@ export interface BrandCourse { id: string; brandId: string; code: string; title:
 export interface Instructor { id: string; code: string; instructorCode?:string; displayName: string; status: "active"|"inactive"|"archived"; publicEmail: string|null; specialties: string[]; version: number; createdAt?:string; updatedAt?:string; }
 export interface InstructorBrand { id:string;brandId:string;instructorId:string;status:"active"|"inactive";version:number;createdAt?:string;updatedAt?:string; }
 export interface CourseInstructor { id:string;brandId:string;courseId:string;instructorId:string;status:"active"|"inactive";version:number;displayName?:string; }
-export interface StructureItem { id: string; brandCourseId:string; title: string; sortOrder: number; status: "draft"|"published"|"archived"; version: number; courseChapterId?: string; createdAt?:string;updatedAt?:string; }
+export interface StructureItem { id: string; brandCourseId:string; title: string; description?: string | null; sortOrder: number; status: "draft"|"published"|"archived"; version: number; courseChapterId?: string; createdAt?:string;updatedAt?:string; }
 export type StructureEntity = "chapters" | "lessons";
 export interface StructureWriteBody {
   reason: string;
@@ -19,6 +19,7 @@ export interface StructureWriteBody {
   sortOrder?: number;
   status?: StructureItem["status"];
   courseChapterId?: string;
+  description?: string | null;
 }
 export interface StructureCommandResult {
   brandId: string;

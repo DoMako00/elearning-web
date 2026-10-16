@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, BookOpen, ChevronDown, ChevronRight, FileText, FolderPlus, Layers3, Plus, RotateCcw, X } from "lucide-react";
+import { Archive, ArrowLeft, ArrowRight, BookOpen, ChevronDown, ChevronRight, FileText, FolderPlus, Layers3, MoreHorizontal, Pencil, Plus, RotateCcw, X } from "lucide-react";
 import { AdminV2DomainStatus, useAdminV2 } from "../layout/AdminV2Layout";
 import { createStructureRecord, listStructure, updateStructureRecord, type StructureEntity, type StructureItem, type StructureWriteBody } from "../api/adminAcademicApi";
 import { ConfirmDialog, FormField, StatusBadge } from "../shared/AdminV2Primitives";
@@ -27,14 +27,17 @@ export function CourseBuilderPage() {
   const allCourseLessons = useMemo(() => data.lessons.filter((item) => item.courseId === courseId), [data.lessons, courseId]);
   const [activeChapterId, setActiveChapterId] = useState("");
   const [activeLessonId, setActiveLessonId] = useState("");
+  const [openNodeActions, setOpenNodeActions] = useState("");
   const [confirm, setConfirm] = useState<ArchiveTarget | null>(null);
   const [saving, setSaving] = useState(false);
   const [mutationError, setMutationError] = useState("");
   const [mutationNotice, setMutationNotice] = useState("");
   const pendingKeys = useRef(new Map<string, string>());
-  const chapter = chapters.find((item) => item.id === activeChapterId) ?? chapters[0];
+  const selectedChapter = chapters.find((item) => item.id === activeChapterId);
+  const chapter = selectedChapter ?? chapters[0];
   const lessons = allCourseLessons.filter((item) => item.chapterId === chapter?.id && item.status !== "Archived").sort((a, b) => a.order - b.order);
-  const lesson = allCourseLessons.find((item) => item.id === activeLessonId && item.status !== "Archived") ?? lessons[0];
+  const selectedLesson = allCourseLessons.find((item) => item.id === activeLessonId && item.status !== "Archived" && item.chapterId === chapter?.id);
+  const lesson = selectedLesson ?? (selectedChapter && !activeLessonId ? undefined : lessons[0]);
   const archivedChapters = allCourseChapters.filter((item) => item.status === "Archived").sort((a, b) => a.order - b.order);
   const archivedLessons = allCourseLessons.filter((item) => item.status === "Archived").sort((a, b) => a.order - b.order);
   const totalLessons = allCourseLessons.filter((item) => item.status !== "Archived").length;
@@ -45,6 +48,9 @@ export function CourseBuilderPage() {
     return key;
   };
   const completeCommandKey = (signature: string) => pendingKeys.current.delete(signature);
+  const selectChapter = (id: string) => { setActiveChapterId(id); setActiveLessonId(""); setOpenNodeActions(""); };
+  const selectLesson = (item: CourseLesson) => { setActiveChapterId(item.chapterId); setActiveLessonId(item.id); setOpenNodeActions(""); };
+  const requestArchive = (kind: StructureEntity, id: string) => { setConfirm({ kind, id }); setOpenNodeActions(""); };
 
   const brandId = () => {
     if (!course?.brandId) throw new Error("This Course is missing its persisted Brand scope. Reload the catalogue before editing it.");
@@ -127,6 +133,7 @@ export function CourseBuilderPage() {
     const title = String(form.get("title") ?? "").trim();
     const nextChapterId = String(form.get("chapterId") ?? lesson.chapterId);
     const status = toBackendStatus(String(form.get("status") ?? lesson.status));
+    const description = String(form.get("description") ?? "").trim();
     if (!title) { setMutationError("Lesson title is required."); return; }
     if (!chapters.some((item) => item.id === nextChapterId)) { setMutationError("Select an active chapter in this Brand Course."); return; }
     void runMutation(async () => {
@@ -134,9 +141,9 @@ export function CourseBuilderPage() {
       const current = getCurrentRow(snapshot.lessons, lesson.id, "lessons");
       const moved = current.courseChapterId !== nextChapterId;
       const sortOrder = moved ? Math.max(0, ...snapshot.lessons.filter((item) => item.courseChapterId === nextChapterId).map((item) => item.sortOrder)) + 1 : current.sortOrder;
-      const body: StructureWriteBody = { title, courseChapterId: nextChapterId, status, ...(moved ? { sortOrder } : {}), expectedVersion: current.version, reason: "Admin V2 Course Builder: update lesson metadata" };
+      const body: StructureWriteBody = { title, description: description || null, courseChapterId: nextChapterId, status, ...(moved ? { sortOrder } : {}), expectedVersion: current.version, reason: "Admin V2 Course Builder: update lesson metadata" };
       const result = await writeUpdate("lessons", lesson.id, body);
-      const row = await reconciledRow("lessons", lesson.id, (item) => item.title === title && (item as CourseLesson).chapterId === nextChapterId && item.status === (status === "archived" ? "Archived" : status === "published" ? "Published" : "Draft") && item.version === result.updated.version);
+      const row = await reconciledRow("lessons", lesson.id, (item) => item.title === title && (item as CourseLesson).description === description && (item as CourseLesson).chapterId === nextChapterId && item.status === (status === "archived" ? "Archived" : status === "published" ? "Published" : "Draft") && item.version === result.updated.version);
       completeCommandKey(result.keySignature);
       setActiveChapterId(nextChapterId);
       return `Lesson saved at server version ${row.version}.`;
@@ -230,7 +237,8 @@ export function CourseBuilderPage() {
     const row = await reconciledRow(entity, id, (item) => item.status === "Active" || item.status === "Draft");
     if (row.version !== result.updated.version) throw new Error("The restored item version did not match the server response.");
     completeCommandKey(result.keySignature);
-    if (entity === "chapters") setActiveChapterId(id); else setActiveLessonId(id);
+    if (entity === "chapters") { setActiveChapterId(id); setActiveLessonId(""); }
+    else { setActiveChapterId(current.courseChapterId ?? ""); setActiveLessonId(id); }
     return `${entity === "lessons" ? "Lesson" : "Chapter"} restored as draft and confirmed by the server.`;
   });
 
@@ -250,8 +258,27 @@ export function CourseBuilderPage() {
             const children = allCourseLessons.filter((entry) => entry.chapterId === item.id && entry.status !== "Archived").sort((a, b) => a.order - b.order);
             const open = item.id === (chapter?.id ?? "");
             return <div className={`v2-tree-chapter${open ? " is-active" : ""}`} key={item.id}>
-              <button className="v2-tree-chapter__label" aria-expanded={open} title={`Select ${item.title}`} onClick={() => { setActiveChapterId(item.id); setActiveLessonId(""); }}><ChevronDown size={14} /><Layers3 size={15} /><span>{item.title}<small>{children.length} lessons</small></span></button>
-              {open && <div className="v2-tree-lessons">{children.map((child) => <button key={child.id} title={`Select ${child.title}`} aria-pressed={lesson?.id === child.id} className={`v2-tree-lesson${lesson?.id === child.id ? " is-selected" : ""}`} onClick={() => setActiveLessonId(child.id)}><FileText size={14} /><span>{child.title}</span><i className={child.status === "Published" ? "is-published" : ""} /></button>)}<button className="v2-tree-add" onClick={() => createLesson(item.id)} disabled={saving}><Plus size={13} /> Add lesson</button></div>}
+              <div className="v2-tree-node-row">
+                <button className="v2-tree-chapter__label" aria-expanded={open} title={`Select ${item.title} to edit chapter details`} onClick={() => selectChapter(item.id)}><ChevronDown size={14} /><Layers3 size={15} /><span>{item.title}<small>{children.length} lessons</small></span></button>
+                <div className="v2-tree-node-actions">
+                  <button type="button" className="v2-tree-node-actions__trigger" aria-label={`Actions for chapter ${item.title}`} aria-controls={`chapter-actions-${item.id}`} aria-expanded={openNodeActions === `chapters:${item.id}`} onClick={() => setOpenNodeActions((current) => current === `chapters:${item.id}` ? "" : `chapters:${item.id}`)}><MoreHorizontal size={16} /></button>
+                  {openNodeActions === `chapters:${item.id}` && <div id={`chapter-actions-${item.id}`} className="v2-tree-node-actions__menu" aria-label={`Chapter actions for ${item.title}`}>
+                    <button type="button" onClick={() => selectChapter(item.id)}><Pencil size={13} />Edit chapter</button>
+                    <button type="button" className="is-danger" disabled={saving || children.length > 0} title={children.length ? "Archive the active lessons first; history will be retained." : "Remove this chapter from the active course; it can be restored."} onClick={() => requestArchive("chapters", item.id)}><Archive size={13} />Archive chapter</button>
+                    {children.length > 0 && <small>Archive the active lessons first. Their history is preserved.</small>}
+                  </div>}
+                </div>
+              </div>
+              {open && <div className="v2-tree-lessons">{children.map((child) => <div className="v2-tree-node-row v2-tree-node-row--lesson" key={child.id}>
+                <button title={`Select ${child.title} to edit lesson details`} aria-pressed={lesson?.id === child.id} className={`v2-tree-lesson${lesson?.id === child.id ? " is-selected" : ""}`} onClick={() => selectLesson(child)}><FileText size={14} /><span>{child.title}</span><i className={child.status === "Published" ? "is-published" : ""} /></button>
+                <div className="v2-tree-node-actions">
+                  <button type="button" className="v2-tree-node-actions__trigger" aria-label={`Actions for lesson ${child.title}`} aria-controls={`lesson-actions-${child.id}`} aria-expanded={openNodeActions === `lessons:${child.id}`} onClick={() => setOpenNodeActions((current) => current === `lessons:${child.id}` ? "" : `lessons:${child.id}`)}><MoreHorizontal size={16} /></button>
+                  {openNodeActions === `lessons:${child.id}` && <div id={`lesson-actions-${child.id}`} className="v2-tree-node-actions__menu" aria-label={`Lesson actions for ${child.title}`}>
+                    <button type="button" onClick={() => selectLesson(child)}><Pencil size={13} />Edit lesson</button>
+                    <button type="button" className="is-danger" disabled={saving} title="Remove this lesson from the active course; resources and progress history are retained." onClick={() => requestArchive("lessons", child.id)}><Archive size={13} />Archive lesson</button>
+                  </div>}
+                </div>
+              </div>)}<button className="v2-tree-add" onClick={() => createLesson(item.id)} disabled={saving}><Plus size={13} /> Add lesson</button></div>}
             </div>;
           })}
           {!chapters.length && <div className="v2-empty"><Layers3 size={21} /><strong>No active course structure</strong><span>Add a chapter, or restore one from the archived records below.</span></div>}
@@ -266,7 +293,7 @@ export function CourseBuilderPage() {
           <nav className="v2-editor-breadcrumb" aria-label="Course structure"><span>{course.title}</span><ChevronRight size={13} /><span>{chapter?.title}</span><ChevronRight size={13} /><strong>{lesson.title}</strong></nav>
           <header className="v2-editor-header"><div><span className="v2-overline">SELECTED LESSON</span><h2>{lesson.title}</h2></div><StatusBadge status={lesson.status} /></header>
           <div className="v2-editor-fields">
-            <section className="v2-editor-group"><h3>BASIC INFORMATION</h3><div className="v2-editor-group__fields"><FormField label="Lesson title" wide><input name="title" required defaultValue={lesson.title} key={lesson.id + lesson.title} /></FormField><FormField label="Description · unavailable" wide><textarea rows={4} value="" readOnly placeholder="Description editing is not available in the current backend contract." aria-label="Description editing is not available in the current backend contract" /></FormField></div></section>
+            <section className="v2-editor-group"><h3>BASIC INFORMATION</h3><div className="v2-editor-group__fields"><FormField label="Lesson title" wide><input name="title" required defaultValue={lesson.title} key={lesson.id + lesson.title} /></FormField><FormField label="Lesson description" wide><textarea name="description" rows={4} maxLength={2000} defaultValue={lesson.description} key={lesson.id + lesson.description} placeholder="Write a concise lesson summary." /></FormField></div></section>
             <section className="v2-editor-group"><h3>ORDER / STRUCTURE</h3><div className="v2-editor-group__fields"><FormField label="Chapter" wide><select name="chapterId" defaultValue={lesson.chapterId} key={lesson.id + lesson.chapterId}>{chapters.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></FormField></div></section>
             <section className="v2-editor-group"><h3>PUBLISHING</h3><div className="v2-editor-group__fields"><FormField label="Lesson status"><select name="status" defaultValue={lesson.status.toLowerCase()} key={lesson.id + lesson.status}><option value="draft">Draft</option><option value="published">Published</option></select></FormField><FormField label="Visibility"><select disabled defaultValue="unavailable"><option value="unavailable">Unavailable in current API</option></select></FormField><FormField label="Release mode"><select disabled defaultValue="unavailable"><option value="unavailable">Unavailable in current API</option></select></FormField><FormField label="Release date"><input type="date" disabled value="" readOnly /></FormField></div></section>
           </div>
@@ -275,7 +302,7 @@ export function CourseBuilderPage() {
         </form> : chapter ? <form className="v2-editor-form" onSubmit={saveChapter}>
           <header><div><span className="v2-overline">CHAPTER {chapter.order}</span><h2>Chapter details</h2></div></header>
           <div className="v2-editor-fields"><FormField label="Chapter title" wide><input name="title" required defaultValue={chapter.title} key={chapter.id + chapter.title} /></FormField><p className="v2-editor-note">{lessons.length ? "Lessons in this chapter appear in Course Builder and Content. Video and PDF resources are managed in Content." : "No lessons in this chapter yet. Add one from the structure tree."}</p></div>
-          <footer className="v2-editor-footer"><button type="button" className="admin-v2__button is-danger" onClick={() => setConfirm({ kind: "chapters", id: chapter.id })} disabled={saving}><X size={14} /> Archive chapter</button><button type="submit" className="admin-v2__button is-primary" disabled={saving || chapter.version === undefined}>{saving ? "Saving…" : "Save chapter"}</button></footer>
+          <footer className="v2-editor-footer"><button type="button" className="admin-v2__button is-danger" onClick={() => setConfirm({ kind: "chapters", id: chapter.id })} disabled={saving || lessons.length > 0} title={lessons.length ? "Archive the active lessons first; chapter history will be retained." : "Archive this chapter while preserving its history."}><X size={14} /> Archive chapter</button><button type="submit" className="admin-v2__button is-primary" disabled={saving || chapter.version === undefined}>{saving ? "Saving…" : "Save chapter"}</button></footer>
         </form> : <div className="v2-empty"><FileText size={21} /><strong>Select a lesson</strong><span>Choose a lesson from the structure tree.</span></div>}
       </section>
       <aside className="v2-phase-panel v2-builder-inspector">

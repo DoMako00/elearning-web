@@ -4,25 +4,19 @@ import {
   Bookmark,
   CheckCircle2,
   ChevronDown,
-  ChevronRight,
+  ClipboardCheck,
   CirclePlay,
-  Clock3,
-  Gauge,
   LayoutGrid,
   MessageSquareText,
   Paperclip,
   Play,
-  ShieldCheck,
-  Sparkles,
   StickyNote,
   FolderOpen,
 } from "lucide-react";
 import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../../app/providers/AuthProvider";
-import heroBackground from "../../../Assets/dashboard/my-courses-hero-background.webp";
-import anatomyOverlay from "../../../Assets/dashboard/my-courses-anatomy-overlay.webp";
 import { Skeleton, SkeletonText, SkeletonAvatar } from "../../../components/ui/Skeleton";
 import { CourseDiscussionPanel } from "../../../components/learning-space/CourseDiscussionPanel";
 import { CourseResourcesPanel } from "../../../components/learning-space/CourseResourcesPanel";
@@ -33,7 +27,6 @@ import {
 } from "../../../components/learning-space/LearningSpaceRails";
 import { LearningNotesPanel } from "../../../components/learning-space/LearningNotesPanel";
 import { mapCourseModules, mapCourseResources } from "../../../components/learning-space/learningSpaceMappers";
-import type { LearningSpaceResource } from "../../../components/learning-space/learningSpaceMappers";
 import { studentInstructorApi } from "../api/studentInstructorApi";
 import {
   getStudentCourse,
@@ -43,6 +36,9 @@ import {
 import { useStudentProgress, useStudentSavedCourses, useToggleStudentSavedCourse } from "../api/useStudentLearning";
 import "../../../components/learning-space/learningSpace.css";
 import "./CourseOverviewPage.css";
+import "./CourseDetail.css";
+import { courseArtwork } from "../components/HomeDashboard/HomeDashboard";
+import { useStudentAssignments } from "../api/useStudentAssignments";
 
 const TABS = [
   { id: "overview", label: "Overview", icon: LayoutGrid },
@@ -52,23 +48,6 @@ const TABS = [
 ] as const;
 
 type CourseTabId = (typeof TABS)[number]["id"];
-
-interface LessonView {
-  id: string;
-  number: number;
-  title: string;
-  mediaStatus: string;
-  ready: boolean;
-  complete: boolean;
-}
-
-interface CourseModuleView {
-  id: string;
-  number: number;
-  title: string;
-  lessonCount: number;
-  lessons: LessonView[];
-}
 
 export interface CourseOverviewPageProps {
   onStartLesson?: (lessonId: string) => void;
@@ -87,74 +66,26 @@ function InstructorPortrait() {
   );
 }
 
-function AnatomyHeroArt() {
-  return (
-    <div className="course-overview-hero__art" aria-hidden="true">
-      <img src={heroBackground} alt="" className="course-overview-hero__art-bg" />
-      <img src={anatomyOverlay} alt="" className="course-overview-hero__art-anatomy" />
-    </div>
-  );
-}
-
-function MaterialsGrid({ resources, onOpen }: { resources: readonly LearningSpaceResource[]; onOpen: (lessonId: string) => void }) {
-  if (resources.length === 0) {
-    return <div className="course-overview-materials__empty"><FolderOpen aria-hidden="true" /><p>No published lesson resources are available.</p></div>;
-  }
-  return (
-    <div className="course-overview-materials__grid">
-      {resources.slice(0, 3).map((resource) => (
-        <button key={resource.id} type="button" className={`course-overview-material course-overview-material--${resource.extension}`} disabled={!resource.available} onClick={() => onOpen(resource.lessonId)}>
-          <span className="course-overview-material__icon"><FolderOpen aria-hidden="true" /><small>{resource.extension}</small></span>
-          <span className="course-overview-material__copy"><strong>{resource.title}</strong><small>{resource.chapterTitle}</small></span>
-          <ArrowRight aria-hidden="true" />
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function MaterialsCard({ className = "", hidden = false, resources, onOpen, onViewAll }: { className?: string; hidden?: boolean; resources: readonly LearningSpaceResource[]; onOpen: (lessonId: string) => void; onViewAll: () => void }) {
-  return (
-    <article className={`course-overview-card course-overview-materials${className ? ` ${className}` : ""}`} hidden={hidden}>
-      <header>
-        <h2>Published resources</h2>
-        <button type="button" onClick={onViewAll}>View all resources <ArrowRight aria-hidden="true" /></button>
-      </header>
-      <MaterialsGrid resources={resources} onOpen={onOpen} />
-    </article>
-  );
-}
-
 function toLessonLabel(lesson: StudentLessonItem) {
   if (lesson.mediaStatus === "pending_media") return "Pending media";
   if (lesson.mediaStatus === "ready") return "Ready soon";
   return "No media";
 }
 
-function toCourseModules(course: StudentCourseDetail): CourseModuleView[] {
-  return course.chapters.map((chapter, chapterIndex) => ({
-    id: chapter.chapterId,
-    number: chapterIndex + 1,
-    title: chapter.title,
-    lessonCount: chapter.lessons.length,
-    lessons: chapter.lessons.map((lesson, lessonIndex) => ({
-      id: lesson.lessonId,
-      number: lessonIndex + 1,
-      title: lesson.title,
-      mediaStatus: toLessonLabel(lesson),
-      ready: lesson.playbackAvailable,
-      complete: lesson.progressStatus === "completed",
-    })),
-  }));
-}
-
 function FeedbackState({ message, tone = "neutral" }: { message: string; tone?: "neutral" | "error" }) {
+  const notFound = /not found/i.test(message);
   return (
-    <section className="course-overview-page" aria-labelledby="course-overview-title">
-      <div className={`course-overview-panel--message${tone === "error" ? " dashboard-feedback--error" : ""}`} role={tone === "error" ? "alert" : "status"}>
-        <BookOpen aria-hidden="true" />
-        <h2 id="course-overview-title">Course overview</h2>
-        <p>{message}</p>
+    <section className="route-notice-page" aria-labelledby="course-overview-title">
+      <div className={`route-notice${tone === "error" ? " route-notice--error" : ""}`} role={tone === "error" ? "alert" : "status"}>
+        <span className="route-notice__icon" aria-hidden="true"><BookOpen /></span>
+        <div className="route-notice__copy">
+          <h2 id="course-overview-title">{notFound ? "This subject isn't open yet" : "We couldn't open this subject"}</h2>
+          <p>{notFound ? "Its lessons haven't been published for your account. Your enrollment isn't affected." : message}</p>
+        </div>
+        <div className="route-notice__actions">
+          <Link to="/my-courses" className="route-notice__btn route-notice__btn--primary">Back to My Courses</Link>
+          {tone === "error" && !notFound ? <button type="button" className="route-notice__btn" onClick={() => window.location.reload()}>Try again</button> : <Link to="/help" className="route-notice__btn">Get help</Link>}
+        </div>
       </div>
     </section>
   );
@@ -237,6 +168,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
   const savedCoursesQuery = useStudentSavedCourses();
   const toggleSavedCourse = useToggleStudentSavedCourse();
   const instructorQuery = useQuery({ queryKey: ["student", "instructors"], queryFn: ({ signal }) => studentInstructorApi.list(signal), enabled: auth.status === "authenticated" });
+  const assignmentsQuery = useStudentAssignments();
   const isBookmarked = savedCoursesQuery.data?.some((item) => item.courseId === courseId) ?? false;
   const courseProgress = progressQuery.data?.courses.find((item) => item.courseId === courseId);
   const progressPercent = progressQuery.isSuccess ? (courseProgress?.completionPercent ?? 0) : null;
@@ -256,7 +188,9 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
         if (controller.signal.aborted) return;
         setCourse(nextCourse);
         setLessons(nextCourse.chapters.flatMap((chapter) => chapter.lessons));
-        setExpandedModuleId(nextCourse.chapters[0]?.chapterId ?? null);
+        const resumeLesson = nextCourse.chapters.flatMap((chapter) => chapter.lessons)
+          .find((lesson) => lesson.progressStatus !== "completed" && lesson.playbackAvailable);
+        setExpandedModuleId(resumeLesson?.chapterId ?? nextCourse.chapters[0]?.chapterId ?? null);
       })
       .catch((nextError: unknown) => {
         if (controller.signal.aborted) return;
@@ -270,7 +204,6 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
     return () => controller.abort();
   }, [courseId]);
 
-  const courseModules = useMemo(() => course ? toCourseModules(course) : [], [course]);
   const learningSpaceModules = useMemo(() => course ? mapCourseModules(course) : [], [course]);
   const learningSpaceResources = useMemo(() => course ? mapCourseResources(course) : [], [course]);
   const firstLesson = lessons[0] ?? course?.chapters[0]?.lessons[0] ?? null;
@@ -305,188 +238,232 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
   if (error) return <FeedbackState message={error} tone="error" />;
   if (!course) return <FeedbackState message="This course is not available for this student." />;
 
-  const canStartLesson = Boolean(firstLesson?.playbackAvailable);
+  const allLessons = course.chapters.flatMap((chapter) => chapter.lessons);
+  const completedCount = allLessons.filter((lesson) => lesson.progressStatus === "completed").length;
+  const nextLesson = allLessons.find((lesson) => lesson.progressStatus === "in_progress" && lesson.playbackAvailable)
+    ?? allLessons.find((lesson) => lesson.progressStatus !== "completed" && lesson.playbackAvailable)
+    ?? allLessons.find((lesson) => lesson.playbackAvailable)
+    ?? null;
+  const nextChapterIndex = nextLesson ? course.chapters.findIndex((chapter) => chapter.chapterId === nextLesson.chapterId) : -1;
+  const hasStarted = allLessons.some((lesson) => lesson.progressStatus !== "not_started");
+  const percent = progressPercent === null ? Math.round(totalLessons ? (completedCount / totalLessons) * 100 : 0) : Math.round(progressPercent);
+  const courseAssignments = (assignmentsQuery.data ?? []).filter((item) => item.courseId === courseId);
+  const lessonStatusLabel = (lesson: StudentLessonItem) => lesson.progressStatus === "completed" ? "Completed"
+    : lesson.progressStatus === "in_progress" ? "In progress"
+      : lesson.playbackAvailable ? (lesson.resourceType === "pdf" ? "Reading" : "Ready") : toLessonLabel(lesson);
+
+  const tabList = (
+    <div className="course-overview-tabs cd-tabs" role="tablist" aria-label="Course sections">
+      {TABS.map(({ id, label, icon: Icon }, index) => (
+        <button
+          type="button"
+          role="tab"
+          id={`course-overview-tab-${id}`}
+          aria-selected={activeTab === id}
+          aria-controls={`course-overview-panel-${id}`}
+          tabIndex={activeTab === id ? 0 : -1}
+          className={activeTab === id ? "is-active" : ""}
+          key={id}
+          onClick={() => setActiveTab(id)}
+          onKeyDown={(event) => handleTabKeyDown(event, index)}
+        >
+          <Icon aria-hidden="true" /> {label}
+        </button>
+      ))}
+    </div>
+  );
 
   return (
-    <section className="course-overview-page" aria-labelledby="course-overview-title">
-      <div className="course-overview-layout">
-        <div className={`course-overview-primary${activeTab === "overview" ? "" : " is-tab-expanded"}`}>
+    <section className={`course-overview-page cd-page${activeTab === "overview" ? " cd-page--overview" : ""}`} aria-labelledby="cd-title">
+      <header className={`cd-hero${activeTab === "overview" ? "" : " cd-hero--compact"}`}>
+        <img className="cd-hero__art" src={courseArtwork(course)} alt="" aria-hidden="true" />
+        <div className="cd-hero__body">
+          <div className="cd-hero__meta">
+            <span className="cd-chip"><CirclePlay aria-hidden="true" />{course.unitLabel}</span>
+            <span>{course.academicInstitution.name} · {course.academicLevel.title} · {course.academicSemester.title}</span>
+          </div>
+          <h2 id="cd-title">{course.title}</h2>
           {activeTab === "overview" ? (
-            <article className="course-overview-hero" aria-labelledby="course-overview-title">
-              <AnatomyHeroArt />
-              <div className="course-overview-hero__content">
-                <div className="course-overview-hero__intro">
-                  <span className="course-overview-hero__status">
-                    <CirclePlay aria-hidden="true" />
-                    {course.unitLabel} • {totalLessons} lessons
-                  </span>
-                  <h2 id="course-overview-title">{course.title}</h2>
-                  <p className="course-overview-hero__context">
-                    <span>{course.academicInstitution.name}</span>
-                    <i aria-hidden="true" />
-                    <span>{course.academicLevel.title}</span>
-                    <i aria-hidden="true" />
-                    <span>{course.academicSemester.title}</span>
-                  </p>
-                  <span className="course-overview-hero__divider" aria-hidden="true" />
-                </div>
-                <div className="course-overview-hero__footer">
-                  <div className="course-overview-hero__instructor">
-                    <InstructorPortrait />
-                    <span><strong>{assignedInstructor?.displayName ?? "No instructor assigned"}</strong><small>{assignedInstructor ? "Assigned instructor" : "Instructor directory"}</small></span>
-                  </div>
-                  <span className="course-overview-hero__divider" aria-hidden="true" />
-                </div>
-              </div>
-              <div className="course-overview-hero__actions">
-                <button
-                  type="button"
-                  className="course-overview-hero__bookmark"
-                  aria-label={isBookmarked ? "Remove course bookmark" : "Bookmark course"}
-                  aria-pressed={isBookmarked}
-                  onClick={toggleBookmark}
-                  disabled={savedCoursesQuery.isLoading || toggleSavedCourse.isPending}
-                >
-                  <Bookmark aria-hidden="true" fill={isBookmarked ? "currentColor" : "none"} />
-                </button>
-                <button type="button" className="course-overview-hero__start" disabled={!canStartLesson} onClick={() => firstLesson && startLesson(firstLesson.lessonId)}>
-                  {canStartLesson ? "Continue Lesson" : "Media coming soon"} <ArrowRight aria-hidden="true" />
-                </button>
-                {savedCoursesQuery.isError || toggleSavedCourse.isError ? <p role="alert">Saved courses could not be updated. Please retry.</p> : null}
-              </div>
-              <dl className="course-overview-hero__meta">
-                <div><Clock3 aria-hidden="true" /><span><dt>Media</dt><dd>{course.mediaSummary.lessonsWithMedia}/{totalLessons} ready</dd></span></div>
-                <div><Gauge aria-hidden="true" /><span><dt>Level</dt><dd>{course.academicLevel.title}</dd></span></div>
-                <div><Sparkles aria-hidden="true" /><span><dt>Unit</dt><dd>{course.unitLabel}</dd></span></div>
-              </dl>
-            </article>
+            <p className="cd-hero__instructor">
+              <InstructorPortrait />
+              <span><strong>{assignedInstructor?.displayName ?? "No instructor assigned yet"}</strong><small>{assignedInstructor ? "Instructor" : "Instructor details appear once assigned"}</small></span>
+            </p>
           ) : null}
+        </div>
+        <dl className="cd-hero__stats">
+          <div><dt>Progress</dt><dd>{progressQuery.isLoading ? "—" : `${percent}%`}</dd></div>
+          <div><dt>Chapters</dt><dd>{course.chapterCount}</dd></div>
+          <div><dt>Lessons</dt><dd>{totalLessons}</dd></div>
+          <div><dt>With media</dt><dd>{course.mediaSummary.lessonsWithMedia}</dd></div>
+        </dl>
+        <div className="cd-hero__actions">
+          <button type="button" className="cd-btn cd-btn--hero" disabled={!nextLesson} onClick={() => nextLesson && startLesson(nextLesson.lessonId)}>
+            <Play aria-hidden="true" />
+            {nextLesson ? (hasStarted ? "Resume lesson" : "Start first lesson") : "Lessons coming soon"}
+          </button>
+          <button
+            type="button"
+            className={`cd-icon-btn${isBookmarked ? " is-saved" : ""}`}
+            aria-label={isBookmarked ? "Remove course from saved" : "Save course"}
+            aria-pressed={isBookmarked}
+            onClick={toggleBookmark}
+            disabled={savedCoursesQuery.isLoading || toggleSavedCourse.isPending}
+          >
+            <Bookmark aria-hidden="true" fill={isBookmarked ? "currentColor" : "none"} />
+          </button>
+        </div>
+        {savedCoursesQuery.isError || toggleSavedCourse.isError ? <p className="cd-hero__error" role="alert">Saved courses couldn&apos;t be updated. Try again.</p> : null}
+      </header>
 
-          <div className="course-overview-tabs" role="tablist" aria-label="Course sections">
-            {TABS.map(({ id, label, icon: Icon }, index) => (
-              <button
-                type="button"
-                role="tab"
-                id={`course-overview-tab-${id}`}
-                aria-selected={activeTab === id}
-                aria-controls={`course-overview-panel-${id}`}
-                tabIndex={activeTab === id ? 0 : -1}
-                className={activeTab === id ? "is-active" : ""}
-                key={id}
-                onClick={() => setActiveTab(id)}
-                onKeyDown={(event) => handleTabKeyDown(event, index)}
-              >
-                <Icon aria-hidden="true" /> {label}
-              </button>
-            ))}
-          </div>
+      {tabList}
 
-          <div className="course-overview-panel course-overview-panel--overview" role="tabpanel" id="course-overview-panel-overview" aria-labelledby="course-overview-tab-overview" hidden={activeTab !== "overview"}>
-            <div className="course-overview-info-row">
-              <article className="course-overview-card course-overview-about">
-                <h2>About this {course.unitLabel.toLowerCase()}</h2>
-                <p>{course.title} is published for {course.brand.name} students in {course.academicInstitution.name} {course.academicLevel.title}, {course.academicSemester.title}.</p>
-                <dl>
-                  <div><Sparkles aria-hidden="true" /><span><dt>Presentation</dt><dd>{course.cataloguePresentation === "subject_based" ? "Subject based" : "Module based"}</dd></span></div>
-                  <div><LayoutGrid aria-hidden="true" /><span><dt>Includes</dt><dd>{course.chapterCount} chapters, {totalLessons} lessons</dd></span></div>
-                  <div><Clock3 aria-hidden="true" /><span><dt>Media</dt><dd>{course.mediaSummary.lessonsWithMedia ? "Protected delivery available" : "No media published"}</dd></span></div>
-                  <div><ShieldCheck aria-hidden="true" /><span><dt>Access</dt><dd>Verified student scope</dd></span></div>
-                </dl>
-              </article>
-              <article className="course-overview-card course-overview-learn">
-                <h2>What you can do now</h2>
-                <ul>
-                  {course.chapters.length ? course.chapters.map((chapter) => (
-                    <li key={chapter.chapterId}><CheckCircle2 aria-hidden="true" /><span>{chapter.title}</span></li>
-                  )) : <li><FolderOpen aria-hidden="true" /><span>No published chapters are available yet.</span></li>}
+      {activeTab === "overview" ? (
+        <div className="course-overview-panel cd-overview" role="tabpanel" id="course-overview-panel-overview" aria-labelledby="course-overview-tab-overview">
+          <section className="cd-card cd-curriculum" aria-labelledby="cd-curriculum-title">
+            <header className="cd-card__head">
+              <h3 id="cd-curriculum-title">Course content</h3>
+              <span>{course.chapterCount} chapters · {totalLessons} lessons · {completedCount} completed</span>
+            </header>
+            {course.chapters.length === 0 ? (
+              <p className="cd-muted"><FolderOpen aria-hidden="true" />No chapters have been published yet.</p>
+            ) : (
+              <div className="cd-chapters">
+                {course.chapters.map((chapter, chapterIndex) => {
+                  const isExpanded = expandedModuleId === chapter.chapterId;
+                  const done = chapter.lessons.filter((lesson) => lesson.progressStatus === "completed").length;
+                  return (
+                    <section key={chapter.chapterId} className={`cd-chapter${isExpanded ? " is-open" : ""}`}>
+                      <button
+                        type="button"
+                        className="cd-chapter__trigger"
+                        aria-expanded={isExpanded}
+                        aria-controls={`cd-chapter-${chapter.chapterId}`}
+                        onClick={() => setExpandedModuleId(isExpanded ? null : chapter.chapterId)}
+                      >
+                        <span className="cd-chapter__num">{String(chapterIndex + 1).padStart(2, "0")}</span>
+                        <span className="cd-chapter__title"><strong>{chapter.title}</strong><small>{chapter.lessons.length} lessons · {done} completed</small></span>
+                        <span className="cd-chapter__bar" aria-hidden="true"><span style={{ width: `${chapter.lessons.length ? (done / chapter.lessons.length) * 100 : 0}%` }} /></span>
+                        <ChevronDown className="cd-chapter__chevron" aria-hidden="true" />
+                      </button>
+                      <ol className="cd-lessons" id={`cd-chapter-${chapter.chapterId}`} hidden={!isExpanded}>
+                        {chapter.lessons.map((lesson, lessonIndex) => {
+                          const isNext = nextLesson?.lessonId === lesson.lessonId;
+                          return (
+                            <li key={lesson.lessonId}>
+                              <button
+                                type="button"
+                                className={`cd-lesson cd-lesson--${lesson.progressStatus}${isNext ? " is-next" : ""}`}
+                                disabled={!lesson.playbackAvailable}
+                                onClick={() => startLesson(lesson.lessonId)}
+                              >
+                                <span className="cd-lesson__marker" aria-hidden="true">
+                                  {lesson.progressStatus === "completed" ? <CheckCircle2 /> : lesson.resourceType === "pdf" ? <BookOpen /> : <Play />}
+                                </span>
+                                <span className="cd-lesson__num">{chapterIndex + 1}.{lessonIndex + 1}</span>
+                                <span className="cd-lesson__title">{lesson.title}</span>
+                                {isNext ? <span className="cd-lesson__next">Up next</span> : null}
+                                <span className="cd-lesson__status">{lessonStatusLabel(lesson)}</span>
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ol>
+                    </section>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          <div className="cd-side">
+            <section className="cd-card cd-progress" aria-labelledby="cd-progress-title">
+              <header className="cd-card__head"><h3 id="cd-progress-title">Your progress</h3></header>
+              <div className="cd-progress__kpi">
+                <strong>{progressQuery.isLoading ? "—" : percent}<small>%</small></strong>
+                <span>{completedCount} of {totalLessons} lessons completed</span>
+              </div>
+              <div className="cd-bar" role="progressbar" aria-label="Course progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}><span style={{ width: `${percent}%` }} /></div>
+              {progressQuery.isError ? <p className="cd-warn" role="alert">Progress couldn&apos;t load from your account.</p> : null}
+              {nextLesson ? (
+                <button type="button" className="cd-next" onClick={() => startLesson(nextLesson.lessonId)}>
+                  <span className="cd-next__icon" aria-hidden="true"><Play /></span>
+                  <span className="cd-next__copy"><small>{hasStarted ? "Up next" : "Start here"} · Chapter {nextChapterIndex + 1}</small><strong>{nextLesson.title}</strong></span>
+                  <ArrowRight aria-hidden="true" />
+                </button>
+              ) : null}
+            </section>
+
+            <section className="cd-card cd-assignments" aria-labelledby="cd-assign-title">
+              <header className="cd-card__head">
+                <h3 id="cd-assign-title">Assignments</h3>
+                <Link to="/assignments" className="cd-link">All<ArrowRight aria-hidden="true" /></Link>
+              </header>
+              {assignmentsQuery.isLoading ? (
+                <span className="cd-skel" />
+              ) : assignmentsQuery.isError ? (
+                <p className="cd-warn" role="alert">Assignments couldn&apos;t load.<button type="button" onClick={() => void assignmentsQuery.refetch()}>Retry</button></p>
+              ) : courseAssignments.length === 0 ? (
+                <p className="cd-muted"><ClipboardCheck aria-hidden="true" />No assignments for this {course.unitLabel.toLowerCase()} yet.</p>
+              ) : (
+                <ul className="cd-assign-list">
+                  {courseAssignments.slice(0, 3).map((item) => (
+                    <li key={item.id}>
+                      <Link to={`/assignments/${item.id}`}>
+                        <strong>{item.title}</strong>
+                        <span>{item.submission ? (item.submission.status === "reviewed" ? "Reviewed" : "Submitted") : item.dueAt ? `Due ${new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short" }).format(new Date(item.dueAt))}` : "No due date"}</span>
+                      </Link>
+                    </li>
+                  ))}
                 </ul>
-              </article>
-            </div>
-            <MaterialsCard className="course-overview-materials--primary" resources={learningSpaceResources} onOpen={startLesson} onViewAll={() => setActiveTab("resources")} />
-          </div>
+              )}
+            </section>
 
-          <div className="course-overview-panel course-overview-panel--notes" role="tabpanel" id="course-overview-panel-notes" aria-labelledby="course-overview-tab-notes" hidden={activeTab !== "notes"}>
-            <LearningNotesPanel lessonId={firstLesson?.lessonId} lessonTitle={firstLesson?.title} resources={learningSpaceResources} onOpenLesson={startLesson} onViewResources={() => setActiveTab("resources")} />
-          </div>
-          <div className="course-overview-panel course-overview-panel--resources" role="tabpanel" id="course-overview-panel-resources" aria-labelledby="course-overview-tab-resources" hidden={activeTab !== "resources"}>
-            <CourseResourcesPanel resources={learningSpaceResources} courseTitle={course.title} onOpenLesson={startLesson} />
-          </div>
-          <div className="course-overview-panel course-overview-panel--discussion" role="tabpanel" id="course-overview-panel-discussion" aria-labelledby="course-overview-tab-discussion" hidden={activeTab !== "discussion"}>
-            <CourseDiscussionPanel />
+            <section className="cd-card cd-resources" aria-labelledby="cd-res-title">
+              <header className="cd-card__head">
+                <h3 id="cd-res-title">Resources</h3>
+                <button type="button" className="cd-link" onClick={() => setActiveTab("resources")}>View all<ArrowRight aria-hidden="true" /></button>
+              </header>
+              {learningSpaceResources.length === 0 ? (
+                <p className="cd-muted"><FolderOpen aria-hidden="true" />No resources published yet.</p>
+              ) : (
+                <ul className="cd-res-list">
+                  {learningSpaceResources.slice(0, 3).map((resource) => (
+                    <li key={resource.id}>
+                      <button type="button" disabled={!resource.available} onClick={() => startLesson(resource.lessonId)}>
+                        <span className={`cd-res__ext cd-res__ext--${resource.extension}`}>{resource.extension}</span>
+                        <span className="cd-res__copy"><strong>{resource.title}</strong><small>{resource.chapterTitle}</small></span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
           </div>
         </div>
-
-        <aside className="course-overview-rail" aria-label="Course support information">
-          {activeTab === "notes" ? (
-            <NotesWorkspaceRail modules={learningSpaceModules} onSelectModule={startLesson} onAction={() => setActiveTab("overview")} />
-          ) : activeTab === "resources" ? (
-            <ResourcesWorkspaceRail modules={learningSpaceModules} resources={learningSpaceResources} onSelectModule={startLesson} onAction={() => setActiveTab("overview")} onOpenResource={(resource) => startLesson(resource.lessonId)} />
-          ) : activeTab === "discussion" ? (
-            <DiscussionWorkspaceRail modules={learningSpaceModules} onSelectModule={startLesson} />
-          ) : (
-            <>
-              <article className="course-overview-card course-overview-curriculum">
-                <header>
-                  <h2>{course.unitLabel} curriculum</h2>
-                  <span>{totalLessons} lessons</span>
-                </header>
-                <div className="course-overview-curriculum__modules">
-                  {courseModules.map((module) => {
-                    const isExpanded = expandedModuleId === module.id;
-                    return (
-                      <section className={`course-overview-module${isExpanded ? " is-expanded" : ""}`} key={module.id}>
-                        <button
-                          type="button"
-                          className="course-overview-module__trigger"
-                          aria-expanded={isExpanded}
-                          aria-controls={`course-overview-${module.id}-lessons`}
-                          onClick={() => setExpandedModuleId(isExpanded ? null : module.id)}
-                        >
-                          <ChevronRight className="course-overview-module__leading-chevron" aria-hidden="true" />
-                          <span><strong>Chapter {module.number}: {module.title}</strong></span>
-                          <small>{module.lessonCount} lessons</small>
-                          <ChevronDown className="course-overview-module__trailing-chevron" aria-hidden="true" />
-                        </button>
-                        <div className="course-overview-module__lessons" id={`course-overview-${module.id}-lessons`} hidden={!isExpanded}>
-                          {module.lessons.map((lesson) => (
-                            <button
-                              type="button"
-                              className={`course-overview-lesson${lesson.ready ? " is-ready" : ""}${lesson.complete ? " is-complete" : ""}`}
-                              key={lesson.id}
-                              aria-label={`${lesson.title}, ${lesson.mediaStatus}`}
-                              disabled={!lesson.ready}
-                              onClick={lesson.ready ? () => startLesson(lesson.id) : undefined}
-                            >
-                              <span className="course-overview-lesson__marker">{lesson.complete ? <CheckCircle2 aria-hidden="true" /> : lesson.ready ? <Play aria-hidden="true" /> : <i />}</span>
-                              <span className="course-overview-lesson__number">{lesson.number}</span>
-                              <strong>{lesson.title}</strong>
-                              <em>{lesson.mediaStatus}</em>
-                              <time>{course.unitLabel}</time>
-                            </button>
-                          ))}
-                        </div>
-                      </section>
-                    );
-                  })}
-                </div>
-              </article>
-
-              <article className="course-overview-card course-overview-progress">
-                <header><h2>Course progress</h2><small>{progressPercent === null ? "—" : `${progressPercent}%`}</small></header>
-                <p className="course-overview-progress__summary"><strong>{progressPercent === null ? "—" : `${progressPercent}%`}</strong><span>completed</span></p>
-                <div className="course-overview-progress__track" role="progressbar" aria-label="Course progress" aria-valuemin={0} aria-valuemax={100} {...(progressPercent === null ? {} : { "aria-valuenow": progressPercent })}><span style={{ width: progressPercent === null ? "0%" : `${progressPercent}%` }} /></div>
-                {progressQuery.isError ? <p role="alert">Progress could not be loaded from your account.</p> : null}
-                <dl className="course-overview-progress__metrics">
-                  <div><dt>Lessons</dt><dd>{totalLessons}</dd></div>
-                  <div><dt>Chapters</dt><dd>{course.chapterCount}</dd></div>
-                  <div><dt>Media ready</dt><dd>{course.mediaSummary.lessonsWithMedia}</dd></div>
-                  <div><dt>Pending</dt><dd>{course.mediaSummary.pendingMediaLessons}</dd></div>
-                </dl>
-              </article>
-            </>
-          )}
-        </aside>
-      </div>
+      ) : (
+        <div className="course-overview-layout cd-tab-layout">
+          <div className="course-overview-primary is-tab-expanded">
+            <div className="course-overview-panel course-overview-panel--notes" role="tabpanel" id="course-overview-panel-notes" aria-labelledby="course-overview-tab-notes" hidden={activeTab !== "notes"}>
+              <LearningNotesPanel lessonId={firstLesson?.lessonId} lessonTitle={firstLesson?.title} resources={learningSpaceResources} onOpenLesson={startLesson} onViewResources={() => setActiveTab("resources")} />
+            </div>
+            <div className="course-overview-panel course-overview-panel--resources" role="tabpanel" id="course-overview-panel-resources" aria-labelledby="course-overview-tab-resources" hidden={activeTab !== "resources"}>
+              <CourseResourcesPanel resources={learningSpaceResources} courseTitle={course.title} onOpenLesson={startLesson} />
+            </div>
+            <div className="course-overview-panel course-overview-panel--discussion" role="tabpanel" id="course-overview-panel-discussion" aria-labelledby="course-overview-tab-discussion" hidden={activeTab !== "discussion"}>
+              <CourseDiscussionPanel />
+            </div>
+          </div>
+          <aside className="course-overview-rail" aria-label="Course support information">
+            {activeTab === "notes" ? (
+              <NotesWorkspaceRail modules={learningSpaceModules} onSelectModule={startLesson} onAction={() => setActiveTab("overview")} />
+            ) : activeTab === "resources" ? (
+              <ResourcesWorkspaceRail modules={learningSpaceModules} resources={learningSpaceResources} onSelectModule={startLesson} onAction={() => setActiveTab("overview")} onOpenResource={(resource) => startLesson(resource.lessonId)} />
+            ) : (
+              <DiscussionWorkspaceRail modules={learningSpaceModules} onSelectModule={startLesson} />
+            )}
+          </aside>
+        </div>
+      )}
     </section>
   );
 }
