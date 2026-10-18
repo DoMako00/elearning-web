@@ -80,7 +80,14 @@ export function CurriculumPage() {
         const credits=creditsInput===""?null:Number(creditsInput);
         if(credits!==null&&(!Number.isFinite(credits)||credits<0||Math.round(credits*100)!==credits*100))throw new Error("Credits must be a non-negative value with at most two decimal places.");
         const status=String(form.get("status")??"Approved");
-        const fields={displayTitle:title,description:String(form.get("description")??"").trim(),credits,sortOrder:currentEditorUnit?.order??(Math.max(0,...data.curriculumUnits.filter(item=>item.semesterId===semesterId&&item.status!=="Archived").map(item=>item.order))+1),reviewStatus:status==="Approved"?"approved":"unreviewed"};
+        const description=String(form.get("description")??"").trim();
+        const fields={
+          displayTitle:title,
+          ...(description?{description}:{}),
+          ...(credits!==null?{credits}:{}),
+          sortOrder:currentEditorUnit?.order??(Math.max(0,...data.curriculumUnits.filter(item=>item.semesterId===semesterId&&item.status!=="Archived").map(item=>item.order))+1),
+          reviewStatus:status==="Approved"?"approved":"unreviewed"
+        };
         const saved=editor.id?await updateAcademic("modules",editor.id,fields):await createAcademic("modules",{academicInstitutionId:activeInstitution.id,academicSemesterId:semesterId,code:String(form.get("code")??"").trim(),sourceDisplayLabel:title,sourceType:"admin",...fields});
         if(typeof saved.id==="string")setSelectedUnitId(saved.id);
         setUnitSemesterId(semesterId);setExpanded(current=>current.includes(semesterId)?current:[...current,semesterId]);
