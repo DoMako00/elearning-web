@@ -1,5 +1,19 @@
 import type { AdminV2Data, BrandCode, CourseRecord, CurriculumUnitRecord, StudentRecord } from "../types/adminV2.types";
 
+export function institutionCodeForBrand(brand: BrandCode | "all"): "buc" | "delta" | undefined {
+  if (brand === "nexus") return "delta";
+  if (brand === "medway" || brand === "elite") return "buc";
+  return undefined;
+}
+
+export function institutionForBrand(data: AdminV2Data, brand: BrandCode | "all") {
+  const code = institutionCodeForBrand(brand);
+  if (!code) return undefined;
+  return data.institutions.find(
+    (institution) => institution.status === "Active" && institution.shortName.trim().toLowerCase() === code,
+  );
+}
+
 export function unitForCourse(data: AdminV2Data, course: CourseRecord): CurriculumUnitRecord | undefined {
   return data.curriculumUnits.find((unit) => unit.id === course.curriculumUnitId);
 }
