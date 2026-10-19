@@ -1,14 +1,15 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { BookOpen, ChevronDown, ChevronRight, ChevronUp, GraduationCap, Pencil, Plus, X } from "lucide-react";
 import { AdminV2DomainStatus, useAdminV2 } from "../layout/AdminV2Layout";
 import { ConfirmDialog, Drawer, FormActions, FormField, StatusBadge } from "../shared/AdminV2Primitives";
 import { getAcademicRecord, writeAcademicRecord, type AcademicRecordEntity } from "../api/adminAcademicApi";
 import { canonicalAcademicUnitType } from "../api/adminV2Mappers";
+import { institutionCodeForBrand, institutionForBrand } from "../data/adminV2.selectors";
 
 type EditorState = { kind: "institution" | "year" | "semester" | "unit"; id?: string } | null;
 
 export function CurriculumPage() {
-  const { data, refreshServerDomains, domainLoading } = useAdminV2();
+  const { data, brand, refreshServerDomains, domainLoading } = useAdminV2();
   const [institutionId, setInstitutionId] = useState("inst-buc");
   const [yearId, setYearId] = useState("year-buc-1");
   const [selectedUnitId, setSelectedUnitId] = useState("unit-buc-anatomy");
@@ -18,7 +19,8 @@ export function CurriculumPage() {
   const [archiveId, setArchiveId] = useState("");
   const [mutationPending, setMutationPending] = useState(false);
   const [mutationError, setMutationError] = useState("");
-  const activeInstitution = data.institutions.find((item) => item.id === institutionId && item.status === "Active") ?? data.institutions.find((item) => item.status === "Active");
+  const expectedInstitutionCode = institutionCodeForBrand(brand);
+  const activeInstitution = institutionForBrand(data, brand) ?? data.institutions.find((item) => item.id === institutionId && item.status === "Active") ?? data.institutions.find((item) => item.status === "Active");
   const curriculum = data.curricula.find((item) => item.institutionId === activeInstitution?.id);
   const years = useMemo(() => data.academicYears.filter((item) => item.curriculumId === curriculum?.id && item.status === "Active").sort((a, b) => a.order - b.order), [data.academicYears, curriculum?.id]);
   const selectedYear = years.find((item) => item.id === yearId) ?? years[0];
@@ -28,6 +30,24 @@ export function CurriculumPage() {
   const currentEditorUnit = editor?.kind === "unit" ? data.curriculumUnits.find((item) => item.id === editor.id) : undefined;
   const currentEditorYear = editor?.kind === "year" ? data.academicYears.find((item) => item.id === editor.id) : undefined;
   const currentEditorSemester = editor?.kind === "semester" ? data.semesters.find((item) => item.id === editor.id) : undefined;
+
+  useEffect(() => {
+    const nextInstitution = institutionForBrand(data, brand);
+    if (!nextInstitution || institutionId === nextInstitution.id) return;
+    const nextCurriculum = data.curricula.find((item) => item.institutionId === nextInstitution.id);
+    const nextYear = data.academicYears.find((item) => item.curriculumId === nextCurriculum?.id && item.status === "Active");
+    const nextSemester = data.semesters.find((item) => item.academicYearId === nextYear?.id && item.status === "Active");
+    const nextUnit = data.curriculumUnits.find((item) =>
+      item.institutionId === nextInstitution.id &&
+      item.academicYearId === nextYear?.id &&
+      item.status !== "Archived",
+    );
+    setInstitutionId(nextInstitution.id);
+    setYearId(nextYear?.id ?? "");
+    setSelectedUnitId(nextUnit?.id ?? "");
+    setUnitSemesterId(nextSemester?.id ?? "");
+    if (nextSemester) setExpanded((current) => current.includes(nextSemester.id) ? current : [...current, nextSemester.id]);
+  }, [brand, data.institutions, data.curricula, data.academicYears, data.semesters, data.curriculumUnits, institutionId]);
 
   const createAcademic = (entity:AcademicRecordEntity,fields:Record<string,unknown>)=>writeAcademicRecord(entity,undefined,{...fields,reason:"Admin V2 curriculum record creation"});
   const updateAcademic = async(entity:AcademicRecordEntity,id:string,fields:Record<string,unknown>)=>{
@@ -125,7 +145,7 @@ export function CurriculumPage() {
     <div className="v2-phase-toolbar">
       <div className="v2-phase-tabs"><span className="is-active" aria-current="page"><BookOpen size={15} /> Structure</span></div>
       <div className="v2-phase-toolbar__actions">
-        <label><span>Institution / University</span><select value={activeInstitution?.id ?? ""} onChange={(event) => { const next = event.target.value; setInstitutionId(next); const nextCurriculum = data.curricula.find((item) => item.institutionId === next); const nextYear = data.academicYears.find((item) => item.curriculumId === nextCurriculum?.id && item.status === "Active"); const nextUnit = data.curriculumUnits.find((item) => item.institutionId === next && item.status !== "Archived"); setYearId(nextYear?.id ?? ""); setSelectedUnitId(nextUnit?.id ?? ""); setUnitSemesterId(data.semesters.find((item) => item.academicYearId === nextYear?.id && item.status === "Active")?.id ?? ""); }}><option value="">Select institution</option>{data.institutions.filter((item) => item.status === "Active").map((item) => <option key={item.id} value={item.id}>{item.shortName}</option>)}</select></label>
+        <label><span>Institution / University</span><select value={activeInstitution?.id ?? ""} onChange={(event) => { const next = event.target.value; setInstitutionId(next); const nextCurriculum = data.curricula.find((item) => item.institutionId === next); const nextYear = data.academicYears.find((item) => item.curriculumId === nextCurriculum?.id && item.status === "Active"); const nextUnit = data.curriculumUnits.find((item) => item.institutionId === next && item.status !== "Archived"); setYearId(nextYear?.id ?? ""); setSelectedUnitId(nextUnit?.id ?? ""); setUnitSemesterId(data.semesters.find((item) => item.academicYearId === nextYear?.id && item.status === "Active")?.id ?? ""); }}><option value="">Select institution</option>{data.institutions.filter((item) => item.status === "Active" && (!expectedInstitutionCode || item.shortName.trim().toLowerCase() === expectedInstitutionCode)).map((item) => <option key={item.id} value={item.id}>{item.shortName}</option>)}</select></label>
         <button className="admin-v2__button" type="button" disabled={mutationPending||domainLoading} onClick={() => setEditor({ kind: "institution" })}><Plus size={14} /> Add institution</button>
       </div>
     </div>
