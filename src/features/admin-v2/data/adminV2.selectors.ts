@@ -31,9 +31,20 @@ export function institutionForUnit(data: AdminV2Data, unit?: CurriculumUnitRecor
 }
 
 export function courseMatchesStudentPlacement(data: AdminV2Data, course: CourseRecord, student: StudentRecord) {
-  if (course.scope === "Standalone") return true;
-  const institution = institutionForUnit(data, unitForCourse(data, course));
-  return institution?.shortName.toLowerCase().includes(student.institution.toLowerCase()) ?? false;
+  const moduleInstitution = institutionForUnit(data, unitForCourse(data, course));
+  const courseInstitution = data.institutions.find((institution) => institution.id === course.academicInstitutionId);
+  if (moduleInstitution && courseInstitution && moduleInstitution.id !== courseInstitution.id) return false;
+  const institution = moduleInstitution ?? courseInstitution;
+  if (!institution) return false;
+
+  if (student.academicInstitutionId) return institution.id === student.academicInstitutionId;
+  const normalize = (value: string) => value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+  const studentInstitution = normalize(student.institution);
+  if (!studentInstitution) return false;
+  return [institution.shortName, institution.name].some((value) => {
+    const normalizedInstitution = normalize(value);
+    return normalizedInstitution === studentInstitution || normalizedInstitution.includes(studentInstitution);
+  });
 }
 
 export function courseUnitLabel(data: AdminV2Data, course: CourseRecord) {
