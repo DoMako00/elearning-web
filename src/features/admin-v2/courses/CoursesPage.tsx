@@ -10,7 +10,7 @@ import { assignInstructor, createBrandCourse, getCourse as getCourseDto, listBra
 import { BrandBadge, ConfirmDialog, Drawer, FormActions, FormField, StatusBadge } from "../shared/AdminV2Primitives";
 import { InspectorFields, InspectorSection, Pagination, TableFrame } from "../shared/AdminV2Table";
 import type { AdminV2Data, BrandCode, BrandFilter, CourseRecord } from "../types/adminV2.types";
-import { courseLevel, courseSemester, courseUnitLabel, expectedUnitType, institutionForUnit, semesterForUnit, unitForCourse, yearForUnit } from "../data/adminV2.selectors";
+import { courseLevel, courseSemester, courseUnitLabel, expectedUnitType, institutionForBrand, institutionForUnit, semesterForUnit, unitForCourse, yearForUnit } from "../data/adminV2.selectors";
 
 const PAGE_SIZE = 10;
 export function CoursesPage() {
@@ -41,17 +41,39 @@ export function CoursesPage() {
   const formYear = formYears.find((item) => item.id === yearId);
   const formUnits = data.curriculumUnits.filter((item) => item.institutionId === institutionId && item.academicYearId === yearId && item.semesterId === semesterId && item.status === "Approved");
   const instructorOptions = data.instructors;
+  const defaultPlacementForBrand = (targetBrand: BrandCode) => {
+    const targetInstitution = institutionForBrand(data, targetBrand);
+    const nextYear = data.academicYears.find((item) =>
+      item.status === "Active" &&
+      data.curricula.some((curriculum) => curriculum.id === item.curriculumId && curriculum.institutionId === targetInstitution?.id),
+    );
+    const nextSemester = data.semesters.find((item) => item.academicYearId === nextYear?.id && item.status === "Active");
+    const nextUnit = data.curriculumUnits.find((item) =>
+      item.institutionId === targetInstitution?.id &&
+      item.academicYearId === nextYear?.id &&
+      item.semesterId === nextSemester?.id &&
+      item.status === "Approved" &&
+      item.type === expectedUnitType(targetBrand, nextYear?.title ?? ""),
+    );
+    return {
+      institutionId: targetInstitution?.id ?? "",
+      yearId: nextYear?.id ?? "",
+      semesterId: nextSemester?.id ?? "",
+      unitId: nextUnit?.id ?? "",
+    };
+  };
   const startCreate = () => {
     const nextBrand = brand === "all" ? "medway" : brand;
-    const nextInstitution = data.institutions.find((item) => item.status === "Active")?.id ?? "";
-    const nextYear = data.academicYears.find((item) => item.status === "Active" && data.curricula.some((curriculum) => curriculum.id === item.curriculumId && curriculum.institutionId === nextInstitution));
-    const nextSemester = data.semesters.find((item) => item.academicYearId === nextYear?.id && item.status === "Active");
-    const nextUnit = data.curriculumUnits.find((item) => item.academicYearId === nextYear?.id && item.semesterId === nextSemester?.id && item.status === "Approved" && item.type === expectedUnitType(nextBrand, nextYear?.title ?? ""));
-    setFormBrand(nextBrand); setFormScope("Curriculum"); setInstitutionId(nextInstitution); setYearId(nextYear?.id ?? ""); setSemesterId(nextSemester?.id ?? ""); setUnitId(nextUnit?.id ?? ""); setEditing(null);
+    const placement = defaultPlacementForBrand(nextBrand);
+    setFormBrand(nextBrand); setFormScope("Curriculum"); setInstitutionId(placement.institutionId); setYearId(placement.yearId); setSemesterId(placement.semesterId); setUnitId(placement.unitId); setEditing(null);
+  };
+  const changeFormBrand = (nextBrand: BrandCode) => {
+    const placement = defaultPlacementForBrand(nextBrand);
+    setFormBrand(nextBrand); setInstitutionId(placement.institutionId); setYearId(placement.yearId); setSemesterId(placement.semesterId); setUnitId(placement.unitId);
   };
   const startEdit = (course: CourseRecord) => {
     const unit = unitForCourse(data, course);
-    setFormBrand(course.brand); setFormScope(course.scope); setInstitutionId(institutionForUnit(data, unit)?.id ?? data.institutions[0]?.id ?? "");
+    setFormBrand(course.brand); setFormScope(course.scope); setInstitutionId(course.academicInstitutionId ?? institutionForUnit(data, unit)?.id ?? institutionForBrand(data, course.brand)?.id ?? "");
     setYearId(yearForUnit(data, unit)?.id ?? ""); setSemesterId(semesterForUnit(data, unit)?.id ?? ""); setUnitId(unit?.id ?? ""); setEditing(course);
   };
   const rows = useMemo(() => data.courses.filter((course) =>
@@ -81,8 +103,24 @@ export function CoursesPage() {
       curriculumUnitId: formScope === "Curriculum" ? unitId || null : null,
       scope: formScope,
       status: String(form.get("status")) as CourseRecord["status"],
-      updated: "Today", instructors: [leadInstructor, coInstructor].filter((item): item is NonNullable<typeof item> => !!item).map((instructor, index) => ({ instructorId: instructor.id, name: instructor.fullName, role: index === 0 ? "Lead Instructor" : "Co-Instructor", allocation: index === 0 ? 100 : undefined })) as CourseRecord["instructors"],
+      updated: "Today",
+      academicInstitutionId: institutionId,
+      brandId: isEditing ? editing.brandId : undefined,
+      cataloguePresentation: expectedUnitType(formBrand, formYear?.title ?? "Year 1") === "Subject" ? "subject_based" : "module_based",
+      instructors: [leadInstructor, coInstructor].filter((item): item is NonNullable<typeof item> => !!item).map((instructor, index) => ({ instructorId: instructor.id, name: instructor.fullName, role: index === 0 ? "Lead Instructor" : "Co-Instructor", allocation: index === 0 ? 100 : undefined })) as CourseRecord["instructors"],
     };
+    const expectedInstitution = institutionForBrand(data, formBrand);
+    if (!expectedInstitution || expectedInstitution.id !== institutionId) {
+      setNotice(formBrand === "nexus" ? "Nexus courses must belong to Delta University." : "Medway and Elite courses must belong to BUC.");
+      return;
+    }
+    if (formScope === "Curriculum") {
+      const selectedUnit = data.curriculumUnits.find((item) => item.id === unitId);
+      if (!selectedUnit || selectedUnit.institutionId !== expectedInstitution.id) {
+        setNotice(formBrand === "nexus" ? "Choose an approved Delta module for Nexus." : "Choose an approved BUC subject for Medway or Elite.");
+        return;
+      }
+    }
     if (editing !== null && editing !== false) updated.instructors = [...editing.instructors.filter((assignment) => assignment.role === "Unspecified"), ...updated.instructors];
     if (!isEditing) {
       try {
@@ -103,7 +141,7 @@ export function CoursesPage() {
     setSelectedId(updated.id); setEditing(false);
   };
   const updateCourse = (id: string, patch: Partial<CourseRecord>) => setData((current) => ({ ...current, courses: current.courses.map((item) => item.id === id ? { ...item, ...patch } : item) }));
-  const duplicateCourse = async (course: CourseRecord) => { try { const brandId = course.brandId ?? (await listBrandAccess()).find((item) => item.code === course.brand)?.id; if (!brandId) throw new Error("The Course Brand is unavailable."); const copyTitle = `${course.title} (Copy)`; const id = await createBrandCourse(brandId, { title: copyTitle, classification: course.scope === "Standalone" ? "standalone" : "academic_module_offering", cataloguePresentation: course.cataloguePresentation ?? "module_based", academicInstitutionId: course.academicInstitutionId ?? data.institutions[0]?.id, academicModuleId: course.scope === "Standalone" ? null : course.curriculumUnitId, reason: "Duplicate Admin V2 course" }); for (const assignment of course.instructors) if (assignment.instructorId) { const assignedBrands = await listInstructorBrands(assignment.instructorId); if (assignedBrands.some((item) => item.brandId === brandId && item.status === "active")) await assignInstructor(brandId, id, assignment.instructorId, "Copy course teaching assignment"); } refreshServerDomains(); setSelectedId(id); setNotice(course.instructors.length ? "Course duplicated and teaching assignments copied. Lead/Co-Instructor roles are not stored by the backend." : "Course duplicated as a draft."); } catch (error) { setNotice(error instanceof Error ? error.message : "Course could not be duplicated."); } };
+  const duplicateCourse = async (course: CourseRecord) => { try { const brandId = course.brandId ?? (await listBrandAccess()).find((item) => item.code === course.brand)?.id; if (!brandId) throw new Error("The Course Brand is unavailable."); const copyTitle = `${course.title} (Copy)`; const id = await createBrandCourse(brandId, { title: copyTitle, classification: course.scope === "Standalone" ? "standalone" : "academic_module_offering", cataloguePresentation: course.cataloguePresentation ?? "module_based", academicInstitutionId: course.academicInstitutionId ?? institutionForBrand(data, course.brand)?.id, academicModuleId: course.scope === "Standalone" ? null : course.curriculumUnitId, reason: "Duplicate Admin V2 course" }); for (const assignment of course.instructors) if (assignment.instructorId) { const assignedBrands = await listInstructorBrands(assignment.instructorId); if (assignedBrands.some((item) => item.brandId === brandId && item.status === "active")) await assignInstructor(brandId, id, assignment.instructorId, "Copy course teaching assignment"); } refreshServerDomains(); setSelectedId(id); setNotice(course.instructors.length ? "Course duplicated and teaching assignments copied. Lead/Co-Instructor roles are not stored by the backend." : "Course duplicated as a draft."); } catch (error) { setNotice(error instanceof Error ? error.message : "Course could not be duplicated."); } };
   const manageStudents = () => { setNotice("Direct Course enrollment is not available. Student access is controlled by Subscription Seats and AccessGrants."); };
   const saveStudents = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault(); setNotice("Direct Course enrollment is not available. Student access is controlled by Subscription Seats and AccessGrants."); setStudentsOpen(false);
@@ -145,13 +183,13 @@ export function CoursesPage() {
     {editing !== false && <Drawer title={editing ? "Edit course" : "New course"} subtitle="Course identity, curriculum mapping, and instructor assignment" onClose={() => setEditing(false)} footer={<FormActions><button type="button" className="admin-v2__button" onClick={() => setEditing(false)}>Cancel</button><button type="submit" form="course-form" className="admin-v2__button is-primary">Save course</button></FormActions>}>
       <form id="course-form" className="admin-v2__form" onSubmit={saveCourse}>
         <FormField label="Course title" wide><input name="title" required defaultValue={editing ? editing.title : ""} placeholder="e.g. Gross Anatomy: Upper Limb" /></FormField>
-        <FormField label="Brand"><select name="brand" value={formBrand} onChange={(event) => { setFormBrand(event.target.value as BrandCode); setUnitId(""); }}><option value="medway">Medway</option><option value="elite">Elite</option><option value="nexus">Nexus</option></select></FormField>
+        <FormField label="Brand"><select name="brand" value={formBrand} onChange={(event) => changeFormBrand(event.target.value as BrandCode)}><option value="medway">Medway</option><option value="elite">Elite</option><option value="nexus">Nexus</option></select></FormField>
         <FormField label="Scope"><select name="scope" value={formScope} onChange={(event) => setFormScope(event.target.value as CourseRecord["scope"])}><option>Curriculum</option><option>Standalone</option></select></FormField>
         {formScope === "Curriculum" && <>
-          <FormField label="Institution"><select value={institutionId} onChange={(event) => { setInstitutionId(event.target.value); setYearId(""); setSemesterId(""); setUnitId(""); }} required><option value="">Select institution</option>{data.institutions.filter((item) => item.status === "Active").map((item) => <option key={item.id} value={item.id}>{item.shortName}</option>)}</select></FormField>
+          <FormField label="Institution"><select value={institutionId} onChange={(event) => { setInstitutionId(event.target.value); setYearId(""); setSemesterId(""); setUnitId(""); }} required><option value="">Select institution</option>{data.institutions.filter((item) => item.status === "Active" && item.id === institutionForBrand(data, formBrand)?.id).map((item) => <option key={item.id} value={item.id}>{item.shortName}</option>)}</select></FormField>
           <FormField label="Academic year"><select value={yearId} onChange={(event) => { setYearId(event.target.value); setSemesterId(""); setUnitId(""); }} required><option value="">Select year</option>{formYears.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></FormField>
           <FormField label="Semester"><select value={semesterId} onChange={(event) => { setSemesterId(event.target.value); setUnitId(""); }} required><option value="">Select semester</option>{formSemesters.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></FormField>
-          <FormField label="Approved subject / module" wide><select name="curriculumUnitId" value={unitId} onChange={(event) => setUnitId(event.target.value)} required><option value="">Select approved unit</option>{formUnits.map((item) => <option key={item.id} value={item.id}>{item.code} Â· {item.title}</option>)}</select><small className="v2-form-hint">Unit type follows {formBrand === "nexus" ? "Nexus" : formBrand === "elite" ? "Elite" : "Medway"} year presentation; institution remains independent of brand.</small></FormField>
+          <FormField label="Approved subject / module" wide><select name="curriculumUnitId" value={unitId} onChange={(event) => setUnitId(event.target.value)} required><option value="">Select approved unit</option>{formUnits.map((item) => <option key={item.id} value={item.id}>{item.code} Â· {item.title}</option>)}</select><small className="v2-form-hint">Nexus uses Delta; Medway and Elite use BUC. The unit must belong to the selected brand’s institution.</small></FormField>
         </>}
         <FormField label="Status"><select name="status" defaultValue={editing ? editing.status : "Draft"}><option>Draft</option><option>Published</option><option>Archived</option></select></FormField>
         <FormField label="Lead instructor"><select name="lead" defaultValue={editing ? instructorValue(data, editing.instructors.find((item) => item.role === "Lead Instructor")) : ""}><option value="">Unassigned</option>{instructorOptions.map((item) => <option key={item.id} value={item.id} disabled={item.status === "Inactive" && !editing?.instructors.some((assignment) => assignment.instructorId === item.id || assignment.name === item.fullName)}>{item.fullName}{item.status === "Inactive" ? " (Inactive)" : ""}</option>)}</select></FormField>
