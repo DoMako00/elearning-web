@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { COURSE_CATEGORY_TABS, type StudentCourse } from "./courses.data";
+import { type StudentCourse } from "./courses.data";
 import "./CourseLibrary.css";
 
 interface CourseLibraryProps {
@@ -54,6 +54,7 @@ export function CourseLibrary({
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const lockedIds = useMemo(() => new Set(lockedCourseIds), [lockedCourseIds]);
+  const categoryTabs = useMemo(() => [{id: "all", label: "All", icon: undefined as StudentCourse["Icon"] | undefined}, ...Array.from(new Map(courses.map(course => [course.categoryId, {id: course.categoryId, label: course.category, icon: course.Icon}])).values())], [courses]);
 
   const openCourse = (course: StudentCourse) => {
     if (lockedIds.has(course.id) || course.access?.isEnrolled !== true || course.access.canOpen !== true) return;
@@ -139,7 +140,7 @@ export function CourseLibrary({
         <div className="course-library__toolbar" aria-label="Course library view controls">
           {/* Explore-styled Category Buttons in the Header Toolbar */}
           <div className="course-library-categories__track" role="tablist">
-            {COURSE_CATEGORY_TABS.map((tab) => {
+            {categoryTabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = categoryFilter === tab.id;
 
@@ -266,7 +267,8 @@ export function CourseLibrary({
                     type="button"
                     className={`course-library__list-bookmark cursor-pointer ${isSaved ? "is-saved" : ""}`}
                     onClick={() => onToggleBookmark(course.id)}
-                    aria-label={`Save ${course.title}`}
+                    aria-label={`${isSaved ? "Unsave" : "Save"} ${course.title}`}
+                    aria-pressed={isSaved}
                   >
                     <Bookmark aria-hidden="true" className={isSaved ? "fill-current text-[#16a34a]" : ""} />
                   </button>
@@ -320,7 +322,7 @@ export function CourseLibrary({
                     onClick={() => { if (!isLocked) onSelectCourse(course.id); }}
                   >
                     <div className={`course-library__art course-library__art--${course.art}`}>
-                      <img src={course.image} alt="" loading="lazy" />
+                      {course.image ? <img src={course.image} alt="" loading="lazy" /> : null}
                       <span><course.Icon aria-hidden="true" /></span>
                       <div>
                         <em>{course.category}</em>
@@ -333,7 +335,8 @@ export function CourseLibrary({
                           e.stopPropagation();
                           onToggleBookmark(course.id);
                         }}
-                        aria-label={`Save ${course.title}`}
+                        aria-label={`${isSaved ? "Unsave" : "Save"} ${course.title}`}
+                    aria-pressed={isSaved}
                       >
                         <Bookmark aria-hidden="true" className={isSaved ? "fill-current text-white" : ""} />
                       </button>

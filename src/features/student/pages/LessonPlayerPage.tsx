@@ -41,7 +41,6 @@ import { mapCourseModules, mapCourseResources } from "../../../components/learni
 import "../../../components/learning-space/learningSpace.css";
 import "./CourseOverviewPage.css";
 import "./LessonPlayerPage.css";
-import "./LessonPlayerLayout.css";
 
 const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5, 2] as const;
 
@@ -520,46 +519,25 @@ function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, 
 
   return (
     <section className="course-overview-page lesson-player-page" aria-labelledby="lesson-player-title">
-
+      <header className="course-overview-heading">
+        <div className="course-overview-heading__row">
+          <div>
+            <h1 id="lesson-player-title">{current.title}</h1>
+            <p><span>Lesson {lessonIndex + 1} of {allLessons.length}</span><i /><span>{current.module.title}</span>
+              <em className={`lesson-player-status${isComplete ? " is-complete" : ""}`}>{isComplete ? "Completed" : progressStatus === "in_progress" ? "In progress" : "Not started"}</em>
+            </p>
+          </div>
+          <nav className="lesson-player-heading__actions" aria-label="Lesson navigation">
+            <button type="button" className="course-overview-heading__bookmark" disabled={!previous} onClick={() => previous && openLesson(previous.id)} aria-label="Previous lesson"><ChevronLeft aria-hidden="true" /></button>
+            <button type="button" className="course-overview-heading__bookmark" disabled={!next} onClick={() => next && openLesson(next.id)} aria-label="Next lesson"><ChevronRight aria-hidden="true" /></button>
+          </nav>
+        </div>
+      </header>
       <div className="course-overview-layout">
         <div className={`course-overview-primary${activeTab === "overview" ? "" : " is-tab-expanded"}`}>
           <div className="lesson-player-slot h-full min-h-0" hidden={activeTab !== "overview"}>
             <LessonVideoPlayer title={current.title} mediaUrl={mediaUrl} mediaType={current.resourceType ?? "video"} onStarted={() => void handleProgress("in_progress")} onHeartbeat={handlePlaybackHeartbeat} onComplete={(positionSeconds) => void handleVideoComplete(positionSeconds)} />
           </div>
-          {activeTab === "overview" ? (
-            <div className="lp-bar">
-              <div className="lp-bar__copy">
-                <p className="lp-bar__eyebrow">
-                  <span>Lesson {lessonIndex + 1} of {allLessons.length}</span>
-                  <span>Chapter {current.module.number}: {current.module.title}</span>
-                </p>
-                <h1 id="lesson-player-title">{current.title}</h1>
-                <p className="lp-bar__meta">
-                  <em className={`lesson-player-status${isComplete ? " is-complete" : ""}`}>
-                    {isComplete ? "Completed" : progressStatus === "in_progress" ? "In progress" : "Not started"}
-                  </em>
-                  {videoViewState ? <span role="status">Views used {videoViewState.completedViews}/{videoViewState.maxCompletedViews} · {videoViewState.viewsRemaining} remaining</span> : null}
-                </p>
-              </div>
-              <nav className="lp-bar__nav" aria-label="Lesson navigation">
-                <button type="button" className="lp-btn lp-btn--icon" disabled={!previous} onClick={() => previous && openLesson(previous.id)} aria-label="Previous lesson" title="Previous lesson">
-                  <ChevronLeft aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  className={`lp-btn lp-btn--primary${isAlreadyCompleted ? " is-done" : ""}`}
-                  onClick={handleMarkComplete}
-                  disabled={isAlreadyCompleted || progressMutation.isPending}
-                >
-                  <CheckCircle2 aria-hidden="true" /> {isAlreadyCompleted ? "Completed" : progressMutation.isPending ? "Saving…" : "Mark as complete"}
-                </button>
-                <button type="button" className="lp-btn lp-btn--secondary" disabled={!next} onClick={() => next && openLesson(next.id)}>
-                  Next lesson <ChevronRight aria-hidden="true" />
-                </button>
-              </nav>
-            </div>
-          ) : <h1 id="lesson-player-title" className="sr-only">{current.title}</h1>}
-
           <div className="course-overview-tabs" role="tablist" aria-label="Lesson sections">
             {TABS.map(({ id, label, icon: Icon }, index) => (
               <button
@@ -586,7 +564,18 @@ function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, 
             aria-labelledby="lesson-player-tab-overview"
             hidden={activeTab !== "overview"}
           >
-            <MaterialsCard className="course-overview-materials--primary" materials={materials} onOpen={() => setActiveTab("overview")} />
+            <div className="course-overview-info-row">
+              <article className="course-overview-card course-overview-about">
+                <h2>About this lesson</h2><p>{current.title} · {course.title}</p>
+                <dl><div><BookOpen aria-hidden="true" /><span><dt>Chapter</dt><dd>{current.module.title}</dd></span></div><div><LayoutGrid aria-hidden="true" /><span><dt>Level</dt><dd>{course.academicLevel.title}</dd></span></div></dl>
+              </article>
+              <article className="course-overview-card course-overview-learn">
+                <h2>Your learning</h2><p className="lesson-player-status">{isComplete ? "Completed" : progressStatus === "in_progress" ? "In progress" : "Not started"}</p>
+                {videoViewState ? <p role="status">Views used {videoViewState.completedViews}/{videoViewState.maxCompletedViews} · {videoViewState.viewsRemaining} remaining</p> : null}
+                <button type="button" className={`lesson-player-nav__complete inline-flex min-h-10.5 items-center justify-center gap-2 rounded-[10px] px-4 text-[13px] font-bold cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 [&_svg]:size-4 ${isAlreadyCompleted ? "is-done" : ""}`} onClick={handleMarkComplete} disabled={isAlreadyCompleted || progressMutation.isPending}><CheckCircle2 aria-hidden="true" />{isAlreadyCompleted ? "Completed" : progressMutation.isPending ? "Saving…" : "Mark as complete"}</button>
+              </article>
+            </div>
+            <MaterialsCard className="course-overview-materials--primary" materials={materials} onOpen={() => setActiveTab("resources")} />
           </div>
 
           <div className="course-overview-panel course-overview-panel--notes" role="tabpanel" id="lesson-player-panel-notes" aria-labelledby="lesson-player-tab-notes" hidden={activeTab !== "notes"}>
