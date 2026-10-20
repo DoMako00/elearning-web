@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react";
-import { SlidersHorizontal, X, Check, Target, Zap } from "lucide-react";
-import fireAsset from "../../../../Assets/fire.webp";
+import { SlidersHorizontal, X, Check, Target, Zap, CalendarDays } from "lucide-react";
 import { ProgressRing } from "../../../../components/ui/ProgressRing";
 import type { WeeklyGoalCardProps } from "./weekly-goal-card.types";
 import "./WeeklyGoalCard.css";
 
-const WEEK_DAYS_INFO = ["S", "M", "T", "W", "T", "F", "S"] as const;
+const WEEK_DAYS_INFO = [
+  { short: "S", name: "Sunday" },
+  { short: "M", name: "Monday" },
+  { short: "T", name: "Tuesday" },
+  { short: "W", name: "Wednesday" },
+  { short: "T", name: "Thursday" },
+  { short: "F", name: "Friday" },
+  { short: "S", name: "Saturday" },
+] as const;
 
 const PRESETS = [3, 5, 7, 10];
 
@@ -35,7 +42,7 @@ function WeeklyGoalRing({ percentage, isCompletedOrExceeded }: WeeklyGoalRingPro
           {percentage === null ? "—" : `${percentage}%`}
         </span>
         <span className="mt-2 text-[13px] font-normal leading-none text-(--color-text-secondary)">
-          {percentage === null ? "activity unavailable" : isCompletedOrExceeded ? "Goal Reached! 🎉" : "of weekly goal"}
+          {percentage === null ? "activity unavailable" : isCompletedOrExceeded ? "Goal reached" : "of weekly goal"}
         </span>
       </div>
     </div>
@@ -48,11 +55,15 @@ function SetGoalPrompt({ onSet, saving, disabled }: { onSet: (lessons: number) =
 
   return (
     <div className="weekly-goal-setup">
-      <div className="weekly-goal-setup__icon" aria-hidden="true">
-        <Target strokeWidth={1.5} />
+      <div className="weekly-goal-setup__intro">
+        <div className="weekly-goal-setup__icon" aria-hidden="true">
+          <Target strokeWidth={1.75} />
+        </div>
+        <div className="weekly-goal-setup__copy">
+          <h3 className="weekly-goal-setup__heading">Set your weekly goal</h3>
+          <p className="weekly-goal-setup__sub">Choose a lesson target for each week.</p>
+        </div>
       </div>
-      <h3 className="weekly-goal-setup__heading">Set your weekly goal</h3>
-      <p className="weekly-goal-setup__sub">Choose how many lessons you want to complete each week.</p>
 
       <div className="weekly-goal-setup__presets">
           {PRESETS.map((lessons) => (
@@ -64,7 +75,7 @@ function SetGoalPrompt({ onSet, saving, disabled }: { onSet: (lessons: number) =
             aria-pressed={selected === lessons}
           >
             <span className="weekly-goal-setup__preset-hours">{lessons}</span>
-            <span className="weekly-goal-setup__preset-sub">lessons/week</span>
+            <span className="weekly-goal-setup__preset-sub">lessons</span>
           </button>
         ))}
       </div>
@@ -139,9 +150,13 @@ export function WeeklyGoalCard({
     >
 
       <header className="weekly-goal-header flex h-8 shrink-0 items-center justify-between">
-        <h2 className="text-base font-semibold leading-[1.2] text-(--color-text-primary)">
-          Weekly Goal
-        </h2>
+        <div className="weekly-goal-heading">
+          <span className="weekly-goal-heading__icon" aria-hidden="true"><CalendarDays /></span>
+          <div className="weekly-goal-heading__copy">
+            <h2 className="text-base font-semibold leading-[1.2] text-(--color-text-primary)">Weekly Goal</h2>
+            <span>YOUR ROUTINE</span>
+          </div>
+        </div>
         {hasGoal && (
           <button
             type="button"
@@ -174,25 +189,39 @@ export function WeeklyGoalCard({
         </div>
       ) : (
         <>
-          <div className="weekly-goal-body flex min-h-0 flex-1 flex-col items-center pt-3">
+          <div className="weekly-goal-body weekly-goal-body--summary flex min-h-0 flex-1 items-center pt-3">
             <WeeklyGoalRing
               percentage={percentage}
               isCompletedOrExceeded={isGoalMet}
             />
-            <p className="weekly-goal-hours mt-2.5 text-[14px] font-semibold leading-5 text-(--color-text-primary)">
-              {safeCompletedLessons === null || safeTargetLessons === null ? "—" : `${safeCompletedLessons} / ${safeTargetLessons} lessons`}
-            </p>
-            <p className="weekly-goal-message mt-1 text-[13px] font-normal leading-4.5 text-(--color-text-secondary)">
-              {safeCompletedLessons === null ? "Activity unavailable" : safeTargetLessons === null ? "Choose a goal to track progress" : isGoalMet ? "Goal reached" : "Keep it up!"}
-              <img className="weekly-goal-fire" src={fireAsset} alt="" aria-hidden="true" />
-            </p>
+            <div className="weekly-goal-summary">
+              <p className="weekly-goal-summary__eyebrow">THIS WEEK</p>
+              <p className="weekly-goal-hours">
+                {safeCompletedLessons === null || safeTargetLessons === null ? "—" : `${safeCompletedLessons} of ${safeTargetLessons} lessons`}
+              </p>
+              {percentage === null ? null : (
+                <div
+                  className="weekly-goal-progress"
+                  role="progressbar"
+                  aria-label="Weekly lesson goal progress"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.min(100, Math.max(0, percentage))}
+                >
+                  <span style={{ width: `${Math.min(100, Math.max(0, percentage))}%` }} />
+                </div>
+              )}
+              <p className="weekly-goal-message">
+                {safeCompletedLessons === null ? "Activity unavailable" : safeTargetLessons === null ? "Weekly goal unavailable" : isGoalMet ? "Goal reached" : `${Math.max(0, safeTargetLessons - safeCompletedLessons)} lessons to go`}
+              </p>
+            </div>
           </div>
 
           <div className="weekly-goal-days mt-3 grid w-full shrink-0 grid-cols-7" aria-label={completedDays ? "Weekly activity" : "Weekly activity unavailable"}>
-            {WEEK_DAYS_INFO.map((day, index) => (
-              <div key={`${day}-${index}`} className="flex flex-col items-center" aria-hidden="true">
+            {WEEK_DAYS_INFO.map(({ short, name }, index) => (
+              <div key={`${name}-${index}`} className="flex flex-col items-center" role="img" aria-label={`${name}: ${completedDays ? completedDays[index] ? "lesson completed" : "no lesson completed" : "activity unavailable"}`}>
                 <span className={`size-2.75 rounded-full ${completedDays?.[index] ? "bg-(--color-brand)" : "border-[1.5px] border-[#94a3b8] bg-(--color-surface)"}`} />
-                <span className="mt-1 text-12px font-semibold leading-4 text-[#374151]">{day}</span>
+                <span className="mt-1 text-12px font-semibold leading-4 text-[#374151]" aria-hidden="true">{short}</span>
               </div>
             ))}
           </div>

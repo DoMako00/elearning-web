@@ -21,11 +21,19 @@ export interface DashboardBentoProps {
 function NoSessionProgressCard() {
   return (
     <div className="no-session-card" role="status" aria-label="Start your first session to unlock progress tracking">
-      <p className="no-session-card__title">My Progress</p>
-      <div className="no-session-card__icon" aria-hidden="true">
-        <TrendingUp strokeWidth={1.5} />
+      <div className="no-session-card__heading">
+        <span className="no-session-card__icon" aria-hidden="true">
+          <TrendingUp strokeWidth={1.8} />
+        </span>
+        <div>
+          <p className="no-session-card__title">My Progress</p>
+          <span className="no-session-card__eyebrow">YOUR LEARNING</span>
+        </div>
       </div>
-      <p className="no-session-card__sub">Complete your first study session to start tracking your progress.</p>
+      <div className="no-session-card__empty">
+        <p className="no-session-card__sub">Finish your first lesson to see your learning progress here.</p>
+        <span className="no-session-card__hint">Your activity will appear here</span>
+      </div>
       <div className="no-session-card__dots" aria-hidden="true">
         {[0, 1, 2, 3, 4].map((i) => (
           <span key={i} className="no-session-card__dot" style={{ animationDelay: `${i * 0.15}s` }} />
@@ -46,9 +54,7 @@ export function DashboardBento({ courses = [] }: DashboardBentoProps) {
   const active = nextSessions.find(item => item.course.courseId === activeCourseId) ?? nextSessions[0];
   const activeLesson = active?.next?.lesson;
   const activeSession = activeLesson && active ? {courseId:active.course.courseId,lessonId:activeLesson.lessonId,title:activeLesson.title,number:active.next!.number,canStart:active.course.access.canOpen && activeLesson.playbackAvailable} : null;
-  const progressValues = progress.data?.weekDays.length
-    ? progress.data.weekDays.map((day) => day.completedLessons)
-    : [0, 0, 0, 0, 0, 0, 0];
+  const progressDays = progress.data?.weekDays;
 
   return (
     <section className="dashboard-bento" aria-label="Learning dashboard">
@@ -85,8 +91,8 @@ export function DashboardBento({ courses = [] }: DashboardBentoProps) {
           {(progress.data?.totalCompletedLessons ?? 0) > 0 || progress.isLoading || progress.isError ? (
           <MyProgress
             completionPercentage={progress.data?.completionPercent}
-            chartData={progressValues}
-            chartUnit="lesson"
+            chartData={progressDays}
+            weeklyCompletedLessons={progress.data?.weeklyCompletedLessons}
             hasProgress={(progress.data?.totalCompletedLessons ?? 0) > 0}
             loading={progress.isLoading}
             error={progress.isError}

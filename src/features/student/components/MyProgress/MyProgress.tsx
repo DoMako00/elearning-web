@@ -3,30 +3,34 @@ import {
   AreaChart,
   ResponsiveContainer,
   Tooltip,
+  XAxis,
   YAxis,
 } from 'recharts';
-import { RefreshCw, TrendingUp } from 'lucide-react';
+import { ArrowRight, CalendarDays, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { MyProgressProps } from './my-progress.types';
 import './index.css';
 
-function buildChartPoints(values: number[]) {
-  return values.map((value, index) => ({ index, value }));
+function buildChartPoints(days: NonNullable<MyProgressProps['chartData']>) {
+  return days.map((day) => ({
+    day: new Intl.DateTimeFormat('en', { weekday: 'short' }).format(new Date(`${day.date}T12:00:00`)),
+    value: day.completedLessons,
+  }));
 }
 
 interface CustomTooltipProps {
   active?: boolean;
   payload?: Array<{ value: number }>;
-  unit?: string;
+  label?: string;
 }
 
-function CustomTooltip({ active, payload, unit = '%' }: CustomTooltipProps) {
+function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   const value = payload[0].value;
-  const valueLabel = unit === '%' ? `${value}%` : `${value} ${unit}${value === 1 ? '' : 's'}`;
   return (
     <div className="my-progress-tooltip">
-      {valueLabel}
+      {label ? <span>{label}</span> : null}
+      <strong>{value} {value === 1 ? 'lesson' : 'lessons'}</strong>
     </div>
   );
 }
@@ -37,15 +41,14 @@ export function MyProgress({
   growthLabel = 'this month',
   onViewProgress,
   chartData,
-  chartUnit = '%',
+  weeklyCompletedLessons,
   hasProgress = true,
   loading = false,
   error = false,
 }: MyProgressProps) {
   const navigate = useNavigate();
-  const chartValues = chartData ?? [];
-  const points = buildChartPoints(chartValues);
-  const chartMax = Math.max(1, ...chartValues);
+  const points = buildChartPoints(chartData ?? []);
+  const chartMax = Math.max(1, ...(chartData ?? []).map((day) => day.completedLessons));
 
   const handleViewProgress = () => {
     if (onViewProgress) {
@@ -60,40 +63,56 @@ export function MyProgress({
       className="my-progress-card relative"
       aria-label={`My Progress: ${loading ? "loading" : error || completionPercentage === undefined ? "unavailable" : `${completionPercentage}% overall completion`}`}
     >
-
       <div className="my-progress-header">
-        <h2 className="my-progress-title">My Progress</h2>
-        <button
-          type="button"
-          aria-label="Progress unavailable"
-          disabled
-          className="my-progress-icon-btn hover:bg-slate-50 transition-colors cursor-pointer"
-        >
-          <RefreshCw
-            className="my-progress-icon-btn-icon transition-transform"
-            aria-hidden="true"
-          />
-        </button>
+        <div className="my-progress-heading">
+          <span className="my-progress-heading-icon" aria-hidden="true">
+            <TrendingUp />
+          </span>
+          <div>
+            <h2 className="my-progress-title">My Progress</h2>
+            <p className="my-progress-kicker">LEARNING OVERVIEW</p>
+          </div>
+        </div>
+        <span className="my-progress-period">
+          <CalendarDays aria-hidden="true" />
+          <span>THIS WEEK</span>
+        </span>
       </div>
 
       <div className="my-progress-body">
-        <div className="my-progress-text-col">
-          <p className="my-progress-label">Overall Completion</p>
-          <p
-            className="my-progress-percentage"
-            aria-label={loading ? "Progress loading" : error || completionPercentage === undefined ? "Progress unavailable" : `${completionPercentage} percent`}
-          >
-            {loading || error || completionPercentage === undefined ? "—" : `${completionPercentage}%`}
-          </p>
+        <div className="my-progress-summary">
+          <div className="my-progress-text-col">
+            <p className="my-progress-label">Overall completion</p>
+            <p
+              className="my-progress-percentage"
+              aria-label={loading ? "Progress loading" : error || completionPercentage === undefined ? "Progress unavailable" : `${completionPercentage} percent`}
+            >
+              {loading || error || completionPercentage === undefined ? "—" : `${completionPercentage}%`}
+            </p>
+          </div>
+          {!loading && !error && weeklyCompletedLessons !== undefined ? (
+            <div className="my-progress-week-total" aria-label={`${weeklyCompletedLessons} lessons completed this week`}>
+              <span>THIS WEEK</span>
+              <strong>{weeklyCompletedLessons}<small>{weeklyCompletedLessons === 1 ? 'lesson' : 'lessons'}</small></strong>
+            </div>
+          ) : null}
         </div>
 
-        <div className="my-progress-chart-wrap">
+        <div className="my-progress-chart-heading">
+          <span>Daily activity</span>
+          {monthlyGrowth === undefined ? null : <span className="my-progress-badge" aria-label={`${monthlyGrowth}% growth ${growthLabel}`}>
+            <TrendingUp className="my-progress-badge-icon" aria-hidden="true" />
+            {monthlyGrowth}% {growthLabel}
+          </span>}
+        </div>
+
+        <div className="my-progress-chart-wrap" aria-label="Completed lessons by day this week">
           {loading ? <p role="status" className="my-progress-state">Loading progress…</p>
             : error ? <p role="alert" className="my-progress-state">Progress could not be loaded.</p>
-            : chartValues.length ? <ResponsiveContainer width="100%" height="100%">
+            : points.length ? <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={points}
-              margin={{ top: 8, right: 4, bottom: 0, left: 4 }}
+              margin={{ top: 4, right: 6, bottom: 0, left: 0 }}
             >
               <defs>
                 <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
@@ -102,10 +121,19 @@ export function MyProgress({
                 </linearGradient>
               </defs>
 
-              <YAxis domain={[0, chartMax]} hide width={0} />
+              <XAxis
+                dataKey="day"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: 'var(--color-text-quiet)', fontSize: 9, fontWeight: 600 }}
+                tickMargin={4}
+                interval={0}
+                height={19}
+              />
+              <YAxis domain={[0, chartMax]} hide width={0} allowDecimals={false} />
 
               <Tooltip
-                content={<CustomTooltip unit={chartUnit} />}
+                content={<CustomTooltip />}
                 cursor={false}
               />
 
@@ -127,11 +155,6 @@ export function MyProgress({
           </ResponsiveContainer> : <p role="status" className="my-progress-state">Progress data is unavailable.</p>}
 
           {!loading && !error && !hasProgress ? <p className="my-progress-empty-note" role="status">No progress yet</p> : null}
-
-          {monthlyGrowth === undefined ? null : <div className="my-progress-badge" aria-label={`${monthlyGrowth}% growth ${growthLabel}`}>
-            <TrendingUp className="my-progress-badge-icon" aria-hidden="true" />
-            <span>{monthlyGrowth}% {growthLabel}</span>
-          </div>}
         </div>
       </div>
 
@@ -142,6 +165,7 @@ export function MyProgress({
           className="my-progress-cta cursor-pointer"
         >
           View Progress
+          <ArrowRight aria-hidden="true" />
         </button>
       </div>
     </section>

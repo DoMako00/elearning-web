@@ -491,3 +491,342 @@
     font-size: 12px;
   }
 }
+
+/* Visual hierarchy polish for the dashboard card. The existing goal pulse
+   animation above remains unchanged and continues to mark a reached goal. */
+.weekly-goal-card {
+  border-color: var(--color-border-subtle);
+  background: linear-gradient(145deg, #ffffff 52%, var(--color-brand-soft) 180%);
+  box-shadow: var(--shadow-tile);
+}
+
+.weekly-goal-header {
+  gap: 8px;
+}
+
+.weekly-goal-heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+}
+
+.weekly-goal-heading__icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border: 1px solid var(--color-brand-soft-strong);
+  border-radius: 10px;
+  background: var(--color-brand-soft);
+  color: var(--color-brand-strong);
+}
+
+.weekly-goal-heading__icon svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+}
+
+.weekly-goal-heading__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.weekly-goal-heading__copy h2 {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: -0.02em;
+}
+
+.weekly-goal-heading__copy > span {
+  color: var(--color-text-quiet);
+  font-size: 7px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.1em;
+}
+
+.weekly-goal-options {
+  border-radius: 10px;
+  background: rgb(255 255 255 / 80%);
+  color: var(--color-brand-strong);
+}
+
+.weekly-goal-setup {
+  align-items: stretch;
+  justify-content: center;
+  gap: clamp(6px, 2.2cqh, 10px);
+  padding: 4px 0 1px;
+  text-align: left;
+}
+
+.weekly-goal-setup__intro {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+}
+
+.weekly-goal-setup__icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  margin: 0;
+  border: 1px solid var(--color-brand-soft-strong);
+  background: var(--color-brand-soft);
+  color: var(--color-brand-strong);
+}
+
+.weekly-goal-setup__icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.weekly-goal-setup__copy {
+  min-width: 0;
+}
+
+.weekly-goal-setup__heading {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: clamp(12px, 4.2cqh, 14px);
+  line-height: 1.2;
+}
+
+.weekly-goal-setup__sub {
+  max-width: none;
+  margin: 3px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.weekly-goal-setup__presets {
+  gap: 6px;
+  margin-top: 0;
+}
+
+.weekly-goal-setup__preset {
+  min-height: 39px;
+  gap: 3px;
+  padding: 5px 3px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 82%);
+  transition: border-color 150ms ease, background 150ms ease, transform 100ms ease;
+}
+
+.weekly-goal-setup__preset:hover {
+  border-color: var(--color-brand-soft-strong);
+  background: var(--color-brand-soft);
+}
+
+.weekly-goal-setup__preset--active {
+  border-color: var(--color-brand);
+  background: var(--color-brand-soft);
+  box-shadow: 0 0 0 2px rgb(32 168 98 / 12%);
+}
+
+.weekly-goal-setup__preset-hours,
+.weekly-goal-setup__preset--active .weekly-goal-setup__preset-hours {
+  color: var(--color-brand-strong);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.weekly-goal-setup__preset-sub {
+  color: var(--color-text-secondary);
+  font-size: 8px;
+  line-height: 1;
+}
+
+.weekly-goal-setup__slider-wrap {
+  margin-top: 0;
+}
+
+.weekly-goal-setup__slider {
+  height: 5px;
+  accent-color: var(--color-brand);
+}
+
+.weekly-goal-setup__slider-labels {
+  margin-top: 3px;
+  font-size: 9px;
+}
+
+.weekly-goal-setup__slider-val {
+  color: var(--color-brand-strong);
+}
+
+.weekly-goal-setup__cta {
+  width: 100%;
+  min-height: 40px;
+  gap: 7px;
+  margin-top: 0;
+  padding: 0 14px;
+  border-radius: 11px;
+  background: var(--color-brand-strong);
+  font-size: 11px;
+  box-shadow: 0 6px 14px -8px rgb(8 127 85 / 55%);
+}
+
+.weekly-goal-setup__cta:hover {
+  background: var(--color-brand-strong-hover);
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.weekly-goal-setup__cta:disabled {
+  cursor: wait;
+  opacity: 0.72;
+  transform: none;
+}
+
+.weekly-goal-setup__cta:focus-visible,
+.weekly-goal-setup__preset:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.weekly-goal-body--summary {
+  flex-direction: row;
+  justify-content: center;
+  gap: clamp(10px, 3cqw, 18px);
+  padding-top: 5px;
+}
+
+.weekly-goal-body--summary .weekly-goal-ring {
+  --weekly-goal-ring-size: clamp(88px, 29cqw, 118px);
+  flex: 0 0 var(--weekly-goal-ring-size);
+}
+
+.weekly-goal-body--summary .weekly-goal-ring > div span:first-child {
+  font-size: clamp(25px, 8cqh, 31px);
+}
+
+.weekly-goal-body--summary .weekly-goal-ring > div span:last-child {
+  margin-top: 4px;
+  font-size: 10px;
+}
+
+.weekly-goal-summary {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  gap: 7px;
+}
+
+.weekly-goal-summary__eyebrow {
+  margin: 0;
+  color: var(--color-text-quiet);
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.09em;
+}
+
+.weekly-goal-body--summary .weekly-goal-hours {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: clamp(13px, 4cqh, 16px);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.weekly-goal-progress {
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+}
+
+.weekly-goal-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--color-brand), var(--color-brand-strong));
+  transition: width 250ms ease;
+}
+
+.weekly-goal-body--summary .weekly-goal-message {
+  min-height: 14px;
+  gap: 0;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.weekly-goal-body--summary + .weekly-goal-days {
+  gap: 3px;
+  margin-top: 4px;
+  padding: 7px 8px 1px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.weekly-goal-days > div > span:first-child {
+  width: 9px;
+  height: 9px;
+}
+
+.weekly-goal-days > div > span:last-child {
+  margin-top: 3px;
+  color: var(--color-text-secondary);
+  font-size: 9px;
+  line-height: 1.2;
+}
+
+@container bento-slot (max-height: 290px) {
+  .weekly-goal-setup { gap: 6px; }
+  .weekly-goal-setup__icon { display: grid; }
+  .weekly-goal-setup__sub { display: block; }
+  .weekly-goal-setup__intro { gap: 7px; }
+  .weekly-goal-setup__icon { width: 30px; height: 30px; flex-basis: 30px; }
+  .weekly-goal-setup__preset { min-height: 34px; padding-block: 4px; }
+  .weekly-goal-setup__slider-wrap { display: block; }
+  .weekly-goal-setup__cta { min-height: 36px; }
+}
+
+@container bento-slot (max-height: 230px) {
+  .weekly-goal-setup__sub { display: none; }
+  .weekly-goal-setup__intro { min-height: 30px; }
+  .weekly-goal-setup__slider-wrap { display: none; }
+}
+
+@container bento-slot (max-width: 300px) {
+  .weekly-goal-heading { gap: 7px; }
+  .weekly-goal-heading__icon { width: 29px; height: 29px; flex-basis: 29px; }
+  .weekly-goal-heading__copy h2 { font-size: 13px; }
+  .weekly-goal-heading__copy > span { font-size: 6px; }
+  .weekly-goal-body--summary { gap: 9px; }
+  .weekly-goal-body--summary .weekly-goal-ring { --weekly-goal-ring-size: 88px; }
+  .weekly-goal-body--summary .weekly-goal-hours { font-size: 13px; }
+  .weekly-goal-body--summary .weekly-goal-message { font-size: 9px; }
+}
+
+@container bento-slot (max-width: 220px) {
+  .weekly-goal-heading__icon { display: none; }
+  .weekly-goal-body--summary { gap: 6px; }
+  .weekly-goal-body--summary .weekly-goal-ring { --weekly-goal-ring-size: 74px; }
+  .weekly-goal-body--summary .weekly-goal-ring > div span:first-child { font-size: 21px; }
+  .weekly-goal-body--summary .weekly-goal-ring > div span:last-child { font-size: 8px; }
+  .weekly-goal-summary { gap: 5px; }
+  .weekly-goal-summary__eyebrow { font-size: 7px; }
+  .weekly-goal-body--summary .weekly-goal-hours { font-size: 11px; }
+  .weekly-goal-body--summary .weekly-goal-message { font-size: 8px; }
+  .weekly-goal-setup__presets { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; }
+  .weekly-goal-setup__preset-sub { font-size: 7px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .weekly-goal-progress > span { transition: none; }
+  .weekly-goal-setup__preset,
+  .weekly-goal-setup__cta { transition: none; }
+}

@@ -3,8 +3,8 @@ export interface MyProgressProps {
   monthlyGrowth?: number;
   growthLabel?: string;
   onViewProgress?: () => void;
-  chartData?: number[];
-  chartUnit?: string;
+  chartData?: Array<{ date: string; completedLessons: number }>;
+  weeklyCompletedLessons?: number;
   hasProgress?: boolean;
   loading?: boolean;
   error?: boolean;
