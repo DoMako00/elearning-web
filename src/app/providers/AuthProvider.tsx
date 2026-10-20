@@ -107,9 +107,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
         setStatus("unauthenticated");
         return;
       }
-      if (hadUser) {
-        // Another account took over this browser: reload so no in-memory
-        // state from the previous student survives.
+      // Another account took over this browser: reload so no in-memory
+      // state from the previous student survives. On the auth pages the
+      // sign-in flow itself is writing the new session and will perform its
+      // own full navigation, so reloading there would interrupt it.
+      if (hadUser && !window.location.pathname.startsWith("/auth/")) {
         reloadPage();
         return;
       }
