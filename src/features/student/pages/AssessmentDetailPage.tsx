@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { studentAssessmentApi, type StudentAssessmentQuestionDto } from "../api/studentAssessmentApi";
 import { clearAssessmentDraft, loadAssessmentDraft, saveAssessmentDraft } from "../api/assessmentDrafts";
 import { useAuth } from "../../../app/providers/AuthProvider";
+import "./student-extra-pages.css";
 
 function optionLabel(option: unknown): string {
   if (typeof option === "boolean") return option ? "True" : "False";
@@ -16,10 +18,57 @@ function optionLabel(option: unknown): string {
 }
 
 function answerInput(question: StudentAssessmentQuestionDto, value: unknown, onChange: (next: unknown) => void, disabled: boolean) {
-  if (question.questionType === "free_text") return <textarea className="min-h-28 w-full rounded-lg border border-slate-300 p-3 text-sm" value={typeof value === "string" ? value : ""} onChange={event => onChange(event.target.value)} aria-label={question.prompt} disabled={disabled} />;
+  if (question.questionType === "free_text") {
+    return (
+      <textarea
+        className="assessment-answer-textarea"
+        value={typeof value === "string" ? value : ""}
+        onChange={(event) => onChange(event.target.value)}
+        aria-label={question.prompt}
+        disabled={disabled}
+      />
+    );
+  }
   const options = question.questionType === "true_false" ? [true, false] : question.options;
-  if (question.questionType === "multiple_choice") return <div className="mt-3 space-y-2">{options.map((option, index) => { const selected = Array.isArray(value) && value.some(item => JSON.stringify(item) === JSON.stringify(option)); return <label key={index} className="flex items-center gap-2 rounded-lg border border-slate-200 p-3 text-sm"><input type="checkbox" checked={selected} disabled={disabled} onChange={event => onChange(event.target.checked ? [...(Array.isArray(value) ? value : []), option] : (Array.isArray(value) ? value.filter(item => JSON.stringify(item) !== JSON.stringify(option)) : []))} />{optionLabel(option)}</label>; })}</div>;
-  return <div className="mt-3 space-y-2">{options.map((option, index) => <label key={index} className="flex items-center gap-2 rounded-lg border border-slate-200 p-3 text-sm"><input type="radio" name={question.id} checked={JSON.stringify(value) === JSON.stringify(option)} disabled={disabled} onChange={() => onChange(option)} />{optionLabel(option)}</label>)}</div>;
+  if (question.questionType === "multiple_choice") {
+    return (
+      <div className="assessment-answer-options">
+        {options.map((option, index) => {
+          const selected = Array.isArray(value) && value.some((item) => JSON.stringify(item) === JSON.stringify(option));
+          return (
+            <label className="assessment-answer-option" key={index}>
+              <input
+                type="checkbox"
+                checked={selected}
+                disabled={disabled}
+                onChange={(event) => onChange(event.target.checked
+                  ? [...(Array.isArray(value) ? value : []), option]
+                  : (Array.isArray(value) ? value.filter((item) => JSON.stringify(item) !== JSON.stringify(option)) : []))}
+              />
+              <span>{optionLabel(option)}</span>
+            </label>
+          );
+        })}
+      </div>
+    );
+  }
+
+  return (
+    <div className="assessment-answer-options">
+      {options.map((option, index) => (
+        <label className="assessment-answer-option" key={index}>
+          <input
+            type="radio"
+            name={question.id}
+            checked={JSON.stringify(value) === JSON.stringify(option)}
+            disabled={disabled}
+            onChange={() => onChange(option)}
+          />
+          <span>{optionLabel(option)}</span>
+        </label>
+      ))}
+    </div>
+  );
 }
 
 function isAnswered(value: unknown) {
@@ -85,22 +134,83 @@ export function AssessmentDetailPage() {
   }, [answers, attemptId, userId]);
 
   const allAnswered = questions.length > 0 && questions.every(question => isAnswered(answers[question.id]));
-  return <main className="mx-auto w-full max-w-4xl p-4 sm:p-6 lg:p-8">
-    <Link to="/assessments" className="text-sm font-medium text-emerald-700 hover:text-emerald-800">← All assessments</Link>
-    {query.isLoading && <p role="status" className="mt-5 rounded-xl border bg-white p-5 text-sm text-slate-500">Loading assessment…</p>}
-    {query.error && <p role="alert" className="mt-5 rounded-xl border border-rose-200 bg-white p-5 text-sm text-rose-700">{query.error instanceof Error ? query.error.message : "Assessment could not be loaded."}</p>}
-    {assessment && <><header className="my-5 rounded-xl border border-slate-200 bg-white p-5"><p className="text-xs font-semibold uppercase text-emerald-700">{assessment.kind}</p><h1 className="mt-1 text-2xl font-bold text-slate-900">{assessment.title}</h1><p className="mt-1 text-sm text-slate-500">{assessment.courseTitle ?? "Placement assessment"}</p><p className="mt-2 text-xs text-slate-500">{assessment.attemptsUsed}/{assessment.attemptsAllowed} attempts used{assessment.timeLimitSeconds ? ` · ${Math.round(assessment.timeLimitSeconds / 60)} min time limit` : ""}</p>{assessment.status !== "available" && <p className="mt-3 text-sm text-slate-600">This assessment is {assessment.status}.</p>}</header>
-      {result && <p role="status" className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">{result.score === null ? "Your responses were submitted for review." : `Attempt submitted. Score: ${result.score}.`}</p>}
-      {!result && !attemptId && finished && <p className="mb-4 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700">Attempt {finished.attemptNumber} was submitted{finished.submittedAt ? ` on ${new Date(finished.submittedAt).toLocaleString()}` : ""}. {finished.score === null ? "It is awaiting review." : `Score: ${finished.score}.`}</p>}
-      {!attemptId && !result && assessment.status === "available" && <button disabled={start.isPending || !canStart} onClick={() => start.mutate()} className="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{start.isPending ? "Opening…" : active ? "Resume attempt" : canStart ? "Start attempt" : "No attempts remaining"}</button>}
-      {start.error && <p role="alert" className="mt-3 text-sm text-rose-700">{start.error.message}</p>}
-      {attemptId && <p className="mb-3 text-xs text-slate-500" role="status">{draftSaved ? "Your answers are kept in this browser tab until you submit; they are not sent to the server before then." : "Your answers can't be kept in this browser — don't leave the page before submitting."}</p>}
-      {attemptId && questions.length === 0 && <p role="alert" className="mb-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">This attempt has no questions to answer. Contact your instructor before submitting.</p>}
-      {attemptId && questions.map((question, index) => <section key={question.id} className="mb-3 rounded-xl border border-slate-200 bg-white p-5"><h2 className="font-semibold text-slate-900">{index + 1}. {question.prompt}</h2>{answerInput(question, answers[question.id], value => setAnswers(current => ({ ...current, [question.id]: value })), submit.isPending)}</section>)}
-      {attemptId && <button disabled={submit.isPending || !allAnswered} onClick={() => submit.mutate()} className="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{submit.isPending ? "Submitting…" : "Submit answers"}</button>}
-      {submit.error && <p role="alert" className="mt-3 text-sm text-rose-700">{submit.error.message}</p>}
-    </>}
-  </main>;
+  return (
+    <main className="student-extra-page assessment-detail-page" aria-labelledby="assessment-detail-title">
+      <Link to="/assessments" className="assessment-detail-page__back">
+        <ArrowLeft aria-hidden="true" />
+        All assessments
+      </Link>
+
+      {query.isLoading ? (
+        <p className="student-extra-page__state" role="status">Loading assessment…</p>
+      ) : null}
+      {query.error ? (
+        <p className="student-extra-page__state student-extra-page__state--error" role="alert">
+          {query.error instanceof Error ? query.error.message : "Assessment could not be loaded."}
+        </p>
+      ) : null}
+
+      {assessment ? (
+        <>
+          <header className="assessment-detail-hero">
+            <span className="assessment-card__kind">{assessment.kind}</span>
+            <h1 id="assessment-detail-title">{assessment.title}</h1>
+            <p className="assessment-detail-hero__course">{assessment.courseTitle ?? "Placement assessment"}</p>
+            <div className="assessment-detail-hero__meta">
+              <span>{assessment.attemptsUsed}/{assessment.attemptsAllowed} attempts used</span>
+              {assessment.timeLimitSeconds ? <span>{Math.round(assessment.timeLimitSeconds / 60)} min time limit</span> : null}
+            </div>
+            {assessment.status !== "available" ? (
+              <p className="assessment-detail-hero__availability">This assessment is {assessment.status}.</p>
+            ) : null}
+          </header>
+
+          {result ? (
+            <p className="assessment-feedback assessment-feedback--success" role="status">
+              {result.score === null ? "Your responses were submitted for review." : `Attempt submitted. Score: ${result.score}.`}
+            </p>
+          ) : null}
+          {!result && !attemptId && finished ? (
+            <p className="assessment-feedback" role="status">
+              Attempt {finished.attemptNumber} was submitted{finished.submittedAt ? ` on ${new Date(finished.submittedAt).toLocaleString()}` : ""}. {finished.score === null ? "It is awaiting review." : `Score: ${finished.score}.`}
+            </p>
+          ) : null}
+          {!attemptId && !result && assessment.status === "available" ? (
+            <button className="assessment-action" disabled={start.isPending || !canStart} onClick={() => start.mutate()}>
+              {start.isPending ? "Opening…" : active ? "Resume attempt" : canStart ? "Start attempt" : "No attempts remaining"}
+            </button>
+          ) : null}
+          {start.error ? <p className="assessment-inline-error" role="alert">{start.error.message}</p> : null}
+          {attemptId ? (
+            <p className="assessment-draft-note" role="status">
+              {draftSaved ? "Your answers are kept in this browser tab until you submit; they are not sent to the server before then." : "Your answers can't be kept in this browser — don't leave the page before submitting."}
+            </p>
+          ) : null}
+          {attemptId && questions.length === 0 ? (
+            <p className="assessment-feedback assessment-feedback--warning" role="alert">
+              This attempt has no questions to answer. Contact your instructor before submitting.
+            </p>
+          ) : null}
+          {attemptId ? (
+            <div className="assessment-question-list">
+              {questions.map((question, index) => (
+                <section className="assessment-question" key={question.id}>
+                  <h2>{index + 1}. {question.prompt}</h2>
+                  {answerInput(question, answers[question.id], (value) => setAnswers((current) => ({ ...current, [question.id]: value })), submit.isPending)}
+                </section>
+              ))}
+            </div>
+          ) : null}
+          {attemptId ? (
+            <button className="assessment-action assessment-action--submit" disabled={submit.isPending || !allAnswered} onClick={() => submit.mutate()}>
+              {submit.isPending ? "Submitting…" : "Submit answers"}
+            </button>
+          ) : null}
+          {submit.error ? <p className="assessment-inline-error" role="alert">{submit.error.message}</p> : null}
+        </>
+      ) : null}
+    </main>
+  );
 }
 
 export default AssessmentDetailPage;
