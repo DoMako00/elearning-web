@@ -9,6 +9,7 @@ import {
   ExploreTrending,
   type ExploreCourse,
 } from "../../../components/ui/Explore";
+import { getCourseVisualPreset } from "../../../components/ui/CourseLibrary/courses.data";
 import { useStudentCourseList } from "../api/useStudentCourses";
 import { useStudentLearningPath, useStudentLearningPaths, useStudentSavedCourses, useToggleStudentSavedCourse } from "../api/useStudentLearning";
 import "../../../components/ui/Explore/Explore.css";
@@ -24,8 +25,7 @@ export function ExplorePage() {
   const savedCoursesQuery = useStudentSavedCourses();
   const toggleSavedCourse = useToggleStudentSavedCourse();
 
-  const courses = useMemo<ExploreCourse[]>(() => (coursesQuery.data ?? []).map((course, index) => {
-    const artTypes: ExploreCourse["artType"][] = ["anatomy", "histology", "physiology", "biochemistry", "neuroscience", "pharmacology", "pathology"];
+  const courses = useMemo<ExploreCourse[]>(() => (coursesQuery.data ?? []).map((course) => {
     const isSubject = course.unitLabel === "Subject";
     return {
       id: course.courseId,
@@ -39,7 +39,7 @@ export function ExplorePage() {
       lessonCount: course.lessonCount,
       updatedAt: course.updatedAt,
       canOpen: course.access.canOpen,
-      artType: artTypes[index % artTypes.length]!,
+      artType: getCourseVisualPreset(course).key,
     };
   }), [coursesQuery.data]);
   const selectedPath = learningPathId ? pathQuery.data?.path ?? null : pathsQuery.data?.[0] ?? null;

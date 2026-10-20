@@ -5,10 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import anatomyImage from "../../../Assets/dashboard/human-anatomy.webp";
-import histologyImage from "../../../Assets/dashboard/histology-basics.webp";
-import physiologyImage from "../../../Assets/dashboard/medical-physiology.webp";
-import biochemistryImage from "../../../Assets/dashboard/biochemistry-essentials.webp";
+import { getCourseVisualPreset } from "../CourseLibrary/courses.data";
 import "./RecommendedCourses.css";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../../../hooks/useToast";
@@ -32,11 +29,7 @@ function canOpenCourse(course: StudentCourseItem) {
 }
 
 function imageForCourse(course: StudentCourseItem) {
-  const source = `${course.code} ${course.title}`.toLowerCase();
-  if (source.includes("bio")) return biochemistryImage;
-  if (source.includes("phys")) return physiologyImage;
-  if (source.includes("histo")) return histologyImage;
-  return anatomyImage;
+  return getCourseVisualPreset(course).image;
 }
 
 // No relevance model exists, so courses are listed in a neutral order

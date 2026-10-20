@@ -27,12 +27,13 @@ describe("reference UI course mapping", () => {
     expect(mapped.slug).toBe(course.courseId);
     expect(mapped.access).toEqual(course.access);
   });
-  it("does not invent progress, instructors or medical artwork", () => {
+  it("uses English artwork without inventing progress or instructor data", () => {
     const mapped = toReferenceCourse(course);
     expect(mapped.progress).toBeNull();
     expect(mapped.instructor).toBeNull();
-    expect(mapped.image).toBe("");
-    expect(mapped.heroOverlay).toBe("");
+    expect(mapped.art).toBe("english");
+    expect(mapped.image).toContain("english-language.jpg");
+    expect(mapped.heroOverlay).toContain("english-language-cutout.png");
     expect(mapped.opened).toBe("No lesson activity yet");
   });
   it("uses the academic unit from the API even for a medical title", () => {
@@ -51,5 +52,15 @@ describe("reference UI course mapping", () => {
   it("uses zero only after a loaded snapshot confirms no course activity", () => {
     expect(toReferenceCourse(course, { ...progress, courses: [], recentActivity: [] }).progress).toBe(0);
     expect(toReferenceCourse({ ...course, access: { ...course.access, enrollmentStatus: "completed" } }).status).toBe("completed");
+  });
+  it("uses neutral artwork for unknown titles instead of assigning them to anatomy", () => {
+    const mapped = toReferenceCourse({ ...course, title: "Student Success Skills", code: "SSS101" });
+    expect(mapped.art).toBe("general");
+    expect(mapped.image).toContain("general-course.jpg");
+  });
+  it("recognizes subject artwork from the course code as well as its title", () => {
+    const mapped = toReferenceCourse({ ...course, title: "General Foundations", code: "NEX-Y1-DELTA-ANA1102" });
+    expect(mapped.art).toBe("anatomy");
+    expect(mapped.image).toContain("human-anatomy.webp");
   });
 });

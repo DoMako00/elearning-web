@@ -1,3 +1,5 @@
+import type { CourseArtworkKey } from "../CourseLibrary/courses.data";
+
 export interface ExploreCourse {
   id: string;
   title: string;
@@ -10,7 +12,7 @@ export interface ExploreCourse {
   lessonCount: number;
   updatedAt: string;
   canOpen: boolean;
-  artType: "anatomy" | "histology" | "physiology" | "biochemistry" | "neuroscience" | "pharmacology" | "pathology";
+  artType: CourseArtworkKey;
 }
 
 export interface ExploreDirection {

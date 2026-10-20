@@ -4,11 +4,8 @@ import { MoreHorizontal, Bookmark, Play, RefreshCw, ExternalLink, X, Check } fro
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../../../../hooks/useToast";
 import { ToastNotification } from "../../../../components/ui/ToastNotification";
+import { getCourseVisualPreset } from "../../../../components/ui/CourseLibrary/courses.data";
 import type { StudentCourseItem } from "../../api/studentCoursesApi";
-import anatomyImage from "../../../../Assets/dashboard/human-anatomy.webp";
-import physioImage from "../../../../Assets/dashboard/medical-physiology.webp";
-import histologyImage from "../../../../Assets/dashboard/histology-basics.webp";
-import biochemistryImage from "../../../../Assets/dashboard/biochemistry-essentials.webp";
 import "./index.css";
 
 interface CourseOption {
@@ -30,11 +27,7 @@ interface ContinueLearningProps {
 }
 
 function imageForCourse(course: StudentCourseItem) {
-  const source = `${course.code} ${course.title}`.toLowerCase();
-  if (source.includes("bio")) return biochemistryImage;
-  if (source.includes("phys")) return physioImage;
-  if (source.includes("histo")) return histologyImage;
-  return anatomyImage;
+  return getCourseVisualPreset(course).image;
 }
 
 function isBiochemistry(course: StudentCourseItem) {

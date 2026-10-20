@@ -1,12 +1,11 @@
-import { BookOpen } from "lucide-react";
-import { COURSE_VISUAL_PRESETS, type StudentCourse } from "../../../components/ui/CourseLibrary/courses.data";
+import { getCourseVisualPreset, type StudentCourse } from "../../../components/ui/CourseLibrary/courses.data";
 import type { StudentCourseItem } from "../api/studentCoursesApi";
 import type { StudentProgressSnapshotDto } from "../api/studentLearningApi";
 
 export function toReferenceCourse(course: StudentCourseItem, progress?: StudentProgressSnapshotDto): StudentCourse {
   const record = progress?.courses.find((item) => item.courseId === course.courseId);
   const activity = progress?.recentActivity.find((item) => item.courseId === course.courseId);
-  const visual = COURSE_VISUAL_PRESETS.find((preset) => preset.keywords.some((keyword) => keyword !== "basics" && course.title.toLowerCase().includes(keyword)));
+  const visual = getCourseVisualPreset(course);
   const completed = course.access.enrollmentStatus === "completed" || (record?.completionPercent ?? 0) >= 100;
   return {
     id: course.courseId, slug: course.courseId, title: course.title,
@@ -16,7 +15,7 @@ export function toReferenceCourse(course: StudentCourseItem, progress?: StudentP
     completedLessons: record?.completedLessons ?? 0, totalLessons: record?.totalLessons ?? course.lessonCount,
     lessonText: activity?.lessonTitle ?? `${course.lessonCount} lessons`,
     opened: activity ? `Last studied ${new Intl.DateTimeFormat(undefined, {dateStyle: "medium"}).format(new Date(activity.occurredAt))}` : "No lesson activity yet",
-    art: visual?.art ?? "generic", image: visual?.image ?? "", heroOverlay: visual?.heroOverlay ?? "", Icon: visual?.Icon ?? BookOpen,
+    art: visual.art, image: visual.image, heroOverlay: visual.heroOverlay, Icon: visual.Icon,
     status: completed ? "completed" : "in-progress", instructor: null,
     summary: course.code, access: course.access,
   };

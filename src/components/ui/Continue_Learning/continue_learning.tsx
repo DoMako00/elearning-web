@@ -8,10 +8,7 @@ import { ToastNotification } from "../ToastNotification";
 import type { StudentCourseItem } from "../../../features/student/api/studentCoursesApi";
 import type { StudentProgressSnapshotDto } from "../../../features/student/api/studentLearningApi";
 import { useStudentSavedCourses, useToggleStudentSavedCourse } from "../../../features/student/api/useStudentLearning";
-import anatomyImage from "../../../Assets/dashboard/human-anatomy.webp";
-import physioImage from "../../../Assets/dashboard/medical-physiology.webp";
-import histologyImage from "../../../Assets/dashboard/histology-basics.webp";
-import biochemistryImage from "../../../Assets/dashboard/biochemistry-essentials.webp";
+import { getCourseVisualPreset } from "../CourseLibrary/courses.data";
 import "./index.css";
 
 interface CourseOption {
@@ -41,11 +38,7 @@ interface ContinueLearningProps {
 }
 
 function imageForCourse(course: StudentCourseItem) {
-  const source = `${course.code} ${course.title}`.toLowerCase();
-  if (source.includes("bio")) return biochemistryImage;
-  if (source.includes("phys")) return physioImage;
-  if (source.includes("histo")) return histologyImage;
-  return anatomyImage;
+  return getCourseVisualPreset(course).image;
 }
 
 function isEnrolledCourse(course: StudentCourseItem) {

@@ -15,10 +15,7 @@ import {
   Target,
   TrendingUp,
 } from "lucide-react";
-import anatomyImage from "../../../../Assets/dashboard/human-anatomy.webp";
-import physioImage from "../../../../Assets/dashboard/medical-physiology.webp";
-import histologyImage from "../../../../Assets/dashboard/histology-basics.webp";
-import biochemistryImage from "../../../../Assets/dashboard/biochemistry-essentials.webp";
+import { getCourseVisualPreset } from "../../../../components/ui/CourseLibrary/courses.data";
 import type { StudentCourseItem } from "../../api/studentCoursesApi";
 import type { StudentProgressSnapshotDto } from "../../api/studentLearningApi";
 import {
@@ -34,11 +31,7 @@ const GOAL_PRESETS = [3, 5, 7, 10] as const;
 const DAY_MS = 86_400_000;
 
 export function courseArtwork(course: Pick<StudentCourseItem, "code" | "title">) {
-  const source = `${course.code} ${course.title}`.toLowerCase();
-  if (source.includes("bio")) return biochemistryImage;
-  if (source.includes("phys")) return physioImage;
-  if (source.includes("histo")) return histologyImage;
-  return anatomyImage;
+  return getCourseVisualPreset(course).dashboardImage;
 }
 
 function relativeTime(iso: string) {
