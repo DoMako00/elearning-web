@@ -1,3 +1,4 @@
+import { canViewCourseDetails } from "../api/studentCoursesApi";
 import { ArrowRight, Bookmark, CalendarDays, ChevronDown, CirclePlay, Clock3, Sparkles, TrendingUp } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -39,9 +40,10 @@ export function MyCoursesPage() {
     const activity = (id: string) => progressQuery.data?.courses.find(item => item.courseId === id)?.lastActivityAt ?? "";
     return activity(b.courseId).localeCompare(activity(a.courseId));
   }).map(course => toReferenceCourse(course, progressQuery.data)), [mine.data, progressQuery.data]);
-  const recommendedCourses = useMemo(() => (explore.data ?? []).filter(course => !course.access.isEnrolled).map(course => toReferenceCourse(course, progressQuery.data)), [explore.data, progressQuery.data]);
+  const recommendedCourses = useMemo(() => (explore.data ?? []).filter(course => !mine.data?.some(item => item.courseId === course.courseId)).map(course => toReferenceCourse(course, progressQuery.data)), [explore.data, mine.data, progressQuery.data]);
   const recommendedCourseIds = recommendedCourses.map(course => course.id);
   const activeFocusCourse = enrolledCourses.find(course => course.id === selectedCourseId) ?? enrolledCourses[0] ?? null;
+  const canViewFocusCourse = Boolean(activeFocusCourse?.access && canViewCourseDetails({access: activeFocusCourse.access}));
   const inProgressCount = enrolledCourses.filter(course => course.status === "in-progress").length;
   const completedCount = enrolledCourses.filter(course => course.status === "completed").length;
   const savedCount = [...enrolledCourses, ...recommendedCourses].filter(course => bookmarked[course.id]).length;
@@ -236,9 +238,9 @@ export function MyCoursesPage() {
             <button
               type="button"
               className="course-focus-card__play cursor-pointer"
-              aria-label={activeFocusCourse.access?.canOpen ? `Open ${activeFocusCourse.title}` : `${activeFocusCourse.title} details unavailable`}
-              disabled={!activeFocusCourse.access?.canOpen}
-              onClick={() => { if (activeFocusCourse.access?.canOpen) navigate(`/my-courses/${activeFocusCourse.slug}`, { state: courseRouteState(activeFocusCourse) }); }}
+              aria-label={canViewFocusCourse ? `Open ${activeFocusCourse.title}` : `${activeFocusCourse.title} details unavailable`}
+              disabled={!canViewFocusCourse}
+              onClick={() => { if (canViewFocusCourse) navigate(`/my-courses/${activeFocusCourse.slug}`, { state: courseRouteState(activeFocusCourse) }); }}
             >
               <CirclePlay aria-hidden="true" />
             </button>
@@ -263,10 +265,10 @@ export function MyCoursesPage() {
                 <button
                   type="button"
                   className="cursor-pointer"
-                  disabled={!activeFocusCourse.access?.canOpen}
-                  onClick={() => { if (activeFocusCourse.access?.canOpen) navigate(`/my-courses/${activeFocusCourse.slug}`, { state: courseRouteState(activeFocusCourse) }); }}
+                  disabled={!canViewFocusCourse}
+                  onClick={() => { if (canViewFocusCourse) navigate(`/my-courses/${activeFocusCourse.slug}`, { state: courseRouteState(activeFocusCourse) }); }}
                 >
-                  {activeFocusCourse.access?.canOpen ? (activeFocusCourse.status === "completed" ? "Review Subject" : "Open Subject") : "Details unavailable"} <ArrowRight aria-hidden="true" />
+                  {canViewFocusCourse ? (activeFocusCourse.status === "completed" ? "Review Subject" : "Open Subject") : "Details unavailable"} <ArrowRight aria-hidden="true" />
                 </button>
               </div>
             </footer>

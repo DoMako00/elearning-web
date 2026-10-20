@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { DashboardEnrollmentState } from "../../../app/config/env";
 import { useAuth } from "../../../app/providers/AuthProvider";
-import type { StudentCourseItem } from "../api/studentCoursesApi";
+import { canViewCourseDetails, type StudentCourseItem } from "../api/studentCoursesApi";
 import { fetchScopedCourseList, studentCourseKeys } from "../api/useStudentCourses";
 import { classifyStudentApiError, type ClassifiedStudentApiError } from "../api/studentApiErrors";
 import { useStudentScope } from "../scope/StudentScopeProvider";
@@ -19,7 +19,7 @@ export interface DashboardEnrollmentViewModel {
 }
 
 function isEnrolledCourse(course: StudentCourseItem): boolean {
-  return course.access?.isEnrolled === true;
+  return canViewCourseDetails(course);
 }
 
 function toEnrollment(course: StudentCourseItem): DashboardEnrollment {

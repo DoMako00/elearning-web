@@ -439,3 +439,8 @@
     scroll-behavior: auto;
   }
 }
+
+/* Session items share the brand palette; type changes the icon and surface. */
+.upcoming-item-card[data-kind="pdf"] .upcoming-item-icon-box { background: #fff; border: 1px solid var(--color-border-subtle); border-radius: 8px; }
+.upcoming-item-card[data-kind="exam"] .upcoming-item-icon-box, .upcoming-item-card[data-kind="quiz"] .upcoming-item-icon-box { background: var(--color-brand-soft); border: 1px solid var(--color-brand); border-radius: 50%; }
+.upcoming-item-card[data-kind="assignment"] .upcoming-item-icon-box { background: var(--color-brand-soft); border: 1px dashed var(--color-brand); }

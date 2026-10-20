@@ -1,3 +1,4 @@
+import { canViewCourseDetails } from "../../api/studentCoursesApi";
 import {
   ArrowRight,
   Bookmark,
@@ -57,7 +58,7 @@ export function CourseLibrary({
   const categoryTabs = useMemo(() => [{id: "all", label: "All", icon: undefined as StudentCourse["Icon"] | undefined}, ...Array.from(new Map(courses.map(course => [course.categoryId, {id: course.categoryId, label: course.category, icon: course.Icon}])).values())], [courses]);
 
   const openCourse = (course: StudentCourse) => {
-    if (lockedIds.has(course.id) || course.access?.isEnrolled !== true || course.access.canOpen !== true) return;
+    if (lockedIds.has(course.id) || !course.access || !canViewCourseDetails({access: course.access})) return;
     navigate(`/my-courses/${course.slug}`, { state: { courseTitle: course.title, courseId: course.id } });
   };
 

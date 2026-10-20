@@ -1,16 +1,16 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Sparkles, X, TrendingUp } from "lucide-react";
 import robotAsset from "../../../../Assets/dashboard/doctor-robot.webp";
 import { AILearningGuide } from "../../../../components/ui/AILearningGuide";
 import ContinueLearning from "../../../../components/ui/Continue_Learning/continue_learning";
 import { MyProgress } from "../../../../components/ui/MyProgress";
-import { RecommendedCourses } from "../../../../components/ui/RecommendedCourses";
-import { Upcoming } from "../../../../components/ui/Upcoming";
+import { RecommendedSessions } from "../../../../components/ui/RecommendedCourses/RecommendedSessions";
+import { SessionContentCard } from "./SessionContentCard";
+import { useNextSessions } from "../../hooks/useNextSessions";
 import { WeeklyGoalCard } from "../WeeklyGoalCard";
 import { YourStreak } from "../YourStreak";
 import { useStudentLearningPreferences, useStudentProgress, useSetWeeklyLessonGoal } from "../../api/useStudentLearning";
-import { useStudentExploreCourses } from "../../hooks/useDashboardEnrollment";
-import type { UpcomingItem } from "../../../../components/ui/Upcoming/upcoming.types";
+
 import type { StudentCourseItem } from "../../api/studentCoursesApi";
 import "./DashboardBento.css";
 
@@ -40,8 +40,12 @@ export function DashboardBento({ courses = [] }: DashboardBentoProps) {
   const progress = useStudentProgress();
   const preferences = useStudentLearningPreferences();
   const setWeeklyGoal = useSetWeeklyLessonGoal();
-  const exploration = useStudentExploreCourses();
-  const availableSubjectItems = useMemo<UpcomingItem[]>(() => courses.filter(course => course.access.isEnrolled).slice(0,5).map(course => ({id: course.courseId, title: course.title, time: `${course.lessonCount} lessons`, iconType: "course", tag: course.unitLabel, href: `/my-courses/${course.courseId}`})), [courses]);
+
+  const [activeCourseId,setActiveCourseId] = useState("");
+  const nextSessions = useNextSessions(courses);
+  const active = nextSessions.find(item => item.course.courseId === activeCourseId) ?? nextSessions[0];
+  const activeLesson = active?.next?.lesson;
+  const activeSession = activeLesson && active ? {courseId:active.course.courseId,lessonId:activeLesson.lessonId,title:activeLesson.title,number:active.next!.number,canStart:active.course.access.canOpen && activeLesson.playbackAvailable} : null;
   const progressValues = progress.data?.weekDays.length
     ? progress.data.weekDays.map((day) => day.completedLessons)
     : [0, 0, 0, 0, 0, 0, 0];
@@ -51,7 +55,7 @@ export function DashboardBento({ courses = [] }: DashboardBentoProps) {
       <h1 className="sr-only">Student Home Dashboard</h1>
       <div className="dashboard-bento__row dashboard-bento__row--top">
         <div className="dashboard-bento__slot dashboard-bento__slot--continue">
-          <ContinueLearning courses={courses} progress={progress.data} progressLoading={progress.isLoading} progressError={progress.isError} />
+          <ContinueLearning courses={courses} progress={progress.data} progressLoading={progress.isLoading} progressError={progress.isError} onActiveCourseChange={setActiveCourseId} activeSession={activeSession} />
         </div>
         <div className="dashboard-bento__slot dashboard-bento__slot--ai">
           <AILearningGuide />
@@ -90,8 +94,7 @@ export function DashboardBento({ courses = [] }: DashboardBentoProps) {
           ) : <NoSessionProgressCard />}
         </div>
         <div className="dashboard-bento__slot dashboard-bento__slot--upcoming">
-          <Upcoming title="Available subjects" count={availableSubjectItems.length} items={availableSubjectItems}
-            actionPath="/my-courses" actionLabel="View subjects" emptyMessage="No enrolled subjects yet." />
+          <SessionContentCard course={active?.course} lesson={activeLesson} number={active?.next?.number} loading={Boolean(active?.query.isPending)} error={Boolean(active?.query.isError)} />
         </div>
         <div className="dashboard-bento__slot dashboard-bento__slot--streak">
           <YourStreak />
@@ -100,10 +103,10 @@ export function DashboardBento({ courses = [] }: DashboardBentoProps) {
 
       <div className="dashboard-bento__row dashboard-bento__row--bottom">
         <div className="dashboard-bento__slot dashboard-bento__slot--recommended">
-          <RecommendedCourses
-            courses={exploration.data ?? []}
-            loading={exploration.isLoading}
-            error={exploration.isError}
+          <RecommendedSessions
+            courses={courses}
+
+
           />
         </div>
       </div>
