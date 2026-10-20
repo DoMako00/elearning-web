@@ -115,6 +115,19 @@ export function StudentScopeProvider({ children }: PropsWithChildren) {
     [scope],
   );
 
+  // A resolved scope keeps rendering while the profile refetches. In TanStack
+  // Query v5 a refetch of a query with no data flips it back to "pending";
+  // gating on that unmounted the app, whose profile consumers re-triggered the
+  // refetch on mount — an endless /v1/student/me loop during an outage.
+  if (scope && brandValue) {
+    return (
+      <StudentScopeContext.Provider value={scope}>
+        <BrandOverrideProvider brand={brandValue}>
+          {children}
+        </BrandOverrideProvider>
+      </StudentScopeContext.Provider>
+    );
+  }
   if (profileQuery.isPending || (profileUnavailable && sessionBrandQuery.isPending)) {
     return <RouteLoadingFallback isMobile={isMobile} message="Loading your learning space…" />;
   }
@@ -132,20 +145,10 @@ export function StudentScopeProvider({ children }: PropsWithChildren) {
       />
     );
   }
-  if (!scope || !brandValue) {
-    return (
-      <ScopeNotice
-        title="Your learning membership needs attention"
-        message="Your account's learning brand and academic institution are not a supported combination, so course content can't be shown safely. Please contact support to correct your membership."
-      />
-    );
-  }
-
   return (
-    <StudentScopeContext.Provider value={scope}>
-      <BrandOverrideProvider brand={brandValue}>
-        {children}
-      </BrandOverrideProvider>
-    </StudentScopeContext.Provider>
+    <ScopeNotice
+      title="Your learning membership needs attention"
+      message="Your account's learning brand and academic institution are not a supported combination, so course content can't be shown safely. Please contact support to correct your membership."
+    />
   );
 }

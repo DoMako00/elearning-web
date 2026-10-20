@@ -20,6 +20,9 @@ export function useStudentProfile() {
     queryKey: studentLearningKeys.profile,
     queryFn: ({ signal }) => studentLearningApi.getProfile(signal),
     enabled: auth.status === "authenticated",
+    // Many components read the profile; a failed profile must not be
+    // re-requested every time one of them mounts. Explicit retries still work.
+    retryOnMount: false,
   });
 }
 
