@@ -6,15 +6,15 @@ import {
   Mail,
   ShieldCheck,
 } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import { activateProvisionedStudent, IdentityApiError, initiateOtpLogin, verifyOtp, type BrandCode } from "../api/identityApi";
 import { getAdminOverview } from "../../admin-v2/api/adminOperationsApi";
+import { assignLocation } from "../../../shared/utils/hardNavigation";
 import authBotanicalBg from "../../../Assets/onboarding/auth-botanical-bg.jpg";
 import "../styles/SignInModern.css";
 
 export function SignInPage() {
-  const navigate = useNavigate();
   const location = useLocation();
   const auth = useAuth();
   const returnTo = (location.state as { from?: unknown } | null)?.from;
@@ -54,8 +54,7 @@ export function SignInPage() {
       if(mode==="activate"){
         await activateProvisionedStudent({brand,accountIdentifier,setupCode,remember});
         setSetupCode("");
-        navigate("/",{replace:true});
-        window.location.reload();
+        assignLocation("/");
       }else if (!challengeId) {
         const challenge = await initiateOtpLogin({ email: identifier, brand });
         setChallengeId(challenge.challengeId);
@@ -71,8 +70,7 @@ export function SignInPage() {
           }
         }
         const savedDestination = typeof returnTo === "string" && returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : null;
-        navigate(hasAdminAccess || adminCheckUnavailable ? (savedDestination?.startsWith("/admin") ? savedDestination : "/admin") : (savedDestination?.startsWith("/admin") ? "/" : savedDestination ?? "/"), { replace: true });
-        window.location.reload();
+        assignLocation(hasAdminAccess || adminCheckUnavailable ? (savedDestination?.startsWith("/admin") ? savedDestination : "/admin") : (savedDestination?.startsWith("/admin") ? "/" : savedDestination ?? "/"));
       }
     } catch (error) {
       const loginEligibilityFailure = error instanceof IdentityApiError && error.code === "student_email_link_required";
@@ -127,6 +125,16 @@ export function SignInPage() {
             <button type="button" role="tab" aria-selected={mode === "activate"} onClick={() => {setMode("activate");setChallengeId(null);setErrors({});}} className="px-3 py-2 rounded-xl border border-emerald-700 text-sm font-semibold" style={{background:mode === "activate"?"#ecfdf3":"white",color:"#166534"}}>Activate your account</button>
             <button type="button" role="tab" aria-selected={mode === "signin"} onClick={() => {setMode("signin");setChallengeId(null);setErrors({});}} className="px-3 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700">Sign in</button>
           </div>
+
+          {auth.status === "authenticated" && !submitting ? (
+            <div className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900" role="status">
+              <p className="font-semibold">You&apos;re already signed in{auth.user?.name && auth.user.name !== "Authenticated user" ? ` as ${auth.user.name}` : ""}.</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button type="button" className="min-h-11 rounded-xl bg-emerald-700 px-4 font-semibold text-white" onClick={() => assignLocation(adminReturn && typeof returnTo === "string" ? returnTo : typeof returnTo === "string" && returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : "/")}>Continue</button>
+                <button type="button" className="min-h-11 rounded-xl border border-emerald-300 bg-white px-4 font-semibold text-emerald-800" onClick={() => void auth.signOut({ revokeServerSession: true })}>Sign out</button>
+              </div>
+            </div>
+          ) : null}
 
           {/* Form */}
           <form className="signin-form" onSubmit={submit} noValidate>
