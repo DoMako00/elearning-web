@@ -1,28 +1,31 @@
-/* Student shell — desktop-first scale (1920×880 target).
-   Loaded after student-dashboard.css so these rules set the shell's final sizing. */
+/* Student presentation only. Keep the reference shell separate from shared
+   tokens so Admin and the independent API keep their existing behavior. */
 
 [data-app-shell] {
-  --color-bg: var(--color-canvas);
-  background: var(--color-canvas);
+  --sidebar-width: 226px;
+  --sidebar-gutter: 15px;
+  --color-bg: #ffffff;
+  --color-border-subtle: #e8ecef;
+  --color-brand-soft: #eff9f2;
+  background: var(--color-bg);
 }
 
 [data-app-shell] > main[data-main-workspace] {
-  background: var(--color-canvas);
+  background: var(--color-bg);
 }
 
 [data-app-shell] .student-sidebar {
   background: var(--color-surface);
-  box-shadow: 1px 0 0 var(--color-border-subtle);
 }
 
 [data-app-shell] .student-sidebar::after {
-  display: none;
+  display: block;
 }
 
 .student-dashboard__header {
-  border-bottom: 0;
-  padding: 0 32px 0 32px;
-  gap: 24px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-inline: clamp(16px, 2.1vw, 40px) clamp(16px, 1.7vw, 32px);
+  gap: clamp(12px, 1.7vw, 32px);
 }
 
 .student-dashboard__page-title {
@@ -38,7 +41,7 @@
 
 .student-dashboard__page-title h1,
 .student-dashboard__course-breadcrumb-title {
-  font-size: clamp(22px, 1.65vw, 32px);
+  font-size: clamp(20px, 1.5vw, 28px);
   font-weight: 700;
   letter-spacing: -0.035em;
 }
@@ -58,36 +61,19 @@
   font-weight: 700;
 }
 
-/* Home header: greeting left, search in normal flow, actions right */
+/* Reference Home: search and account actions. Normal flow prevents overlap
+   when a real account name or notification control takes more space. */
 .student-dashboard__header--home {
-  justify-content: flex-start;
-}
-
-.student-dashboard__greeting {
-  display: flex;
-  min-width: 0;
-  flex: 0 1 auto;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.student-dashboard__greeting h1 {
-  margin: 0;
-  overflow: hidden;
-  color: var(--color-text-primary);
-  font-size: clamp(22px, 1.65vw, 32px);
-  font-weight: 700;
-  letter-spacing: -0.035em;
-  line-height: 1.05;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .student-dashboard__header--home .student-dashboard__search {
   position: static;
-  width: min(100%, 520px);
-  max-width: 520px;
-  margin: 0 0 0 auto;
+  width: min(100%, 680px);
+  max-width: 680px;
+  justify-self: center;
+  margin: 0;
   transform: none;
 }
 
@@ -96,7 +82,21 @@
 }
 
 .student-dashboard__content {
-  padding: 4px 32px 24px 32px;
+  padding: clamp(8px, 0.8vw, 14px) clamp(12px, 1.67vw, 32px);
+}
+
+/* One scroll owner for Home. Bento cards retain their container queries;
+   short displays can reach all three rows rather than clipping the cards. */
+.student-dashboard--home .student-dashboard__content {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  overscroll-behavior-y: contain;
+}
+
+.student-dashboard--home .dashboard-bento {
+  min-height: 750px;
+  grid-template-rows: minmax(260px, 1.22fr) minmax(210px, 0.98fr) minmax(240px, 1.3fr);
 }
 
 .student-dashboard__signin-button {
@@ -115,15 +115,23 @@
   color: var(--color-warning-text);
 }
 
-@media (max-width: 1399px) {
-  .student-dashboard__content {
-    padding: 4px 20px 20px;
+@media (max-width: 1535px) {
+  [data-app-shell] {
+    --sidebar-width: 80px;
+    --sidebar-gutter: 10px;
   }
 }
 
-@media (max-height: 820px) and (min-width: 1400px) {
-  .student-dashboard__content {
-    padding-bottom: 18px;
+@media (max-width: 1199px) {
+  .student-dashboard--home .dashboard-bento {
+    min-height: 0;
+    grid-template-rows: 340px 290px 280px 260px;
+  }
+}
+
+@media (max-width: 780px) {
+  .student-dashboard--home .dashboard-bento {
+    grid-template-rows: 260px 280px 270px 240px;
   }
 }
 

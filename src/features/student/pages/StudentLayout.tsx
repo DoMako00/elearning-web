@@ -1,5 +1,4 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useBrand } from "../../../app/providers/BrandProvider";
 import { useMemo } from "react";
 import { AppShell } from "../../../components/layout/AppShell";
 import { SearchBar } from "../../../components/ui/SearchBar";
@@ -26,7 +25,6 @@ function StudentLayoutContent() {
   const navigate = useNavigate();
   const auth = useAuth();
   const profileQuery = useStudentProfile();
-  const { brand } = useBrand();
   const notificationsQuery = useStudentNotifications();
   const markNotificationsRead = useMarkStudentNotificationsRead();
   const notifications = useMemo(() => (notificationsQuery.data ?? []).map((item) => ({ ...item, isUnread: item.readAt === null })), [notificationsQuery.data]);
@@ -90,9 +88,6 @@ function StudentLayoutContent() {
 
   // Search bar in the topbar is shown for Home
   const showCenteredSearch = isHome;
-  const firstName = profileQuery.data?.fullName?.trim().split(/\s+/)[0] ?? "";
-  const homeGreeting = auth.status === "authenticated" ? (firstName ? `Welcome back, ${firstName}` : "Welcome back") : `Welcome to ${brand.name}`;
-  const homeDateLabel = new Intl.DateTimeFormat(undefined, { weekday: "long", day: "numeric", month: "long" }).format(new Date());
 
   const renderBreadcrumb = () => {
     if (isSettings) {
@@ -237,18 +232,12 @@ function StudentLayoutContent() {
           aria-label="Student dashboard header"
         >
           {showCenteredSearch ? (
-            <>
-            <div className="student-dashboard__greeting">
-              <span className="student-dashboard__page-title-label">{homeDateLabel}</span>
-              <h1>{homeGreeting}</h1>
-            </div>
             <div className="student-dashboard__search">
               <SearchBar
                 placeholder="Search courses, topics or skills..."
                 isLoading={auth.status === "loading"}
               />
             </div>
-            </>
           ) : (
             renderBreadcrumb()
           )}
