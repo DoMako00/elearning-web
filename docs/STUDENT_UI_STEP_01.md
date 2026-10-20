@@ -30,7 +30,7 @@ No changes to Framer Motion, CSS keyframes/transitions, ScreenStack timing, rout
 | Frontend `npx tsc --noEmit` | Passed |
 | Frontend production build | Passed; missing artwork warning resolved. Existing large chunk warning remains. |
 | Frontend tests | 18 files, 110 tests passed after changes |
-| Backend build/tests | 54 self-test suites passed after the SQL change |
+| Backend build/tests | 54 self-test suites passed in the original local integration checkout; all 52 suites passed again in the clean release-based publication checkout |
 | Backend runtime smoke | Passed against its explicit local mock smoke configuration; not real database/product acceptance |
 | Actual local PostgreSQL schema | Corrected profile query successfully PREPAREs and EXPLAINs; production claim expression evaluated for not-issued, unclaimed and claimed cases |
 | Populated local profile read | Skipped: selected local acceptance database contains no Student auth subject. No fixture was inserted. |
