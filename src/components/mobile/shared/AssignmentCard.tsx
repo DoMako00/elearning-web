@@ -34,10 +34,11 @@ const STATUS_STYLES: Record<AssignmentStatus, { label: string; bg: string; text:
 };
 
 // CTA Button labels mirrored directly from desktop AssignmentsWorkspace.tsx:47-52
-function getActionLabel(status: AssignmentStatus): string {
-  if (status === "in-progress") return "Continue";
+function getActionLabel(status: AssignmentStatus, actionable = true): string {
   if (status === "submitted") return "View submission";
   if (status === "graded") return "View feedback";
+  if (!actionable) return "View details";
+  if (status === "in-progress") return "Continue";
   return "Start assignment";
 }
 
@@ -48,7 +49,7 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const categoryStyle = CATEGORY_TONE_STYLES[item.categoryTone] || CATEGORY_TONE_STYLES.green;
   const urgencyStyle = URGENCY_STYLES[item.urgency] || URGENCY_STYLES.soon;
   const statusConfig = STATUS_STYLES[item.status] || STATUS_STYLES["not-started"];
-  const actionText = getActionLabel(item.status);
+  const actionText = getActionLabel(item.status, item.actionable);
 
   return (
     <article

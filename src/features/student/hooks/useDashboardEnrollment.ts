@@ -2,7 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { DashboardEnrollmentState } from "../../../app/config/env";
 import { useAuth } from "../../../app/providers/AuthProvider";
-import { listAllStudentCourses, type StudentCourseItem } from "../api/studentCoursesApi";
+import type { StudentCourseItem } from "../api/studentCoursesApi";
+import { fetchScopedCourseList, studentCourseKeys } from "../api/useStudentCourses";
+import { classifyStudentApiError, type ClassifiedStudentApiError } from "../api/studentApiErrors";
+import { useStudentScope } from "../scope/StudentScopeProvider";
 
 export interface DashboardEnrollment {
   id: string;
@@ -12,9 +15,10 @@ export interface DashboardEnrollmentViewModel {
   status: DashboardEnrollmentState;
   enrolledCourses: DashboardEnrollment[];
   courses: StudentCourseItem[];
+  error?: ClassifiedStudentApiError;
 }
 
-function canOpenCourse(course: StudentCourseItem): boolean {
+function isEnrolledCourse(course: StudentCourseItem): boolean {
   return course.access?.isEnrolled === true;
 }
 
@@ -24,6 +28,7 @@ function toEnrollment(course: StudentCourseItem): DashboardEnrollment {
 
 export function useDashboardEnrollment() {
   const auth = useAuth();
+  const scope = useStudentScope();
   const [retryIndex, setRetryIndex] = useState(0);
   const [viewModel, setViewModel] = useState<DashboardEnrollmentViewModel>({
     status: "loading",
@@ -48,18 +53,18 @@ export function useDashboardEnrollment() {
 
     const controller = new AbortController();
     setViewModel({ status: "loading", enrolledCourses: [], courses: [] });
-    void listAllStudentCourses({ view: "mine", signal: controller.signal })
+    void fetchScopedCourseList(scope, "mine", controller.signal)
       .then((courses) => {
         if (controller.signal.aborted) return;
-        const enrolledCourses = courses.filter(canOpenCourse).map(toEnrollment);
+        const enrolledCourses = courses.filter(isEnrolledCourse).map(toEnrollment);
         setViewModel({ status: enrolledCourses.length ? "enrolled" : "empty", enrolledCourses, courses });
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         if (controller.signal.aborted) return;
-        setViewModel({ status: "error", enrolledCourses: [], courses: [] });
+        setViewModel({ status: "error", enrolledCourses: [], courses: [], error: classifyStudentApiError(error) });
       });
     return () => controller.abort();
-  }, [auth, auth.status, retryIndex]);
+  }, [auth.status, scope, retryIndex]);
 
   return { ...viewModel, retry };
 }
@@ -67,9 +72,10 @@ export function useDashboardEnrollment() {
 /** Explore is a separate real catalogue read: the enrolled-course list cannot supply recommendations. */
 export function useStudentExploreCourses() {
   const auth = useAuth();
+  const scope = useStudentScope();
   return useQuery({
-    queryKey: ["student", "courses", "explore"],
-    queryFn: ({ signal }) => listAllStudentCourses({ view: "explore", signal }),
+    queryKey: studentCourseKeys.list("explore", scope.brand),
+    queryFn: ({ signal }) => fetchScopedCourseList(scope, "explore", signal),
     enabled: auth.status === "authenticated",
   });
 }

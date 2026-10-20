@@ -125,7 +125,7 @@ export function useProfileTabs(defaultTab: ProfileTabId = "overview"): UseProfil
     .slice(0, 4)
     .map((event): UpcomingEventItem => {
       const type = event.type === "assignment" ? "assignment" : event.type === "quiz" || event.type === "exam" ? "quiz" : "session";
-      const actionRoute = event.type === "assignment" || event.type === "quiz" || event.type === "exam" ? "/assignments" : "/calendar";
+      const actionRoute = event.type === "assignment" ? "/assignments" : event.type === "quiz" || event.type === "exam" ? "/assessments" : "/calendar";
       return {
         id: event.id,
         title: event.title,

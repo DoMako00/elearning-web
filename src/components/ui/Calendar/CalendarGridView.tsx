@@ -1,6 +1,6 @@
 import { FileText, CalendarCheck } from "lucide-react";
 import type { CalendarEvent, CalendarViewMode } from "./calendar.types";
-import { HOURS, EVENT_TYPE_CONFIG, formatHour, formatLocalDate } from "./calendar-helpers";
+import { HOURS, EVENT_TYPE_CONFIG, formatHour, formatLocalDate, getEgyptNow } from "./calendar-helpers";
 
 interface MonthCell {
   date: Date;
@@ -113,8 +113,8 @@ export function CalendarGridView({
                       onClick={() => {
                         onOpenNewEvent({
                           date: dateStr,
-                          startTime: `${hour < 10 ? `0${hour}` : hour}:00`,
-                          endTime: `${hour + 1 < 10 ? `0${hour + 1}` : hour + 1}:00`,
+                          startTime: `${String(hour).padStart(2, "0")}:00`,
+                          endTime: hour === 23 ? "23:59" : `${String(hour + 1).padStart(2, "0")}:00`,
                           type: "quiz",
                         });
                       }}
@@ -275,7 +275,7 @@ export function CalendarGridView({
           className="calendar-btn-add"
           onClick={() =>
             onOpenNewEvent({
-              date: "2025-05-14",
+              date: getEgyptNow().dateStr,
               startTime: "10:00",
               endTime: "11:00",
                     type: "study_block",

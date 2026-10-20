@@ -4,6 +4,8 @@ import { StudentLayout } from "../../features/student/pages/StudentLayout";
 import { RouteErrorBoundary } from "../../components/layout/RouteErrorBoundary";
 import { RouteLoadingFallback } from "../../components/layout/RouteLoadingFallback";
 import { StudentRouteProviders } from "../providers/StudentRouteProviders";
+import { RequireStudentAuth } from "./RequireStudentAuth";
+import { StudentScopeProvider } from "../../features/student/scope/StudentScopeProvider";
 import "./student-dashboard.css";
 import "./student-shell.css";
 
@@ -23,6 +25,7 @@ const AssignmentDetailPage = lazy(() => import("../../components/ui/Assignments/
 const MessagesPage = lazy(() => import("../../features/student/pages/MessagesPage").then((m) => ({ default: m.MessagesPage })));
 const CommunityPage = lazy(() => import("../../features/student/pages/CommunityPage").then((m) => ({ default: m.CommunityPage })));
 const HelpCenterPage = lazy(() => import("../../features/student/pages/HelpCenterPage").then((m) => ({ default: m.HelpCenterPage })));
+const NotificationsPage = lazy(() => import("../../features/student/pages/NotificationsPage").then((m) => ({ default: m.NotificationsPage })));
 const SettingsPage = lazy(() => import("../../features/student/pages/SettingsPage").then((m) => ({ default: m.SettingsPage })));
 
 function withSuspense(Component: React.ComponentType) {
@@ -53,7 +56,7 @@ if (import.meta.env.DEV) {
 export const studentRoutes: RouteObject[] = [
   {
     path: "/",
-    element: <StudentRouteProviders><StudentLayout /></StudentRouteProviders>,
+    element: <RequireStudentAuth><StudentScopeProvider><StudentRouteProviders><StudentLayout /></StudentRouteProviders></StudentScopeProvider></RequireStudentAuth>,
     children: [
       { index: true, element: withSuspense(HomePage) },
       { path: "profile", element: withSuspense(ProfilePage) },
@@ -78,6 +81,7 @@ export const studentRoutes: RouteObject[] = [
       { path: "community", element: withSuspense(CommunityPage) },
       { path: "help", element: withSuspense(HelpCenterPage) },
       { path: "settings", element: withSuspense(SettingsPage) },
+      { path: "notifications", element: withSuspense(NotificationsPage) },
       ...devRoutes,
     ],
   },

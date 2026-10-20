@@ -6,5 +6,8 @@ export interface WeeklyGoalCardProps {
   loading?: boolean;
   saving?: boolean;
   error?: string | null;
+  /** The saved goal could not be read; never shown as "no goal set". */
+  loadError?: string | null;
+  onRetry?: () => void;
   onGoalSet?: (lessons: number) => void;
 }

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useToast } from "../../../hooks/useToast";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   FileText,
@@ -15,17 +15,16 @@ import {
   MoreVertical,
 } from "lucide-react";
 import { TopAppBar } from "../TopAppBar";
-import { DocsOnlyBanner } from "../shared/DocsOnlyBanner";
 import { DocumentListRow } from "../shared/DocumentListRow";
 import { MobileToast } from "../shared/MobileToast";
 import type { DocumentItem } from "../shared";
-import { getStudentCourse } from "../../../features/student/api/studentCoursesApi";
+import { useStudentCourseDetail } from "../../../features/student/api/useStudentCourses";
 import { useStudentProgress } from "../../../features/student/api/useStudentLearning";
 
 export const CourseOverviewScreen: React.FC = () => {
   const navigate = useNavigate();
   const { slug: courseId = "" } = useParams<{ slug?: string }>();
-  const courseQuery = useQuery({ queryKey: ["student", "course", courseId], queryFn: ({ signal }) => getStudentCourse({ courseId, signal }), enabled: Boolean(courseId) });
+  const courseQuery = useStudentCourseDetail(courseId);
   const progressQuery = useStudentProgress();
   const course = courseQuery.data;
   const progress = progressQuery.data?.courses.find((item) => item.courseId === courseId);
@@ -53,12 +52,7 @@ export const CourseOverviewScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"syllabus" | "resources" | "discussion">("syllabus");
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
 
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 2500);
-  };
+  const { toastMessage, toastTone, showToast } = useToast(2500);
 
   const toggleModule = (modId: string) => {
     setExpandedModules((prev) => ({ ...prev, [modId]: !prev[modId] }));
@@ -87,7 +81,7 @@ export const CourseOverviewScreen: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full bg-slate-50 flex flex-col text-slate-900 antialiased">
-      <MobileToast message={toastMessage} />
+      <MobileToast message={toastMessage} tone={toastTone} />
 
       {/* 1. Detail TopAppBar */}
       <TopAppBar
@@ -110,7 +104,6 @@ export const CourseOverviewScreen: React.FC = () => {
 
       {/* Main scrollable body */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-lg mx-auto w-full pb-16">
-        <DocsOnlyBanner variant="compact" />
 
         {/* 2. Course Hero Banner */}
         <div className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-2xs">
@@ -289,7 +282,11 @@ export const CourseOverviewScreen: React.FC = () => {
                             type="button"
                             onClick={() => {
                               if (!course.access.canOpen) {
-                                showToast("This course is not currently available to your account.");
+                                showToast("This course is not currently available to your account.", "info");
+                                return;
+                              }
+                              if (!lesson.playbackAvailable) {
+                                showToast("This lesson hasn't been released yet.", "info");
                                 return;
                               }
                               navigate(`/my-courses/${course.courseId}/lessons/${lesson.id}`);
@@ -346,7 +343,13 @@ export const CourseOverviewScreen: React.FC = () => {
                 <DocumentListRow
                   key={res.id}
                   document={res}
-                  onClick={() => navigate(`/my-courses/${course.courseId}/lessons/${res.id}`)}
+                  onClick={() => {
+                    if (!course.access.canOpen) {
+                      showToast("This course is not currently available to your account.", "info");
+                      return;
+                    }
+                    navigate(`/my-courses/${course.courseId}/lessons/${res.id}`);
+                  }}
                 />
               ))
             )}

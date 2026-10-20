@@ -88,10 +88,29 @@ interface StudentApiEnvelope<T> {
   data: T;
 }
 
+/** Carries the HTTP status and backend error code so callers can tell a
+ * membership/scope rejection apart from a connectivity failure. */
+export class StudentLearningApiError extends Error {
+  readonly status: number;
+  readonly code: string;
+
+  constructor(message: string, status: number, code = "unknown_error") {
+    super(message);
+    this.name = "StudentLearningApiError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
+function apiErrorCode(error: unknown): string {
+  const nested = (error as { error?: { code?: unknown } } | null | undefined)?.error?.code;
+  return typeof nested === "string" ? nested : "unknown_error";
+}
+
 async function getData<T>(path: string, signal?: AbortSignal): Promise<T> {
   const client = await requireApiClient();
   const result = await client.getJson<StudentApiEnvelope<T>>(path, { signal });
-  if (result.error) throw new Error(extractApiErrorMessage(result.error, "Student data could not be loaded."));
+  if (result.error) throw new StudentLearningApiError(extractApiErrorMessage(result.error, "Student data could not be loaded."), result.response.status, apiErrorCode(result.error));
   if (!result.data) throw new Error("The learning API returned an incomplete response.");
   return result.data.data;
 }
@@ -99,7 +118,7 @@ async function getData<T>(path: string, signal?: AbortSignal): Promise<T> {
 async function writeData<T>(method: "POST" | "PATCH" | "PUT" | "DELETE", path: string, body?: unknown, signal?: AbortSignal): Promise<T> {
   const client = await requireApiClient();
   const result = await client.writeJson<StudentApiEnvelope<T>>(method, path, body, { signal });
-  if (result.error) throw new Error(extractApiErrorMessage(result.error, "Student data could not be saved."));
+  if (result.error) throw new StudentLearningApiError(extractApiErrorMessage(result.error, "Student data could not be saved."), result.response.status, apiErrorCode(result.error));
   if (!result.data) throw new Error("The learning API returned an incomplete response.");
   return result.data.data;
 }

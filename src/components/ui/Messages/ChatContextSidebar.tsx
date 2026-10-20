@@ -67,13 +67,15 @@ export const ChatContextSidebar: React.FC<ChatContextSidebarProps> = ({
           </p>
         )}
 
-        <button
-          type="button"
-          onClick={onViewProfile}
-          className="mt-3.5 px-4 py-1.5 rounded-xl border border-[#e2e8f0] text-[12px] font-medium text-slate-700 hover:bg-[#f8faf9] hover:border-[#20a862] hover:text-[#20a862] transition-all shadow-2xs"
-        >
-          View profile
-        </button>
+        {onViewProfile ? (
+          <button
+            type="button"
+            onClick={onViewProfile}
+            className="mt-3.5 px-4 py-1.5 rounded-xl border border-[#e2e8f0] text-[12px] font-medium text-slate-700 hover:bg-[#f8faf9] hover:border-[#20a862] hover:text-[#20a862] transition-all shadow-2xs"
+          >
+            View profile
+          </button>
+        ) : null}
       </div>
 
       <hr className="border-[#f1f5f3]" />
@@ -139,14 +141,6 @@ export const ChatContextSidebar: React.FC<ChatContextSidebarProps> = ({
           <h4 className="text-[12px] font-bold text-slate-900 uppercase tracking-wider">
             Shared files
           </h4>
-          {sharedFiles.length > 0 && (
-            <button
-              type="button"
-              className="text-[11px] font-semibold text-[#20a862] hover:underline"
-            >
-              View all
-            </button>
-          )}
         </div>
 
         {sharedFiles.length === 0 ? (
@@ -158,13 +152,13 @@ export const ChatContextSidebar: React.FC<ChatContextSidebarProps> = ({
             {sharedFiles.map((file) => (
               <div
                 key={file.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => onFileClick?.(file)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") onFileClick?.(file);
-                }}
-                className="group flex items-center gap-2.5 p-2 rounded-xl hover:bg-[#f8faf9] border border-transparent hover:border-[#e5ebe7] transition-all cursor-pointer"
+                {...(onFileClick ? {
+                  role: "button",
+                  tabIndex: 0,
+                  onClick: () => onFileClick(file),
+                  onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") onFileClick(file); },
+                } : {})}
+                className={`group flex items-center gap-2.5 p-2 rounded-xl border border-transparent transition-all ${onFileClick ? "hover:bg-[#f8faf9] hover:border-[#e5ebe7] cursor-pointer" : ""}`}
               >
                 <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
                   <FileText className="w-4 h-4" />
@@ -192,41 +186,31 @@ export const ChatContextSidebar: React.FC<ChatContextSidebarProps> = ({
           Conversation actions
         </h4>
 
-        <button
-          type="button"
-          onClick={onSearchInChat}
-          className="w-full flex items-center gap-3 px-2 py-1.5 text-[12.5px] text-[#475569] hover:text-[#20a862] hover:bg-[#f8faf9] rounded-lg transition-all"
-        >
-          <Search className="w-4 h-4 text-[#94a3b8]" />
-          <span>Search in conversation</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={onMute}
-          className="w-full flex items-center gap-3 px-2 py-1.5 text-[12.5px] text-[#475569] hover:text-[#20a862] hover:bg-[#f8faf9] rounded-lg transition-all"
-        >
-          <BellOff className="w-4 h-4 text-[#94a3b8]" />
-          <span>Mute notifications</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={onArchive}
-          className="w-full flex items-center gap-3 px-2 py-1.5 text-[12.5px] text-[#475569] hover:text-[#20a862] hover:bg-[#f8faf9] rounded-lg transition-all"
-        >
-          <Archive className="w-4 h-4 text-[#94a3b8]" />
-          <span>Archive conversation</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={onBlock}
-          className="w-full flex items-center gap-3 px-2 py-1.5 text-[12.5px] text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
-        >
-          <Ban className="w-4 h-4 text-rose-500" />
-          <span>Block user</span>
-        </button>
+        {/* An action without a handler has no backend support yet: it is
+            rendered disabled and explained, never faked with a toast. */}
+        {[
+          { label: "Search in conversation", icon: Search, handler: onSearchInChat, danger: false },
+          { label: "Mute notifications", icon: BellOff, handler: onMute, danger: false },
+          { label: "Archive conversation", icon: Archive, handler: onArchive, danger: false },
+          { label: "Block user", icon: Ban, handler: onBlock, danger: true },
+        ].map(({ label, icon: Icon, handler, danger }) => (
+          <button
+            key={label}
+            type="button"
+            onClick={handler}
+            disabled={!handler}
+            aria-describedby={handler ? undefined : "chat-actions-unavailable"}
+            className={`w-full flex items-center gap-3 px-2 py-1.5 text-[12.5px] rounded-lg transition-all disabled:cursor-not-allowed disabled:opacity-50 ${danger ? "text-rose-600 enabled:hover:bg-rose-50" : "text-[#475569] enabled:hover:text-[#20a862] enabled:hover:bg-[#f8faf9]"}`}
+          >
+            <Icon className={`w-4 h-4 ${danger ? "text-rose-500" : "text-[#94a3b8]"}`} aria-hidden="true" />
+            <span>{label}</span>
+          </button>
+        ))}
+        {[onSearchInChat, onMute, onArchive, onBlock].some((handler) => !handler) ? (
+          <p id="chat-actions-unavailable" className="px-2 pt-1 text-[11px] leading-snug text-[#64748b]">
+            These conversation actions aren&apos;t available in the current messaging service yet.
+          </p>
+        ) : null}
       </div>
     </div>
   );

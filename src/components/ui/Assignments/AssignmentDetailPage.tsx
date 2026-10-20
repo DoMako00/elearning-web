@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowUp, CalendarDays, Check, CheckCircle2, ChevronRight, Clock, Download, FileText, Folder, HelpCircle, Scale, Star } from "lucide-react";
 import { SubmitAssignmentModal } from "./SubmitAssignmentModal";
+import { isAssignmentSubmissionWindowOpen } from "../../../features/student/api/studentAssignmentMapper";
 import { useStudentAssignments, useSubmitStudentAssignment } from "../../../features/student/api/useStudentAssignments";
 import { studentAssignmentsApi } from "../../../features/student/api/studentAssignmentsApi";
 import "./AssignmentDetailPage.css";
@@ -29,9 +30,9 @@ export function AssignmentDetailPage() {
   if (!assignment) return <FeedbackState title="Assignment not found" message="This assignment is not available to the current Student account." error />;
 
   const submission = assignment.submission;
-  const canSubmit = assignment.status === "open" && (!submission || submission.status === "returned");
-  const handleSubmit = async (responseText: string, attachmentIds: string[]) => {
-    await submit.mutateAsync({ assignmentId: assignment.id, responseText, attachmentIds, expectedVersion: submission?.status === "returned" ? submission.version : null });
+  const canSubmit = isAssignmentSubmissionWindowOpen(assignment) && (!submission || submission.status === "returned");
+  const handleSubmit = async (responseText: string, attachmentIds: string[], submissionId: string) => {
+    await submit.mutateAsync({ assignmentId: assignment.id, submissionId, responseText, attachmentIds, expectedVersion: submission?.status === "returned" ? submission.version : null });
     setToastMessage("Your response was received by the server.");
   };
   const handleOpenAttachment = async (attachmentId: string) => {
@@ -111,7 +112,7 @@ export function AssignmentDetailPage() {
               <p className="assignment-submission-hint">{submission?.feedback ?? (submission ? "Your response is saved and awaiting review." : "Submit text, private attachments, or both before the due date.")}</p>
               {attachmentError && <p className="text-xs text-rose-600" role="alert">{attachmentError}</p>}
               {submission?.attachments.length ? <div className="mt-3 space-y-2" aria-label="Submitted attachments">{submission.attachments.map(attachment => <div key={attachment.id} className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs"><span className="min-w-0 truncate" title={attachment.originalFilename}>{attachment.originalFilename}</span><button type="button" className="inline-flex shrink-0 items-center gap-1 font-semibold text-emerald-700 disabled:opacity-50" onClick={() => void handleOpenAttachment(attachment.id)} disabled={openingAttachmentId === attachment.id}>{openingAttachmentId === attachment.id ? <Clock size={13} className="animate-spin" /> : <Download size={13} />} Open</button></div>)}</div> : null}
-              <button type="button" className="assignment-btn-submit-main" onClick={() => setIsSubmitModalOpen(true)} disabled={!canSubmit || submit.isPending}><ArrowUp size={16} /><span>{submission?.status === "returned" ? "Resubmit response" : "Submit response"}</span></button>
+              <button type="button" className="assignment-btn-submit-main" onClick={() => setIsSubmitModalOpen(true)} disabled={!canSubmit || submit.isPending || (submit.isSuccess && assignments.isFetching)}><ArrowUp size={16} /><span>{submission?.status === "returned" ? "Resubmit response" : "Submit response"}</span></button>
             </section>
             <section className="assignment-detail-sidebar-card"><div className="assignment-rubric-header"><div className="assignment-rubric-title"><Scale size={17} className="text-emerald-600" /><h3>Review result</h3></div></div><p className="assignment-detail-section-sub">{submission?.status === "reviewed" ? (submission.score === null ? "Reviewed; no score recorded." : `Score: ${submission.score}${assignment.maxScore === null ? "" : ` / ${assignment.maxScore}`}`) : "No review has been recorded yet."}</p></section>
             <section className="assignment-detail-sidebar-card"><div className="assignment-timeline-header"><Clock size={17} className="text-emerald-600" /><h3>Assignment timeline</h3></div><div className="assignment-timeline-steps"><div className="assignment-timeline-step"><div className="assignment-timeline-dot" /><div className="assignment-timeline-step-info"><span className="assignment-timeline-date">{formatDate(assignment.availableFrom)}</span><strong className="assignment-timeline-name">Available</strong></div></div><div className="assignment-timeline-step"><div className="assignment-timeline-dot" /><div className="assignment-timeline-step-info"><span className="assignment-timeline-date">{formatDate(assignment.dueAt)}</span><strong className="assignment-timeline-name">Due</strong></div></div>{submission && <div className="assignment-timeline-step is-completed"><div className="assignment-timeline-dot is-completed" /><div className="assignment-timeline-step-info"><span className="assignment-timeline-date">{formatDate(submission.submittedAt)}</span><strong className="assignment-timeline-name">Submitted</strong></div></div>}</div></section>

@@ -2,7 +2,7 @@ import React from "react";
 import { Sparkles } from "lucide-react";
 
 interface XPPillProps {
-  xp?: number;
+  xp: number;
   className?: string;
   onClick?: () => void;
 }
@@ -10,7 +10,7 @@ interface XPPillProps {
 const numberFormatter = new Intl.NumberFormat("en-US");
 
 export const XPPill: React.FC<XPPillProps> = ({
-  xp = 2450,
+  xp,
   className = "",
   onClick,
 }) => {

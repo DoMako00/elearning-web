@@ -12,6 +12,9 @@ import {
   getEgyptNow,
   parseTimeToMinutes,
   cairoDateTimeToIso,
+  addMonthsClamped,
+  eventDurationMinutes,
+  shiftWallClock,
 } from "./calendar-helpers";
 import { useStudentCalendar, useStudentCalendarMutations } from "../../../features/student/api/useStudentCalendar";
 import { useSetWeeklyLessonGoal, useStudentLearningPreferences, useStudentProgress } from "../../../features/student/api/useStudentLearning";
@@ -95,13 +98,19 @@ export function CalendarWorkspace() {
   const weeklyGoalMutation = useSetWeeklyLessonGoal();
   const events = useMemo(() => (calendarQuery.data ?? []).map(mapStudentCalendarItem), [calendarQuery.data]);
   const currentDate = egyptNow.dateStr;
-  const agendaItems = useMemo<AgendaItem[]>(() => events
+  // "Today's agenda" and reminders always describe today and the coming
+  // weeks, independent of which week/month the grid is showing.
+  const upcomingRange = useMemo(() => ({ from: currentDate, to: shiftWallClock(currentDate, 30 * 1440).date }), [currentDate]);
+  const upcomingQuery = useStudentCalendar(upcomingRange.from, upcomingRange.to);
+  const upcomingEvents = useMemo(() => (upcomingQuery.data ?? []).map(mapStudentCalendarItem), [upcomingQuery.data]);
+  const agendaItems = useMemo<AgendaItem[]>(() => upcomingEvents
     .filter((event) => event.date === currentDate)
     .sort((a, b) => a.startTime.localeCompare(b.startTime))
-    .map((event) => ({ id: event.id, time: event.displayTime.split(" - ")[0] ?? event.startTime, title: event.title, subtitle: event.courseTitle ?? "", type: event.type })), [events, currentDate]);
-  const reminders = useMemo<ReminderItem[]>(() => events
+    .map((event) => ({ id: event.id, time: event.displayTime.split(" - ")[0] ?? event.startTime, title: event.title, subtitle: event.courseTitle ?? "", type: event.type })), [upcomingEvents, currentDate]);
+  const reminders = useMemo<ReminderItem[]>(() => upcomingEvents
     .filter((event) => event.type === "reminder" && event.editable)
-    .map((event) => ({ id: event.id, title: event.title, dateLabel: `${event.date} · ${event.displayTime}`, type: "reminder", completed: event.status === "completed" })), [events]);
+    .sort((a, b) => `${a.date} ${a.startTime}`.localeCompare(`${b.date} ${b.startTime}`))
+    .map((event) => ({ id: event.id, title: event.title, dateLabel: `${event.date} · ${event.displayTime}`, type: "reminder", completed: event.status === "completed" })), [upcomingEvents]);
   const progress = progressQuery.data;
   const goalValue = preferencesQuery.data?.weeklyLessonGoal ?? progress?.weeklyGoalLessons ?? null;
   const studyGoal = useMemo<StudyGoalProgress>(() => {
@@ -171,31 +180,21 @@ export function CalendarWorkspace() {
     const existing = events.find((evt) => evt.id === eventId);
     if (!existing?.editable || !existing.version) return;
 
-    const [startH, startM] = existing.startTime.split(":").map(Number);
-    const [endH, endM] = existing.endTime.split(":").map(Number);
-    const durationMinutes = endH * 60 + endM - (startH * 60 + startM);
-
-    const newStartH = targetHour;
-    const newStartM = startM;
-    const newEndMinutes = newStartH * 60 + newStartM + durationMinutes;
-
-    const nextDate = new Date(`${targetDate}T00:00:00`);
-    const normalizedStartHour = newStartH % 24;
-    if (newStartH >= 24) nextDate.setDate(nextDate.getDate() + 1);
-    const normalizedDate = formatLocalDate(nextDate);
-    const newStartStr = `${String(normalizedStartHour).padStart(2, "0")}:${String(newStartM).padStart(2, "0")}`;
-    const endHH = Math.floor(newEndMinutes / 60);
-    const endMM = newEndMinutes % 60;
-    if (hasTimeConflict(targetDate, newStartH * 60 + newStartM, newEndMinutes, eventId)) {
+    // Overnight blocks keep their real length (endDate-aware), so a move can
+    // never produce a zero/negative interval or an invalid "-14:00" time.
+    const durationMinutes = eventDurationMinutes(existing);
+    const [, startM] = existing.startTime.split(":").map(Number);
+    const startMinutes = (targetHour % 24) * 60 + startM;
+    const newStart = shiftWallClock(targetDate, startMinutes);
+    const newEnd = shiftWallClock(targetDate, startMinutes + durationMinutes);
+    if (hasTimeConflict(targetDate, startMinutes, startMinutes + durationMinutes, eventId)) {
       alert("⚠️ Time conflict: An event is already scheduled at this time on that date.");
       setDraggedEventId(null);
       setDragOverTarget(null);
       return;
     }
 
-    const endDate = new Date(`${normalizedDate}T00:00:00`);
-    if (endHH >= 24) endDate.setDate(endDate.getDate() + Math.floor(endHH / 24));
-    void calendarMutations.update.mutateAsync({ id: existing.id, expectedVersion: existing.version, startsAt: cairoDateTimeToIso(normalizedDate, newStartStr), endsAt: cairoDateTimeToIso(formatLocalDate(endDate), `${String(endHH % 24).padStart(2, "0")}:${String(endMM).padStart(2, "0")}`) }).catch((error: unknown) => setMutationError(error instanceof Error ? error.message : "Calendar item could not be moved."));
+    void calendarMutations.update.mutateAsync({ id: existing.id, expectedVersion: existing.version, startsAt: cairoDateTimeToIso(newStart.date, newStart.time), endsAt: cairoDateTimeToIso(newEnd.date, newEnd.time) }).catch((error: unknown) => setMutationError(error instanceof Error ? error.message : "Calendar item could not be moved."));
 
     setDraggedEventId(null);
     setDragOverTarget(null);
@@ -210,22 +209,18 @@ export function CalendarWorkspace() {
     if (!existing?.editable || !existing.version) return;
 
     const startMinutes = parseTimeToMinutes(existing.startTime);
-    const endMinutes = parseTimeToMinutes(existing.endTime);
+    const duration = eventDurationMinutes(existing);
 
-    if (hasTimeConflict(targetDate, startMinutes, endMinutes, eventId)) {
+    if (hasTimeConflict(targetDate, startMinutes, startMinutes + duration, eventId)) {
       alert("⚠️ Time conflict: An event is already scheduled at this time on that date.");
       setDraggedEventId(null);
       setDragOverTarget(null);
       return;
     }
 
-    const duration = Math.max(0, parseTimeToMinutes(existing.endTime) - parseTimeToMinutes(existing.startTime));
     const start = cairoDateTimeToIso(targetDate, existing.startTime);
-    const totalEndMinutes = parseTimeToMinutes(existing.startTime) + duration;
-    const endDate = new Date(`${targetDate}T00:00:00`);
-    endDate.setDate(endDate.getDate() + Math.floor(totalEndMinutes / 1440));
-    const endTime = `${String(Math.floor((totalEndMinutes % 1440) / 60)).padStart(2, "0")}:${String(totalEndMinutes % 60).padStart(2, "0")}`;
-    void calendarMutations.update.mutateAsync({ id: existing.id, expectedVersion: existing.version, startsAt: start, endsAt: cairoDateTimeToIso(formatLocalDate(endDate), endTime) }).catch((error: unknown) => setMutationError(error instanceof Error ? error.message : "Calendar item could not be moved."));
+    const end = shiftWallClock(targetDate, startMinutes + duration);
+    void calendarMutations.update.mutateAsync({ id: existing.id, expectedVersion: existing.version, startsAt: start, endsAt: cairoDateTimeToIso(end.date, end.time) }).catch((error: unknown) => setMutationError(error instanceof Error ? error.message : "Calendar item could not be moved."));
 
     setDraggedEventId(null);
     setDragOverTarget(null);
@@ -368,15 +363,13 @@ export function CalendarWorkspace() {
   const handlePrev = () => {
     const next = new Date(activeDate);
     if (viewMode === "week") next.setDate(next.getDate() - 7);
-    else next.setMonth(next.getMonth() - 1);
-    setActiveDate(next);
+    setActiveDate(viewMode === "week" ? next : addMonthsClamped(activeDate, -1));
   };
 
   const handleNext = () => {
     const next = new Date(activeDate);
     if (viewMode === "week") next.setDate(next.getDate() + 7);
-    else next.setMonth(next.getMonth() + 1);
-    setActiveDate(next);
+    setActiveDate(viewMode === "week" ? next : addMonthsClamped(activeDate, 1));
   };
 
   const handleToday = () => setActiveDate(new Date());

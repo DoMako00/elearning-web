@@ -22,8 +22,13 @@ interface RecommendedCoursesProps {
   error?: boolean;
 }
 
-function canOpenCourse(course: StudentCourseItem) {
+function isEnrolledCourse(course: StudentCourseItem) {
   return course.access?.isEnrolled === true;
+}
+
+/** Opening is decided only by the server's access.canOpen flag. */
+function canOpenCourse(course: StudentCourseItem) {
+  return course.access?.canOpen === true;
 }
 
 function imageForCourse(course: StudentCourseItem) {
@@ -34,24 +39,23 @@ function imageForCourse(course: StudentCourseItem) {
   return anatomyImage;
 }
 
+// No relevance model exists, so courses are listed in a neutral order
+// (by semester, then title) instead of an invented ranking.
 function orderedCourses(courses: readonly StudentCourseItem[]) {
-  return [...courses].sort((a, b) => {
-    const aIsBio = /bio|biochem/i.test(`${a.code} ${a.title}`);
-    const bIsBio = /bio|biochem/i.test(`${b.code} ${b.title}`);
-    if (aIsBio !== bIsBio) return aIsBio ? -1 : 1;
-    return a.title.localeCompare(b.title);
-  });
+  return [...courses].sort((a, b) =>
+    (a.academicSemester?.semesterNumber ?? 0) - (b.academicSemester?.semesterNumber ?? 0)
+    || a.title.localeCompare(b.title));
 }
 
 export function RecommendedCourses({ courses = [], loading = false, error = false }: RecommendedCoursesProps) {
   const navigate = useNavigate();
-  const displayCourses = useMemoSafeCourses(courses).filter((course) => !canOpenCourse(course));
+  const displayCourses = useMemoSafeCourses(courses).filter((course) => !isEnrolledCourse(course));
   const savedCoursesQuery = useStudentSavedCourses();
   const toggleSavedCourse = useToggleStudentSavedCourse();
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(displayCourses.length > 2);
   const rowRef = useRef<HTMLDivElement>(null);
-  const { toastMessage, showToast } = useToast();
+  const { toastMessage, toastTone, showToast } = useToast();
 
   const checkScroll = () => {
     if (rowRef.current) {
@@ -71,7 +75,7 @@ export function RecommendedCourses({ courses = [], loading = false, error = fals
     e?.stopPropagation();
     toggleSavedCourse.mutate({ courseId: course.courseId, saved }, {
       onSuccess: () => showToast(saved ? `Saved "${course.title}"` : `Removed "${course.title}" from saved courses`),
-      onError: (error) => showToast(error.message || "Saved courses could not be updated."),
+      onError: (error) => showToast(error.message || "Saved courses could not be updated.", "error"),
     });
   };
 
@@ -93,13 +97,21 @@ export function RecommendedCourses({ courses = [], loading = false, error = fals
     }
   };
 
+  const openOrExplain = (course: StudentCourseItem) => {
+    if (canOpenCourse(course)) {
+      navigate(`/my-courses/${encodeURIComponent(course.courseId)}`, { state: { courseTitle: course.title, courseId: course.courseId } });
+      return;
+    }
+    showLockedSubjectMessage(course.title);
+  };
+
   const showLockedSubjectMessage = (title: string) => {
-    showToast(`"${title}" is recommended. Subscribe or get enrolled before opening its lessons.`);
+    showToast(`"${title}" is recommended. Subscribe or get enrolled before opening its lessons.`, "info");
   };
 
   return (
     <section className="recommended-card" aria-labelledby="recommended-title">
-      <ToastNotification message={toastMessage} />
+      <ToastNotification message={toastMessage} tone={toastTone} />
       <header className="recommended-header">
         <h2 id="recommended-title">Recommended subjects</h2>
         <button type="button" className="recommended-view-all cursor-pointer" onClick={() => navigate("/explore")}>
@@ -131,10 +143,12 @@ export function RecommendedCourses({ courses = [], loading = false, error = fals
               <article
                 className="recommended-course cursor-pointer transition-all hover:shadow-md"
                 key={course.courseId}
-                onClick={() => showLockedSubjectMessage(course.title)}
+                onClick={() => openOrExplain(course)}
                 tabIndex={0}
+                role="link"
+                aria-label={canOpenCourse(course) ? `Open ${course.title}` : `${course.title} (not enrolled)`}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); showLockedSubjectMessage(course.title); }
+                  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openOrExplain(course); }
                 }}
               >
                 <div className="recommended-course-media">

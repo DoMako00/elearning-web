@@ -41,10 +41,11 @@ function statusLabel(status: AssignmentStatus) {
   return "Not started";
 }
 
-function actionLabel(status: AssignmentStatus) {
-  if (status === "in-progress") return "Continue";
+function actionLabel(status: AssignmentStatus, actionable = true) {
   if (status === "submitted") return "View submission";
   if (status === "graded") return "View feedback";
+  if (!actionable) return "View details";
+  if (status === "in-progress") return "Continue";
   return "Start assignment";
 }
 
@@ -186,7 +187,7 @@ function AssignmentCard({
             onOpenDetail();
           }}
         >
-          {actionLabel(item.status)}
+          {actionLabel(item.status, item.actionable)}
         </button>
       </div>
     </article>
@@ -196,7 +197,7 @@ function AssignmentCard({
 export function AssignmentsWorkspace() {
   const navigate = useNavigate();
   const assignmentsQuery = useStudentAssignments();
-  const items = useMemo(() => (assignmentsQuery.data ?? []).map(mapStudentAssignment), [assignmentsQuery.data]);
+  const items = useMemo(() => (assignmentsQuery.data ?? []).map((assignment) => mapStudentAssignment(assignment)), [assignmentsQuery.data]);
   const [filter, setFilter] = useState<AssignmentFilter>("all");
   const [sortBy, setSortBy] = useState<AssignmentSort>("due");
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -242,7 +243,7 @@ export function AssignmentsWorkspace() {
     return showAll ? sorted : sorted.slice(0, PAGE_SIZE);
   }, [filter, items, sortBy, showAll]);
 
-  const deadlines = useMemo(() => items.filter((item) => item.urgency !== "done" && item.dueAt.startsWith("2")).sort((a, b) => a.dueAt.localeCompare(b.dueAt)).slice(0, 4), [items]);
+  const deadlines = useMemo(() => items.filter((item) => item.actionable && !item.isOverdue && item.dueAt.startsWith("2")).sort((a, b) => a.dueAt.localeCompare(b.dueAt)).slice(0, 4), [items]);
   const feedback = useMemo(() => (assignmentsQuery.data ?? []).filter((item) => item.submission?.status === "reviewed"), [assignmentsQuery.data]);
 
   useEffect(() => {

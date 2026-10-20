@@ -23,12 +23,19 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 }) => {
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving,setIsSaving]=useState(false);
+  const [saveError,setSaveError]=useState<string|null>(null);
 
+  // Success is shown only after the save promise resolves; a rejected save
+  // surfaces its error and never claims the changes were stored.
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if(isSaving)return;
+    if(isSaving||!onSave)return;
     setIsSaving(true);
-    try{await onSave?.();setIsSaved(true);setTimeout(() => setIsSaved(false), 2500);}finally{setIsSaving(false);}
+    setIsSaved(false);
+    setSaveError(null);
+    try{await onSave();setIsSaved(true);setTimeout(() => setIsSaved(false), 2500);}
+    catch(error){setSaveError(error instanceof Error?error.message:"Your changes could not be saved.");}
+    finally{setIsSaving(false);}
   };
 
   return (
@@ -36,7 +43,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
       {/* 1. Identity & Avatar */}
       <SettingsCard
         title="Profile Information"
-        subtitle="Keep your identity and learning details up to date across GreenLearn."
+        subtitle="Keep your identity and learning details up to date across your learning account."
         icon={<User className="w-4 h-4 stroke-2" />}
       >
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 pt-1">
@@ -196,18 +203,23 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
       {/* Action Save Button */}
       <div className="flex items-center justify-end gap-3 pt-2">
+        {saveError && (
+          <span role="alert" className="inline-flex items-center gap-1 text-xs font-semibold text-rose-700">
+            {saveError}
+          </span>
+        )}
         {isSaved && (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 animate-fade-in">
+          <span role="status" className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 animate-fade-in">
             <Check className="w-3.5 h-3.5" />
             Changes saved successfully!
           </span>
         )}
         <button
           type="submit"
-          disabled={isSaving}
+          disabled={isSaving||!onSave}
           className="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition-all cursor-pointer hover:shadow-sm active:scale-98"
         >
-          Save Changes
+          {isSaving ? "Saving…" : "Save Changes"}
         </button>
       </div>
     </form>

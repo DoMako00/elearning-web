@@ -1,8 +1,6 @@
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-import { useAuth } from "../../../app/providers/AuthProvider";
 import {
   ExploreCategories,
   ExploreCourses,
@@ -11,21 +9,16 @@ import {
   ExploreTrending,
   type ExploreCourse,
 } from "../../../components/ui/Explore";
-import { listAllStudentCourses } from "../api/studentCoursesApi";
+import { useStudentCourseList } from "../api/useStudentCourses";
 import { useStudentLearningPath, useStudentLearningPaths, useStudentSavedCourses, useToggleStudentSavedCourse } from "../api/useStudentLearning";
 import "../../../components/ui/Explore/Explore.css";
 
 export function ExplorePage() {
-  const auth = useAuth();
   const { slug: learningPathId } = useParams<{ slug?: string }>();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeSemester, setActiveSemester] = useState<number | null>(null);
-  const coursesQuery = useQuery({
-    queryKey: ["student", "courses", "explore"],
-    queryFn: ({ signal }) => listAllStudentCourses({ view: "explore", signal }),
-    enabled: auth.status === "authenticated",
-  });
+  const coursesQuery = useStudentCourseList("explore");
   const pathsQuery = useStudentLearningPaths();
   const pathQuery = useStudentLearningPath(learningPathId);
   const savedCoursesQuery = useStudentSavedCourses();

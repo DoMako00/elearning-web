@@ -31,8 +31,40 @@ export function useInactivityPrompt(
     onTimeout?.();
   }, [onTimeout]);
 
+  const workerRef = useRef<Worker | null>(null);
+  const lastActivityPostRef = useRef(0);
+
+  // Forward genuine activity to the worker so its idle timer resets; without
+  // this the prompt fired ~5 minutes into every lesson, even mid-video.
+  const postActivity = useCallback((eventType: 'mousemove' | 'keydown' | 'click' | 'touchstart' | 'scroll' | 'focus') => {
+    const now = Date.now();
+    if (now - lastActivityPostRef.current < 5_000) return;
+    lastActivityPostRef.current = now;
+    workerRef.current?.postMessage({ type: 'INACTIVITY_USER_EVENT', payload: { eventType, timestamp: now } });
+  }, []);
+
+  const reportActivity = useCallback(() => postActivity('focus'), [postActivity]);
+
+  useEffect(() => {
+    const handlers: Array<[keyof WindowEventMap, 'mousemove' | 'keydown' | 'click' | 'touchstart' | 'scroll']> = [
+      ['pointermove', 'mousemove'],
+      ['pointerdown', 'click'],
+      ['keydown', 'keydown'],
+      ['touchstart', 'touchstart'],
+      ['scroll', 'scroll'],
+    ];
+    const listeners = handlers.map(([domEvent, eventType]) => {
+      const listener = () => postActivity(eventType);
+      window.addEventListener(domEvent, listener, { passive: true, capture: true });
+      return [domEvent, listener] as const;
+    });
+    return () => listeners.forEach(([domEvent, listener]) => window.removeEventListener(domEvent, listener, { capture: true }));
+  }, [postActivity]);
+
   const handleResume = useCallback(() => {
     setState('hidden');
+    lastActivityPostRef.current = 0;
+    workerRef.current?.postMessage({ type: 'INACTIVITY_RESUME', payload: undefined });
     onResume?.();
   }, [onResume]);
 
@@ -85,6 +117,7 @@ export function useInactivityPrompt(
         { type: 'module' }
       );
 
+      workerRef.current = worker;
       worker.addEventListener('message', handleWorkerMessage);
       worker.addEventListener('error', (error) => {
         console.error('[InactivityPrompt] Worker error:', error);
@@ -112,6 +145,7 @@ export function useInactivityPrompt(
         worker.removeEventListener('message', handleWorkerMessage);
         worker.terminate();
       }
+      workerRef.current = null;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // only mount/unmount — handleWorkerMessage is stable via useCallback
@@ -147,6 +181,7 @@ export function useInactivityPrompt(
     handlePassiveResume,
     handleWorkerMessage,
     triggerIdleTimeout,
+    reportActivity,
   };
 }
 

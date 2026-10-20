@@ -9,7 +9,6 @@ import {
 import { TopAppBar } from "../TopAppBar";
 import {
   HeroBand,
-  DocsOnlyBanner,
   SectionHeader,
   EventCard,
   EventDetailSheet,
@@ -27,7 +26,7 @@ import {
 import { useStudentCalendar, useStudentCalendarMutations } from "../../../features/student/api/useStudentCalendar";
 import { useStudentProgress, useStudentLearningPreferences } from "../../../features/student/api/useStudentLearning";
 import { mapStudentCalendarItem } from "../../../features/student/api/studentCalendarMapper";
-import { cairoDateTimeToIso } from "../../ui/Calendar/calendar-helpers";
+import { addMonthsClamped, cairoDateTimeToIso } from "../../ui/Calendar/calendar-helpers";
 
 /**
  * KNOWN DESKTOP ISSUES (documented for future cross-platform cleanup):
@@ -201,20 +200,16 @@ export const CalendarScreen: React.FC = () => {
     const next = new Date(activeDate);
     if (viewMode === "week") {
       next.setDate(next.getDate() - 7);
-    } else {
-      next.setMonth(next.getMonth() - 1);
     }
-    setActiveDate(next);
+    setActiveDate(viewMode === "week" ? next : addMonthsClamped(activeDate, -1));
   };
 
   const handleNext = () => {
     const next = new Date(activeDate);
     if (viewMode === "week") {
       next.setDate(next.getDate() + 7);
-    } else {
-      next.setMonth(next.getMonth() + 1);
     }
-    setActiveDate(next);
+    setActiveDate(viewMode === "week" ? next : addMonthsClamped(activeDate, 1));
   };
 
   const handleToday = () => {
@@ -277,7 +272,6 @@ export const CalendarScreen: React.FC = () => {
           eyebrow="ACADEMIC SCHEDULE"
           heading="Calendar"
           subtitle="Plan your study, stay consistent."
-          banner={<DocsOnlyBanner variant="compact" />}
           illustration={
             <div className="relative w-28 h-24 flex items-center justify-center">
               <div className="size-18 rounded-2xl bg-emerald-100/70 border border-emerald-200/80 flex items-center justify-center text-emerald-700 shadow-xs">

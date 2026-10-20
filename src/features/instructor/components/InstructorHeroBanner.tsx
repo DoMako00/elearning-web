@@ -63,11 +63,11 @@ export const InstructorHeroBanner: React.FC<InstructorHeroBannerProps> = ({
           className="absolute top-0 right-0 h-full w-full sm:w-[46%] pointer-events-none opacity-60 sm:opacity-85 overflow-hidden"
           aria-hidden="true"
         >
-          <img
+          {instructor.bannerArtworkUrl ? <img
             src={instructor.bannerArtworkUrl}
             alt=""
             className="h-full w-full object-cover object-center mix-blend-multiply"
-          />
+          /> : null}
           <div className="absolute inset-0 bg-linear-to-r from-white via-white/50 to-transparent" />
           <div className="absolute inset-0 bg-linear-to-t from-white/60 via-transparent to-transparent" />
         </div>
@@ -77,22 +77,23 @@ export const InstructorHeroBanner: React.FC<InstructorHeroBannerProps> = ({
           <div className="lg:col-span-8 flex flex-row gap-4 items-center">
             {/* Avatar */}
             <div className="relative shrink-0">
-              <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full ring-3 ring-slate-100 overflow-hidden bg-slate-100 shadow-xs">
-                <img
-                  src={instructor.avatarUrl}
-                  alt={instructor.name}
-                  className="w-full h-full object-cover object-top"
-                />
+              <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full ring-3 ring-slate-100 overflow-hidden bg-slate-100 shadow-xs flex items-center justify-center">
+                {instructor.avatarUrl ? (
+                  <img
+                    src={instructor.avatarUrl}
+                    alt={instructor.name}
+                    className="w-full h-full object-cover object-top"
+                  />
+                ) : (
+                  <span className="text-xl font-bold text-slate-500" aria-hidden="true">
+                    {instructor.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join("")}
+                  </span>
+                )}
               </div>
 
-              {/* Online badge */}
-              <span
-                className="absolute top-0.5 left-1 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white"
-                title="Active Faculty Member"
-              />
-
-              {/* Edit Camera Button */}
-              <button
+              {/* Presence is not tracked, so no online indicator is shown.
+                  The photo control is only for the instructor's own profile. */}
+              {isSelf && <button
                 type="button"
                 onClick={onEditClick}
                 className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white border border-slate-200 text-slate-600 hover:text-emerald-700 flex items-center justify-center shadow-xs hover:scale-105 transition-all cursor-pointer"
@@ -100,7 +101,7 @@ export const InstructorHeroBanner: React.FC<InstructorHeroBannerProps> = ({
                 aria-label="Update avatar photo"
               >
                 <Camera className="w-3 h-3" />
-              </button>
+              </button>}
             </div>
 
             {/* Core Info */}
@@ -121,50 +122,50 @@ export const InstructorHeroBanner: React.FC<InstructorHeroBannerProps> = ({
 
               {/* Metadata Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-1.5 gap-x-4 text-xs text-slate-700 mt-2">
-                <div className="flex items-center gap-1.5 truncate">
-                  <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                {instructor.institution ? <div className="flex items-center gap-1.5 truncate">
+                  <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" aria-hidden="true" />
                   <span className="truncate font-medium">{instructor.institution}</span>
-                </div>
+                </div> : null}
 
-                <div className="flex items-center gap-1.5 truncate">
-                  <Briefcase className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                {instructor.yearsOfExperience ? <div className="flex items-center gap-1.5 truncate">
+                  <Briefcase className="w-3.5 h-3.5 text-slate-400 shrink-0" aria-hidden="true" />
                   <span className="truncate font-medium">{instructor.yearsOfExperience}</span>
-                </div>
+                </div> : null}
 
-                <div className="flex items-center gap-1.5 truncate">
-                  <Stethoscope className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                {instructor.medicalSpecialization ? <div className="flex items-center gap-1.5 truncate">
+                  <Stethoscope className="w-3.5 h-3.5 text-slate-400 shrink-0" aria-hidden="true" />
                   <span className="truncate font-medium">{instructor.medicalSpecialization}</span>
-                </div>
+                </div> : null}
 
-                <div className="flex items-center gap-1.5 truncate">
-                  <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                {instructor.location ? <div className="flex items-center gap-1.5 truncate">
+                  <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" aria-hidden="true" />
                   <span className="truncate">{instructor.location}</span>
-                </div>
+                </div> : null}
 
-                <div className="flex items-center gap-1.5 truncate">
-                  <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                {instructor.email ? <div className="flex items-center gap-1.5 truncate">
+                  <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" aria-hidden="true" />
                   <span className="truncate">{instructor.email}</span>
-                </div>
+                </div> : null}
 
-                <div className="flex items-center gap-1.5 truncate">
-                  <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                {instructor.officeHours ? <div className="flex items-center gap-1.5 truncate">
+                  <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" aria-hidden="true" />
                   <span className="truncate">{instructor.officeHours}</span>
-                </div>
+                </div> : null}
               </div>
 
               {/* Bio summary */}
-              <p className="text-xs sm:text-[13px] text-slate-600 leading-snug line-clamp-1 mt-2">
+              {instructor.bioSummary ? <p className="text-xs sm:text-[13px] text-slate-600 leading-snug line-clamp-1 mt-2">
                 {instructor.bioSummary}
-              </p>
+              </p> : null}
             </div>
           </div>
 
           {/* Right: Quote & Slogan */}
           <div className="hidden lg:flex lg:col-span-4 flex-col items-end justify-center text-right pl-3">
             <div className="max-w-70 space-y-1.5">
-              <blockquote className="text-xs sm:text-sm font-medium italic text-slate-700 leading-snug">
+              {instructor.inspirationalQuote ? <blockquote className="text-xs sm:text-sm font-medium italic text-slate-700 leading-snug">
                 "{instructor.inspirationalQuote}"
-              </blockquote>
+              </blockquote> : null}
               <div className="flex items-center justify-end gap-2 text-emerald-800 pt-1">
                 <span className="text-xs font-bold tracking-wider uppercase font-serif">
                   Teach • Heal • Advance

@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useMemo,
   type PropsWithChildren,
 } from "react";
 
@@ -36,6 +37,12 @@ export function BrandProvider({ children }: PropsWithChildren) {
       {children}
     </BrandContext.Provider>
   );
+}
+
+/** Supplies the verified brand of the signed-in student to the student shell. */
+export function BrandOverrideProvider({ brand, children }: PropsWithChildren<{ brand: Brand }>) {
+  const value = useMemo<BrandContextValue>(() => ({ brand }), [brand]);
+  return <BrandContext.Provider value={value}>{children}</BrandContext.Provider>;
 }
 
 export function useBrand() {

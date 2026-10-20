@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { TopAppBar } from "../TopAppBar";
 import {
@@ -13,7 +12,7 @@ import {
 } from "../shared";
 import { Clock, ChevronDown, Check, BookOpen, Sparkles } from "lucide-react";
 import { useSavedItems } from "../../../state/useSavedItems";
-import { listAllStudentCourses } from "../../../features/student/api/studentCoursesApi";
+import { useStudentCourseList } from "../../../features/student/api/useStudentCourses";
 import { useStudentProgress } from "../../../features/student/api/useStudentLearning";
 import { mapStudentCourseToCard } from "../shared/mapStudentCourse";
 
@@ -30,7 +29,7 @@ const SORT_OPTIONS: { key: SortOptionKey; label: string; shortLabel: string }[] 
 export const MyCoursesScreen: React.FC = () => {
   const navigate = useNavigate();
   const { isSaved, getSavedCountByType } = useSavedItems();
-  const coursesQuery = useQuery({ queryKey: ["student", "courses", "mine"], queryFn: ({ signal }) => listAllStudentCourses({ view: "mine", signal }) });
+  const coursesQuery = useStudentCourseList("mine");
   const progressQuery = useStudentProgress();
   const courses = useMemo(() => (coursesQuery.data ?? []).map((course) => mapStudentCourseToCard(course, progressQuery.data?.courses.find((item) => item.courseId === course.courseId))), [coursesQuery.data, progressQuery.data]);
 

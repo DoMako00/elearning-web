@@ -16,6 +16,7 @@ import { useSetWeeklyLessonGoal, useStudentLearningPreferences } from "../../api
 import robotAsset from "../../../../Assets/ai-learning-robot.webp";
 import journeyIllustration from "../../../../Assets/empty-learning-journey.webp";
 import "./EmptyLearningState.css";
+import { useBrand } from "../../../../app/providers/BrandProvider";
 
 const benefits = [
   { title: "Learn at your pace", description: "Study anytime, anywhere that fits you.", icon: BookOpenCheck },
@@ -78,7 +79,7 @@ export function AIRecommendationsCard() {
         <p>Browse courses published for your account and academic placement.</p>
         <Link to="/explore" className="empty-ai-card__button"><Sparkles aria-hidden="true" /><span>Explore courses</span></Link>
       </div>
-      <img className="empty-ai-card__robot" src={robotAsset} alt="Friendly GreenLearn AI learning guide robot" />
+      <img className="empty-ai-card__robot" src={robotAsset} alt="Friendly AI learning guide robot" />
     </article>
   );
 }
@@ -150,13 +151,14 @@ export function StudyPlanCard() {
 }
 
 export function EmptyLearningState({ topics = [], isAuthenticated = false }: { topics?: readonly string[]; isAuthenticated?: boolean }) {
+  const { brand } = useBrand();
   return (
     <section className="empty-learning-state" aria-label="Start your learning journey">
       <article className="empty-learning-main-card">
         <div className="empty-learning-main-card__hero">
           <img className="empty-learning-main-card__art" src={journeyIllustration} alt="Green backpack with books and a small plant, ready for a new course" />
           <div className="empty-learning-main-card__copy">
-            <h1>{isAuthenticated ? "Your learning journey is waiting" : "Welcome to GreenLearn"}</h1>
+            <h1>{isAuthenticated ? "Your learning journey is waiting" : `Welcome to ${brand.name}`}</h1>
             <p>{isAuthenticated ? "You are not enrolled in a course yet. Explore courses published for your account." : "Sign in to view the courses available to your student account."}</p>
             {!isAuthenticated ? <Link className="empty-learning-main-card__primary-action" to="/auth/sign-in" state={{ from: "/" }}><Compass aria-hidden="true" /><span>Sign in to view courses</span></Link> : null}
             <Link className="empty-learning-main-card__secondary-action" to="/help"><span>How learning works</span><ArrowRight aria-hidden="true" /></Link>

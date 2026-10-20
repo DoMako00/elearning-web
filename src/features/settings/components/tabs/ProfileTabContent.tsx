@@ -48,6 +48,8 @@ interface ProfileTabContentProps {
   onViewPlansClick: () => void;
   leftColumnOnly?: boolean;
   rightColumnOnly?: boolean;
+  /** Render only the verified email change card. */
+  contactChangeOnly?: boolean;
 }
 
 export const ProfileTabContent: React.FC<ProfileTabContentProps> = ({
@@ -74,9 +76,94 @@ export const ProfileTabContent: React.FC<ProfileTabContentProps> = ({
   onViewPlansClick,
   leftColumnOnly,
   rightColumnOnly,
+  contactChangeOnly,
 }) => {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const currentDevice = devices.find((d) => d.isCurrent) || devices[0];
+
+  // The verified email link/change flow. Exposed on its own so the desktop
+  // Settings page can render it (it previously lived only in a column that
+  // was never mounted).
+  const contactChangeCard = (
+    <>
+        {/* 2. Change Email or Phone Card */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-2xs">
+          <div className="flex items-center gap-2.5 mb-2">
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <Shield className="w-4 h-4 stroke-[2.2]" />
+            </div>
+            <div>
+              <h3 className="text-xs sm:text-sm font-bold text-gray-900 leading-snug">
+                Change Email or Phone
+              </h3>
+              <p className="text-[11px] text-gray-500">
+                Email becomes a login method only after you verify ownership. Phone is optional contact information and never receives sign-in codes.
+              </p>
+              {contactSubTab === "email" && <p className="text-[11px] text-gray-600 mt-1">Verified login email: {linkedEmail || "Not linked yet"}</p>}
+            </div>
+          </div>
+
+          {/* Subtabs: Change Email / Change Phone */}
+          <div className="flex items-center gap-4 border-b border-gray-100 mb-3 pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                setContactSubTab("email");
+                setNewContactValue("");
+              }}
+              className={`pb-1.5 text-xs font-bold transition-all cursor-pointer border-b-2 ${
+                contactSubTab === "email"
+                  ? "border-emerald-600 text-emerald-700"
+                  : "border-transparent text-gray-400 hover:text-gray-700"
+              }`}
+            >
+              Change Email
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setContactSubTab("phone");
+                setNewContactValue("");
+              }}
+              className={`pb-1.5 text-xs font-bold transition-all cursor-pointer border-b-2 ${
+                contactSubTab === "phone"
+                  ? "border-emerald-600 text-emerald-700"
+                  : "border-transparent text-gray-400 hover:text-gray-700"
+              }`}
+            >
+              Change Phone
+            </button>
+          </div>
+
+          {/* Form Input + CTA */}
+          <div className="flex flex-col sm:flex-row items-center gap-2.5">
+            {contactSubTab === "email" && emailFlowStep !== "idle" ? <>
+            <input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={emailCode} onChange={e=>setEmailCode(e.target.value.replace(/\D/g,""))} placeholder={emailFlowStep === "current" ? "Code sent to your current verified email" : "Code sent to the new email"} className="flex-1 w-full h-9.5 px-3.5 text-xs bg-gray-50/70 border border-gray-200/90 rounded-xl text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white placeholder-gray-400 shadow-2xs transition-all" />
+            <button type="button" onClick={onVerifyEmail} className="w-full sm:w-auto h-9.5 px-4 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-xl shadow-xs transition-all cursor-pointer whitespace-nowrap">{emailFlowStep === "current" ? "Continue securely" : "Verify new email"}</button>
+            </> : <>
+            <input
+              type={contactSubTab === "email" ? "email" : "tel"}
+              value={newContactValue}
+              onChange={(e) => setNewContactValue(e.target.value)}
+              placeholder={
+                contactSubTab === "email"
+                  ? "Enter your new email address"
+                  : "Enter your new phone number"
+              }
+              className="flex-1 w-full h-9.5 px-3.5 text-xs bg-gray-50/70 border border-gray-200/90 rounded-xl text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white placeholder-gray-400 shadow-2xs transition-all"
+            />
+            <button
+              type="button"
+              onClick={onSendVerificationCode}
+              className="w-full sm:w-auto h-9.5 px-4 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-xl shadow-xs transition-all cursor-pointer whitespace-nowrap"
+            >
+              Send verification code
+            </button>
+            </>}
+          </div>
+        </div>
+    </>
+  );
 
   const leftColumn = (
     <div className="flex flex-col gap-3 min-w-0 w-full">
@@ -252,82 +339,7 @@ export const ProfileTabContent: React.FC<ProfileTabContentProps> = ({
           </div>
         </div>
 
-        {/* 2. Change Email or Phone Card */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-2xs">
-          <div className="flex items-center gap-2.5 mb-2">
-            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-              <Shield className="w-4 h-4 stroke-[2.2]" />
-            </div>
-            <div>
-              <h3 className="text-xs sm:text-sm font-bold text-gray-900 leading-snug">
-                Change Email or Phone
-              </h3>
-              <p className="text-[11px] text-gray-500">
-                Email becomes a login method only after you verify ownership. Phone is optional contact information and never receives sign-in codes.
-              </p>
-              {contactSubTab === "email" && <p className="text-[11px] text-gray-600 mt-1">Verified login email: {linkedEmail || "Not linked yet"}</p>}
-            </div>
-          </div>
-
-          {/* Subtabs: Change Email / Change Phone */}
-          <div className="flex items-center gap-4 border-b border-gray-100 mb-3 pt-1">
-            <button
-              type="button"
-              onClick={() => {
-                setContactSubTab("email");
-                setNewContactValue("");
-              }}
-              className={`pb-1.5 text-xs font-bold transition-all cursor-pointer border-b-2 ${
-                contactSubTab === "email"
-                  ? "border-emerald-600 text-emerald-700"
-                  : "border-transparent text-gray-400 hover:text-gray-700"
-              }`}
-            >
-              Change Email
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setContactSubTab("phone");
-                setNewContactValue("");
-              }}
-              className={`pb-1.5 text-xs font-bold transition-all cursor-pointer border-b-2 ${
-                contactSubTab === "phone"
-                  ? "border-emerald-600 text-emerald-700"
-                  : "border-transparent text-gray-400 hover:text-gray-700"
-              }`}
-            >
-              Change Phone
-            </button>
-          </div>
-
-          {/* Form Input + CTA */}
-          <div className="flex flex-col sm:flex-row items-center gap-2.5">
-            {contactSubTab === "email" && emailFlowStep !== "idle" ? <>
-            <input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={emailCode} onChange={e=>setEmailCode(e.target.value.replace(/\D/g,""))} placeholder={emailFlowStep === "current" ? "Code sent to your current verified email" : "Code sent to the new email"} className="flex-1 w-full h-9.5 px-3.5 text-xs bg-gray-50/70 border border-gray-200/90 rounded-xl text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white placeholder-gray-400 shadow-2xs transition-all" />
-            <button type="button" onClick={onVerifyEmail} className="w-full sm:w-auto h-9.5 px-4 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-xl shadow-xs transition-all cursor-pointer whitespace-nowrap">{emailFlowStep === "current" ? "Continue securely" : "Verify new email"}</button>
-            </> : <>
-            <input
-              type={contactSubTab === "email" ? "email" : "tel"}
-              value={newContactValue}
-              onChange={(e) => setNewContactValue(e.target.value)}
-              placeholder={
-                contactSubTab === "email"
-                  ? "Enter your new email address"
-                  : "Enter your new phone number"
-              }
-              className="flex-1 w-full h-9.5 px-3.5 text-xs bg-gray-50/70 border border-gray-200/90 rounded-xl text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white placeholder-gray-400 shadow-2xs transition-all"
-            />
-            <button
-              type="button"
-              onClick={onSendVerificationCode}
-              className="w-full sm:w-auto h-9.5 px-4 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-xl shadow-xs transition-all cursor-pointer whitespace-nowrap"
-            >
-              Send verification code
-            </button>
-            </>}
-          </div>
-        </div>
+        {contactChangeCard}
 
         {/* 3. Sign-in method */}
         <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-2xs flex items-center gap-3">
@@ -592,6 +604,10 @@ export const ProfileTabContent: React.FC<ProfileTabContentProps> = ({
         </div>
     </div>
   );
+
+  if (contactChangeOnly) {
+    return contactChangeCard;
+  }
 
   if (leftColumnOnly) {
     return leftColumn;

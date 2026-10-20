@@ -13,7 +13,7 @@ import type { StudentCommunityCategoryKey } from "../student/api/studentCommunit
 import type { TopicCategory, DiscussionPost } from "./types/community";
 
 export function Community() {
-  const { toastMessage, showToast } = useToast();
+  const { toastMessage, toastTone, showToast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<TopicCategory>("all");
   const [selectedDropdownTopic, setSelectedDropdownTopic] = useState("All topics");
   const [searchQuery, setSearchQuery] = useState("");
@@ -97,7 +97,7 @@ export function Community() {
       await createCommentMutation.mutateAsync({ id: crypto.randomUUID(), body });
       showToast("Reply saved.");
     } catch (error) {
-      showToast(error instanceof Error ? error.message : "Reply could not be saved.");
+      showToast(error instanceof Error ? error.message : "Reply could not be saved.", "error");
     }
   };
 
@@ -112,7 +112,7 @@ export function Community() {
 
   return (
     <div className="community-layout-root w-full h-full min-h-0 flex flex-col bg-[#f8faf9] overflow-y-auto lg:overflow-hidden">
-      <ToastNotification message={toastMessage} />
+      <ToastNotification message={toastMessage} tone={toastTone} />
 
       {/* Main Container - Scaled to fit exactly in viewport */}
       <div className="w-full max-w-430 h-full mx-auto px-3.5 sm:px-4 lg:px-6 py-2.5 sm:py-3 flex flex-col justify-between gap-3 min-h-0">

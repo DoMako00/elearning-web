@@ -1,10 +1,7 @@
 import type { AdminV2Data, BrandCode, CourseRecord, CurriculumUnitRecord, StudentRecord } from "../types/adminV2.types";
+import { institutionCodeForBrand } from "../../../shared/domain/brandInstitution";
 
-export function institutionCodeForBrand(brand: BrandCode | "all"): "buc" | "delta" | undefined {
-  if (brand === "nexus") return "delta";
-  if (brand === "medway" || brand === "elite") return "buc";
-  return undefined;
-}
+export { institutionCodeForBrand };
 
 export function institutionForBrand(data: AdminV2Data, brand: BrandCode | "all") {
   const code = institutionCodeForBrand(brand);

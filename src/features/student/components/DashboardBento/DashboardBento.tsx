@@ -59,7 +59,7 @@ export function DashboardBento({ courses = [] }: DashboardBentoProps) {
       <h1 className="sr-only">Student Home Dashboard</h1>
       <div className="dashboard-bento__row dashboard-bento__row--top">
         <div className="dashboard-bento__slot dashboard-bento__slot--continue">
-          <ContinueLearning courses={courses} />
+          <ContinueLearning courses={courses} progress={progress.data} progressLoading={progress.isLoading} progressError={progress.isError} />
         </div>
         <div className="dashboard-bento__slot dashboard-bento__slot--ai">
           <AILearningGuide />
@@ -71,9 +71,15 @@ export function DashboardBento({ courses = [] }: DashboardBentoProps) {
             completedDays={progress.data?.weekDays.map((day) => day.completedLessons > 0)}
             goalSet={preferences.data?.weeklyLessonGoal !== null && preferences.data?.weeklyLessonGoal !== undefined}
             loading={progress.isLoading || preferences.isLoading}
+            loadError={preferences.isError && !preferences.data ? "Your weekly goal couldn't be loaded." : null}
+            onRetry={() => void preferences.refetch()}
             saving={setWeeklyGoal.isPending}
             error={setWeeklyGoal.error instanceof Error ? "Weekly goal could not be saved. Refresh and try again." : null}
-            onGoalSet={(lessons) => setWeeklyGoal.mutate({ weeklyLessonGoal: lessons, expectedVersion: preferences.data?.version ?? null })}
+            onGoalSet={(lessons) => {
+              // Never write without the server version of the preferences we read.
+              if (!preferences.data) return;
+              setWeeklyGoal.mutate({ weeklyLessonGoal: lessons, expectedVersion: preferences.data.version });
+            }}
           />
         </div>
       </div>

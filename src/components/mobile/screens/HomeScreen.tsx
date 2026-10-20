@@ -1,11 +1,9 @@
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { TopAppBar } from "../TopAppBar";
 import { useScreenStack } from "../ScreenStack";
 import {
   HeroBand,
-  DocsOnlyBanner,
   SectionHeader,
   QuickActionTile,
   CourseCard,
@@ -15,7 +13,7 @@ import {
 } from "../shared";
 import {
   FileText,
-  Download,
+  FileQuestion,
   CalendarCheck,
   HelpCircle,
   ArrowRight,
@@ -27,7 +25,7 @@ import emptyLearningJourney from "../../../Assets/empty-learning-journey.webp";
 // Reusable screen stubs
 import { AssignmentsScreen } from "./AssignmentsScreen";
 import { HelpCenterScreen } from "./HelpCenterScreen";
-import { listAllStudentCourses } from "../../../features/student/api/studentCoursesApi";
+import { useStudentCourseList } from "../../../features/student/api/useStudentCourses";
 import { useStudentProfile, useStudentProgress, useStudentLearningPreferences } from "../../../features/student/api/useStudentLearning";
 import { mapStudentCourseToCard } from "../shared/mapStudentCourse";
 
@@ -37,7 +35,7 @@ export const HomeScreen: React.FC = () => {
   const profileQuery = useStudentProfile();
   const progressQuery = useStudentProgress();
   const preferencesQuery = useStudentLearningPreferences();
-  const coursesQuery = useQuery({ queryKey: ["student", "courses", "mine"], queryFn: ({ signal }) => listAllStudentCourses({ view: "mine", signal }) });
+  const coursesQuery = useStudentCourseList("mine");
   const progress = progressQuery.data;
   const goal = preferencesQuery.data?.weeklyLessonGoal ?? progress?.weeklyGoalLessons ?? null;
   const courses = useMemo(() => (coursesQuery.data ?? []).map((course) => mapStudentCourseToCard(course, progress?.courses.find((item) => item.courseId === course.courseId))), [coursesQuery.data, progress]);
@@ -94,7 +92,6 @@ export const HomeScreen: React.FC = () => {
           eyebrow="Good morning,"
           heading={profileQuery.data?.fullName ?? (profileQuery.isLoading ? "Loading your profile…" : "Student")}
           subtitle="Keep learning, keep growing."
-          banner={<DocsOnlyBanner variant="compact" />}
           illustration={
             <div className="relative w-36 h-28 sm:w-40 sm:h-32 flex items-center justify-end">
               {/* Soft decorative glow behind illustration */}
@@ -115,14 +112,17 @@ export const HomeScreen: React.FC = () => {
               {/* Left Details */}
               <div className="flex-1 min-w-0 pr-1">
                 <span className="inline-block px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold tracking-wider uppercase mb-1 border border-emerald-200/50">
-                  {currentActivity?.status === "completed" ? "COMPLETED" : currentActivity ? "IN PROGRESS" : "NO RECENT ACTIVITY"}
+                  {currentActivity?.status === "completed" ? "COMPLETED" : currentActivity ? "IN PROGRESS" : progressQuery.isError ? "UNAVAILABLE" : progressQuery.isLoading ? "LOADING" : "NO RECENT ACTIVITY"}
                 </span>
                 <h2 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">
-                  {currentActivity?.lessonTitle ?? (progressQuery.isLoading ? "Loading learning activity…" : "No recent lesson activity")}
+                  {currentActivity?.lessonTitle ?? (progressQuery.isLoading ? "Loading learning activity…" : progressQuery.isError ? "Learning activity couldn’t be loaded" : "No recent lesson activity")}
                 </h2>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  {currentActivity?.courseTitle ?? "Completed lessons will appear here when recorded."}
+                <p className="text-xs text-slate-500 font-medium mt-0.5" role={progressQuery.isError && !currentActivity ? "alert" : undefined}>
+                  {currentActivity?.courseTitle ?? (progressQuery.isError ? "Check your connection and try again." : "Completed lessons will appear here when recorded.")}
                 </p>
+                {progressQuery.isError && !currentActivity ? (
+                  <button type="button" onClick={() => void progressQuery.refetch()} className="mt-2 min-h-11 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700">Try again</button>
+                ) : null}
 
                 {/* Document Progress */}
                 <div className="mt-3">
@@ -190,10 +190,10 @@ export const HomeScreen: React.FC = () => {
                 onPress={handleOpenNotes}
               />
               <QuickActionTile
-                icon={<Download className="w-5 h-5" strokeWidth={2} />}
-                title="Resources"
-                subtitle="Open course materials"
-                onPress={() => navigate("/my-courses")}
+                icon={<FileQuestion className="w-5 h-5" strokeWidth={2} />}
+                title="Assessments"
+                subtitle="Quizzes & exams"
+                onPress={() => navigate("/assessments")}
               />
               <QuickActionTile
                 icon={<CalendarCheck className="w-5 h-5" strokeWidth={2} />}
@@ -237,7 +237,16 @@ export const HomeScreen: React.FC = () => {
               actionLabel="Edit"
               onAction={() => navigate("/settings")}
             />
-            <MobileWeeklyStudyGoal completedLessons={progress?.weeklyCompletedLessons ?? 0} targetLessons={goal} weekDays={progress?.weekDays ?? []} currentDate={new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Cairo" }).format(new Date())} />
+            {progressQuery.isLoading || preferencesQuery.isLoading ? (
+              <p role="status" className="text-xs text-slate-500">Loading your weekly goal…</p>
+            ) : (progressQuery.isError && !progress) || (preferencesQuery.isError && !preferencesQuery.data) ? (
+              <div role="alert" className="flex items-center justify-between gap-3 rounded-2xl border border-rose-100 bg-rose-50 p-3 text-xs text-rose-800">
+                <span>Your weekly goal couldn&apos;t be loaded.</span>
+                <button type="button" onClick={() => { void progressQuery.refetch(); void preferencesQuery.refetch(); }} className="min-h-11 rounded-xl bg-white px-3 font-bold text-rose-800 border border-rose-200">Try again</button>
+              </div>
+            ) : (
+              <MobileWeeklyStudyGoal completedLessons={progress?.weeklyCompletedLessons ?? 0} targetLessons={goal} weekDays={progress?.weekDays ?? []} currentDate={new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Cairo" }).format(new Date())} />
+            )}
           </section>
 
           {/* 6. Recent Documents Section */}
@@ -260,7 +269,8 @@ export const HomeScreen: React.FC = () => {
                   moreActionLabel="Open lesson"
                 />
               ))}
-              {!progressQuery.isLoading && recentRows.length === 0 && <p className="text-xs text-slate-500">No persisted learning activity yet.</p>}
+              {progressQuery.isError && !progress ? <p role="alert" className="text-xs text-rose-700">Recent learning couldn&apos;t be loaded.</p> : null}
+              {progressQuery.isSuccess && recentRows.length === 0 && <p className="text-xs text-slate-500">No persisted learning activity yet.</p>}
             </div>
           </section>
         </div>

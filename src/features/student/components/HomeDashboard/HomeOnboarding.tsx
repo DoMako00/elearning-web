@@ -1,8 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { AlertTriangle, ArrowRight, BookOpen, CircleHelp, Compass, LogIn, MessageSquare, RefreshCw } from "lucide-react";
 import { useAuth } from "../../../../app/providers/AuthProvider";
-import { listAllStudentCourses } from "../../api/studentCoursesApi";
+import { useStudentCourseList } from "../../api/useStudentCourses";
+import { useBrand } from "../../../../app/providers/BrandProvider";
 import { useStudentProgress } from "../../api/useStudentLearning";
 import { courseArtwork, WeeklyGoalTile } from "./HomeDashboard";
 import "./HomeDashboard.css";
@@ -10,13 +10,10 @@ import "./HomeDashboard.css";
 /** Home for students who are signed out or not yet enrolled in any subject. */
 export function HomeOnboarding() {
   const auth = useAuth();
+  const { brand } = useBrand();
   const isAuthenticated = auth.status === "authenticated";
   const progress = useStudentProgress();
-  const catalogue = useQuery({
-    queryKey: ["student", "courses", "explore", "home"],
-    queryFn: ({ signal }) => listAllStudentCourses({ view: "explore", signal }),
-    enabled: isAuthenticated,
-  });
+  const catalogue = useStudentCourseList("explore");
   const available = catalogue.data ?? [];
   const placement = available[0] ? `${available[0].academicLevel.title} · ${available[0].academicSemester.title}` : null;
 
@@ -30,7 +27,7 @@ export function HomeOnboarding() {
               {placement ? <span className="home-hero__context">{placement}</span> : null}
             </div>
             <div className="home-hero__titles">
-              <h2 id="home-onboard-title">{isAuthenticated ? "Your learning space is ready" : "Welcome to GreenLearn"}</h2>
+              <h2 id="home-onboard-title">{isAuthenticated ? "Your learning space is ready" : `Welcome to ${brand.name}`}</h2>
               <p className="home-hero__lead">
                 {isAuthenticated
                   ? "You're not enrolled in a subject yet. Once you are, your lessons, progress and deadlines will appear here."

@@ -16,9 +16,10 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../../app/providers/AuthProvider";
 import { COURSE_VISUAL_PRESETS, type StudentCourse } from "../../../components/ui/CourseLibrary/courses.data";
-import { listAllStudentCourses, type StudentCourseItem } from "../api/studentCoursesApi";
+import type { StudentCourseItem } from "../api/studentCoursesApi";
+import { useStudentCourseList } from "../api/useStudentCourses";
+import { classifyStudentApiError } from "../api/studentApiErrors";
 import type { StudentProgressCourseDto } from "../api/studentLearningApi";
 import { useStudentProgress, useStudentSavedCourses, useToggleStudentSavedCourse } from "../api/useStudentLearning";
 import "./MyCoursesPage.css";
@@ -34,9 +35,20 @@ const SORT_LABELS: Record<SortKey, string> = {
   title: "Title: A–Z",
 };
 
-function visualFor(course: StudentCourseItem) {
+/** Decorative artwork only. A course's subject category is never inferred
+ * from its title; unmatched courses get no themed image at all. Generic
+ * words such as "basics" are ignored so they cannot map to a subject. */
+const GENERIC_VISUAL_KEYWORDS = new Set(["basics"]);
+function imageFor(course: StudentCourseItem): string | null {
   const title = course.title.toLowerCase();
-  return COURSE_VISUAL_PRESETS.find((preset) => preset.keywords.some((keyword) => title.includes(keyword))) ?? COURSE_VISUAL_PRESETS[0]!;
+  const preset = COURSE_VISUAL_PRESETS.find((candidate) => candidate.keywords.some((keyword) => !GENERIC_VISUAL_KEYWORDS.has(keyword) && title.includes(keyword)));
+  return preset?.image ?? null;
+}
+
+function CourseArt({ src, className }: { src: string | null; className?: string }) {
+  return src
+    ? <img className={className} src={src} alt="" aria-hidden="true" loading="lazy" />
+    : <span className={`${className ?? ""} grid place-items-center bg-emerald-50 text-emerald-700`} aria-hidden="true"><BookOpen /></span>;
 }
 
 interface CourseRow {
@@ -45,8 +57,9 @@ interface CourseRow {
   percent: number;
   completed: boolean;
   lastActivityAt: string | null;
-  image: string;
-  category: string;
+  image: string | null;
+  /** Unit label and code from the course DTO, e.g. "Module · ANA101". */
+  label: string;
 }
 
 function routeState(course: StudentCourseItem) {
@@ -78,38 +91,20 @@ function MyCoursesLoading() {
 
 export function MyCoursesPage() {
   const navigate = useNavigate();
-  const auth = useAuth();
   const progressQuery = useStudentProgress();
   const savedQuery = useStudentSavedCourses();
   const toggleSaved = useToggleStudentSavedCourse();
-
-  const [courses, setCourses] = useState<StudentCourseItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [retryIndex, setRetryIndex] = useState(0);
+  // Same scoped "mine" contract and cache as Home and mobile My Courses; the
+  // catalogue is a separate "explore" read used only for "Available for your year".
+  const mineQuery = useStudentCourseList("mine");
+  const exploreQuery = useStudentCourseList("explore");
+  const courses = useMemo(() => mineQuery.data ?? [], [mineQuery.data]);
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [sortBy, setSortBy] = useState<SortKey>("recent");
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [featuredId, setFeaturedId] = useState<string | null>(null);
   const sortRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (auth.status === "loading") { setIsLoading(true); return; }
-    if (auth.status !== "authenticated") { setCourses([]); setError(null); setIsLoading(false); return; }
-    const controller = new AbortController();
-    setIsLoading(true);
-    setError(null);
-    void listAllStudentCourses({ view: "explore", signal: controller.signal })
-      .then((payload) => { if (!controller.signal.aborted) setCourses(payload); })
-      .catch((reason: unknown) => {
-        if (controller.signal.aborted) return;
-        setCourses([]);
-        setError(reason instanceof Error ? reason.message : "Your courses couldn't be loaded.");
-      })
-      .finally(() => { if (!controller.signal.aborted) setIsLoading(false); });
-    return () => controller.abort();
-  }, [auth.status, retryIndex]);
 
   useEffect(() => {
     const close = (event: MouseEvent) => {
@@ -123,23 +118,24 @@ export function MyCoursesPage() {
   const savedIds = useMemo(() => new Set((savedQuery.data ?? []).map((item) => item.courseId)), [savedQuery.data]);
 
   const rows = useMemo<CourseRow[]>(() => courses
-    .filter((course) => course.access?.isEnrolled === true)
     .map((course) => {
       const entry = progress?.courses.find((item) => item.courseId === course.courseId);
       const percent = Math.round(entry?.completionPercent ?? 0);
-      const visual = visualFor(course);
       return {
         course,
         progress: entry,
         percent,
-        completed: course.access.enrollmentStatus === "completed" || percent >= 100,
+        completed: course.access?.enrollmentStatus === "completed" || percent >= 100,
         lastActivityAt: entry?.lastActivityAt ?? null,
-        image: visual.image,
-        category: visual.category,
+        image: imageFor(course),
+        label: [course.unitLabel, course.code].filter(Boolean).join(" · "),
       };
     }), [courses, progress]);
 
-  const recommended = useMemo(() => courses.filter((course) => course.access?.isEnrolled !== true), [courses]);
+  const recommended = useMemo(() => {
+    const enrolledIds = new Set(courses.map((course) => course.courseId));
+    return (exploreQuery.data ?? []).filter((course) => !enrolledIds.has(course.courseId) && course.access?.isEnrolled !== true);
+  }, [courses, exploreQuery.data]);
 
   const counts = {
     all: rows.length,
@@ -171,27 +167,17 @@ export function MyCoursesPage() {
     toggleSaved.mutate({ courseId: course.courseId, saved: !savedIds.has(course.courseId) });
   };
 
-  if (isLoading) return <MyCoursesLoading />;
+  if (mineQuery.isPending) return <MyCoursesLoading />;
 
-  if (auth.status !== "authenticated") {
-    return (
-      <div className="mc-page">
-        <div className="mc-notice">
-          <BookOpen aria-hidden="true" />
-          <div><strong>Sign in to see your courses</strong><span>Your enrolled subjects and progress appear here.</span></div>
-          <button type="button" className="mc-btn mc-btn--primary" onClick={() => navigate("/auth/sign-in", { state: { from: "/my-courses" } })}>Sign in</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
+  if (mineQuery.isError) {
+    const failure = classifyStudentApiError(mineQuery.error);
+    const retryable = failure.kind === "unavailable" || failure.kind === "unknown";
     return (
       <div className="mc-page">
         <div className="mc-notice mc-notice--error" role="alert">
           <AlertTriangle aria-hidden="true" />
-          <div><strong>We couldn&apos;t load your courses</strong><span>Check your connection and try again.</span></div>
-          <button type="button" className="mc-btn mc-btn--secondary" onClick={() => setRetryIndex((value) => value + 1)}><RefreshCw aria-hidden="true" />Try again</button>
+          <div><strong>{failure.kind === "unavailable" ? "We couldn’t load your courses" : failure.title}</strong><span>{failure.message}</span></div>
+          {retryable ? <button type="button" className="mc-btn mc-btn--secondary" onClick={() => void mineQuery.refetch()}><RefreshCw aria-hidden="true" />Try again</button> : null}
         </div>
       </div>
     );
@@ -208,7 +194,7 @@ export function MyCoursesPage() {
       {featured ? (
         <div className="mc-top">
           <article className="mc-feature" aria-labelledby="mc-feature-title">
-            <img className="mc-feature__img" src={featured.image} alt="" aria-hidden="true" />
+            <CourseArt className="mc-feature__img" src={featured.image} />
             <div className="mc-feature__body">
               <div className="mc-feature__meta">
                 <span className="mc-tag">{featured.completed ? <><CheckCircle2 aria-hidden="true" />Completed</> : featuredActivity ? <><Play aria-hidden="true" />Continue where you left off</> : <><BookOpen aria-hidden="true" />Enrolled</>}</span>
@@ -324,8 +310,8 @@ export function MyCoursesPage() {
                 return (
                   <li key={row.course.courseId} className={`mc-card${isFeatured ? " is-featured" : ""}`}>
                     <div className="mc-card__media">
-                      <img src={row.image} alt="" aria-hidden="true" loading="lazy" />
-                      <span className="mc-card__category">{row.category}</span>
+                      <CourseArt src={row.image} />
+                      {row.label ? <span className="mc-card__category">{row.label}</span> : null}
                       <button
                         type="button"
                         className={`mc-card__save${savedIds.has(row.course.courseId) ? " is-saved" : ""}`}
@@ -376,8 +362,8 @@ export function MyCoursesPage() {
               {recommended.map((course) => (
                 <li key={course.courseId} className="mc-card mc-card--locked">
                   <div className="mc-card__media">
-                    <img src={visualFor(course).image} alt="" aria-hidden="true" loading="lazy" />
-                    <span className="mc-card__category">{visualFor(course).category}</span>
+                    <CourseArt src={imageFor(course)} />
+                    <span className="mc-card__category">{[course.unitLabel, course.code].filter(Boolean).join(" · ")}</span>
                   </div>
                   <div className="mc-card__body">
                     <h3>{course.title}</h3>
@@ -394,7 +380,7 @@ export function MyCoursesPage() {
           <ul className="mc-grid mc-grid--compact">
             {recommended.slice(0, 8).map((course) => (
               <li key={course.courseId} className="mc-row">
-                <img src={visualFor(course).image} alt="" aria-hidden="true" loading="lazy" />
+                <CourseArt src={imageFor(course)} />
                 <div>
                   <strong>{course.title}</strong>
                   <span>{course.chapterCount} chapters · {course.lessonCount} lessons</span>

@@ -17,6 +17,10 @@ export interface AssignmentItem {
   progress?: number;
   image: string;
   dueAt: string;
+  /** False when the assignment is closed, not yet open, or already handed in. */
+  actionable?: boolean;
+  /** Due date has passed without a submission. */
+  isOverdue?: boolean;
 }
 
 export interface AssignmentDeadline {
