@@ -8,6 +8,7 @@ export interface UpcomingItem {
 }
 
 export interface UpcomingProps {
+  actionMessage?: string | null;
   onOpenItem?: (item: UpcomingItem) => void;
   title?: string;
   count?: number;

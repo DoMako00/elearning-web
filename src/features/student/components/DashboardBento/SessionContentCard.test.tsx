@@ -29,7 +29,8 @@ describe("active session contents", () => {
     render(content(lesson));
     fireEvent.click(screen.getByText("Session PDF"));
     fireEvent.click(screen.getByRole("button",{name:"Open PDF"}));
-    expect(screen.getByRole("alert").textContent).toMatch(/not been released/);
+    expect(screen.getByText("This material has not been released yet.")).toBeTruthy();
+    expect(screen.getByText("Session assignment")).toBeTruthy();
     expect(getStudentProtectedMedia).not.toHaveBeenCalled();
   });
 });
