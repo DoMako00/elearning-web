@@ -1,9 +1,13 @@
 import { createContext, useContext, useMemo, type PropsWithChildren } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getStudentAuthMethods } from "../../auth/api/identityApi";
 import { BrandOverrideProvider } from "../../../app/providers/BrandProvider";
 import { RouteLoadingFallback } from "../../../components/layout/RouteLoadingFallback";
 import { useIsMobile } from "../../../hooks/useIsMobile";
 import {
   brandDisplayName,
+  institutionCodeForBrand,
+  institutionDisplayName,
   isValidBrandInstitution,
   normalizeCode,
   toBrandCode,
@@ -60,38 +64,73 @@ function ScopeNotice({ title, message, onRetry }: { title: string; message: stri
 }
 
 /**
- * Resolves the student's Brand and Institution from the authenticated profile
- * and validates the pair (Medway/Elite → BUC, Nexus → Delta) before any
- * student content renders. No default or guessed scope is ever used.
+ * Resolves the student's Brand and Institution and validates the pair
+ * (Medway/Elite → BUC, Nexus → Delta) before any student content renders.
+ *
+ * Source of truth, in order:
+ * 1. The student profile (/v1/student/me): brand + institution placement.
+ * 2. If the profile is temporarily unavailable (5xx/network), the brand of
+ *    the active session (/v1/auth/methods). The backend binds every student
+ *    session to exactly one brand and scopes all student routes to it, so
+ *    this is the same scope the server enforces; the institution follows the
+ *    fixed brand rule. A profile outage must not lock students out.
+ * No default or guessed brand is ever used.
  */
 export function StudentScopeProvider({ children }: PropsWithChildren) {
   const isMobile = useIsMobile();
   const profileQuery = useStudentProfile();
   const profile = profileQuery.data;
+  const profileFailure = profileQuery.isError && !profile ? classifyStudentApiError(profileQuery.error) : null;
+  const profileUnavailable = profileFailure !== null && (profileFailure.kind === "unavailable" || profileFailure.kind === "unknown");
+  const sessionBrandQuery = useQuery({
+    queryKey: ["student", "session-brand"],
+    queryFn: () => getStudentAuthMethods(),
+    enabled: profileUnavailable,
+    retry: 1,
+  });
 
   const scope = useMemo<StudentScope | null>(() => {
-    if (!profile) return null;
-    const brand = toBrandCode(profile.brand?.code);
-    if (!brand || !isValidBrandInstitution(brand, profile.institution?.code)) return null;
+    if (profile) {
+      const brand = toBrandCode(profile.brand?.code);
+      if (!brand || !isValidBrandInstitution(brand, profile.institution?.code)) return null;
+      return {
+        brand,
+        brandName: brandDisplayName(brand),
+        institutionCode: normalizeCode(profile.institution.code),
+        institutionName: profile.institution.name,
+      };
+    }
+    const sessionBrand = toBrandCode(sessionBrandQuery.data?.brandCode);
+    if (!sessionBrand) return null;
+    const institution = institutionCodeForBrand(sessionBrand)!;
     return {
-      brand,
-      brandName: brandDisplayName(brand),
-      institutionCode: normalizeCode(profile.institution.code),
-      institutionName: profile.institution.name,
+      brand: sessionBrand,
+      brandName: brandDisplayName(sessionBrand),
+      institutionCode: institution,
+      institutionName: institutionDisplayName(institution),
     };
-  }, [profile]);
+  }, [profile, sessionBrandQuery.data]);
   const brandValue = useMemo(
     () => (scope ? { id: scope.brand, name: scope.brandName, shortName: scope.brandName.slice(0, 2).toUpperCase() } : null),
     [scope],
   );
 
-  if (profileQuery.isPending) {
+  if (profileQuery.isPending || (profileUnavailable && sessionBrandQuery.isPending)) {
     return <RouteLoadingFallback isMobile={isMobile} message="Loading your learning space…" />;
   }
-  if (profileQuery.isError && !profile) {
-    const classified = classifyStudentApiError(profileQuery.error);
-    const retry = classified.kind === "unavailable" || classified.kind === "unknown" ? () => void profileQuery.refetch() : undefined;
-    return <ScopeNotice title={classified.title} message={classified.message} onRetry={retry} />;
+  if (profileFailure && !profileUnavailable) {
+    // 401/403/404: a membership or session problem — retrying cannot help.
+    return <ScopeNotice title={profileFailure.title} message={profileFailure.message} />;
+  }
+  if (profileUnavailable && !scope) {
+    // Both the profile and the session brand are unreachable: a real outage.
+    return (
+      <ScopeNotice
+        title="We couldn't reach the learning service"
+        message="Your account details couldn't be loaded right now. Please try again in a moment."
+        onRetry={() => { void profileQuery.refetch(); void sessionBrandQuery.refetch(); }}
+      />
+    );
   }
   if (!scope || !brandValue) {
     return (
