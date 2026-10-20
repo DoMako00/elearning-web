@@ -88,11 +88,11 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
     >
       {/* Top Banner image area with category badge */}
       <div className="relative h-20 sm:h-22 w-full bg-slate-100 overflow-hidden">
-        <img
+        {resource.imageSrc ? <img
           src={resource.imageSrc}
           alt={resource.title}
           className="w-full h-full object-cover object-center"
-        />
+        /> : <span className="absolute inset-0 grid place-items-center bg-emerald-50 text-emerald-700" aria-hidden="true"><FileText className="size-8" /></span>}
         <div className="absolute inset-0 bg-linear-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
         <span
           className={`absolute top-2 left-2 px-2 py-0.5 rounded-md ${badgeStyle.bg} ${badgeStyle.text} text-[8.5px] font-extrabold tracking-wider uppercase shadow-2xs`}

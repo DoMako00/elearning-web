@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
 import { useToast } from "../../hooks/useToast";
 import { ToastNotification } from "../../components/ui/ToastNotification";
+import { ProfileSkeleton } from "../../components/ui/Skeleton";
 import { AlertTriangle, RefreshCw } from "lucide-react";
-import { ProfileIdentity } from "./components/ProfileIdentity";
-import { ProfileOverview } from "./components/ProfileOverview";
-import { useStudentLearningPreferences, useStudentProfile, useStudentProgress } from "../student/api/useStudentLearning";
+import { ProfileHeader } from "./components/ProfileHeader";
+import { OverviewTab } from "./components/tabs/OverviewTab";
+import { useStudentLearningPreferences, useStudentProgress } from "../student/api/useStudentLearning";
 import "./profile.css";
 import { AchievementsTab } from "./components/tabs/AchievementsTab";
 import { SavedTab } from "./components/tabs/SavedTab";
@@ -44,7 +45,7 @@ export function Profile() {
     retry,
   } = useProfileTabs(tabParam && ["overview", "achievements", "saved", "activity", "settings"].includes(tabParam) ? tabParam : "overview");
   const navigate = useNavigate();
-  const profileQuery = useStudentProfile();
+
   const progressQuery = useStudentProgress();
   const preferencesQuery = useStudentLearningPreferences();
   const weeklyGoal = preferencesQuery.data?.weeklyLessonGoal ?? progressQuery.data?.weeklyGoalLessons ?? null;
@@ -92,16 +93,11 @@ export function Profile() {
   };
 
   if (isLoading) {
-    return (
-      <div className="pf-page" aria-busy="true" aria-label="Loading your profile">
-        <div className="pf-identity pf-identity--skeleton"><span className="pf-skel" style={{ width: 96, height: 96, borderRadius: 28 }} /><span className="pf-skel" style={{ width: 360, height: 40 }} /></div>
-        <div className="pf-grid">{[0, 1, 2, 3].map((key) => <div key={key} className="pf-card"><span className="pf-skel" style={{ width: "50%", height: 18 }} /><span className="pf-skel" style={{ width: "100%", height: 64 }} /></div>)}</div>
-      </div>
-    );
+    return <ProfileSkeleton activeTab={activeTab} />;
   }
 
   return (
-    <div className="pf-page profile-page">
+    <div className="profile-page flex flex-col h-full min-h-0 w-full max-w-550 mx-auto overflow-y-auto overflow-x-hidden">
       <ToastNotification message={toastMessage} />
       {error ? (
         <div className="pf-alert" role="alert">
@@ -111,28 +107,12 @@ export function Profile() {
         </div>
       ) : null}
 
-      <ProfileIdentity
-        profile={profileQuery.data}
-        progress={progressQuery.data}
-        subjectCount={enrolledCourses.length}
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        onEditClick={() => navigate("/settings")}
-      />
-
-      <main className="pf-content">
-        {activeTab === "overview" && (
-          <ProfileOverview
-            progress={progressQuery.data}
-            weeklyGoal={weeklyGoal}
-            courses={enrolledCourses}
-            milestones={milestoneBadges}
-            certificates={certificates}
-            recent={recentActivities}
-            upcoming={upcomingEvents}
-            onOpenAchievements={() => handleTabChange("achievements")}
-          />
-        )}
+      <ProfileHeader profile={profile} activeTab={activeTab} onTabChange={handleTabChange} onEditClick={() => navigate("/settings")} />
+      <main className="profile-tab-content flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden flex flex-col pt-2.5 pb-2">
+        {activeTab === "overview" && <OverviewTab profile={profile} enrolledCourses={enrolledCourses}
+          goals={weeklyGoal === null ? [] : [{id: "weekly-goal", title: `${progressQuery.data?.weeklyCompletedLessons ?? 0} / ${weeklyGoal} lessons this week`, completed: (progressQuery.data?.weeklyCompletedLessons ?? 0) >= weeklyGoal}]}
+          upcomingEvents={upcomingEvents} recentActivities={recentActivities} onEditProfile={() => navigate("/settings")}
+          onEditGoals={() => navigate("/")} onShowToast={showToast} />}
 
         {activeTab === "achievements" && (
           <AchievementsTab

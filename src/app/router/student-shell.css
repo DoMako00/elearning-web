@@ -4,7 +4,13 @@
 [data-app-shell] {
   --sidebar-width: 226px;
   --sidebar-gutter: 15px;
+  --sidebar-nav-item-height: 56px;
+  --sidebar-nav-gap: 0px;
+  --radius-nav: 11px;
+  --radius-profile: 11px;
   --color-bg: #ffffff;
+  --color-text-secondary: #667085;
+  --color-text-active: #174b35;
   --color-border-subtle: #e8ecef;
   --color-brand-soft: #eff9f2;
   background: var(--color-bg);
@@ -28,39 +34,6 @@
   gap: clamp(12px, 1.7vw, 32px);
 }
 
-.student-dashboard__page-title {
-  gap: 2px 10px;
-}
-
-.student-dashboard__page-title-label {
-  color: var(--color-brand-strong);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-}
-
-.student-dashboard__page-title h1,
-.student-dashboard__course-breadcrumb-title {
-  font-size: clamp(20px, 1.5vw, 28px);
-  font-weight: 700;
-  letter-spacing: -0.035em;
-}
-
-.student-dashboard__page-title p,
-.student-dashboard__course-breadcrumb {
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.student-dashboard__course-breadcrumb a {
-  color: var(--color-brand-strong);
-  font-weight: 700;
-}
-
-.student-dashboard__course-breadcrumb strong {
-  font-weight: 700;
-}
-
 /* Reference Home: search and account actions. Normal flow prevents overlap
    when a real account name or notification control takes more space. */
 .student-dashboard__header--home {
@@ -79,10 +52,6 @@
 
 .student-dashboard__header--home .student-dashboard__actions {
   margin-left: 0;
-}
-
-.student-dashboard__content {
-  padding: clamp(8px, 0.8vw, 14px) clamp(12px, 1.67vw, 32px);
 }
 
 /* One scroll owner for Home. Bento cards retain their container queries;
@@ -121,6 +90,21 @@
     --sidebar-gutter: 10px;
   }
 }
+
+@media (max-height: 860px) {
+  [data-app-shell] { --sidebar-nav-item-height: 48px; }
+}
+
+@media (max-height: 760px) {
+  [data-app-shell] { --sidebar-nav-item-height: 44px; }
+}
+
+[data-app-shell] .sidebar-section-label { display: none; }
+
+/* Preserve the reference's hero/library proportions without cropping the
+   lower course actions on short laptop viewports. */
+.student-page--courses { overflow-y: auto; overflow-x: hidden; }
+.student-page--courses .my-courses-workspace { min-height: 760px; }
 
 @media (max-width: 1199px) {
   .student-dashboard--home .dashboard-bento {

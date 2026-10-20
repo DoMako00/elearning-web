@@ -48,11 +48,11 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       >
         {/* Left Thumbnail: Large rounded square with soft border */}
         <div className="w-22 h-22 sm:w-26 sm:h-26 rounded-2xl overflow-hidden bg-slate-50 shrink-0 border border-slate-100 flex items-center justify-center relative">
-          <img
+          {course.imageSrc ? <img
             src={course.imageSrc}
             alt={course.title}
             className="w-full h-full object-cover object-center"
-          />
+          /> : <FileText className="size-8 text-emerald-600" aria-hidden="true" />}
         </div>
 
         {/* Right Content Area */}

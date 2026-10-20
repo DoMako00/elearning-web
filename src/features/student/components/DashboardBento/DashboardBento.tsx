@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Sparkles, X } from "lucide-react";
+import { Sparkles, X, TrendingUp } from "lucide-react";
 import robotAsset from "../../../../Assets/dashboard/doctor-robot.webp";
 import { AILearningGuide } from "../../../../components/ui/AILearningGuide";
 import ContinueLearning from "../../../../components/ui/Continue_Learning/continue_learning";
@@ -9,9 +9,7 @@ import { Upcoming } from "../../../../components/ui/Upcoming";
 import { WeeklyGoalCard } from "../WeeklyGoalCard";
 import { YourStreak } from "../YourStreak";
 import { useStudentLearningPreferences, useStudentProgress, useSetWeeklyLessonGoal } from "../../api/useStudentLearning";
-import { useStudentAssignments } from "../../api/useStudentAssignments";
 import { useStudentExploreCourses } from "../../hooks/useDashboardEnrollment";
-import type { StudentAssignmentDto } from "../../api/studentAssignmentsApi";
 import type { UpcomingItem } from "../../../../components/ui/Upcoming/upcoming.types";
 import type { StudentCourseItem } from "../../api/studentCoursesApi";
 import "./DashboardBento.css";
@@ -20,26 +18,21 @@ export interface DashboardBentoProps {
   courses?: readonly StudentCourseItem[];
 }
 
-function buildAssignmentItems(assignments: readonly StudentAssignmentDto[] = []): UpcomingItem[] {
-  return assignments
-    .filter((assignment) => assignment.status === "open")
-    .slice()
-    .sort((a, b) => {
-      const aDue = a.dueAt ? Date.parse(a.dueAt) : Number.POSITIVE_INFINITY;
-      const bDue = b.dueAt ? Date.parse(b.dueAt) : Number.POSITIVE_INFINITY;
-      return aDue - bDue || a.title.localeCompare(b.title);
-    })
-    .slice(0, 5)
-    .map((assignment) => ({
-      id: assignment.id,
-      title: assignment.title,
-      time: assignment.dueAt
-        ? `Due ${new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(assignment.dueAt))}`
-        : "No due date",
-      iconType: "assignment",
-      tag: assignment.courseTitle ?? "General assignment",
-      href: `/assignments/${encodeURIComponent(assignment.id)}`,
-    }));
+function NoSessionProgressCard() {
+  return (
+    <div className="no-session-card" role="status" aria-label="Start your first session to unlock progress tracking">
+      <p className="no-session-card__title">My Progress</p>
+      <div className="no-session-card__icon" aria-hidden="true">
+        <TrendingUp strokeWidth={1.5} />
+      </div>
+      <p className="no-session-card__sub">Complete your first study session to start tracking your progress.</p>
+      <div className="no-session-card__dots" aria-hidden="true">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <span key={i} className="no-session-card__dot" style={{ animationDelay: `${i * 0.15}s` }} />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export function DashboardBento({ courses = [] }: DashboardBentoProps) {
@@ -47,9 +40,8 @@ export function DashboardBento({ courses = [] }: DashboardBentoProps) {
   const progress = useStudentProgress();
   const preferences = useStudentLearningPreferences();
   const setWeeklyGoal = useSetWeeklyLessonGoal();
-  const assignments = useStudentAssignments();
   const exploration = useStudentExploreCourses();
-  const assignmentItems = useMemo(() => buildAssignmentItems(assignments.data), [assignments.data]);
+  const availableSubjectItems = useMemo<UpcomingItem[]>(() => courses.filter(course => course.access.isEnrolled).slice(0,5).map(course => ({id: course.courseId, title: course.title, time: `${course.lessonCount} lessons`, iconType: "course", tag: course.unitLabel, href: `/my-courses/${course.courseId}`})), [courses]);
   const progressValues = progress.data?.weekDays.length
     ? progress.data.weekDays.map((day) => day.completedLessons)
     : [0, 0, 0, 0, 0, 0, 0];
@@ -86,6 +78,7 @@ export function DashboardBento({ courses = [] }: DashboardBentoProps) {
 
       <div className="dashboard-bento__row dashboard-bento__row--middle">
         <div className="dashboard-bento__slot dashboard-bento__slot--progress">
+          {(progress.data?.totalCompletedLessons ?? 0) > 0 || progress.isLoading || progress.isError ? (
           <MyProgress
             completionPercentage={progress.data?.completionPercent}
             chartData={progressValues}
@@ -94,21 +87,13 @@ export function DashboardBento({ courses = [] }: DashboardBentoProps) {
             loading={progress.isLoading}
             error={progress.isError}
           />
+          ) : <NoSessionProgressCard />}
         </div>
         <div className="dashboard-bento__slot dashboard-bento__slot--upcoming">
-          <Upcoming
-            title="Assignments"
-            count={assignmentItems.length}
-            items={assignmentItems}
-            actionPath="/assignments"
-            actionLabel="View Assignments"
-            loading={assignments.isLoading}
-            errorMessage={assignments.isError ? "Assignments could not be loaded. Please try again." : undefined}
-            emptyMessage="No open assignments right now."
-          />
+          <Upcoming title="Available subjects" count={availableSubjectItems.length} items={availableSubjectItems}
+            actionPath="/my-courses" actionLabel="View subjects" emptyMessage="No enrolled subjects yet." />
         </div>
         <div className="dashboard-bento__slot dashboard-bento__slot--streak">
-          {/* streakDays=0 until backend data is available */}
           <YourStreak />
         </div>
       </div>

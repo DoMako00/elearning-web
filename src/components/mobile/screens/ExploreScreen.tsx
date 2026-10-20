@@ -20,6 +20,7 @@ import { SlidersHorizontal, Layers } from "lucide-react";
 import type { StudentCourseItem } from "../../../features/student/api/studentCoursesApi";
 import { useStudentCourseList } from "../../../features/student/api/useStudentCourses";
 import { useStudentLearningPaths } from "../../../features/student/api/useStudentLearning";
+import { toReferenceCourse } from "../../../features/student/pages/referenceCourseMapper";
 
 // Existing images from course-library, assignments, and onboarding/instructor
 import myCoursesAnatomyOverlay from "../../../Assets/dashboard/my-courses-anatomy-overlay.webp";
@@ -64,7 +65,7 @@ export const ExploreScreen: React.FC = () => {
     subtitle: `${course.academicInstitution.name} · ${course.academicLevel.title} · ${course.academicSemester.title}`,
     category: course.unitLabel.toUpperCase(),
     categoryId: course.unitLabel.toLowerCase(),
-    imageSrc: myCoursesAnatomyOverlay,
+    imageSrc: toReferenceCourse(course).image,
     lessonCount: course.lessonCount,
     canOpen: course.access.canOpen,
     slug: course.courseId,
