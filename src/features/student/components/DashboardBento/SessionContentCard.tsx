@@ -24,7 +24,7 @@ export function SessionContentCard({course, lesson, number, loading, error}: {co
     }
   };
   return <Upcoming title={lesson ? `Session ${number} contents` : "Session contents"} items={items} count={items.length}
-    loading={loading} errorMessage={openError ?? (error ? "Session contents could not be loaded." : undefined)}
+    loading={loading} actionMessage={openError} errorMessage={error ? "Session contents could not be loaded." : undefined}
     emptyMessage={lesson ? "No materials, assignments or exams are attached to this session yet." : "Session contents will appear when your module's lessons are published."}
     actionLabel={lesson?.playbackAvailable && course?.access.canOpen ? "Open session" : "View module"} onOpenItem={item => void open(item)}
     onViewCalendar={() => {if(course) navigate(lesson?.playbackAvailable && course.access.canOpen ? `/my-courses/${course.courseId}/lessons/${lesson.lessonId}` : `/my-courses/${course.courseId}`);}} />;

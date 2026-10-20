@@ -51,6 +51,7 @@ export function Upcoming({
   errorMessage,
   emptyMessage,
   onOpenItem,
+  actionMessage,
 }: UpcomingProps) {
   const navigate = useNavigate();
   const displayCount = count ?? items.length;
@@ -115,7 +116,7 @@ export function Upcoming({
       className="upcoming-card relative"
       aria-label={`${title}: ${displayCount} items`}
     >
-      <ToastNotification message={toastMessage} />
+      <ToastNotification message={actionMessage ?? toastMessage} tone={actionMessage ? "error" : "info"} />
       {/* ── Header ── */}
 
       <div className="upcoming-header">
