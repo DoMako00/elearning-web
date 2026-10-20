@@ -1,6 +1,7 @@
 import React from "react";
 import { X } from "lucide-react";
 import type { CalendarEvent } from "../calendar.types";
+import { getEgyptNow } from "../calendar-helpers";
 
 interface CreateEventModalProps {
   draft: Partial<CalendarEvent>;
@@ -65,7 +66,7 @@ export function CreateEventModal({
             id="evt-date"
             type="date"
             required
-            value={draft.date || "2026-08-30"}
+            value={draft.date || getEgyptNow().dateStr}
             onChange={(e) => onDraftChange({ date: e.target.value })}
           />
         </div>

@@ -3,6 +3,7 @@ import { Download, ExternalLink, Award, ShieldCheck } from "lucide-react";
 import { useToast } from "../../../../hooks/useToast";
 import { ToastNotification } from "../../../../components/ui/ToastNotification";
 import type { CertificateItem } from "../../types/profile.types";
+import { useBrand } from "../../../../app/providers/BrandProvider";
 
 interface CertificatesTabProps {
   certificates: CertificateItem[];
@@ -11,6 +12,7 @@ interface CertificatesTabProps {
 export const CertificatesTab: React.FC<CertificatesTabProps> = ({
   certificates,
 }) => {
+  const { brand } = useBrand();
   const { toastMessage, showToast } = useToast();
 
   const handleDownload = (cert: CertificateItem) => {
@@ -69,7 +71,7 @@ export const CertificatesTab: React.FC<CertificatesTabProps> = ({
                 <div className="relative z-10 flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-200 tracking-wider uppercase">
                     <ShieldCheck className="size-4 text-emerald-400" />
-                    <span>GreenLearn Certified</span>
+                    <span>{brand.name} certificate</span>
                   </div>
                   <span className="rounded-md bg-emerald-700/60 px-2 py-0.5 text-[10px] font-bold text-emerald-100 border border-emerald-500/30">
                     {cert.grade}

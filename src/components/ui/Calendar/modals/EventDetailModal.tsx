@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { X, Clock, Trash2, ExternalLink } from "lucide-react";
 import type { CalendarEvent } from "../calendar.types";
 
@@ -9,26 +10,34 @@ interface EventDetailModalProps {
 }
 
 export function EventDetailModal({ event, canEdit = false, onClose, onDelete }: EventDetailModalProps) {
+  useEffect(() => {
+    const onKeyDown = (keyEvent: KeyboardEvent) => { if (keyEvent.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
   return (
     <div className="calendar-modal-backdrop" onClick={onClose}>
       <div
         className="calendar-modal-content"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
+        aria-modal="true"
         aria-labelledby="event-details-title"
       >
         <div className="calendar-modal__header">
           <h2 id="event-details-title" className="calendar-modal__title">
             {event.title}
           </h2>
-          {canEdit && <button
+          <button
             type="button"
             className="calendar-modal__close-btn"
             onClick={onClose}
-            aria-label="Close modal"
+            aria-label="Close event details"
+            autoFocus
           >
-            <X size={18} />
-          </button>}
+            <X size={18} aria-hidden="true" />
+          </button>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -51,14 +60,18 @@ export function EventDetailModal({ event, canEdit = false, onClose, onDelete }: 
         </div>
 
         <div className="calendar-modal__actions">
-          <button
-            type="button"
-            className="calendar-modal__btn-danger"
-            onClick={() => onDelete(event.id)}
-          >
-            <Trash2 size={14} style={{ marginRight: "4px" }} />
-            Delete
-          </button>
+          {/* Institution, assignment and assessment items are read-only; only
+              the student's own items can be deleted. */}
+          {canEdit ? (
+            <button
+              type="button"
+              className="calendar-modal__btn-danger"
+              onClick={() => onDelete(event.id)}
+            >
+              <Trash2 size={14} style={{ marginRight: "4px" }} aria-hidden="true" />
+              Delete
+            </button>
+          ) : null}
           {event.locationOrUrl && (
             <button
               type="button"

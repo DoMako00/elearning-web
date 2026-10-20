@@ -1,3 +1,4 @@
+import { useBrand } from "../../../app/providers/BrandProvider";
 import React, { useState, useMemo } from "react";
 import {
   HelpCircle,
@@ -739,6 +740,7 @@ export const ArticleDetailSubScreen: React.FC<{
 
 // Sub-screen 5: Device Access Info Screen (Deep-linked from Promo Card)
 export const DeviceAccessInfoSubScreen: React.FC = () => {
+  const { brand } = useBrand();
   const { pop } = useScreenStack();
 
   return (
@@ -756,10 +758,10 @@ export const DeviceAccessInfoSubScreen: React.FC = () => {
             <ShieldCheck className="w-6 h-6" />
           </div>
           <h2 className="text-base font-bold text-slate-900">
-            Single-Device Access by Default
+            Device Access Is Limited
           </h2>
           <p className="text-xs text-slate-600 leading-relaxed">
-            To safeguard student learning credentials and protected medical documents, your GreenLearn account is restricted to one active device session at a time on the Free Plan.
+            To safeguard student learning credentials and protected medical documents, the devices that can sign in to your {brand.name} account are limited by your membership.
           </p>
 
           <div className="space-y-2 pt-2 border-t border-slate-100 text-xs text-slate-700">

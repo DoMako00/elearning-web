@@ -40,19 +40,25 @@ export const InstructorAboutCard: React.FC<InstructorAboutCardProps> = ({
         </div>
 
         {/* Full Bio Paragraph - Uncut and readable */}
-        <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed py-2.5">
-          {instructor.detailedBio}
-        </p>
+        {/* Only persisted, approved fields render; nothing is invented. */}
+        {instructor.detailedBio ? (
+          <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed py-2.5">
+            {instructor.detailedBio}
+          </p>
+        ) : null}
 
         {/* Contact Info List */}
-        <div className="space-y-2 text-xs sm:text-[13px] text-slate-700">
+        <div className="space-y-2 pt-2.5 text-xs sm:text-[13px] text-slate-700">
+          {instructor.location ? (
           <div className="flex items-center gap-2.5">
-            <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
+            <MapPin className="w-4 h-4 text-slate-400 shrink-0" aria-hidden="true" />
             <span className="truncate">{instructor.location}</span>
           </div>
+          ) : null}
 
+          {instructor.email ? (
           <div className="flex items-center gap-2.5">
-            <Mail className="w-4 h-4 text-slate-400 shrink-0" />
+            <Mail className="w-4 h-4 text-slate-400 shrink-0" aria-hidden="true" />
             <a
               href={`mailto:${instructor.email}`}
               className="hover:text-emerald-700 transition-colors truncate font-medium"
@@ -60,12 +66,20 @@ export const InstructorAboutCard: React.FC<InstructorAboutCardProps> = ({
               {instructor.email}
             </a>
           </div>
+          ) : null}
 
+          {instructor.phone ? (
           <div className="flex items-center gap-2.5">
-            <Phone className="w-4 h-4 text-slate-400 shrink-0" />
+            <Phone className="w-4 h-4 text-slate-400 shrink-0" aria-hidden="true" />
             <span>{instructor.phone}</span>
           </div>
+          ) : null}
 
+          {!instructor.location && !instructor.email && !instructor.phone && !instructor.linkedin ? (
+            <p className="text-slate-500">No public contact details have been shared.</p>
+          ) : null}
+
+          {instructor.linkedin ? (
           <div className="flex items-center gap-2.5">
             <svg
               className="w-4 h-4 text-slate-400 shrink-0"
@@ -83,17 +97,19 @@ export const InstructorAboutCard: React.FC<InstructorAboutCardProps> = ({
               {instructor.linkedin}
             </a>
           </div>
+          ) : null}
         </div>
       </div>
 
-      {/* Join Date Row */}
-      <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-3.5 h-3.5 text-slate-400" />
-          <span>Joined GreenLearn</span>
+      {instructor.joinDate ? (
+        <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
+            <span>Joined</span>
+          </div>
+          <span className="font-semibold text-slate-700">{instructor.joinDate}</span>
         </div>
-        <span className="font-semibold text-slate-700">{instructor.joinDate}</span>
-      </div>
+      ) : null}
     </div>
   );
 };

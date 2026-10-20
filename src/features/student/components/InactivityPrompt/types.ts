@@ -46,4 +46,6 @@ export interface UseInactivityPromptReturn {
   handlePassiveResume: () => void;
   handleWorkerMessage: (message: MessageEvent) => void;
   triggerIdleTimeout: () => void;
+  /** Report real learning activity that has no DOM input (e.g. a playing video). */
+  reportActivity: () => void;
 }

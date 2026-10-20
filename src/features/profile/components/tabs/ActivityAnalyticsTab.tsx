@@ -49,7 +49,7 @@ export const ActivityAnalyticsTab: React.FC<ActivityAnalyticsTabProps> = ({
             <p className="text-xl font-black text-gray-900 tracking-tight leading-none">
               {stats.averageQuizAccuracy === null ? "—" : `${stats.averageQuizAccuracy}%`}
             </p>
-            <p className="text-[11px] font-bold text-gray-500">Persisted results</p>
+            <p className="text-[11px] font-bold text-gray-500">{stats.averageQuizAccuracy === null ? "Not tracked yet" : "Persisted results"}</p>
           </div>
         </div>
 
@@ -65,7 +65,7 @@ export const ActivityAnalyticsTab: React.FC<ActivityAnalyticsTabProps> = ({
             <p className="text-xl font-black text-gray-900 tracking-tight leading-none">
               {stats.totalVideoWatchHours === null ? "—" : stats.totalVideoWatchHours} {stats.totalVideoWatchHours !== null && <span className="text-xs font-semibold text-gray-500">hrs</span>}
             </p>
-            <p className="text-[11px] font-bold text-gray-500">Tracked by playback</p>
+            <p className="text-[11px] font-bold text-gray-500">{stats.totalVideoWatchHours === null ? "Not tracked yet" : "Tracked by playback"}</p>
           </div>
         </div>
 
@@ -81,7 +81,7 @@ export const ActivityAnalyticsTab: React.FC<ActivityAnalyticsTabProps> = ({
             <p className="text-xl font-black text-gray-900 tracking-tight leading-none">
               {stats.completedAssignments === null ? "—" : stats.completedAssignments}
             </p>
-            <p className="text-[11px] font-bold text-gray-500">Reviewed submissions</p>
+            <p className="text-[11px] font-bold text-gray-500">{stats.completedAssignments === null ? "Not tracked yet" : "Reviewed submissions"}</p>
           </div>
         </div>
 
@@ -97,7 +97,7 @@ export const ActivityAnalyticsTab: React.FC<ActivityAnalyticsTabProps> = ({
             <p className="text-xl font-black text-gray-900 tracking-tight leading-none">
               {stats.totalQuestionsAnswered === null ? "—" : stats.totalQuestionsAnswered}
             </p>
-            <p className="text-[11px] font-bold text-gray-500">Assessment data</p>
+            <p className="text-[11px] font-bold text-gray-500">{stats.totalQuestionsAnswered === null ? "Not tracked yet" : "Assessment data"}</p>
           </div>
         </div>
       </div>
@@ -163,7 +163,7 @@ export const ActivityAnalyticsTab: React.FC<ActivityAnalyticsTabProps> = ({
                 fill="none"
               />
             </AreaChart>
-          </ResponsiveContainer> : <div className="grid h-full place-items-center text-sm font-medium text-gray-500">No persisted trend history is available yet.</div>}
+          </ResponsiveContainer> : <div className="grid h-full place-items-center text-sm font-medium text-gray-500">Learning activity trends aren&apos;t tracked for your account yet.</div>}
         </div>
       </section>
 
@@ -205,7 +205,7 @@ export const ActivityAnalyticsTab: React.FC<ActivityAnalyticsTabProps> = ({
                   </div>
                 </div>
               ))}
-              {studyDistribution.length === 0 && <p className="py-5 text-sm text-gray-500">No persisted study-time breakdown is available.</p>}
+              {studyDistribution.length === 0 && <p className="py-5 text-sm text-gray-500">Study time per subject isn&apos;t tracked for your account yet.</p>}
             </div>
           </div>
 

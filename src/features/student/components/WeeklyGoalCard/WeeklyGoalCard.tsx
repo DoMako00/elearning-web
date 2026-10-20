@@ -109,6 +109,8 @@ export function WeeklyGoalCard({
   saving = false,
   error = null,
   onGoalSet,
+  loadError = null,
+  onRetry,
 }: WeeklyGoalCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sliderValue, setSliderValue] = useState(targetLessons ?? 5);
@@ -156,9 +158,19 @@ export function WeeklyGoalCard({
       </header>
 
       {/* ── First-time state ── */}
-      {loading ? <p className="weekly-goal-body" role="status">Loading weekly learning data…</p> : !hasGoal ? (
+      {loading ? <p className="weekly-goal-body" role="status">Loading weekly learning data…</p> : loadError ? (
+        <div className="weekly-goal-body flex min-h-0 flex-1 flex-col items-center justify-center gap-3 text-center" role="alert">
+          <p className="text-sm text-rose-700">{loadError}</p>
+          {onRetry ? (
+            <button type="button" onClick={onRetry} className="min-h-11 rounded-xl border border-(--color-border-subtle) px-4 text-sm font-semibold text-(--color-text-primary) hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-focus-ring)">
+              Try again
+            </button>
+          ) : null}
+        </div>
+      ) : !hasGoal ? (
         <div className="weekly-goal-body flex min-h-0 flex-1 flex-col items-center justify-center">
           <SetGoalPrompt onSet={handleFirstGoalSet} saving={saving} disabled={loading} />
+          {error ? <p className="mt-2 text-xs text-rose-700" role="alert">{error}</p> : null}
         </div>
       ) : (
         <>

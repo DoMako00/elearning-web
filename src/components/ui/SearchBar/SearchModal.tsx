@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../app/providers/AuthProvider";
-import { listAllStudentCourses, listStudentCourseLessons } from "../../../features/student/api/studentCoursesApi";
+import { fetchScopedCourseLessons, fetchScopedCourseList } from "../../../features/student/api/useStudentCourses";
+import { useStudentScope, type StudentScope } from "../../../features/student/scope/StudentScopeProvider";
 import { studentInstructorApi } from "../../../features/student/api/studentInstructorApi";
 import { studentCommunityApi } from "../../../features/student/api/studentCommunityApi";
 
@@ -26,9 +27,9 @@ export interface SearchItem {
   badge?: string;
 }
 
-async function loadSearchItems(signal: AbortSignal): Promise<SearchItem[]> {
+async function loadSearchItems(scope: StudentScope, signal: AbortSignal): Promise<SearchItem[]> {
   const [courses, instructors, posts] = await Promise.all([
-    listAllStudentCourses({ view: "explore", signal }),
+    fetchScopedCourseList(scope, "explore", signal),
     studentInstructorApi.list(signal),
     studentCommunityApi.listPosts(signal),
   ]);
@@ -39,13 +40,13 @@ async function loadSearchItems(signal: AbortSignal): Promise<SearchItem[]> {
     title: course.title,
     subtitle: `${course.academicInstitution.name} · ${course.academicLevel.title} · ${course.academicSemester.title}`,
     route: `/my-courses/${encodeURIComponent(course.courseId)}`,
-    badge: course.access.isEnrolled ? "Enrolled" : "Available",
+    badge: course.access.isEnrolled ? (course.access.canOpen ? "Enrolled" : "Not open yet") : "Not enrolled",
   }));
 
   const accessibleCourses = courses.filter((course) => course.access.canOpen);
   const lessonsByCourse = await Promise.all(accessibleCourses.map(async (course) => ({
     course,
-    lessons: await listStudentCourseLessons({ courseId: course.courseId, signal }),
+    lessons: await fetchScopedCourseLessons(scope, course.courseId, signal),
   })));
 
   for (const { course, lessons } of lessonsByCourse) {
@@ -105,6 +106,7 @@ interface SearchModalProps {
 export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const auth = useAuth();
+  const scope = useStudentScope();
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [items, setItems] = useState<SearchItem[]>([]);
@@ -133,7 +135,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
     const controller = new AbortController();
     setLoadState("loading");
     setLoadError(null);
-    void loadSearchItems(controller.signal)
+    void loadSearchItems(scope, controller.signal)
       .then((nextItems) => {
         if (controller.signal.aborted) return;
         setItems(nextItems);
@@ -146,7 +148,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
         setLoadState("error");
       });
     return () => controller.abort();
-  }, [isOpen, auth.status, retryIndex]);
+  }, [isOpen, auth.status, scope, retryIndex]);
 
   const filteredItems = useMemo(() => {
     const q = query.trim().toLowerCase();

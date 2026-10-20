@@ -1,6 +1,8 @@
 import { ApiClientUnauthenticatedError, extractApiErrorMessage, requireApiClient } from "../../../app/api/client";
 
-export type StudentCommercialBrand = "medway" | "elite" | "nexus";
+import type { BrandCode } from "../../../shared/domain/brandInstitution";
+
+export type StudentCommercialBrand = BrandCode;
 export type CataloguePresentation = "subject_based" | "module_based";
 export type LessonMediaStatus = "no_media" | "pending_media" | "ready";
 export type StudentCourseEnrollmentStatus = "active" | "completed";

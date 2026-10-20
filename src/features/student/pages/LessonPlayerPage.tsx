@@ -24,7 +24,9 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { completeStudentVideoPlayback, getStudentCourse, getStudentProtectedMedia, reportStudentVideoPlaybackHeartbeat, startStudentVideoPlayback, StudentCoursesApiError, type StudentCourseDetail, type StudentLessonItem, type StudentVideoPlaybackState } from "../api/studentCoursesApi";
+import { fetchScopedCourseDetail } from "../api/useStudentCourses";
+import { useStudentScope } from "../scope/StudentScopeProvider";
+import { completeStudentVideoPlayback, getStudentProtectedMedia, reportStudentVideoPlaybackHeartbeat, startStudentVideoPlayback, StudentCoursesApiError, type StudentCourseDetail, type StudentLessonItem, type StudentVideoPlaybackState } from "../api/studentCoursesApi";
 import { useStudentProgress, useStudentLessonProgressMutation } from "../api/useStudentLearning";
 import { useInactivityPrompt, InactivityModal } from "../../../components/ui/InactivityPrompt";
 import { CourseDiscussionPanel } from "../../../components/learning-space/CourseDiscussionPanel";
@@ -94,6 +96,7 @@ function LessonVideoPlayer({ title, mediaUrl, mediaType, onStarted, onHeartbeat,
     countdown: inactivityCountdown,
     handleResume: handleInactivityResume,
     handleDismiss: handleInactivityDismissState,
+    reportActivity: reportLearningActivity,
   } = useInactivityPrompt({
     initialCountdown: 60,
     onTimeout: () => {
@@ -128,6 +131,8 @@ function LessonVideoPlayer({ title, mediaUrl, mediaType, onStarted, onHeartbeat,
       if (!video.paused && video.currentTime - lastHeartbeatPosition.current >= 10) {
         lastHeartbeatPosition.current = video.currentTime;
         onHeartbeat(video.currentTime);
+        // Watching is learning activity even without mouse/keyboard input.
+        reportLearningActivity();
       }
     };
     const onMeta = () => setDuration(video.duration || 0);
@@ -147,7 +152,7 @@ function LessonVideoPlayer({ title, mediaUrl, mediaType, onStarted, onHeartbeat,
       video.removeEventListener("play", onPlay);
       video.removeEventListener("pause", onPause);
     };
-  }, [onHeartbeat]);
+  }, [onHeartbeat, reportLearningActivity]);
 
   useEffect(() => {
     const onFullscreen = () => setIsFullscreen(Boolean(document.fullscreenElement));
@@ -465,7 +470,8 @@ function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, 
   }, [lessonId, current?.progressStatus]);
 
   const handleProgress = async (status: "in_progress" | "completed") => {
-    if (!current || progressMutation.isPending || (status === "completed" && isAlreadyCompleted)) return;
+    if (!current || progressMutation.isPending || isAlreadyCompleted) return;
+    if (status === "in_progress" && progressStatus !== "not_started") return;
     setProgressError(null);
     try {
       const persisted = await progressMutation.mutateAsync({ lessonId: current.lessonId, status });
@@ -517,7 +523,9 @@ function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, 
 
       <div className="course-overview-layout">
         <div className={`course-overview-primary${activeTab === "overview" ? "" : " is-tab-expanded"}`}>
-          {activeTab === "overview" ? <LessonVideoPlayer title={current.title} mediaUrl={mediaUrl} mediaType={current.resourceType ?? "video"} onStarted={() => void handleProgress("in_progress")} onHeartbeat={handlePlaybackHeartbeat} onComplete={(positionSeconds) => void handleVideoComplete(positionSeconds)} /> : null}
+          <div className="lesson-player-slot h-full min-h-0" hidden={activeTab !== "overview"}>
+            <LessonVideoPlayer title={current.title} mediaUrl={mediaUrl} mediaType={current.resourceType ?? "video"} onStarted={() => void handleProgress("in_progress")} onHeartbeat={handlePlaybackHeartbeat} onComplete={(positionSeconds) => void handleVideoComplete(positionSeconds)} />
+          </div>
           {activeTab === "overview" ? (
             <div className="lp-bar">
               <div className="lp-bar__copy">
@@ -702,6 +710,7 @@ function LessonUnavailable({ message, isError = false, loading = false }: { mess
 }
 
 export function LessonPlayerPage() {
+  const scope = useStudentScope();
   const { slug = "", lessonId = "" } = useParams();
   const [state, setState] = useState<
     | { status: "loading" }
@@ -717,8 +726,9 @@ export function LessonPlayerPage() {
 
     const controller = new AbortController();
     setState({ status: "loading" });
-    getStudentCourse({ courseId: slug, signal: controller.signal })
+    fetchScopedCourseDetail(scope, slug, controller.signal)
       .then(async (course) => {
+        if (controller.signal.aborted) return;
         const lesson = course.chapters.flatMap((chapter) => chapter.lessons).find((item) => item.lessonId === lessonId);
         if (!lesson || !lesson.playbackAvailable || !lesson.resourceId || !lesson.resourceType) {
           setState({ status: "unavailable", message: "This lesson has no published, authorized media resource yet." });
@@ -739,7 +749,7 @@ export function LessonPlayerPage() {
       });
 
     return () => controller.abort();
-  }, [slug, lessonId]);
+  }, [scope, slug, lessonId]);
 
   if (state.status === "loading") return <LessonUnavailable loading message="Checking lesson access and media release." />;
   if (state.status === "error") return <LessonUnavailable message={state.message} isError />;

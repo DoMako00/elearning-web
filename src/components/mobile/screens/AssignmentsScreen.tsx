@@ -2,7 +2,6 @@ import React, { useState, useMemo } from "react";
 import { TopAppBar } from "../TopAppBar";
 import {
   HeroBand,
-  DocsOnlyBanner,
   StatusFilterTabs,
   AssignmentCard,
   AssignmentProgressRing,
@@ -25,7 +24,7 @@ export const AssignmentsScreen: React.FC = () => {
   const { toastMessage, showToast } = useToast();
   const assignmentsQuery = useStudentAssignments();
   const assignments = useMemo(() => assignmentsQuery.data ?? [], [assignmentsQuery.data]);
-  const items = useMemo(() => assignments.map(mapStudentAssignment), [assignments]);
+  const items = useMemo(() => assignments.map((assignment) => mapStudentAssignment(assignment)), [assignments]);
 
   const [activeTab, setActiveTab] = useState<AssignmentFilter>("all");
 
@@ -83,7 +82,6 @@ export const AssignmentsScreen: React.FC = () => {
           eyebrow="ACADEMIC TASKS"
           heading="Assignments"
           subtitle="Read, learn, and submit your work."
-          banner={<DocsOnlyBanner variant="compact" />}
           illustration={
             <div className="relative w-28 h-24 flex items-center justify-center">
               <div className="size-18 rounded-2xl bg-emerald-100/70 border border-emerald-200/80 flex items-center justify-center text-emerald-700 shadow-xs">

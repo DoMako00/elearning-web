@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { X, CheckCircle2, AlertCircle, Loader2, Paperclip } from "lucide-react";
 import type { StudentAssignmentAttachmentDto } from "../../../features/student/api/studentAssignmentsApi";
 import "./SubmitAssignmentModal.css";
@@ -9,7 +9,8 @@ interface SubmitAssignmentModalProps {
   assignmentTitle: string;
   courseName: string;
   onUploadFile: (file: File, idempotencyKey: string) => Promise<StudentAssignmentAttachmentDto>;
-  onSubmitSuccess: (responseText: string, attachmentIds: string[]) => Promise<void>;
+  /** submissionId stays the same across retries of one logical submission. */
+  onSubmitSuccess: (responseText: string, attachmentIds: string[], submissionId: string) => Promise<void>;
 }
 
 interface FileDraft { file: File; key: string; attachment?: StudentAssignmentAttachmentDto; error?: string; }
@@ -21,6 +22,15 @@ export function SubmitAssignmentModal({ isOpen, onClose, assignmentTitle, course
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const submissionKey = useRef(crypto.randomUUID());
+  const requestClose = () => { if (!isSubmitting) onClose(); };
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape" && !isSubmitting) onClose(); };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isOpen, isSubmitting, onClose]);
 
   if (!isOpen) return null;
 
@@ -46,7 +56,8 @@ export function SubmitAssignmentModal({ isOpen, onClose, assignmentTitle, course
           throw new Error(`${draft.file.name}: ${message}`);
         }
       }
-      await onSubmitSuccess(responseText.trim(), uploaded.map(item => item.id));
+      await onSubmitSuccess(responseText.trim(), uploaded.map(item => item.id), submissionKey.current);
+      submissionKey.current = crypto.randomUUID();
       setResponseText("");
       setFiles([]);
       setIsConfirmed(false);
@@ -72,7 +83,7 @@ export function SubmitAssignmentModal({ isOpen, onClose, assignmentTitle, course
   };
 
   return (
-    <div className="submit-modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="submit-assignment-title">
+    <div className="submit-modal-overlay" onClick={requestClose} role="dialog" aria-modal="true" aria-labelledby="submit-assignment-title">
       <div className="submit-modal-card" onClick={(event) => event.stopPropagation()}>
         <div className="submit-modal-header"><div><h2 id="submit-assignment-title" className="submit-modal-title">Submit assignment</h2><p className="submit-modal-subtitle">{assignmentTitle} &bull; {courseName}</p></div><button type="button" className="submit-modal-close" onClick={onClose} aria-label="Close modal" disabled={isSubmitting}><X size={18} /></button></div>
         {errorMessage && <div className="submit-modal-error" role="alert"><AlertCircle size={16} /><span>{errorMessage}</span></div>}
@@ -82,7 +93,7 @@ export function SubmitAssignmentModal({ isOpen, onClose, assignmentTitle, course
             <label className="submit-modal-label" htmlFor="assignment-attachments">Attachments</label>
             <label className="submit-modal-btn-cancel inline-flex w-fit cursor-pointer items-center gap-2"><Paperclip size={15} />Add files<input id="assignment-attachments" className="sr-only" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" multiple disabled={isSubmitting || files.length >= 5} onChange={addFiles} /></label>
             <p className="text-xs text-gray-500">PDF, JPEG, PNG, or WebP · up to 25 MiB each · five files maximum. Files are privately uploaded and verified before submission.</p>
-            {files.length > 0 && <ul className="mt-2 space-y-2" aria-label="Selected attachments">{files.map((draft, index) => <li key={draft.key} className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm"><span className="min-w-0 truncate">{draft.file.name} <span className="text-xs text-gray-500">({(draft.file.size / (1024 * 1024)).toFixed(1)} MiB)</span>{draft.error && <span className="block text-xs text-rose-600">{draft.error}</span>}</span><span className="shrink-0 text-xs font-semibold text-emerald-700">{uploadingIndex === index ? <><Loader2 size={13} className="inline animate-spin" /> Uploading</> : draft.attachment?.status === "verified" ? "Verified" : draft.error ? "Retry on submit" : "Ready"}</span></li>)}</ul>}
+            {files.length > 0 && <ul className="mt-2 space-y-2" aria-label="Selected attachments">{files.map((draft, index) => <li key={draft.key} className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm"><span className="min-w-0 truncate">{draft.file.name} <span className="text-xs text-gray-500">({(draft.file.size / (1024 * 1024)).toFixed(1)} MiB)</span>{draft.error && <span className="block text-xs text-rose-600">{draft.error}</span>}</span><span className="flex shrink-0 items-center gap-2 text-xs font-semibold text-emerald-700">{uploadingIndex === index ? <><Loader2 size={13} className="inline animate-spin" /> Uploading</> : draft.attachment?.status === "verified" ? "Verified" : draft.error ? "Retry on submit" : "Ready"}<button type="button" className="rounded p-1 text-gray-500 hover:text-rose-600 disabled:opacity-40" onClick={() => setFiles(current => current.filter(item => item.key !== draft.key))} disabled={isSubmitting} aria-label={`Remove ${draft.file.name}`}><X size={14} aria-hidden="true" /></button></span></li>)}</ul>}
           </div>
           <label className="submit-modal-checkbox-label"><input type="checkbox" className="submit-modal-checkbox" checked={isConfirmed} onChange={(event) => setIsConfirmed(event.target.checked)} /><span>I confirm that this work is my own and all sources are properly cited.</span></label>
           <div className="submit-modal-actions"><button type="button" className="submit-modal-btn-cancel" onClick={onClose} disabled={isSubmitting}>Cancel</button><button type="submit" className="submit-modal-btn-submit" disabled={isSubmitting || (!responseText.trim() && files.length === 0) || !isConfirmed}>{isSubmitting ? <><Loader2 size={16} className="animate-spin" /> {uploadingIndex === null ? "Submitting…" : "Uploading…"}</> : <><CheckCircle2 size={16} /> Submit response</>}</button></div>

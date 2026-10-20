@@ -28,8 +28,10 @@ import {
 import { LearningNotesPanel } from "../../../components/learning-space/LearningNotesPanel";
 import { mapCourseModules, mapCourseResources } from "../../../components/learning-space/learningSpaceMappers";
 import { studentInstructorApi } from "../api/studentInstructorApi";
+import { fetchScopedCourseDetail } from "../api/useStudentCourses";
+import { useStudentScope } from "../scope/StudentScopeProvider";
+import { classifyStudentApiError } from "../api/studentApiErrors";
 import {
-  getStudentCourse,
   type StudentCourseDetail,
   type StudentLessonItem,
 } from "../api/studentCoursesApi";
@@ -72,8 +74,7 @@ function toLessonLabel(lesson: StudentLessonItem) {
   return "No media";
 }
 
-function FeedbackState({ message, tone = "neutral" }: { message: string; tone?: "neutral" | "error" }) {
-  const notFound = /not found/i.test(message);
+function FeedbackState({ message, tone = "neutral", notFound = false }: { message: string; tone?: "neutral" | "error"; notFound?: boolean }) {
   return (
     <section className="route-notice-page" aria-labelledby="course-overview-title">
       <div className={`route-notice${tone === "error" ? " route-notice--error" : ""}`} role={tone === "error" ? "alert" : "status"}>
@@ -154,6 +155,7 @@ function CourseOverviewSkeleton() {
 }
 
 export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
+  const scope = useStudentScope();
   const navigate = useNavigate();
   const auth = useAuth();
   const { slug } = useParams<{ slug: string }>();
@@ -164,6 +166,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
   const [lessons, setLessons] = useState<readonly StudentLessonItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [errorIsNotFound, setErrorIsNotFound] = useState(false);
   const progressQuery = useStudentProgress();
   const savedCoursesQuery = useStudentSavedCourses();
   const toggleSavedCourse = useToggleStudentSavedCourse();
@@ -183,7 +186,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
     const controller = new AbortController();
     setIsLoading(true);
     setError(null);
-    void getStudentCourse({ courseId, signal: controller.signal })
+    void fetchScopedCourseDetail(scope, courseId, controller.signal)
       .then((nextCourse) => {
         if (controller.signal.aborted) return;
         setCourse(nextCourse);
@@ -196,21 +199,28 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
         if (controller.signal.aborted) return;
         setCourse(null);
         setLessons([]);
-        setError(nextError instanceof Error ? nextError.message : "The course could not be loaded.");
+        // Decide "not available" from the HTTP status, never from message text.
+        const classified = classifyStudentApiError(nextError);
+        setErrorIsNotFound(classified.kind === "not_found" || classified.kind === "no_membership");
+        setError(classified.kind === "unavailable" ? classified.message : nextError instanceof Error ? nextError.message : "The course could not be loaded.");
       })
       .finally(() => {
         if (!controller.signal.aborted) setIsLoading(false);
       });
     return () => controller.abort();
-  }, [courseId]);
+  }, [courseId, scope]);
 
   const learningSpaceModules = useMemo(() => course ? mapCourseModules(course) : [], [course]);
   const learningSpaceResources = useMemo(() => course ? mapCourseResources(course) : [], [course]);
-  const firstLesson = lessons[0] ?? course?.chapters[0]?.lessons[0] ?? null;
   const totalLessons = lessons.length || course?.lessonCount || 0;
   const assignedInstructor = instructorQuery.data?.find((item) => item.courses.some((assigned) => assigned.courseId === courseId));
 
+  // Only the server's access.canOpen grants lesson access; a course the
+  // student can view but not open never offers an actionable lesson.
+  const canOpenCourse = course?.access?.canOpen === true;
+
   const startLesson = (lessonId: string) => {
+    if (!canOpenCourse) return;
     onStartLesson?.(lessonId);
     navigate(`/my-courses/${courseId}/lessons/${lessonId}`, { state: { courseTitle: course?.title, courseId } });
   };
@@ -235,15 +245,19 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
   const toggleBookmark = () => toggleSavedCourse.mutate({ courseId, saved: !isBookmarked });
 
   if (isLoading) return <CourseOverviewSkeleton />;
-  if (error) return <FeedbackState message={error} tone="error" />;
+  if (error) return <FeedbackState message={error} tone="error" notFound={errorIsNotFound} />;
   if (!course) return <FeedbackState message="This course is not available for this student." />;
 
   const allLessons = course.chapters.flatMap((chapter) => chapter.lessons);
   const completedCount = allLessons.filter((lesson) => lesson.progressStatus === "completed").length;
-  const nextLesson = allLessons.find((lesson) => lesson.progressStatus === "in_progress" && lesson.playbackAvailable)
+  const nextLesson = !canOpenCourse ? null
+    : allLessons.find((lesson) => lesson.progressStatus === "in_progress" && lesson.playbackAvailable)
     ?? allLessons.find((lesson) => lesson.progressStatus !== "completed" && lesson.playbackAvailable)
     ?? allLessons.find((lesson) => lesson.playbackAvailable)
     ?? null;
+  // Notes follow the lesson the student is working on, never blindly the
+  // first lesson, and only for a released lesson they can open.
+  const noteLesson = nextLesson ?? null;
   const nextChapterIndex = nextLesson ? course.chapters.findIndex((chapter) => chapter.chapterId === nextLesson.chapterId) : -1;
   const hasStarted = allLessons.some((lesson) => lesson.progressStatus !== "not_started");
   const percent = progressPercent === null ? Math.round(totalLessons ? (completedCount / totalLessons) * 100 : 0) : Math.round(progressPercent);
@@ -299,7 +313,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
         <div className="cd-hero__actions">
           <button type="button" className="cd-btn cd-btn--hero" disabled={!nextLesson} onClick={() => nextLesson && startLesson(nextLesson.lessonId)}>
             <Play aria-hidden="true" />
-            {nextLesson ? (hasStarted ? "Resume lesson" : "Start first lesson") : "Lessons coming soon"}
+            {!canOpenCourse ? "Not open for your account" : nextLesson ? (hasStarted ? "Resume lesson" : "Start first lesson") : "Lessons coming soon"}
           </button>
           <button
             type="button"
@@ -313,6 +327,11 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
           </button>
         </div>
         {savedCoursesQuery.isError || toggleSavedCourse.isError ? <p className="cd-hero__error" role="alert">Saved courses couldn&apos;t be updated. Try again.</p> : null}
+        {!canOpenCourse ? (
+          <p className="cd-hero__error" role="status">
+            {course.access?.isEnrolled ? "You're enrolled, but this subject's lessons aren't open for your account yet." : "You're not enrolled in this subject, so its lessons can't be opened."}
+          </p>
+        ) : null}
       </header>
 
       {tabList}
@@ -353,7 +372,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
                               <button
                                 type="button"
                                 className={`cd-lesson cd-lesson--${lesson.progressStatus}${isNext ? " is-next" : ""}`}
-                                disabled={!lesson.playbackAvailable}
+                                disabled={!canOpenCourse || !lesson.playbackAvailable}
                                 onClick={() => startLesson(lesson.lessonId)}
                               >
                                 <span className="cd-lesson__marker" aria-hidden="true">
@@ -429,7 +448,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
                 <ul className="cd-res-list">
                   {learningSpaceResources.slice(0, 3).map((resource) => (
                     <li key={resource.id}>
-                      <button type="button" disabled={!resource.available} onClick={() => startLesson(resource.lessonId)}>
+                      <button type="button" disabled={!canOpenCourse || !resource.available} onClick={() => startLesson(resource.lessonId)}>
                         <span className={`cd-res__ext cd-res__ext--${resource.extension}`}>{resource.extension}</span>
                         <span className="cd-res__copy"><strong>{resource.title}</strong><small>{resource.chapterTitle}</small></span>
                       </button>
@@ -444,7 +463,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
         <div className="course-overview-layout cd-tab-layout">
           <div className="course-overview-primary is-tab-expanded">
             <div className="course-overview-panel course-overview-panel--notes" role="tabpanel" id="course-overview-panel-notes" aria-labelledby="course-overview-tab-notes" hidden={activeTab !== "notes"}>
-              <LearningNotesPanel lessonId={firstLesson?.lessonId} lessonTitle={firstLesson?.title} resources={learningSpaceResources} onOpenLesson={startLesson} onViewResources={() => setActiveTab("resources")} />
+              <LearningNotesPanel lessonId={noteLesson?.lessonId} lessonTitle={noteLesson?.title} resources={learningSpaceResources} onOpenLesson={startLesson} onViewResources={() => setActiveTab("resources")} />
             </div>
             <div className="course-overview-panel course-overview-panel--resources" role="tabpanel" id="course-overview-panel-resources" aria-labelledby="course-overview-tab-resources" hidden={activeTab !== "resources"}>
               <CourseResourcesPanel resources={learningSpaceResources} courseTitle={course.title} onOpenLesson={startLesson} />

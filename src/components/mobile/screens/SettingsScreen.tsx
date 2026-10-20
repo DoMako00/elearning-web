@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useToast } from "../../../hooks/useToast";
 import {
   MessageSquare,
   Users,
@@ -29,7 +30,6 @@ import { useStudentProfile } from "../../../features/student/api/useStudentLearn
 import { useStudentSettingsDevices, useStudentCommercialSettings, useStudentLearningPreferences } from "../../../features/student/api/useStudentSettings";
 import { studentLearningApi } from "../../../features/student/api/studentLearningApi";
 import { completeStudentEmailLink, getStudentAuthMethods, initiateOtpLogin, initiateStudentEmailLink, verifyOtpProof } from "../../../features/auth/api/identityApi";
-import { studentSettingsApi } from "../../../features/student/api/studentSettingsApi";
 import { downloadStudentAccountData } from "../../../features/settings/studentDataExport";
 import { useAuth } from "../../../app/providers/AuthProvider";
 
@@ -39,12 +39,11 @@ export const SettingsScreen: React.FC = () => {
   const profileQuery=useStudentProfile();
   const devicesQuery=useStudentSettingsDevices();
   const commercialQuery=useStudentCommercialSettings();
-  const preferencesQuery=useStudentLearningPreferences();
   const auth=useAuth();
   const currentDevice=devicesQuery.devices.data?.find(device=>device.id===devicesQuery.session.data?.deviceId && !device.revokedAt);
 
   // State for toasts and confirmation bottom sheet
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const { toastMessage, toastTone, showToast } = useToast(2500);
   const [isLogoutSheetOpen, setIsLogoutSheetOpen] = useState(false);
   const [isExportingData, setIsExportingData] = useState(false);
 
@@ -52,10 +51,6 @@ export const SettingsScreen: React.FC = () => {
   const [profile, setProfile] = useState({fullName:"",studentId:"",email:"",phoneNumber:"",location:"",plan:"",quote:"",avatarUrl:""});
   useEffect(()=>{const dto=profileQuery.data;if(!dto)return;setProfile({fullName:dto.fullName,studentId:dto.studentCode??"",email:dto.verifiedEmail??"No verified email linked",phoneNumber:dto.phone??"",location:`${dto.institution.name} · ${dto.level.title} · ${dto.semester.title}`,plan:commercialQuery.data?.semesterOffering?`${commercialQuery.data.subscriptionStatus??"unknown"} · ${commercialQuery.data.semesterOffering.title}`:"No active Offering",quote:"",avatarUrl:""});},[profileQuery.data,commercialQuery.data]);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 2500);
-  };
 
   // Pushed Sub-screens (all variant="detail", tabRoot="settings")
   const handleOpenEditProfile = () => {
@@ -89,19 +84,9 @@ export const SettingsScreen: React.FC = () => {
       tabRoot: "settings",
       variant: "detail",
       backLabel: "Settings",
-      component: (
-        <NotificationPreferencesSubScreen
-          prefs={{deadlines:preferencesQuery.data?.notificationPreferences.assignmentDeadlines??false,lessonReminders:preferencesQuery.data?.notificationPreferences.lessonReminders??false,directMessages:preferencesQuery.data?.notificationPreferences.directMessages??false,mentions:preferencesQuery.data?.notificationPreferences.mentionsInCommunity??false,systemSecurity:preferencesQuery.data?.notificationPreferences.securityAlerts??false}}
-          onChange={async (key, val) => {
-            const current=preferencesQuery.data;
-            if(!current){showToast("Notification preferences are still loading.");return;}
-            const fields={deadlines:"assignmentDeadlines",lessonReminders:"lessonReminders",directMessages:"directMessages",mentions:"mentionsInCommunity",systemSecurity:"securityAlerts"} as const;
-            const notificationPreferences={...current.notificationPreferences,[fields[key]]:val};
-            try{await studentLearningApi.setNotificationPreferences({notificationPreferences,expectedVersion:current.version});await preferencesQuery.refetch();showToast("Notification preference saved to your account.");}
-            catch(error){showToast(error instanceof Error?error.message:"Notification preference could not be saved.");}
-          }}
-        />
-      ),
+      // The sub-screen reads live preferences itself; an element pushed onto
+      // the stack must not capture a snapshot of query data.
+      component: <NotificationPreferencesSubScreen />,
     });
   };
 
@@ -141,7 +126,7 @@ export const SettingsScreen: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col min-h-0 w-full bg-[#f8fafc]">
-      <MobileToast message={toastMessage} />
+      <MobileToast message={toastMessage} tone={toastTone} />
 
       {/* Mockup Header: Green Back Arrow + Bold "Settings" */}
       <header
@@ -464,7 +449,7 @@ export const SettingsScreen: React.FC = () => {
               setIsExportingData(true);
               void downloadStudentAccountData()
                 .then(() => showToast("Your account data download is ready."))
-                .catch((error) => showToast(error instanceof Error ? error.message : "Your account data could not be exported."))
+                .catch((error) => showToast(error instanceof Error ? error.message : "Your account data could not be exported.", "error"))
                 .finally(() => setIsExportingData(false));
             }}
             disabled={isExportingData}
@@ -588,7 +573,7 @@ export const SettingsScreen: React.FC = () => {
             <button
               type="button"
               onClick={() => {
-                void studentSettingsApi.logoutCurrentSession().then(()=>{auth.signOut();window.location.assign("/auth/sign-in");}).catch(error=>showToast(error instanceof Error?error.message:"Sign out failed."));
+                void auth.signOut({ revokeServerSession: true });
               }}
               className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white transition-colors cursor-pointer shadow-2xs"
             >
@@ -707,11 +692,36 @@ const EditProfileSubScreen: React.FC<{
   );
 };
 // Sub-screen 2: Notification Preferences
-const NotificationPreferencesSubScreen: React.FC<{
-  prefs: Record<string, boolean>;
-  onChange: (key: "deadlines" | "lessonReminders" | "directMessages" | "mentions" | "systemSecurity", val: boolean) => void | Promise<void>;
-}> = ({ prefs, onChange }) => {
+const NOTIFICATION_FIELDS = { deadlines: "assignmentDeadlines", lessonReminders: "lessonReminders", directMessages: "directMessages", mentions: "mentionsInCommunity", systemSecurity: "securityAlerts" } as const;
+type NotificationKey = keyof typeof NOTIFICATION_FIELDS;
+
+const NotificationPreferencesSubScreen: React.FC = () => {
   const { pop } = useScreenStack();
+  const preferencesQuery = useStudentLearningPreferences();
+  const { toastMessage, toastTone, showToast } = useToast(2500);
+  const [savingKey, setSavingKey] = useState<NotificationKey | null>(null);
+  const current = preferencesQuery.data;
+  const prefs: Record<NotificationKey, boolean> = {
+    deadlines: current?.notificationPreferences.assignmentDeadlines ?? false,
+    lessonReminders: current?.notificationPreferences.lessonReminders ?? false,
+    directMessages: current?.notificationPreferences.directMessages ?? false,
+    mentions: current?.notificationPreferences.mentionsInCommunity ?? false,
+    systemSecurity: current?.notificationPreferences.securityAlerts ?? false,
+  };
+  const onChange = async (key: NotificationKey, value: boolean) => {
+    if (!current || savingKey) return;
+    setSavingKey(key);
+    try {
+      // Always send the latest server version so a second toggle is not rejected as stale.
+      await studentLearningApi.setNotificationPreferences({ notificationPreferences: { ...current.notificationPreferences, [NOTIFICATION_FIELDS[key]]: value }, expectedVersion: current.version });
+      await preferencesQuery.refetch();
+      showToast("Notification preference saved to your account.");
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Notification preference could not be saved.", "error");
+    } finally {
+      setSavingKey(null);
+    }
+  };
 
   const items = [
     { key: "deadlines", title: "Assignment Deadlines", desc: "Preference saved; notification delivery is not enabled by this setting alone." },
@@ -724,7 +734,15 @@ const NotificationPreferencesSubScreen: React.FC<{
   return (
     <div className="flex-1 flex flex-col min-h-0 w-full bg-slate-50/50">
       <TopAppBar variant="detail" title="Notification Preferences" backLabel="Settings" onBack={pop} />
+      <MobileToast message={toastMessage} tone={toastTone} />
       <div className="flex-1 overflow-y-auto p-4 space-y-3 max-w-lg mx-auto w-full pb-16">
+        {preferencesQuery.isPending ? <p role="status" className="text-xs text-slate-500">Loading your preferences…</p> : null}
+        {preferencesQuery.isError && !current ? (
+          <div role="alert" className="flex items-center justify-between gap-3 rounded-2xl border border-rose-100 bg-rose-50 p-3 text-xs text-rose-800">
+            <span>Your preferences couldn&apos;t be loaded.</span>
+            <button type="button" onClick={() => void preferencesQuery.refetch()} className="min-h-11 rounded-xl border border-rose-200 bg-white px-3 font-bold">Try again</button>
+          </div>
+        ) : null}
         <div className="bg-white rounded-3xl border border-slate-100 divide-y divide-slate-100 overflow-hidden shadow-2xs">
           {items.map((it) => (
             <div key={it.key} className="p-3.5 flex items-center justify-between gap-3">
@@ -734,8 +752,12 @@ const NotificationPreferencesSubScreen: React.FC<{
               </div>
               <button
                 type="button"
-                onClick={() => onChange(it.key, !prefs[it.key])}
-                className={`w-10 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 ${
+                role="switch"
+                aria-checked={prefs[it.key]}
+                aria-label={it.title}
+                disabled={!current || savingKey !== null}
+                onClick={() => void onChange(it.key, !prefs[it.key])}
+                className={`w-10 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
                   prefs[it.key] ? "bg-emerald-600" : "bg-slate-200"
                 }`}
               >

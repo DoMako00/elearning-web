@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useToast } from "../../../hooks/useToast";
 import {
   Video,
   Phone,
@@ -39,7 +40,7 @@ export const ChatConversationScreen: React.FC<ChatConversationScreenProps> = ({
   const messagesMutations = useStudentMessageMutations();
 
   const [inputText, setInputText] = useState("");
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const { toastMessage, toastTone, showToast } = useToast(2500);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -73,14 +74,10 @@ export const ChatConversationScreen: React.FC<ChatConversationScreenProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 2500);
-  };
 
   const handleSend = () => {
     if (!inputText.trim()) return;
-    void messagesMutations.send.mutateAsync({ conversationId, body: inputText.trim() }).then(() => setInputText("")).catch((error: unknown) => showToast(error instanceof Error ? error.message : "Message could not be sent."));
+    void messagesMutations.send.mutateAsync({ conversationId, body: inputText.trim() }).then(() => setInputText("")).catch((error: unknown) => showToast(error instanceof Error ? error.message : "Message could not be sent.", "error"));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -91,13 +88,13 @@ export const ChatConversationScreen: React.FC<ChatConversationScreenProps> = ({
   };
 
   const handleFileAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.length) showToast("File attachments are not supported by the current messaging API.");
+    if (e.target.files?.length) showToast("File attachments are not supported by the current messaging API.", "info");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (
     <div className="flex-1 flex flex-col min-h-0 w-full bg-slate-50">
-      <MobileToast message={toastMessage} />
+      <MobileToast message={toastMessage} tone={toastTone} />
 
       {/* Detail TopAppBar */}
       <TopAppBar
@@ -109,7 +106,7 @@ export const ChatConversationScreen: React.FC<ChatConversationScreenProps> = ({
           <div className="flex items-center gap-1">
             <button
               type="button"
-              onClick={() => showToast("Not available on mobile")}
+              onClick={() => showToast("Not available on mobile", "info")}
               aria-label="Start video call"
               className="p-1.5 rounded-xl text-slate-500 hover:text-emerald-700 hover:bg-slate-100 transition-colors cursor-pointer"
             >
@@ -117,7 +114,7 @@ export const ChatConversationScreen: React.FC<ChatConversationScreenProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => showToast("Not available on mobile")}
+              onClick={() => showToast("Not available on mobile", "info")}
               aria-label="Start audio call"
               className="p-1.5 rounded-xl text-slate-500 hover:text-emerald-700 hover:bg-slate-100 transition-colors cursor-pointer"
             >
@@ -125,7 +122,7 @@ export const ChatConversationScreen: React.FC<ChatConversationScreenProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => showToast("Not available on mobile")}
+              onClick={() => showToast("Not available on mobile", "info")}
               aria-label="More actions"
               className="p-1.5 rounded-xl text-slate-500 hover:text-emerald-700 hover:bg-slate-100 transition-colors cursor-pointer"
             >
@@ -316,7 +313,7 @@ export const ChatConversationScreen: React.FC<ChatConversationScreenProps> = ({
 
         <button
           type="button"
-          onClick={() => showToast("Emoji picker not available on mobile")}
+          onClick={() => showToast("Emoji picker not available on mobile", "info")}
           aria-label="Add emoji"
           className="p-2 text-slate-400 hover:text-slate-600 rounded-xl transition-colors shrink-0 cursor-pointer"
         >

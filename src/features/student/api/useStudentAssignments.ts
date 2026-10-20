@@ -16,8 +16,8 @@ export function useStudentAssignments() {
 export function useSubmitStudentAssignment() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ assignmentId, responseText, expectedVersion, attachmentIds }: { assignmentId: string; responseText: string; expectedVersion: number | null; attachmentIds: string[] }) =>
-      studentAssignmentsApi.submit(assignmentId, { submissionId: crypto.randomUUID(), responseText, expectedVersion, attachmentIds }),
+    mutationFn: ({ assignmentId, submissionId, responseText, expectedVersion, attachmentIds }: { assignmentId: string; submissionId: string; responseText: string; expectedVersion: number | null; attachmentIds: string[] }) =>
+      studentAssignmentsApi.submit(assignmentId, { submissionId, responseText, expectedVersion, attachmentIds }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: studentAssignmentsKey });
     },

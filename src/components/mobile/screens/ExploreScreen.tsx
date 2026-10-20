@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { TopAppBar } from "../TopAppBar";
 import {
   HeroBand,
@@ -18,8 +17,8 @@ import {
   type FilterState,
 } from "../shared";
 import { SlidersHorizontal, Layers } from "lucide-react";
-import { useAuth } from "../../../app/providers/AuthProvider";
-import { listAllStudentCourses, type StudentCourseItem } from "../../../features/student/api/studentCoursesApi";
+import type { StudentCourseItem } from "../../../features/student/api/studentCoursesApi";
+import { useStudentCourseList } from "../../../features/student/api/useStudentCourses";
 import { useStudentLearningPaths } from "../../../features/student/api/useStudentLearning";
 
 // Existing images from course-library, assignments, and onboarding/instructor
@@ -32,12 +31,7 @@ const INITIAL_FILTERS: FilterState = {
 
 export const ExploreScreen: React.FC = () => {
   const navigate = useNavigate();
-  const auth = useAuth();
-  const coursesQuery = useQuery({
-    queryKey: ["student", "courses", "explore"],
-    queryFn: ({ signal }) => listAllStudentCourses({ view: "explore", signal }),
-    enabled: auth.status === "authenticated",
-  });
+  const coursesQuery = useStudentCourseList("explore");
   const pathsQuery = useStudentLearningPaths();
 
   // Filter state

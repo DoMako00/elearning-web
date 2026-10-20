@@ -1,5 +1,7 @@
 import { Bell, BookOpen, ClipboardCheck, MessageSquare, X } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { safeInternalPath } from "../../../shared/utils/safeInternalPath";
 import "./NotificationsDropdown.css";
 
 export interface NotificationItem {
@@ -41,6 +43,7 @@ export function NotificationsDropdown({
   onReadNotification,
 }: NotificationsDropdownProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   const unreadCount = notifications.filter((n) => !n.readAt).length;
 
   useEffect(() => {
@@ -110,7 +113,8 @@ export function NotificationsDropdown({
               className={`notif-item${!notif.readAt ? " notif-item--unread" : ""}`}
               onClick={() => {
                 if (!notif.readAt) onReadNotification?.(notif.id);
-                if (notif.deepLink) window.location.assign(notif.deepLink);
+                const target = safeInternalPath(notif.deepLink);
+                if (target) navigate(target);
                 onClose();
               }}
             >

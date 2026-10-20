@@ -1,7 +1,9 @@
 import { env } from "../../../app/config/env";
 import { createAnonymousProviderSession, getSupabaseAccessToken, persistProviderSession } from "./supabaseAuth";
 
-export type BrandCode = "medway" | "elite" | "nexus";
+import type { BrandCode } from "../../../shared/domain/brandInstitution";
+
+export type { BrandCode };
 export class IdentityApiError extends Error {
   constructor(readonly code: string, message: string) { super(message); this.name = "IdentityApiError"; }
 }

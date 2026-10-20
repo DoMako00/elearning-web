@@ -2,8 +2,9 @@ import type { EventType } from "./calendar.types";
 import { FileText, Video, Clock, User, Bell, BookOpen, CalendarDays, GraduationCap } from "lucide-react";
 import type React from "react";
 
-// Hours shown in the week/day time grid (24-h wrapping starting at 8 AM)
-export const HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 1, 2, 3, 4, 5, 6, 7];
+// Hours shown in the week/day time grid (24-h wrapping starting at 8 AM).
+// Midnight is hour 0 — the mapper emits "00:xx" for events after midnight.
+export const HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7];
 
 export const EVENT_TYPE_CONFIG: Record<
   EventType,
@@ -51,6 +52,41 @@ export function cairoDateTimeParts(value: string): { date: string; time: string 
 export function parseTimeToMinutes(timeStr: string): number {
   const [h, m] = timeStr.split(":").map(Number);
   return h * 60 + m;
+}
+
+const MINUTES_PER_DAY = 1440;
+
+function dayDifference(fromDate: string, toDate: string): number {
+  const from = Date.parse(`${fromDate}T00:00:00Z`);
+  const to = Date.parse(`${toDate}T00:00:00Z`);
+  return Number.isFinite(from) && Number.isFinite(to) ? Math.round((to - from) / 86_400_000) : 0;
+}
+
+/** Real duration of an event, including blocks that run past midnight.
+ * Never returns a zero or negative length. */
+export function eventDurationMinutes(event: { date: string; endDate?: string; startTime: string; endTime: string }): number {
+  const days = event.endDate ? dayDifference(event.date, event.endDate) : 0;
+  let duration = days * MINUTES_PER_DAY + parseTimeToMinutes(event.endTime) - parseTimeToMinutes(event.startTime);
+  if (duration <= 0) duration += MINUTES_PER_DAY; // ends next day but endDate was not supplied
+  return duration > 0 ? duration : 60;
+}
+
+/** Date + minutes offset (may exceed one day) → wall-clock date and HH:mm. */
+export function shiftWallClock(date: string, minutesFromMidnight: number): { date: string; time: string } {
+  const dayOffset = Math.floor(minutesFromMidnight / MINUTES_PER_DAY);
+  const within = ((minutesFromMidnight % MINUTES_PER_DAY) + MINUTES_PER_DAY) % MINUTES_PER_DAY;
+  const base = new Date(`${date}T00:00:00Z`);
+  base.setUTCDate(base.getUTCDate() + dayOffset);
+  const day = base.toISOString().slice(0, 10);
+  return { date: day, time: `${String(Math.floor(within / 60)).padStart(2, "0")}:${String(within % 60).padStart(2, "0")}` };
+}
+
+/** Moves a date by whole months, clamping the day (Jan 31 + 1 month → Feb 28/29). */
+export function addMonthsClamped(date: Date, months: number): Date {
+  const target = new Date(date.getFullYear(), date.getMonth() + months, 1, date.getHours(), date.getMinutes());
+  const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+  target.setDate(Math.min(date.getDate(), lastDay));
+  return target;
 }
 
 /** Format a Date into YYYY-MM-DD using local calendar date parts. */

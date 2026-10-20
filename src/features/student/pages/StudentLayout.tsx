@@ -1,4 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useBrand } from "../../../app/providers/BrandProvider";
 import { useMemo } from "react";
 import { AppShell } from "../../../components/layout/AppShell";
 import { SearchBar } from "../../../components/ui/SearchBar";
@@ -25,6 +26,7 @@ function StudentLayoutContent() {
   const navigate = useNavigate();
   const auth = useAuth();
   const profileQuery = useStudentProfile();
+  const { brand } = useBrand();
   const notificationsQuery = useStudentNotifications();
   const markNotificationsRead = useMarkStudentNotificationsRead();
   const notifications = useMemo(() => (notificationsQuery.data ?? []).map((item) => ({ ...item, isUnread: item.readAt === null })), [notificationsQuery.data]);
@@ -89,7 +91,7 @@ function StudentLayoutContent() {
   // Search bar in the topbar is shown for Home
   const showCenteredSearch = isHome;
   const firstName = profileQuery.data?.fullName?.trim().split(/\s+/)[0] ?? "";
-  const homeGreeting = auth.status === "authenticated" ? (firstName ? `Welcome back, ${firstName}` : "Welcome back") : "Welcome to GreenLearn";
+  const homeGreeting = auth.status === "authenticated" ? (firstName ? `Welcome back, ${firstName}` : "Welcome back") : `Welcome to ${brand.name}`;
   const homeDateLabel = new Intl.DateTimeFormat(undefined, { weekday: "long", day: "numeric", month: "long" }).format(new Date());
 
   const renderBreadcrumb = () => {
@@ -267,13 +269,12 @@ function StudentLayoutContent() {
                 onMenuItemClick={(itemKey) => {
                   if (itemKey === "profile") navigate("/profile");
                   else if (itemKey === "settings") navigate("/settings");
-                  else if (itemKey === "notifications") navigate("/settings");
+                  else if (itemKey === "notifications") navigate("/notifications");
                   else if (itemKey === "help") navigate("/help");
                   else if (itemKey === "certificates") navigate("/profile?tab=achievements");
                 }}
                 onLogOut={() => {
-                  auth.signOut();
-                  navigate("/", { replace: true });
+                  void auth.signOut({ revokeServerSession: true });
                 }}
               />
             ) : (

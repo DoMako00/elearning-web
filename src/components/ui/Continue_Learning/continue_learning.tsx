@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "../../../hooks/useToast";
 import { ToastNotification } from "../ToastNotification";
 import type { StudentCourseItem } from "../../../features/student/api/studentCoursesApi";
+import type { StudentProgressSnapshotDto } from "../../../features/student/api/studentLearningApi";
 import { useStudentSavedCourses, useToggleStudentSavedCourse } from "../../../features/student/api/useStudentLearning";
 import anatomyImage from "../../../Assets/dashboard/human-anatomy.webp";
 import physioImage from "../../../Assets/dashboard/medical-physiology.webp";
@@ -16,17 +17,23 @@ interface CourseOption {
   id: string;
   name: string;
   subtitle: string;
-  currentLesson: number | null;
+  completedLessons: number | null;
   totalLessons: number;
   progressPercentage: number | null;
   imageSrc: string;
   route: string;
+  canOpen: boolean;
+  resumeLessonTitle: string | null;
 }
 
 interface ContinueLearningProps {
   title?: string;
   status?: string;
   courses?: readonly StudentCourseItem[];
+  /** Progress snapshot already fetched by the dashboard. */
+  progress?: StudentProgressSnapshotDto;
+  progressLoading?: boolean;
+  progressError?: boolean;
   onContinue?: () => void;
 }
 
@@ -38,38 +45,54 @@ function imageForCourse(course: StudentCourseItem) {
   return anatomyImage;
 }
 
-function canOpenCourse(course: StudentCourseItem) {
+function isEnrolledCourse(course: StudentCourseItem) {
   return course.access?.isEnrolled === true;
 }
 
-function toCourseOption(course: StudentCourseItem): CourseOption {
+function toCourseOption(course: StudentCourseItem, progress: StudentProgressSnapshotDto | undefined): CourseOption {
+  const entry = progress?.courses.find((item) => item.courseId === course.courseId);
+  const recent = progress?.recentActivity.find((item) => item.courseId === course.courseId);
+  const canOpen = course.access?.canOpen === true;
   return {
     id: course.courseId,
     name: course.title,
     subtitle: `${course.academicInstitution.name} • ${course.academicLevel.title} • ${course.academicSemester.title}`,
-    currentLesson: null,
-    totalLessons: course.lessonCount,
-    progressPercentage: null,
+    // A loaded snapshot without this course means no recorded progress (0%);
+    // no snapshot at all means progress is genuinely unavailable.
+    completedLessons: progress ? entry?.completedLessons ?? 0 : null,
+    totalLessons: entry?.totalLessons || course.lessonCount,
+    progressPercentage: progress ? Math.round(entry?.completionPercent ?? 0) : null,
     imageSrc: imageForCourse(course),
-    route: `/my-courses/${course.courseId}`,
+    route: canOpen && recent ? `/my-courses/${course.courseId}/lessons/${recent.lessonId}` : `/my-courses/${course.courseId}`,
+    canOpen,
+    resumeLessonTitle: recent?.lessonTitle ?? null,
   };
 }
 
-function orderedCourseOptions(courses: readonly StudentCourseItem[]) {
-  return courses.map(toCourseOption);
+function lastActivity(progress: StudentProgressSnapshotDto | undefined, courseId: string) {
+  const recent = progress?.recentActivity.find((item) => item.courseId === courseId)?.occurredAt;
+  return recent ?? progress?.courses.find((item) => item.courseId === courseId)?.lastActivityAt ?? "";
+}
+
+function orderedCourseOptions(courses: readonly StudentCourseItem[], progress: StudentProgressSnapshotDto | undefined) {
+  return [...courses]
+    .sort((a, b) => lastActivity(progress, b.courseId).localeCompare(lastActivity(progress, a.courseId)))
+    .map((course) => toCourseOption(course, progress));
 }
 
 const ContinueLearning: React.FC<ContinueLearningProps> = ({
   title = "Continue Learning",
   status = "Enrolled",
   courses = [],
+  progress,
+  progressLoading = false,
+  progressError = false,
   onContinue,
 }) => {
   const navigate = useNavigate();
-  const enrolledCourses = useMemo(() => courses.filter(canOpenCourse), [courses]);
-  const courseOptions = useMemo(() => orderedCourseOptions(enrolledCourses), [enrolledCourses]);
-  const preferredCourse = enrolledCourses[0] ?? null;
-  const preferredCourseId = preferredCourse?.courseId ?? "";
+  const enrolledCourses = useMemo(() => courses.filter(isEnrolledCourse), [courses]);
+  const courseOptions = useMemo(() => orderedCourseOptions(enrolledCourses, progress), [enrolledCourses, progress]);
+  const preferredCourseId = courseOptions[0]?.id ?? "";
   const [selectedCourseId, setSelectedCourseId] = useState(preferredCourseId);
   const selectedCourse = courseOptions.find((course) => course.id === selectedCourseId) ?? courseOptions[0] ?? null;
   const savedCoursesQuery = useStudentSavedCourses();
@@ -78,7 +101,7 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const { toastMessage, showToast } = useToast();
+  const { toastMessage, toastTone, showToast } = useToast();
 
   useEffect(() => {
     setSelectedCourseId((current) => current || preferredCourseId);
@@ -101,7 +124,7 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
       onContinue();
       return;
     }
-    if (!selectedCourse) return;
+    if (!selectedCourse || !selectedCourse.canOpen) return;
     navigate(selectedCourse.route, { state: { courseTitle: selectedCourse.name, courseId: selectedCourse.id } });
   };
 
@@ -110,14 +133,14 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
     const nextState = !isBookmarked;
     toggleSavedCourse.mutate({ courseId: selectedCourse.id, saved: nextState }, {
       onSuccess: () => showToast(nextState ? `Saved "${selectedCourse.name}"` : `Removed "${selectedCourse.name}" from saved courses`),
-      onError: (error) => showToast(error.message || "Saved courses could not be updated."),
+      onError: (error) => showToast(error.message || "Saved courses could not be updated.", "error"),
     });
   };
 
   const handleSwitchCourse = (course: CourseOption) => {
     setSelectedCourseId(course.id);
     setIsSwitchModalOpen(false);
-    showToast(`Showing "${course.name}" in Continue Learning`);
+    showToast(`Showing "${course.name}" in Continue Learning`, "info");
   };
 
   if (!selectedCourse) {
@@ -135,7 +158,7 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
 
   return (
     <section className="continue-learning w-full max-w-(--card-max-width) font-sans">
-      {createPortal(<ToastNotification message={toastMessage} />, document.body)}
+      {createPortal(<ToastNotification message={toastMessage} tone={toastTone} />, document.body)}
 
       <div className="continue-learning-card w-full bg-(--secondary-color) rounded-(--border-radius-card) border border-(--color-border-color) pt-(--card-padding-top) pb-(--card-padding-bottom) pl-(--card-padding-left) pr-(--card-padding-right) shadow-sm transition-all duration-300 hover:shadow-md">
         <div className="continue-learning-header flex items-center justify-between mb-6">
@@ -218,13 +241,19 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
 
                 <div className="continue-learning-metrics mt-auto">
                   <p className="continue-learning-lesson text-lesson-meta font-normal text-(--paragraphs) mb-3">
-                    {selectedCourse.progressPercentage === null ? "Progress unavailable" : `${selectedCourse.progressPercentage}% complete`}
+                    {selectedCourse.progressPercentage !== null
+                      ? `${selectedCourse.progressPercentage}% complete${selectedCourse.completedLessons !== null && selectedCourse.totalLessons > 0 ? ` · ${selectedCourse.completedLessons}/${selectedCourse.totalLessons} lessons` : ""}`
+                      : progressLoading ? "Loading progress…" : progressError ? "Progress couldn't be loaded" : "Progress unavailable"}
                   </p>
 
                   <p className="continue-learning-lesson text-lesson-meta font-normal text-(--paragraphs)">
-                    {selectedCourse.totalLessons > 0
-                      ? `${selectedCourse.totalLessons} lessons available`
-                      : "Lesson list is not available yet"}
+                    {!selectedCourse.canOpen
+                      ? "Lessons are not open for your account yet"
+                      : selectedCourse.resumeLessonTitle
+                        ? `Last lesson: ${selectedCourse.resumeLessonTitle}`
+                        : selectedCourse.totalLessons > 0
+                          ? `${selectedCourse.totalLessons} lessons available`
+                          : "Lesson list is not available yet"}
                   </p>
                 </div>
               </div>
@@ -236,10 +265,11 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
           <button
             type="button"
             onClick={handleContinue}
-            className="continue-learning-cta relative group overflow-hidden flex-1 h-(--cta-height) max-w-(--cta-width) px-6 bg-(--primary-color) hover:shadow-md text-white font-semibold text-cta rounded-(--border-radius-cta) transition-all duration-300 active:scale-[0.99] cursor-pointer flex items-center justify-center text-center"
+            disabled={!selectedCourse.canOpen}
+            className="continue-learning-cta disabled:cursor-not-allowed disabled:opacity-60 relative group overflow-hidden flex-1 h-(--cta-height) max-w-(--cta-width) px-6 bg-(--primary-color) hover:shadow-md text-white font-semibold text-cta rounded-(--border-radius-cta) transition-all duration-300 active:scale-[0.99] cursor-pointer flex items-center justify-center text-center"
           >
             <div className="absolute inset-0 w-1/2 h-full bg-linear-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-[350%] transition-transform duration-800 ease-in-out pointer-events-none" />
-            <span className="relative z-10">View Subject</span>
+            <span className="relative z-10">{!selectedCourse.canOpen ? "Not open yet" : selectedCourse.resumeLessonTitle ? "Resume lesson" : "View Subject"}</span>
           </button>
 
           <button
@@ -308,7 +338,7 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
                       <div>
                         <h4 className="text-sm font-semibold text-slate-800">{course.name}</h4>
                         <p className="text-xs text-slate-500">
-                          {course.totalLessons} lessons • {course.progressPercentage}% started
+                          {course.totalLessons} lessons{course.progressPercentage !== null ? ` • ${course.progressPercentage}% complete` : ""}
                         </p>
                       </div>
                     </div>

@@ -2,6 +2,9 @@ import { env } from "../../../app/config/env";
 
 const persistentStorageKey = "buc-elearning-auth-session";
 const temporaryStorageKey = "buc-elearning-auth-session-tab";
+/** Same-tab notification fired whenever the stored session is written or cleared. */
+export const AUTH_SESSION_CHANGED_EVENT = "buc-elearning-auth-session-changed";
+export const AUTH_SESSION_STORAGE_KEYS: readonly string[] = [persistentStorageKey, temporaryStorageKey];
 const refreshLeewayMs = 60_000;
 
 export interface SupabaseAuthenticatedUser {
@@ -24,6 +27,13 @@ interface SupabaseTokenResponse {
 }
 
 export class SupabaseAuthClientError extends Error {}
+/** The auth service could not be reached; the stored session may still be valid. */
+export class SupabaseAuthNetworkError extends SupabaseAuthClientError {}
+
+function notifySessionChanged(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event(AUTH_SESSION_CHANGED_EVENT));
+}
 
 function canUseSupabaseAuth() {
   return Boolean(env.supabaseUrl && env.supabasePublishableKey);
@@ -46,17 +56,19 @@ function readStoredSession(): StoredSession | null {
   return parseStoredSession(window.sessionStorage.getItem(temporaryStorageKey)) ?? parseStoredSession(window.localStorage.getItem(persistentStorageKey));
 }
 
-function clearStoredSession(): void {
+function clearStoredSession(notify = true): void {
   if (typeof window === "undefined") return;
   window.sessionStorage.removeItem(temporaryStorageKey);
   window.localStorage.removeItem(persistentStorageKey);
+  if (notify) notifySessionChanged();
 }
 
 function persistSession(session: StoredSession, remember: boolean): void {
   if (typeof window === "undefined") return;
-  clearStoredSession();
+  clearStoredSession(false);
   const target = remember ? window.localStorage : window.sessionStorage;
   target.setItem(remember ? persistentStorageKey : temporaryStorageKey, JSON.stringify(session));
+  notifySessionChanged();
 }
 
 function toSession(payload: SupabaseTokenResponse): StoredSession {
@@ -71,9 +83,10 @@ async function tokenRequest(grantType: "refresh_token", body: Readonly<Record<st
   try {
     response = await fetch(`${env.supabaseUrl}/auth/v1/token?grant_type=${grantType}`, { method: "POST", headers: { apikey: env.supabasePublishableKey, "content-type": "application/json", accept: "application/json" }, body: JSON.stringify(body) });
   } catch {
-    throw new SupabaseAuthClientError("The authentication service could not be reached.");
+    throw new SupabaseAuthNetworkError("The authentication service could not be reached.");
   }
   const payload = await response.json().catch(() => ({})) as SupabaseTokenResponse;
+  if (response.status >= 500) throw new SupabaseAuthNetworkError("The authentication service is temporarily unavailable.");
   if (!response.ok) throw new SupabaseAuthClientError("Your session has expired. Please sign in again.");
   return toSession(payload);
 }
@@ -87,10 +100,17 @@ export async function restoreSupabaseSession(): Promise<StoredSession | null> {
     const remember = typeof window !== "undefined" && window.localStorage.getItem(persistentStorageKey) !== null;
     persistSession(refreshed, remember);
     return refreshed;
-  } catch {
-    clearStoredSession();
+  } catch (error) {
+    // A transient outage must not sign the student out; only a rejected
+    // refresh token ends the stored session.
+    if (!(error instanceof SupabaseAuthNetworkError)) clearStoredSession();
     return null;
   }
+}
+
+/** Synchronously reads the user id of the session this tab would use. */
+export function readStoredAuthUserId(): string | null {
+  return readStoredSession()?.user.id ?? null;
 }
 
 export interface ProviderSessionBundle { readonly accessToken:string; readonly refreshToken:string; readonly authUserId:string; readonly expiresAt:string; readonly email?:string|null; }

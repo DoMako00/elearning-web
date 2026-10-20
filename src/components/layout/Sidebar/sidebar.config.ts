@@ -5,6 +5,7 @@ import {
   CircleHelp,
   ClipboardCheck,
   Compass,
+  FileQuestion,
   Home,
   MessageSquare,
   Settings,
@@ -35,6 +36,12 @@ export const primarySidebarItems: SidebarItem[] = [
     label: "Assignments",
     icon: ClipboardCheck,
     href: "/assignments",
+    enabled: true,
+  },
+  {
+    label: "Assessments",
+    icon: FileQuestion,
+    href: "/assessments",
     enabled: true,
   },
   // {

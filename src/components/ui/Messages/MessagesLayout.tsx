@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useToast } from "../../../hooks/useToast";
+import { ToastNotification } from "../ToastNotification";
 import type { ConversationFilter } from "../../../types/chat";
 import { ConversationList } from "./ConversationList";
 import { ChatWindow } from "./ChatWindow";
@@ -38,7 +40,7 @@ export const MessagesLayout: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [currentFilter, setCurrentFilter] = useState<ConversationFilter>("all");
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const { toastMessage, toastTone, showToast } = useToast();
   const [isNewMessageOpen, setIsNewMessageOpen] = useState(false);
   const [recipientProfileId, setRecipientProfileId] = useState("");
   const [isSupportRequest, setIsSupportRequest] = useState(false);
@@ -51,10 +53,6 @@ export const MessagesLayout: React.FC = () => {
   const activeMessagesQuery = useStudentConversationMessages(activeConversationId);
   const messages = (activeMessagesQuery.data ?? []).map((message) => mapStudentMessage(message, activeConversationId ?? ""));
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
 
   useEffect(() => {
     if (activeConversationId) void mutations.markRead.mutateAsync(activeConversationId).catch(() => undefined);
@@ -66,7 +64,7 @@ export const MessagesLayout: React.FC = () => {
 
   const handleSendMessage = (text: string) => {
     if (!activeConversationId || !text.trim()) return;
-    void mutations.send.mutateAsync({ conversationId: activeConversationId, body: text.trim() }).catch((error: unknown) => showToast(error instanceof Error ? error.message : "Message could not be sent."));
+    void mutations.send.mutateAsync({ conversationId: activeConversationId, body: text.trim() }).catch((error: unknown) => showToast(error instanceof Error ? error.message : "Message could not be sent.", "error"));
   };
 
   const handleNewMessageClick = () => {
@@ -83,7 +81,7 @@ export const MessagesLayout: React.FC = () => {
       setSupportSubject("");
       setSupportBody("");
       setRecipientProfileId("");
-    } catch (error) { showToast(error instanceof Error ? error.message : "Conversation could not be started."); }
+    } catch (error) { showToast(error instanceof Error ? error.message : "Conversation could not be started.", "error"); }
   };
 
   const handleBackToConversations = () => {
@@ -95,11 +93,7 @@ export const MessagesLayout: React.FC = () => {
   return (
     <div className="messages-module h-full w-full flex overflow-hidden bg-white relative">
       {/* Toast Notification */}
-      {toastMessage && (
-        <div className="absolute top-4 right-6 z-50 bg-[#174b35] text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-lg border border-[#20a862]/30 animate-fade-in">
-          {toastMessage}
-        </div>
-      )}
+      <ToastNotification message={toastMessage} tone={toastTone} position="absolute" />
 
       {isNewMessageOpen && (
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-slate-900/20 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsNewMessageOpen(false); }}>
@@ -168,9 +162,9 @@ export const MessagesLayout: React.FC = () => {
             isLoading={activeMessagesQuery.isPending}
             hasError={activeMessagesQuery.isError}
             isSending={mutations.send.isPending}
-            onVideoCall={() => showToast("Calls are not available in the current messaging service.")}
-            onAudioCall={() => showToast("Calls are not available in the current messaging service.")}
-            onMoreActions={() => showToast("Conversation settings are not available yet.")}
+            onVideoCall={() => showToast("Calls are not available in the current messaging service.", "info")}
+            onAudioCall={() => showToast("Calls are not available in the current messaging service.", "info")}
+            onMoreActions={() => showToast("Conversation settings are not available yet.", "info")}
             onBack={isSmallScreen ? handleBackToConversations : undefined}
           />
         ) : (
@@ -183,15 +177,9 @@ export const MessagesLayout: React.FC = () => {
       {/* Column 3: Context & Info Sidebar (~280px) */}
       {activeConversation && (
         <div className="w-70 shrink-0 h-full hidden lg:flex flex-col">
-          <ChatContextSidebar
-            conversation={activeConversation}
-            onViewProfile={() => showToast(`Opening ${activeConversation.recipient.name}'s profile...`)}
-            onSearchInChat={() => showToast("Search within this conversation")}
-            onMute={() => showToast(`Muted notifications for ${activeConversation.title}`)}
-            onArchive={() => showToast(`Archived conversation with ${activeConversation.title}`)}
-            onBlock={() => showToast(`Blocked ${activeConversation.title}`)}
-            onFileClick={(file) => showToast(`Opening file: ${file.name}`)}
-          />
+          {/* Profile view, search, mute, archive, block and file opening have no
+              Student messaging endpoints, so no handlers are passed. */}
+          <ChatContextSidebar conversation={activeConversation} />
         </div>
       )}
     </div>

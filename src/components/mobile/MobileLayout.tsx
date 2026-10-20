@@ -49,6 +49,21 @@ const TAB_ROOT_SCREENS: Record<TabId, ScreenItem> = {
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { MobileMessagesProvider } from "./data/useMobileMessages";
+import { TopAppBar } from "./TopAppBar";
+
+/** Titles for desktop pages rendered inside the mobile shell. */
+function routeTitle(pathname: string): string {
+  if (pathname.startsWith("/assessments")) return "Assessments";
+  if (pathname.startsWith("/assignments")) return "Assignments";
+  if (pathname.startsWith("/notifications")) return "Notifications";
+  if (pathname.startsWith("/profile")) return "Profile";
+  if (pathname.startsWith("/messages")) return "Messages";
+  if (pathname.startsWith("/community")) return "Community";
+  if (pathname.startsWith("/help")) return "Help Center";
+  if (pathname.startsWith("/instructor")) return "Instructors";
+  if (/^\/my-courses\/[^/]+\/lessons\//.test(pathname)) return "Lesson";
+  return "Back";
+}
 
 const MobileLayoutContent: React.FC<{ routeContent?: ReactNode }> = ({ routeContent }) => {
   const navigate = useNavigate();
@@ -79,7 +94,22 @@ const MobileLayoutContent: React.FC<{ routeContent?: ReactNode }> = ({ routeCont
     <div className="relative  h-dvh max-h-screen w-full bg-slate-50 flex flex-col text-slate-900 antialiased overflow-hidden">
       {/* Active Screen Area with Animated Stack Transitions */}
       <main className="flex-1 min-h-0 w-full flex flex-col pb-14 overflow-hidden">
-        {routeContent ? <div className="flex-1 min-h-0 w-full overflow-y-auto">{routeContent}</div> : <ScreenStackContainer />}
+        {routeContent ? (
+          <>
+            <TopAppBar
+              variant="detail"
+              title={routeTitle(location.pathname)}
+              backLabel="Back"
+              onBack={() => {
+                // Deep links have no in-app history to return to.
+                const index = (window.history.state as { idx?: unknown } | null)?.idx;
+                if (typeof index === "number" && index > 0) navigate(-1);
+                else navigate("/");
+              }}
+            />
+            <div className="flex-1 min-h-0 w-full overflow-y-auto">{routeContent}</div>
+          </>
+        ) : <ScreenStackContainer />}
       </main>
 
       {/* Fixed Bottom Navigation */}

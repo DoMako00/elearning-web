@@ -7,7 +7,6 @@ import {
   FileText,
   Check,
   Folder,
-  MoreVertical,
   Download,
 } from "lucide-react";
 import { TopAppBar } from "../TopAppBar";
@@ -15,8 +14,8 @@ import { SubmitAssignmentTextSheet } from "../shared/SubmitAssignmentTextSheet";
 import { useScreenStack } from "../ScreenStack";
 import { useToast } from "../../../hooks/useToast";
 import { MobileToast } from "../shared/MobileToast";
-import { useSubmitStudentAssignment } from "../../../features/student/api/useStudentAssignments";
-import { studentAssignmentStatus } from "../../../features/student/api/studentAssignmentMapper";
+import { useStudentAssignments, useSubmitStudentAssignment } from "../../../features/student/api/useStudentAssignments";
+import { isAssignmentSubmissionWindowOpen, studentAssignmentStatus } from "../../../features/student/api/studentAssignmentMapper";
 import type { StudentAssignmentDto } from "../../../features/student/api/studentAssignmentsApi";
 import { studentAssignmentsApi } from "../../../features/student/api/studentAssignmentsApi";
 
@@ -28,17 +27,23 @@ export interface AssignmentDetailScreenProps {
   assignment: StudentAssignmentDto;
 }
 
-export const AssignmentDetailScreen: React.FC<AssignmentDetailScreenProps> = ({ assignment }) => {
+export const AssignmentDetailScreen: React.FC<AssignmentDetailScreenProps> = ({ assignment: initialAssignment }) => {
   const { pop } = useScreenStack();
-  const { toastMessage, showToast } = useToast();
+  const { toastMessage, toastTone, showToast } = useToast();
+  const assignmentsQuery = useStudentAssignments();
+  const assignment = assignmentsQuery.data?.find((item) => item.id === initialAssignment.id) ?? initialAssignment;
   const submit = useSubmitStudentAssignment();
   const [isSubmitSheetOpen, setIsSubmitSheetOpen] = useState(false);
   const status = studentAssignmentStatus(assignment);
   const isSubmitted = status === "submitted" || status === "graded";
-  const canSubmit = assignment.status === "open" && (!assignment.submission || assignment.submission.status === "returned");
-  const handleSubmit = async (responseText: string, attachmentIds: string[]) => {
-    await submit.mutateAsync({ assignmentId: assignment.id, responseText, attachmentIds, expectedVersion: assignment.submission?.status === "returned" ? assignment.submission.version : null });
-    showToast("Your response was saved.");
+  const canSubmit = isAssignmentSubmissionWindowOpen(assignment)
+    && (!assignment.submission || assignment.submission.status === "returned")
+    && !submit.isPending
+    // Until the refreshed record arrives, a confirmed submission blocks a second one.
+    && !(submit.isSuccess && assignmentsQuery.isFetching);
+  const handleSubmit = async (responseText: string, attachmentIds: string[], submissionId: string) => {
+    await submit.mutateAsync({ assignmentId: assignment.id, submissionId, responseText, attachmentIds, expectedVersion: assignment.submission?.status === "returned" ? assignment.submission.version : null });
+    showToast("Your response was received by the server.");
   };
   const openAttachment = async (attachmentId: string) => {
     const tab = window.open("about:blank", "_blank");
@@ -49,7 +54,7 @@ export const AssignmentDetailScreen: React.FC<AssignmentDetailScreenProps> = ({ 
       else window.location.assign(url);
     } catch {
       tab?.close();
-      showToast("The protected attachment could not be opened.");
+      showToast("The protected attachment could not be opened.", "error");
     }
   };
 
@@ -61,15 +66,6 @@ export const AssignmentDetailScreen: React.FC<AssignmentDetailScreenProps> = ({ 
         title="Assignment Details"
         backLabel="Back"
         onBack={pop}
-        rightSlot={
-          <button
-            type="button"
-            className="p-1 rounded-full text-slate-400 hover:text-slate-700 cursor-pointer"
-            aria-label="More options"
-          >
-            <MoreVertical className="size-4.5" />
-          </button>
-        }
       />
 
       {/* Main Scrollable Content */}
@@ -278,7 +274,7 @@ export const AssignmentDetailScreen: React.FC<AssignmentDetailScreenProps> = ({ 
       />
 
       {/* Mobile Toast Notification */}
-      <MobileToast message={toastMessage} />
+      <MobileToast message={toastMessage} tone={toastTone} />
     </div>
   );
 };
