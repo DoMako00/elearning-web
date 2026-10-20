@@ -49,3 +49,13 @@ export function isValidBrandInstitution(brand: unknown, institutionCode: unknown
 export function brandDisplayName(brand: BrandCode): string {
   return BRAND_DISPLAY_NAMES[brand];
 }
+
+// Display names as seeded in app.academic_institutions (backend imports 028/030).
+const INSTITUTION_DISPLAY_NAMES: Readonly<Record<InstitutionCode, string>> = {
+  buc: "BUC",
+  delta: "Delta University",
+};
+
+export function institutionDisplayName(institution: InstitutionCode): string {
+  return INSTITUTION_DISPLAY_NAMES[institution];
+}

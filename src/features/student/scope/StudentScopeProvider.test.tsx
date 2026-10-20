@@ -1,11 +1,14 @@
-import { render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { StudentScopeProvider, belongsToStudentScope, useStudentScope } from "./StudentScopeProvider";
 import { useBrand } from "../../../app/providers/BrandProvider";
 import { useStudentProfile } from "../api/useStudentLearning";
 import { StudentLearningApiError } from "../api/studentLearningApi";
+import { getStudentAuthMethods } from "../../auth/api/identityApi";
 
 vi.mock("../api/useStudentLearning", () => ({ useStudentProfile: vi.fn() }));
+vi.mock("../../auth/api/identityApi", () => ({ getStudentAuthMethods: vi.fn() }));
 vi.mock("../../../components/layout/RouteLoadingFallback", () => ({
   RouteLoadingFallback: ({ message }: { message?: string }) => <p role="status">{message}</p>,
 }));
@@ -25,10 +28,14 @@ function ScopeProbe() {
 }
 
 function renderScope() {
-  return render(<StudentScopeProvider><ScopeProbe /></StudentScopeProvider>);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(<QueryClientProvider client={client}><StudentScopeProvider><ScopeProbe /></StudentScopeProvider></QueryClientProvider>);
 }
 
-beforeEach(() => vi.mocked(useStudentProfile).mockReset());
+beforeEach(() => {
+  vi.mocked(useStudentProfile).mockReset();
+  vi.mocked(getStudentAuthMethods).mockReset();
+});
 
 describe("StudentScopeProvider", () => {
   it("provides the verified Nexus → Delta scope and the real brand name", () => {
@@ -64,6 +71,41 @@ describe("StudentScopeProvider", () => {
     expect(alert.textContent).toMatch(/no active learning membership/i);
     expect(alert.textContent).not.toMatch(/connection/i);
     expect(screen.queryByRole("button", { name: /try again/i })).toBeNull();
+    expect(getStudentAuthMethods).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the session brand when the profile endpoint returns 503, instead of locking the student out", async () => {
+    vi.mocked(useStudentProfile).mockReturnValue(profileQuery({ isError: true, error: new StudentLearningApiError("Service unavailable", 503, "service_unavailable") }));
+    vi.mocked(getStudentAuthMethods).mockResolvedValue({ brandCode: "nexus" });
+    renderScope();
+    await waitFor(() => expect(screen.getByText("scope nexus/delta brand-name Nexus")).toBeTruthy());
+  });
+
+  it.each([["medway", "buc"], ["elite", "buc"]])("maps a %s session brand to %s during a profile outage", async (brand, institution) => {
+    vi.mocked(useStudentProfile).mockReturnValue(profileQuery({ isError: true, error: new StudentLearningApiError("Service unavailable", 503, "service_unavailable") }));
+    vi.mocked(getStudentAuthMethods).mockResolvedValue({ brandCode: brand as "medway" | "elite" });
+    renderScope();
+    await waitFor(() => expect(screen.getByText(new RegExp(`scope ${brand}/${institution}`))).toBeTruthy());
+  });
+
+  it("shows a retryable outage notice when both the profile and the session brand are unavailable", async () => {
+    const refetch = vi.fn();
+    vi.mocked(useStudentProfile).mockReturnValue(profileQuery({ isError: true, error: new StudentLearningApiError("Service unavailable", 503, "service_unavailable"), refetch } as never));
+    vi.mocked(getStudentAuthMethods).mockRejectedValue(new Error("down"));
+    renderScope();
+    // The session-brand lookup retries once before giving up.
+    await waitFor(() => expect(screen.getByRole("alert").textContent).toMatch(/couldn't reach the learning service/i), { timeout: 5000 });
+    expect(screen.queryByText(/^scope /)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /try again/i }));
+    expect(refetch).toHaveBeenCalled();
+  });
+
+  it("does not invent a scope when the session reports no brand", async () => {
+    vi.mocked(useStudentProfile).mockReturnValue(profileQuery({ isError: true, error: new StudentLearningApiError("Service unavailable", 503, "service_unavailable") }));
+    vi.mocked(getStudentAuthMethods).mockResolvedValue({});
+    renderScope();
+    await waitFor(() => expect(screen.getByRole("alert")).toBeTruthy());
+    expect(screen.queryByText(/^scope /)).toBeNull();
   });
 });
 
