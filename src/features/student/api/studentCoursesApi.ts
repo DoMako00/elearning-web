@@ -9,11 +9,21 @@ export type StudentCourseEnrollmentStatus = "active" | "completed";
 
 export interface StudentCourseAccess {
   readonly isEnrolled: boolean;
+  readonly canViewDetails?: boolean;
   readonly canOpen: boolean;
   readonly enrollmentStatus: StudentCourseEnrollmentStatus | null;
 }
 
+export interface StudentLessonLearningItem {
+  readonly id: string;
+  readonly title: string;
+  readonly kind: "pdf" | "video" | "resource" | "assignment" | "quiz" | "exam";
+  readonly assetId: string | null;
+  readonly available: boolean;
+  readonly state: string;
+}
 export interface StudentLessonItem {
+  readonly learningItems?: readonly StudentLessonLearningItem[];
   readonly lessonId: string;
   readonly chapterId: string;
   readonly title: string;
@@ -45,7 +55,7 @@ export interface StudentCourseItem {
   readonly academicSemester: { readonly semesterNumber: number; readonly title: string };
   readonly cataloguePresentation: CataloguePresentation;
   readonly unitLabel: "Subject" | "Module";
-  readonly status: "published";
+  readonly status: "draft" | "published";
   readonly chapterCount: number;
   readonly lessonCount: number;
   readonly mediaSummary: {
@@ -228,4 +238,9 @@ export function completeStudentVideoPlayback(input: Readonly<{ assetId: string; 
     {},
     { signal: input.signal },
   );
+}
+
+/** Metadata access is independent from released lesson/media access. */
+export function canViewCourseDetails(course: Pick<StudentCourseItem, "access">) {
+  return course.access.canViewDetails ?? (course.access.isEnrolled || course.access.canOpen);
 }

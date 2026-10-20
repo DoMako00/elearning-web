@@ -1,5 +1,7 @@
 import {
   Calendar,
+  FileText,
+  File,
   ChevronLeft,
   ChevronRight,
   ClipboardCheck,
@@ -19,6 +21,11 @@ const DEFAULT_ITEMS: UpcomingItem[] = [];
 
 function renderItemIcon(type?: string) {
   switch (type) {
+    case 'pdf':
+      return <FileText className="upcoming-item-icon" aria-hidden="true" />;
+    case 'resource':
+      return <File className="upcoming-item-icon" aria-hidden="true" />;
+    case 'video':
     case 'session':
       return <MonitorPlay className="upcoming-item-icon" aria-hidden="true" />;
     case 'lab':
@@ -43,6 +50,7 @@ export function Upcoming({
   loading = false,
   errorMessage,
   emptyMessage,
+  onOpenItem,
 }: UpcomingProps) {
   const navigate = useNavigate();
   const displayCount = count ?? items.length;
@@ -84,6 +92,7 @@ export function Upcoming({
 
   const handleEventAction = (event: UpcomingItem) => {
     setSelectedEvent(null);
+    if (onOpenItem) { onOpenItem(event); return; }
     if (event.href) {
       navigate(event.href);
     } else if (event.iconType === 'quiz') {
@@ -137,7 +146,7 @@ export function Upcoming({
           <div
             className="upcoming-count-badge cursor-pointer"
             title={`${displayCount} ${title.toLowerCase()} items`}
-            onClick={() => navigate(actionPath ?? '/calendar')}
+            onClick={onViewCalendar ?? (() => navigate(actionPath ?? '/calendar'))}
             aria-label={`${displayCount} ${title.toLowerCase()} items`}
           >
             <Calendar className="upcoming-count-icon" aria-hidden="true" />
@@ -154,6 +163,7 @@ export function Upcoming({
           : items.map((item) => (
           <article
             key={item.id}
+            data-kind={item.iconType}
             className="upcoming-item-card cursor-pointer hover:shadow-xs hover:border-emerald-200 transition-all"
             tabIndex={0}
             onClick={() => setSelectedEvent(item)}
@@ -201,7 +211,7 @@ export function Upcoming({
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs animate-in fade-in duration-150"
           onClick={() => setSelectedEvent(null)}
           role="dialog"
-          aria-label="Event Details Modal"
+          aria-label={onOpenItem ? "Session content details" : "Event Details Modal"}
         >
           <div
             className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl"
@@ -233,7 +243,7 @@ export function Upcoming({
             <div className="py-4 space-y-3 text-sm">
               <div className="flex items-center gap-2 text-slate-600">
                 <Calendar className="size-4 text-emerald-600 shrink-0" />
-                <span className="font-semibold text-slate-800">{selectedEvent.href ? "Course details:" : "Time & Schedule:"}</span>
+                <span className="font-semibold text-slate-800">{onOpenItem ? "Type & availability:" : selectedEvent.href ? "Course details:" : "Time & Schedule:"}</span>
                 <span>{selectedEvent.time}</span>
               </div>
             </div>
@@ -251,7 +261,7 @@ export function Upcoming({
                 onClick={() => handleEventAction(selectedEvent)}
                 className="flex-1 rounded-xl bg-(--color-brand,#20a862) py-2.5 text-xs font-semibold text-white shadow-sm hover:opacity-90"
               >
-                {selectedEvent.href
+                {onOpenItem ? (selectedEvent.iconType === 'pdf' ? 'Open PDF' : selectedEvent.iconType === 'exam' ? 'View Exam' : selectedEvent.iconType === 'assignment' ? 'View Assignment' : 'Open Content') : selectedEvent.href
                   ? 'Open Course'
                   : selectedEvent.iconType === 'quiz'
                   ? 'Start Quiz'

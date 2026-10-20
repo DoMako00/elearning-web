@@ -64,7 +64,7 @@ export function useStudentLessonProgressMutation() {
     mutationFn: ({ lessonId, status }: { lessonId: string; status: "in_progress" | "completed" }) =>
       studentLearningApi.updateLessonProgress(lessonId, status),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: studentLearningKeys.progress });
+      await Promise.all([queryClient.invalidateQueries({ queryKey: studentLearningKeys.progress }), queryClient.invalidateQueries({ queryKey: ["student", "course"] })]);
     },
   });
 }

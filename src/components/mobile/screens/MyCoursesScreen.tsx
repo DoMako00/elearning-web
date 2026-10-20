@@ -56,7 +56,7 @@ export const MyCoursesScreen: React.FC = () => {
 
     // 1. Tab filter
     if (activeTab === "in-progress") {
-      list = list.filter((c) => c.status === "IN PROGRESS");
+      list = list.filter((c) => c.status !== "COMPLETED");
     } else if (activeTab === "completed") {
       list = list.filter((c) => c.status === "COMPLETED");
     } else if (activeTab === "saved") {

@@ -264,6 +264,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
             </article>
           ) : null}
 
+          {!canOpenCourse ? <p role="status" className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">This module is assigned to your account. Sessions will appear here when they are published and released for your account.</p> : null}
           <div className="course-overview-tabs" role="tablist" aria-label="Course sections">
             {TABS.map(({ id, label, icon: Icon }, index) => (
               <button
@@ -287,7 +288,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
             <div className="course-overview-info-row">
               <article className="course-overview-card course-overview-about">
                 <h2>About this {course.unitLabel.toLowerCase()}</h2>
-                <p>{course.title} is published for {course.brand.name} students in {course.academicInstitution.name} {course.academicLevel.title}, {course.academicSemester.title}.</p>
+                <p>{course.title} is assigned to {course.brand.name} students in {course.academicInstitution.name} {course.academicLevel.title}, {course.academicSemester.title}.</p>
                 <dl>
                   <div><Sparkles aria-hidden="true" /><span><dt>Presentation</dt><dd>{course.cataloguePresentation === "subject_based" ? "Subject based" : "Module based"}</dd></span></div>
                   <div><LayoutGrid aria-hidden="true" /><span><dt>Includes</dt><dd>{course.chapterCount} chapters, {totalLessons} lessons</dd></span></div>

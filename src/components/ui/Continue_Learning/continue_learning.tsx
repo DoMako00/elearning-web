@@ -1,3 +1,4 @@
+import { canViewCourseDetails } from "../../../features/student/api/studentCoursesApi";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { MoreHorizontal, Bookmark, Play, RefreshCw, ExternalLink, X, Check } from "lucide-react";
@@ -34,6 +35,8 @@ interface ContinueLearningProps {
   progress?: StudentProgressSnapshotDto;
   progressLoading?: boolean;
   progressError?: boolean;
+  onActiveCourseChange?: (courseId: string) => void;
+  activeSession?: {courseId: string; lessonId: string; title: string; number: number; canStart: boolean} | null;
   onContinue?: () => void;
 }
 
@@ -46,13 +49,13 @@ function imageForCourse(course: StudentCourseItem) {
 }
 
 function isEnrolledCourse(course: StudentCourseItem) {
-  return course.access?.isEnrolled === true;
+  return canViewCourseDetails(course);
 }
 
 function toCourseOption(course: StudentCourseItem, progress: StudentProgressSnapshotDto | undefined): CourseOption {
   const entry = progress?.courses.find((item) => item.courseId === course.courseId);
   const recent = progress?.recentActivity.find((item) => item.courseId === course.courseId);
-  const canOpen = course.access?.canOpen === true;
+  const canOpen = canViewCourseDetails(course);
   return {
     id: course.courseId,
     name: course.title,
@@ -63,9 +66,9 @@ function toCourseOption(course: StudentCourseItem, progress: StudentProgressSnap
     totalLessons: entry?.totalLessons || course.lessonCount,
     progressPercentage: progress ? Math.round(entry?.completionPercent ?? 0) : null,
     imageSrc: imageForCourse(course),
-    route: canOpen && recent ? `/my-courses/${course.courseId}/lessons/${recent.lessonId}` : `/my-courses/${course.courseId}`,
+    route: course.access.canOpen && recent ? `/my-courses/${course.courseId}/lessons/${recent.lessonId}` : `/my-courses/${course.courseId}`,
     canOpen,
-    resumeLessonTitle: recent?.lessonTitle ?? null,
+    resumeLessonTitle: course.access.canOpen ? recent?.lessonTitle ?? null : null,
   };
 }
 
@@ -88,6 +91,8 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
   progressLoading = false,
   progressError = false,
   onContinue,
+  onActiveCourseChange,
+  activeSession,
 }) => {
   const navigate = useNavigate();
   const enrolledCourses = useMemo(() => courses.filter(isEnrolledCourse), [courses]);
@@ -95,6 +100,9 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
   const preferredCourseId = courseOptions[0]?.id ?? "";
   const [selectedCourseId, setSelectedCourseId] = useState(preferredCourseId);
   const selectedCourse = courseOptions.find((course) => course.id === selectedCourseId) ?? courseOptions[0] ?? null;
+  const session = activeSession?.courseId === selectedCourse?.id ? activeSession : null;
+  const selectedRoute = session?.canStart ? `/my-courses/${session.courseId}/lessons/${session.lessonId}` : selectedCourse ? activeSession === undefined ? selectedCourse.route : `/my-courses/${selectedCourse.id}` : "/my-courses";
+  useEffect(() => {if (selectedCourse) onActiveCourseChange?.(selectedCourse.id);},[selectedCourse?.id,onActiveCourseChange]);
   const savedCoursesQuery = useStudentSavedCourses();
   const toggleSavedCourse = useToggleStudentSavedCourse();
   const isBookmarked = selectedCourse ? savedCoursesQuery.data?.some((course) => course.courseId === selectedCourse.id) ?? false : false;
@@ -125,7 +133,7 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
       return;
     }
     if (!selectedCourse || !selectedCourse.canOpen) return;
-    navigate(selectedCourse.route, { state: { courseTitle: selectedCourse.name, courseId: selectedCourse.id } });
+    navigate(selectedRoute, { state: { courseTitle: selectedCourse.name, courseId: selectedCourse.id } });
   };
 
   const toggleBookmark = () => {
@@ -139,6 +147,7 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
 
   const handleSwitchCourse = (course: CourseOption) => {
     setSelectedCourseId(course.id);
+    onActiveCourseChange?.(course.id);
     setIsSwitchModalOpen(false);
     showToast(`Showing "${course.name}" in Continue Learning`, "info");
   };
@@ -200,7 +209,7 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
                   type="button"
                   onClick={() => {
                     setIsMenuOpen(false);
-                    navigate(selectedCourse.route, { state: { courseTitle: selectedCourse.name, courseId: selectedCourse.id } });
+                    navigate(`/my-courses/${selectedCourse.id}`, { state: { courseTitle: selectedCourse.name, courseId: selectedCourse.id } });
                   }}
                   className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left hover:bg-slate-50 transition-colors"
                   role="menuitem"
@@ -247,7 +256,7 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
                   </p>
 
                   <p className="continue-learning-lesson text-lesson-meta font-normal text-(--paragraphs)">
-                    {!selectedCourse.canOpen
+                    {session ? `Session ${session.number}: ${session.title}` : !selectedCourse.canOpen
                       ? "Lessons are not open for your account yet"
                       : selectedCourse.resumeLessonTitle
                         ? `Last lesson: ${selectedCourse.resumeLessonTitle}`
@@ -269,7 +278,7 @@ const ContinueLearning: React.FC<ContinueLearningProps> = ({
             className="continue-learning-cta disabled:cursor-not-allowed disabled:opacity-60 relative group overflow-hidden flex-1 h-(--cta-height) max-w-(--cta-width) px-6 bg-(--primary-color) hover:shadow-md text-white font-semibold text-cta rounded-(--border-radius-cta) transition-all duration-300 active:scale-[0.99] cursor-pointer flex items-center justify-center text-center"
           >
             <div className="absolute inset-0 w-1/2 h-full bg-linear-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-[350%] transition-transform duration-800 ease-in-out pointer-events-none" />
-            <span className="relative z-10">{!selectedCourse.canOpen ? "Not open yet" : selectedCourse.resumeLessonTitle ? "Resume lesson" : "View Subject"}</span>
+            <span className="relative z-10">{!selectedCourse.canOpen ? "Not open yet" : session?.canStart ? `Open session ${session.number}` : "View module"}</span>
           </button>
 
           <button

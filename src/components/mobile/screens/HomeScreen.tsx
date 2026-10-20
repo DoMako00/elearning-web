@@ -1,3 +1,6 @@
+import { useNextSessions } from "../../../features/student/hooks/useNextSessions";
+import { SessionContentCard } from "../../../features/student/components/DashboardBento/SessionContentCard";
+import { RecommendedSessions } from "../../ui/RecommendedCourses/RecommendedSessions";
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { TopAppBar } from "../TopAppBar";
@@ -41,8 +44,12 @@ export const HomeScreen: React.FC = () => {
   const courses = useMemo(() => (coursesQuery.data ?? []).map((course) => mapStudentCourseToCard(course, progress?.courses.find((item) => item.courseId === course.courseId))), [coursesQuery.data, progress]);
   const recentActivity = progress?.recentActivity ?? [];
   const currentActivity = recentActivity[0];
+  const nextSessions = useNextSessions(coursesQuery.data ?? []);
+  const active = nextSessions.find(item => item.course.courseId === currentActivity?.courseId) ?? nextSessions[0];
+  const activeLesson = active?.next?.lesson;
+
   const activityCourse = currentActivity ? coursesQuery.data?.find((course) => course.courseId === currentActivity.courseId) : undefined;
-  const currentActivityProgress = currentActivity ? progress?.courses.find((course) => course.courseId === currentActivity.courseId) : undefined;
+  const currentActivityProgress = active ? progress?.courses.find((course) => course.courseId === active?.course.courseId) : undefined;
   const handleOpenNotes = () => {
     if (currentActivity && activityCourse?.access.canOpen) {
       navigate(`/my-courses/${currentActivity.courseId}/lessons/${currentActivity.lessonId}`);
@@ -112,13 +119,13 @@ export const HomeScreen: React.FC = () => {
               {/* Left Details */}
               <div className="flex-1 min-w-0 pr-1">
                 <span className="inline-block px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold tracking-wider uppercase mb-1 border border-emerald-200/50">
-                  {currentActivity?.status === "completed" ? "COMPLETED" : currentActivity ? "IN PROGRESS" : progressQuery.isError ? "UNAVAILABLE" : progressQuery.isLoading ? "LOADING" : "NO RECENT ACTIVITY"}
+                  {activeLesson ? `SESSION ${active?.next?.number}` : coursesQuery.isPending || active?.query.isPending ? "LOADING" : "ASSIGNED"}
                 </span>
                 <h2 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">
-                  {currentActivity?.lessonTitle ?? (progressQuery.isLoading ? "Loading learning activity…" : progressQuery.isError ? "Learning activity couldn’t be loaded" : "No recent lesson activity")}
+                  {activeLesson?.title ?? active?.course.title ?? (coursesQuery.isPending ? "Loading your modules…" : "No assigned modules")}
                 </h2>
                 <p className="text-xs text-slate-500 font-medium mt-0.5" role={progressQuery.isError && !currentActivity ? "alert" : undefined}>
-                  {currentActivity?.courseTitle ?? (progressQuery.isError ? "Check your connection and try again." : "Completed lessons will appear here when recorded.")}
+                  {active?.course.title ?? "Your assigned modules will appear here."}
                 </p>
                 {progressQuery.isError && !currentActivity ? (
                   <button type="button" onClick={() => void progressQuery.refetch()} className="mt-2 min-h-11 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700">Try again</button>
@@ -129,7 +136,7 @@ export const HomeScreen: React.FC = () => {
                   <div className="flex items-center justify-between text-xs text-slate-600 font-semibold mb-1.5">
                     <span className="flex items-center gap-1.5">
                       <FileText className="w-3.5 h-3.5 text-emerald-600" />
-                      {currentActivityProgress?.completedLessons ?? 0} of {currentActivityProgress?.totalLessons ?? 0} lessons
+                      {currentActivityProgress?.completedLessons ?? 0} of {currentActivityProgress?.totalLessons ?? active?.course.lessonCount ?? 0} lessons
                     </span>
                     <span className="font-bold text-emerald-600">{currentActivityProgress?.completionPercent ?? 0}%</span>
                   </div>
@@ -165,11 +172,11 @@ export const HomeScreen: React.FC = () => {
               {/* Continue Reading Button */}
               <button
                 type="button"
-                onClick={() => currentActivity && activityCourse?.access.canOpen && navigate(`/my-courses/${currentActivity.courseId}/lessons/${currentActivity.lessonId}`)}
-                disabled={!currentActivity || !activityCourse?.access.canOpen}
+                onClick={() => active && navigate(activeLesson?.playbackAvailable && active.course.access.canOpen ? `/my-courses/${active.course.courseId}/lessons/${activeLesson.lessonId}` : `/my-courses/${active.course.courseId}`)}
+                disabled={!active}
                 className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
               >
-                <span>{currentActivity && activityCourse?.access.canOpen ? "Continue Learning" : "No lesson to continue"}</span>
+                <span>{activeLesson?.playbackAvailable && active?.course.access.canOpen ? `Open session ${active.next?.number}` : "View module"}</span>
                 <ArrowRight className="w-3.5 h-3.5 stroke-[2.2]" />
               </button>
             </div>
@@ -229,6 +236,9 @@ export const HomeScreen: React.FC = () => {
               {!coursesQuery.isLoading && !coursesQuery.isError && courses.length === 0 && <p className="text-xs text-slate-500">No enrolled courses yet.</p>}
             </div>
           </section>
+
+          <SessionContentCard course={active?.course} lesson={activeLesson} number={active?.next?.number} loading={coursesQuery.isPending || Boolean(active?.query.isPending)} error={coursesQuery.isError || Boolean(active?.query.isError)} />
+          <RecommendedSessions courses={coursesQuery.data ?? []} loading={coursesQuery.isPending} error={coursesQuery.isError} />
 
           {/* 5. Weekly Study Goal Section */}
           <section aria-label="Weekly Study Goal">
