@@ -1,5 +1,4 @@
 import type { CSSProperties } from "react";
-import { Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import learningScene from "../../../../Assets/dashboard/learning-scene.png";
 import mintBackground from "../../../../Assets/dashboard/mint-background.svg";
@@ -17,7 +16,7 @@ const calendarMask: CSSProperties = {
   WebkitMaskImage: `url("${calendarIcon}")`,
 };
 
-export function LearningSpaceCard({ onOpenLegacyGuide }: { onOpenLegacyGuide: () => void }) {
+export function LearningSpaceCard({ onOpenLegacyGuide: _onOpenLegacyGuide }: { onOpenLegacyGuide: () => void }) {
   return (
     <article className="learning-space-card" aria-labelledby="learning-space-title">
       <img className="learning-space-card__background" src={mintBackground} alt="" aria-hidden="true" />
@@ -26,10 +25,10 @@ export function LearningSpaceCard({ onOpenLegacyGuide }: { onOpenLegacyGuide: ()
         <header className="learning-space-card__header">
           <span className="learning-space-card__book-icon" style={bookMask} aria-hidden="true" />
           <h2 id="learning-space-title">Your Learning Space</h2>
-          <button type="button" className="learning-space-card__ai-link" onClick={onOpenLegacyGuide}>
+          {/* <button type="button" className="learning-space-card__ai-link" onClick={onOpenLegacyGuide}>
             <Sparkles aria-hidden="true" />
             <span>AI Guide</span>
-          </button>
+          </button> */}
         </header>
 
         <div className="learning-space-card__copy">

@@ -55,18 +55,32 @@ function SetGoalPrompt({ onSet, saving, disabled }: { onSet: (lessons: number) =
 
   return (
     <div className="weekly-goal-setup">
-      <div className="weekly-goal-setup__intro">
-        <div className="weekly-goal-setup__icon" aria-hidden="true">
-          <Target strokeWidth={1.75} />
+      {/* Hero row: live ring (left) + heading/sub (right) */}
+      <div className="weekly-goal-setup__hero">
+        <div className="weekly-goal-setup__ring-wrap" aria-hidden="true">
+          <ProgressRing
+            size={110}
+            radius={48}
+            percentage={Math.max(12, Math.min(100, Math.round((selected / 12) * 100)))}
+            strokeWidth={7}
+            trackColor="#e1f5ec"
+            progressColor="#008a4b"
+            className="size-full rotate-[-75deg]"
+          />
+          <div className="weekly-goal-setup__ring-inner">
+            <span className="weekly-goal-setup__ring-val">{selected}</span>
+            <span className="weekly-goal-setup__ring-sub">lessons / week</span>
+          </div>
         </div>
         <div className="weekly-goal-setup__copy">
-          <h3 className="weekly-goal-setup__heading">Set your weekly goal</h3>
-          <p className="weekly-goal-setup__sub">Choose a lesson target for each week.</p>
+          <h3 className="weekly-goal-setup__heading">Build your study rhythm</h3>
+          <p className="weekly-goal-setup__sub">Choose a target that works for you.</p>
         </div>
       </div>
 
+      {/* Preset chips */}
       <div className="weekly-goal-setup__presets">
-          {PRESETS.map((lessons) => (
+        {PRESETS.map((lessons) => (
           <button
             key={lessons}
             type="button"
@@ -80,6 +94,7 @@ function SetGoalPrompt({ onSet, saving, disabled }: { onSet: (lessons: number) =
         ))}
       </div>
 
+      {/* Slider */}
       <div className="weekly-goal-setup__slider-wrap">
         <input
           type="range"
@@ -93,18 +108,18 @@ function SetGoalPrompt({ onSet, saving, disabled }: { onSet: (lessons: number) =
         />
         <div className="weekly-goal-setup__slider-labels">
           <span>1</span>
-          <span className="weekly-goal-setup__slider-val">{selected} lessons / week</span>
           <span>100</span>
         </div>
       </div>
 
+      {/* CTA */}
       <button
         type="button"
         className="weekly-goal-setup__cta"
         onClick={() => onSet(selected)}
         disabled={disabled || saving}
       >
-        <Zap size={14} aria-hidden="true" />
+        <Zap size={16} aria-hidden="true" />
         <span>{saving ? "Saving…" : "Save weekly goal"}</span>
       </button>
     </div>
@@ -183,7 +198,7 @@ export function WeeklyGoalCard({
           ) : null}
         </div>
       ) : !hasGoal ? (
-        <div className="weekly-goal-body flex min-h-0 flex-1 flex-col items-center justify-center">
+        <div className="weekly-goal-body weekly-goal-body--setup flex min-h-0 flex-1 flex-col items-center justify-between">
           <SetGoalPrompt onSet={handleFirstGoalSet} saving={saving} disabled={loading} />
           {error ? <p className="mt-2 text-xs text-rose-700" role="alert">{error}</p> : null}
         </div>
