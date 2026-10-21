@@ -1,6 +1,5 @@
 import { X } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import type { DiscussionPost } from "../types/community";
 
 interface CreateThreadModalProps {
   isOpen: boolean;
@@ -9,8 +8,6 @@ interface CreateThreadModalProps {
     title: string;
     body: string;
     categoryKey: string;
-    categoryLabel: string;
-    topicIcon: DiscussionPost["topicIcon"];
   }) => void | Promise<void>;
   isSubmitting?: boolean;
   errorMessage?: string | null;
@@ -25,7 +22,7 @@ export function CreateThreadModal({
 }: CreateThreadModalProps) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [category, setCategory] = useState("react");
+  const [category, setCategory] = useState("general");
 
   if (!isOpen) return null;
 
@@ -33,27 +30,11 @@ export function CreateThreadModal({
     e.preventDefault();
     if (!title.trim() || !body.trim() || isSubmitting) return;
 
-    let topicIcon: DiscussionPost["topicIcon"] = "atom";
-    let categoryLabel = "React";
-
-    if (category === "design") {
-      topicIcon = "palette";
-      categoryLabel = "Design";
-    } else if (category === "datascience") {
-      topicIcon = "chart";
-      categoryLabel = "Data Science";
-    } else if (category === "backend") {
-      topicIcon = "cubes";
-      categoryLabel = "Backend";
-    }
-
     try {
       await onSubmit({
         title: title.trim(),
         body: body.trim(),
         categoryKey: category,
-        categoryLabel,
-        topicIcon,
       });
     } catch {
       return;
@@ -84,47 +65,51 @@ export function CreateThreadModal({
         {/* Modal Form */}
         <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-              Discussion
+            <label htmlFor="community-discussion-body" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Your question or discussion
             </label>
             <textarea
+              id="community-discussion-body"
               required
               value={body}
               onChange={(e) => setBody(e.target.value)}
               maxLength={20000}
               rows={4}
-              placeholder="Share the question or idea you want to discuss."
+              placeholder="Ask about course content, share a clinical case, or discuss exam preparation."
               className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-[14px] text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 resize-y"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-              Topic / Question Title
+            <label htmlFor="community-discussion-title" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Discussion title
             </label>
             <input
+              id="community-discussion-title"
               type="text"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., How do you organize custom hooks in large React apps?"
+              placeholder="e.g., How can I distinguish viral from bacterial meningitis?"
               className="w-full h-11 px-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[14px] text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+            <label htmlFor="community-discussion-category" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
               Category
             </label>
             <select
+              id="community-discussion-category"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               className="w-full h-11 px-3 bg-slate-50 border border-slate-200 rounded-xl text-[14px] text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
             >
-              <option value="react">React & Next.js</option>
-              <option value="design">UI/UX Design</option>
-              <option value="datascience">Data Science & AI</option>
-              <option value="backend">Backend & Architecture</option>
+              <option value="general">General discussion</option>
+              <option value="react">Course question</option>
+              <option value="design">Clinical case</option>
+              <option value="datascience">Exam preparation</option>
+              <option value="backend">Study resources</option>
             </select>
           </div>
 

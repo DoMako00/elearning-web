@@ -25,7 +25,7 @@ function roomDescription(room: StudentCommunityRoomDto) {
 export function Community() {
   const { toastMessage, toastTone, showToast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<TopicCategory>("all");
-  const [selectedDropdownTopic, setSelectedDropdownTopic] = useState("All topics");
+  const [selectedDropdownTopic, setSelectedDropdownTopic] = useState("All categories");
   const [searchQuery, setSearchQuery] = useState("");
   const [roomSearchQuery, setRoomSearchQuery] = useState("");
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
@@ -67,8 +67,14 @@ export function Community() {
       && !item.category.label.toLowerCase().includes(query)
       && !(item.content ?? "").toLowerCase().includes(query)) return false;
 
-    if (selectedDropdownTopic !== "All topics") {
-      const topicKeys: Record<string, string> = { "React & Next.js": "react", "UI/UX Design Systems": "design", "Data Science & AI": "datascience", "Backend & APIs": "backend" };
+    if (selectedDropdownTopic !== "All categories") {
+      const topicKeys: Record<string, string> = {
+        "General discussion": "general",
+        "Course question": "react",
+        "Clinical case": "design",
+        "Exam preparation": "datascience",
+        "Study resources": "backend",
+      };
       if (topicKeys[selectedDropdownTopic] && item.category.key.toLowerCase() !== topicKeys[selectedDropdownTopic]) return false;
     }
     if (selectedCategory === "all" || selectedCategory === "discussions") return true;
@@ -80,7 +86,7 @@ export function Community() {
     setSelectedRoomId(roomId);
     setSelectedPostId(null);
     setSelectedCategory("all");
-    setSelectedDropdownTopic("All topics");
+    setSelectedDropdownTopic("All categories");
     setSearchQuery("");
   };
 
@@ -121,7 +127,7 @@ export function Community() {
 
   const roomsError = roomsQuery.isError ? "Your course rooms could not be loaded." : null;
   const postsError = postsQuery.isError ? "Discussions in this room could not be loaded." : null;
-  const hasDiscussionFilters = Boolean(searchQuery.trim()) || selectedCategory !== "all" || selectedDropdownTopic !== "All topics";
+  const hasDiscussionFilters = Boolean(searchQuery.trim()) || selectedCategory !== "all" || selectedDropdownTopic !== "All categories";
 
   return (
     <div className="community-workspace">

@@ -1,20 +1,21 @@
 import type { DiscussionPost, DiscussionReply } from "../../community/types/community";
 import type { StudentCommunityCategoryKey, StudentCommunityCommentDto, StudentCommunityPostDto } from "./studentCommunityApi";
 
+// Keep the current API/DB enum values on the wire; present course-specific labels to students.
 const labels: Record<StudentCommunityCategoryKey, string> = {
-  general: "General",
-  react: "React & Next.js",
-  design: "UI/UX Design",
-  datascience: "Data Science & AI",
-  backend: "Backend & APIs",
+  general: "General discussion",
+  react: "Course question",
+  design: "Clinical case",
+  datascience: "Exam preparation",
+  backend: "Study resources",
 };
 
 const icons: Record<StudentCommunityCategoryKey, DiscussionPost["topicIcon"]> = {
   general: "message",
-  react: "code",
-  design: "palette",
-  datascience: "chart",
-  backend: "cubes",
+  react: "book",
+  design: "stethoscope",
+  datascience: "clipboard",
+  backend: "file",
 };
 
 const colors: Record<StudentCommunityCategoryKey, string> = {
