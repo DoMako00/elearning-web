@@ -59,7 +59,7 @@ export interface DiscussionPost {
     label: string;
     badgeColor?: string; // e.g., emerald, amber, blue, purple
   };
-  topicIcon: "js" | "palette" | "chart" | "cubes" | "atom" | "code" | "message";
+  topicIcon: "js" | "palette" | "chart" | "cubes" | "atom" | "code" | "message" | "book" | "stethoscope" | "clipboard" | "file";
   iconBgColor?: string;
   iconColor?: string;
   timeAgo: string;

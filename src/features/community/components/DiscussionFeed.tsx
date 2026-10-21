@@ -1,5 +1,8 @@
 import {
   ArrowRight,
+  BookOpen,
+  ClipboardCheck,
+  FileText,
   MessageSquare,
   Atom,
   Palette,
@@ -7,6 +10,7 @@ import {
   Boxes,
   Code,
   FileCode,
+  Stethoscope,
 } from "lucide-react";
 import type { DiscussionPost } from "../types/community";
 
@@ -70,6 +74,36 @@ export function DiscussionFeed({
         return (
           <div className="size-10 grid place-items-center rounded-xl bg-indigo-100 text-indigo-700 shrink-0 shadow-2xs">
             <Code className="size-5" />
+          </div>
+        );
+      case "message":
+        return (
+          <div className="size-10 grid place-items-center rounded-xl bg-emerald-100 text-emerald-700 shrink-0 shadow-2xs">
+            <MessageSquare className="size-5" />
+          </div>
+        );
+      case "book":
+        return (
+          <div className="size-10 grid place-items-center rounded-xl bg-emerald-100 text-emerald-700 shrink-0 shadow-2xs">
+            <BookOpen className="size-5" />
+          </div>
+        );
+      case "stethoscope":
+        return (
+          <div className="size-10 grid place-items-center rounded-xl bg-purple-100 text-purple-700 shrink-0 shadow-2xs">
+            <Stethoscope className="size-5" />
+          </div>
+        );
+      case "clipboard":
+        return (
+          <div className="size-10 grid place-items-center rounded-xl bg-blue-100 text-blue-700 shrink-0 shadow-2xs">
+            <ClipboardCheck className="size-5" />
+          </div>
+        );
+      case "file":
+        return (
+          <div className="size-10 grid place-items-center rounded-xl bg-amber-100 text-amber-800 shrink-0 shadow-2xs">
+            <FileText className="size-5" />
           </div>
         );
       default:

@@ -12,6 +12,8 @@ import { activateProvisionedStudent, IdentityApiError, initiateOtpLogin, verifyO
 import { getAdminOverview } from "../../admin-v2/api/adminOperationsApi";
 import { assignLocation } from "../../../shared/utils/hardNavigation";
 import authBotanicalBg from "../../../Assets/onboarding/auth-botanical-bg.jpg";
+import { BrandLogo } from "../../../components/brand/BrandLogo";
+import { NEXUS_LOGO_URL } from "../../../shared/brandAssets";
 import "../styles/SignInModern.css";
 
 export function SignInPage() {
@@ -95,27 +97,30 @@ export function SignInPage() {
         {/* Left Column: Sign-in Form */}
         <div className="signin-form-col">
           {/* Logo */}
-          <a href="/auth/sign-in" className="signin-logo" aria-label="GreenLearn home">
-            {/* GreenLearn Two-Leaf Mark SVG */}
-            <svg
-              className="w-10 h-10 shrink-0"
-              viewBox="0 0 44 44"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              {/* Left darker leaf */}
-              <path
-                d="M8 28C8 17 18 8 26 8C26 19 19 28 8 28Z"
-                fill="#166534"
-              />
-              {/* Right lighter leaf */}
-              <path
-                d="M17 34C17 22 28 14 36 14C36 26 29 34 17 34Z"
-                fill="#22c55e"
-              />
-            </svg>
-            <span className="signin-logo-text">GreenLearn</span>
+          <a href="/auth/sign-in" className="signin-logo" aria-label={brand === "nexus" ? "Nexus sign in" : "GreenLearn home"}>
+            {brand === "nexus" ? (
+              <BrandLogo brandName="Nexus" src={NEXUS_LOGO_URL} className="signin-brand-logo" />
+            ) : (
+              <svg
+                className="w-10 h-10 shrink-0"
+                viewBox="0 0 44 44"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                {/* Left darker leaf */}
+                <path
+                  d="M8 28C8 17 18 8 26 8C26 19 19 28 8 28Z"
+                  fill="#166534"
+                />
+                {/* Right lighter leaf */}
+                <path
+                  d="M17 34C17 22 28 14 36 14C36 26 29 34 17 34Z"
+                  fill="#22c55e"
+                />
+              </svg>
+            )}
+            {brand !== "nexus" ? <span className="signin-logo-text">GreenLearn</span> : null}
           </a>
 
           {/* Heading */}

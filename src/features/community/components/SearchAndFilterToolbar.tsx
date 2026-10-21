@@ -1,6 +1,6 @@
 import {
+  BookOpen,
   ChevronDown,
-  Compass,
   HelpCircle,
   MessageSquare,
   Plus,
@@ -22,12 +22,13 @@ interface SearchAndFilterToolbarProps {
   onCreateThreadClick?: () => void;
 }
 
-const DROPDOWN_TOPICS = [
-  "All topics",
-  "React & Next.js",
-  "UI/UX Design Systems",
-  "Backend & APIs",
-  "Data Science & AI",
+const COMMUNITY_CATEGORIES = [
+  "All categories",
+  "General discussion",
+  "Course question",
+  "Clinical case",
+  "Exam preparation",
+  "Study resources",
 ];
 
 export function SearchAndFilterToolbar({
@@ -87,7 +88,7 @@ export function SearchAndFilterToolbar({
           />
         </div>
 
-        {/* Dropdown for All topics */}
+      {/* Discussion category filter */}
         <div className="relative shrink-0" ref={dropdownRef}>
           <button
             type="button"
@@ -96,7 +97,7 @@ export function SearchAndFilterToolbar({
             aria-haspopup="listbox"
             aria-expanded={isDropdownOpen}
           >
-            <Compass className="size-4 text-slate-400" />
+            <BookOpen className="size-4 text-slate-400" />
             <span>{selectedDropdownTopic}</span>
             <ChevronDown
               className={`size-3.5 text-slate-400 transition-transform duration-150 ${
@@ -107,7 +108,7 @@ export function SearchAndFilterToolbar({
 
           {isDropdownOpen && (
             <div className="absolute right-0 top-full mt-1.5 w-52 bg-white border border-slate-200/90 rounded-xl shadow-lg z-30 py-1 overflow-hidden animate-in fade-in-50 zoom-in-95 duration-100">
-              {DROPDOWN_TOPICS.map((topic) => {
+              {COMMUNITY_CATEGORIES.map((topic) => {
                 const isSelected = selectedDropdownTopic === topic;
                 return (
                   <button
