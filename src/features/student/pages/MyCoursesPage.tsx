@@ -353,7 +353,7 @@ export function MyCoursesPage() {
               </div>
               <p>
                 <Sparkles aria-hidden="true" />
-                {isPaceMonthly ? "Select Weekly to see recorded activity" : "Based on your completed lessons this week"}
+                {isPaceMonthly ? "Select Weekly to see recorded activity" : "Based on your completed activities"}
               </p>
             </article>
           </div>
