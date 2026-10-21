@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { ClipboardCheck, Clock3 } from "lucide-react";
 import { studentAssessmentApi } from "../api/studentAssessmentApi";
+import { StudentWorkNavigation } from "../components/StudentWorkNavigation";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import "./student-extra-pages.css";
 
@@ -15,6 +16,7 @@ export function AssessmentsPage() {
 
   return (
     <main className="student-extra-page assessments-page" aria-labelledby="assessments-title">
+      <StudentWorkNavigation />
       <header className="student-extra-page__header">
         <span className="student-extra-page__eyebrow">Learning space</span>
         <h1 id="assessments-title">Assessments</h1>

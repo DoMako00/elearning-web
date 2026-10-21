@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useStudentAssignments } from "../../../features/student/api/useStudentAssignments";
 import { mapStudentAssignment } from "../../../features/student/api/studentAssignmentMapper";
+import { StudentWorkNavigation } from "../../../features/student/components/StudentWorkNavigation";
 import type {
   AssignmentFilter,
   AssignmentItem,
@@ -272,22 +273,25 @@ export function AssignmentsWorkspace() {
         </header> */}
 
         <div className="assignments-toolbar">
-          <div className="assignments-filters" role="tablist" aria-label="Assignment status">
-            {FILTERS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                role="tab"
-                aria-selected={filter === item.id}
-                className={`assignments-filter${filter === item.id ? " is-active" : ""}`}
-                onClick={() => {
-                  setFilter(item.id);
-                  setShowAll(false);
-                }}
-              >
-                {item.label} <b>({counts[item.id]})</b>
-              </button>
-            ))}
+          <div className="assignments-toolbar__main">
+            <StudentWorkNavigation />
+            <div className="assignments-filters" role="tablist" aria-label="Assignment status">
+              {FILTERS.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={filter === item.id}
+                  className={`assignments-filter${filter === item.id ? " is-active" : ""}`}
+                  onClick={() => {
+                    setFilter(item.id);
+                    setShowAll(false);
+                  }}
+                >
+                  {item.label} <b>({counts[item.id]})</b>
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="assignments-toolbar__tools">

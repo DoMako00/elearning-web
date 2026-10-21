@@ -49,6 +49,15 @@
   flex-shrink: 0;
 }
 
+.assignments-toolbar__main {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
 .assignments-filters {
   display: flex;
   min-width: 0;
