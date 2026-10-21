@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Sparkles, X, TrendingUp } from "lucide-react";
+import { ArrowLeft, Sparkles, X, TrendingUp } from "lucide-react";
 import robotAsset from "../../../../Assets/dashboard/doctor-robot.webp";
 import { AILearningGuide } from "../../../../components/ui/AILearningGuide";
 import ContinueLearning from "../../../../components/ui/Continue_Learning/continue_learning";
 import { MyProgress, MyProgressEmpty } from "../../../../components/ui/MyProgress";
 import { RecommendedSessions } from "../../../../components/ui/RecommendedCourses/RecommendedSessions";
 import { SessionContentCard } from "./SessionContentCard";
+import { LearningSpaceCard } from "./LearningSpaceCard";
 import { useNextSessions } from "../../hooks/useNextSessions";
 import { WeeklyGoalCard } from "../WeeklyGoalCard";
 import { YourStreak } from "../YourStreak";
@@ -24,6 +25,7 @@ function NoSessionProgressCard() {
 
 export function DashboardBento({ courses = [] }: DashboardBentoProps) {
   const [isAIOpen, setIsAIOpen] = useState(false);
+  const [showLegacyGuide, setShowLegacyGuide] = useState(false);
   const progress = useStudentProgress();
   const preferences = useStudentLearningPreferences();
   const setWeeklyGoal = useSetWeeklyLessonGoal();
@@ -43,7 +45,17 @@ export function DashboardBento({ courses = [] }: DashboardBentoProps) {
           <ContinueLearning courses={courses} progress={progress.data} progressLoading={progress.isLoading} progressError={progress.isError} onActiveCourseChange={setActiveCourseId} activeSession={activeSession} />
         </div>
         <div className="dashboard-bento__slot dashboard-bento__slot--ai">
-          <AILearningGuide />
+          {showLegacyGuide ? (
+            <div className="dashboard-ai-legacy-view">
+              <button type="button" className="dashboard-ai-legacy-back" onClick={() => setShowLegacyGuide(false)}>
+                <ArrowLeft aria-hidden="true" />
+                <span>Your Learning Space</span>
+              </button>
+              <AILearningGuide />
+            </div>
+          ) : (
+            <LearningSpaceCard onOpenLegacyGuide={() => setShowLegacyGuide(true)} />
+          )}
         </div>
         <div className="dashboard-bento__slot dashboard-bento__slot--weekly">
           <WeeklyGoalCard
