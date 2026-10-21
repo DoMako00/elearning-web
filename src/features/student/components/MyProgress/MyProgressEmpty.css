@@ -172,6 +172,52 @@
   }
 }
 
+/* Large card — 1920×1080 and bigger viewports */
+@container (min-height: 220px) {
+  .my-progress-empty {
+    padding: clamp(20px, 9cqh, 36px) clamp(24px, 6cqw, 44px);
+  }
+  .my-progress-empty__content {
+    gap: clamp(18px, 9cqh, 28px);
+  }
+  .my-progress-empty__pill {
+    height: clamp(18px, 7cqh, 22px);
+  }
+  .my-progress-empty__title {
+    font-size: clamp(16px, 1.4cqw + 10px, 20px);
+  }
+  .my-progress-empty__heading {
+    font-size: clamp(22px, 2.6cqw + 10px, 30px);
+  }
+  .my-progress-empty__sub {
+    font-size: clamp(13px, 0.9cqw + 8px, 16px);
+  }
+  .my-progress-empty__art {
+    width: clamp(240px, 58cqw, 380px);
+    height: clamp(150px, 88cqh, 240px);
+  }
+}
+
+@container (min-height: 280px) {
+  .my-progress-empty {
+    padding: clamp(24px, 10cqh, 44px) clamp(28px, 7cqw, 52px);
+  }
+  .my-progress-empty__title {
+    font-size: clamp(17px, 1.5cqw + 10px, 22px);
+  }
+  .my-progress-empty__heading {
+    font-size: clamp(24px, 3cqw + 10px, 36px);
+    line-height: 1.15;
+  }
+  .my-progress-empty__sub {
+    font-size: clamp(14px, 1cqw + 8px, 18px);
+  }
+  .my-progress-empty__art {
+    width: clamp(260px, 60cqw, 420px);
+    height: clamp(160px, 90cqh, 270px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .my-progress-empty__illustration {
     filter: none;

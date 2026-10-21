@@ -20,7 +20,7 @@ main[data-main-workspace] {
   width: 100%;
   max-width: 2200px;
   height: 100%;
-  max-height: 1350px;
+  max-height: 1600px;
   margin: auto;
   flex-direction: column;
   overflow: hidden;
