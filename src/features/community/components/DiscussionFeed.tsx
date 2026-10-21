@@ -1,4 +1,5 @@
 import {
+  ArrowRight,
   MessageSquare,
   Atom,
   Palette,
@@ -15,6 +16,11 @@ interface DiscussionFeedProps {
   onLikePost?: (postId: string) => void;
   isLoading?: boolean;
   errorMessage?: string | null;
+  showHeading?: boolean;
+  onStartDiscussion?: () => void;
+  emptyTitle?: string;
+  emptyDescription?: string;
+  showEmptyAction?: boolean;
 }
 
 export function DiscussionFeed({
@@ -22,6 +28,11 @@ export function DiscussionFeed({
   onPostClick,
   isLoading = false,
   errorMessage = null,
+  showHeading = true,
+  onStartDiscussion,
+  emptyTitle = "No discussions in this view yet.",
+  emptyDescription = "Start a discussion to share a question or idea with your course community.",
+  showEmptyAction = true,
 }: DiscussionFeedProps) {
   const renderTopicBadgeIcon = (icon: DiscussionPost["topicIcon"]) => {
     switch (icon) {
@@ -86,19 +97,30 @@ export function DiscussionFeed({
   };
 
   return (
-    <div className="flex flex-col gap-2 w-full h-full min-h-0">
-      <div className="flex items-center justify-between shrink-0">
+    <div className="community-feed flex flex-col gap-2 w-full h-full min-h-0">
+      {showHeading ? <div className="flex items-center justify-between shrink-0">
         <h4 className="text-[13.5px] font-bold text-slate-900 tracking-tight">
           Recent discussions
         </h4>
         <span className="text-[11px] font-semibold text-slate-400">
           {discussions.length} threads
         </span>
-      </div>
+      </div> : null}
 
       {/* Scrollable Threads List */}
       <div className="flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col gap-2 scrollbar-thin scrollbar-thumb-slate-200 hover:scrollbar-thumb-slate-300">
-        {errorMessage ? <p role="alert" className="rounded-xl border border-rose-100 bg-rose-50 p-4 text-xs text-rose-700">{errorMessage}</p> : isLoading ? <p role="status" className="rounded-xl border border-slate-100 bg-white p-4 text-xs text-slate-500">Loading persisted discussions…</p> : discussions.length === 0 ? <p className="rounded-xl border border-slate-100 bg-white p-4 text-xs text-slate-500">No discussions in this view yet.</p> : null}
+        {errorMessage ? <p role="alert" className="rounded-xl border border-rose-100 bg-rose-50 p-4 text-xs text-rose-700">{errorMessage}</p> : isLoading ? <p role="status" className="rounded-xl border border-slate-100 bg-white p-4 text-xs text-slate-500">Loading persisted discussions…</p> : discussions.length === 0 ? (
+          <div className="community-empty-state" role="status">
+            <img src="/assets/community/discussion-empty-state.png" alt="" />
+            <h3>{emptyTitle}</h3>
+            <p>{emptyDescription}</p>
+            {showEmptyAction && onStartDiscussion ? (
+              <button type="button" onClick={onStartDiscussion}>
+                Start a discussion <ArrowRight aria-hidden="true" />
+              </button>
+            ) : null}
+          </div>
+        ) : null}
         {discussions.map((post) => (
           <article
             key={post.id}

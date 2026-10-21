@@ -10,6 +10,9 @@ import { useState, useRef, useEffect } from "react";
 import type { TopicCategory } from "../types/community";
 
 interface SearchAndFilterToolbarProps {
+  heading?: string;
+  searchPlaceholder?: string;
+  showCreateButton?: boolean;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   selectedCategory: TopicCategory;
@@ -28,6 +31,9 @@ const DROPDOWN_TOPICS = [
 ];
 
 export function SearchAndFilterToolbar({
+  heading,
+  searchPlaceholder = "Search saved discussions...",
+  showCreateButton = true,
   searchQuery,
   onSearchChange,
   selectedCategory,
@@ -63,9 +69,10 @@ export function SearchAndFilterToolbar({
   ];
 
   return (
-    <div className="flex flex-col gap-3 w-full">
+    <div className="community-toolbar flex flex-col gap-3 w-full">
       {/* Search Input and All Topics Dropdown Trigger */}
       <div className="flex items-center gap-3 w-full">
+        {heading ? <h2 className="community-toolbar__heading">{heading}</h2> : null}
         <div className="relative flex-1 min-w-0">
           <Search
             className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none"
@@ -75,7 +82,7 @@ export function SearchAndFilterToolbar({
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search saved discussions..."
+            placeholder={searchPlaceholder}
             className="w-full h-11 pl-10 pr-4 bg-white border border-slate-200/90 rounded-xl text-[14px] text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-xs"
           />
         </div>
@@ -129,7 +136,7 @@ export function SearchAndFilterToolbar({
       </div>
 
       {/* Horizontal Pill Filters + Quick Add button */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-none">
+      <div className="community-toolbar__filters flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-none">
         {categories.map((cat) => {
           const isSelected = selectedCategory === cat.id;
           const Icon = cat.icon;
@@ -158,15 +165,17 @@ export function SearchAndFilterToolbar({
         })}
 
         {/* Floating Quick Action "+" Button */}
-        <button
-          type="button"
-          onClick={onCreateThreadClick}
-          className="size-8.5 grid place-items-center rounded-lg bg-white border border-slate-200/80 text-slate-500 hover:text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50 transition-all shrink-0 cursor-pointer shadow-2xs ml-0.5"
-          title="Create discussion"
-          aria-label="Create discussion"
-        >
-          <Plus className="size-4" strokeWidth={2.2} />
-        </button>
+        {showCreateButton ? (
+          <button
+            type="button"
+            onClick={onCreateThreadClick}
+            className="size-8.5 grid place-items-center rounded-lg bg-white border border-slate-200/80 text-slate-500 hover:text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50 transition-all shrink-0 cursor-pointer shadow-2xs ml-0.5"
+            title="Create discussion"
+            aria-label="Create discussion"
+          >
+            <Plus className="size-4" strokeWidth={2.2} />
+          </button>
+        ) : null}
       </div>
     </div>
   );
