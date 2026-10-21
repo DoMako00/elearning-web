@@ -1,0 +1,27 @@
+.brand-logo {
+  display: block;
+  flex: none;
+  object-fit: contain;
+}
+
+.sidebar-brand-logo {
+  width: 72px;
+  height: 72px;
+}
+
+.mobile-topbar-logo-lockup {
+  width: 56px;
+  height: 56px;
+}
+
+.signin-brand-logo {
+  width: 76px;
+  height: 76px;
+}
+
+@media (max-width: 1535px) {
+  .sidebar-brand-logo {
+    width: 56px;
+    height: 56px;
+  }
+}

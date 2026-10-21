@@ -12,7 +12,7 @@ import { activateProvisionedStudent, IdentityApiError, initiateOtpLogin, verifyO
 import { getAdminOverview } from "../../admin-v2/api/adminOperationsApi";
 import { assignLocation } from "../../../shared/utils/hardNavigation";
 import authBotanicalBg from "../../../Assets/onboarding/auth-botanical-bg.jpg";
-import { BrandLogoMark } from "../../../components/brand/BrandLogoMark";
+import { BrandLogo } from "../../../components/brand/BrandLogo";
 import { NEXUS_LOGO_URL } from "../../../shared/brandAssets";
 import "../styles/SignInModern.css";
 
@@ -99,7 +99,7 @@ export function SignInPage() {
           {/* Logo */}
           <a href="/auth/sign-in" className="signin-logo" aria-label={brand === "nexus" ? "Nexus sign in" : "GreenLearn home"}>
             {brand === "nexus" ? (
-              <BrandLogoMark brandName="Nexus" src={NEXUS_LOGO_URL} className="size-10 rounded-xl" />
+              <BrandLogo brandName="Nexus" src={NEXUS_LOGO_URL} className="signin-brand-logo" />
             ) : (
               <svg
                 className="w-10 h-10 shrink-0"
@@ -120,7 +120,7 @@ export function SignInPage() {
                 />
               </svg>
             )}
-            <span className="signin-logo-text">{brand === "nexus" ? "Nexus" : "GreenLearn"}</span>
+            {brand !== "nexus" ? <span className="signin-logo-text">GreenLearn</span> : null}
           </a>
 
           {/* Heading */}

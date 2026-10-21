@@ -25,8 +25,8 @@ describe("mobile TopAppBar", () => {
   it("shows the real brand and initials, and no fabricated XP or stock avatar", () => {
     vi.mocked(useStudentNotifications).mockReturnValue({ data: [] } as unknown as ReturnType<typeof useStudentNotifications>);
     renderBar();
-    expect(screen.getByText("Nexus")).toBeTruthy();
-    expect(screen.getByRole("img", { name: "Nexus logo" }).querySelector("img")?.getAttribute("src")).toBe(NEXUS_LOGO_URL);
+    expect(screen.queryByText("Nexus")).toBeNull();
+    expect(screen.getByRole("img", { name: "Nexus logo" }).getAttribute("src")).toBe(NEXUS_LOGO_URL);
     expect(screen.queryByText(/GreenLearn/)).toBeNull();
     expect(screen.queryByText(/XP/)).toBeNull();
     expect(screen.getByText("NH")).toBeTruthy();

@@ -13,6 +13,10 @@
     gap: 0.375rem !important;
   }
 
+  .mobile-topbar-inner--brand {
+    height: 3rem !important;
+  }
+
   /* Logo icon */
   .mobile-topbar-logo-icon {
     width: 1.5rem !important;  
@@ -22,6 +26,11 @@
   .mobile-topbar-logo-icon svg {
     width: 0.75rem !important;
     height: 0.75rem !important;
+  }
+
+  .mobile-topbar-logo-lockup {
+    width: 3rem !important;
+    height: 3rem !important;
   }
 
   /* Logo wordmark */

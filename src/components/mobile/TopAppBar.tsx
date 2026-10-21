@@ -6,7 +6,7 @@ import { useBrand } from "../../app/providers/BrandProvider";
 import { useStudentNotifications } from "../../features/student/api/useStudentNotifications";
 import { useStudentProfile } from "../../features/student/api/useStudentLearning";
 import { useOptionalScreenStack } from "./ScreenStack";
-import { BrandLogoMark } from "../brand/BrandLogoMark";
+import { BrandLogo } from "../brand/BrandLogo";
 
 function initialsFor(name: string | undefined): string {
   const parts = (name ?? "").trim().split(/\s+/).filter(Boolean);
@@ -59,8 +59,8 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
         paddingTop: "max(0.5rem, env(safe-area-inset-top, 0px))",
       }}
     >
-      {/* mobile-topbar-inner → shrinks to h-11 on ≤375px via mobile-se.css */}
-      <div className="mobile-topbar-inner h-10 px-3.5 flex items-center justify-between gap-2">
+      {/* Branded Nexus lockup keeps its full wordmark visible on narrow screens. */}
+      <div className={`mobile-topbar-inner ${brand.logoUrl ? "mobile-topbar-inner--brand h-14" : "h-10"} px-3.5 flex items-center justify-between gap-2`}>
         {variant === "main" ? (
           <>
             {/* Left: back (when pushed) + logo */}
@@ -76,15 +76,17 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
                 </button>
               ) : null}
               {brand.logoUrl ? (
-                <BrandLogoMark brandName={brand.name} src={brand.logoUrl} className="mobile-topbar-logo-icon w-7 h-7 rounded-lg shadow-2xs" />
+                <BrandLogo brandName={brand.name} src={brand.logoUrl} className="mobile-topbar-logo-lockup" />
               ) : (
                 <span className="mobile-topbar-logo-icon w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
                   <Leaf className="w-3 h-3" strokeWidth={2.2} />
                 </span>
               )}
-              <span className="mobile-topbar-wordmark text-sm font-extrabold text-slate-900 tracking-tight">
-                {brand.name}
-              </span>
+              {!brand.logoUrl ? (
+                <span className="mobile-topbar-wordmark text-sm font-extrabold text-slate-900 tracking-tight">
+                  {brand.name}
+                </span>
+              ) : null}
             </div>
 
             {/* Right: Bell, XPPill, Avatar */}

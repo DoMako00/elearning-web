@@ -39,8 +39,9 @@ describe("SignInPage navigation after sign-in", () => {
     const { container } = renderPage();
     fireEvent.change(container.querySelector("#signin-brand")!, { target: { value: "nexus" } });
     const logo = screen.getByRole("img", { name: "Nexus logo" });
-    expect(logo.querySelector("img")?.getAttribute("src")).toBe(NEXUS_LOGO_URL);
+    expect(logo.getAttribute("src")).toBe(NEXUS_LOGO_URL);
     expect(screen.getByRole("link", { name: "Nexus sign in" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Nexus sign in" }).children).toHaveLength(1);
   });
 
   it("a student OTP sign-in does one full navigation to the destination (no SPA navigate + reload race)", async () => {
