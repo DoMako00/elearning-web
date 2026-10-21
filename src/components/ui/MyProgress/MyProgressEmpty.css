@@ -1,0 +1,201 @@
+.my-progress-empty {
+  --empty-emerald: #00875e;
+  --empty-navy: #101a2d;
+  --empty-mint: #edf9f3;
+  --empty-gray: #7c8494;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle, #e5eaee);
+  border-radius: 16px;
+  background-color: #ffffff;
+  padding: clamp(14px, 4cqh, 20px) clamp(16px, 5cqw, 22px);
+  isolation: isolate;
+  box-sizing: border-box;
+  container-type: size;
+  font-family: var(--font-body, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+}
+
+/* Background mint SVG wash */
+.my-progress-empty__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right top;
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
+}
+
+/* 3D steps illustration on the right */
+.my-progress-empty__art {
+  position: absolute;
+  top: 0;
+  right: -8px;
+  bottom: 0;
+  width: min(72%, 260px);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.my-progress-empty__illustration {
+  width: auto;
+  height: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: right center;
+  filter: drop-shadow(0 8px 20px rgba(0, 135, 94, 0.08));
+  user-select: none;
+}
+
+/* Foreground content on the left */
+.my-progress-empty__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
+  max-width: 52%;
+  gap: clamp(10px, 3.5cqh, 16px);
+  pointer-events: none;
+}
+
+/* Header: green pill indicator + "My Progress" */
+.my-progress-empty__header {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.my-progress-empty__pill {
+  width: 3.5px;
+  height: 14px;
+  border-radius: 9999px;
+  background-color: var(--empty-emerald);
+  flex-shrink: 0;
+}
+
+.my-progress-empty__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--empty-navy);
+  letter-spacing: -0.015em;
+  line-height: 1;
+}
+
+/* Message block: heading + subtext */
+.my-progress-empty__message {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 0 1 auto;
+}
+
+.my-progress-empty__heading {
+  margin: 0;
+  font-family: inherit;
+  font-size: clamp(16px, 1.8cqw + 7px, 19.5px);
+  font-weight: 700;
+  color: var(--empty-navy);
+  line-height: 1.22;
+  letter-spacing: -0.025em;
+}
+
+.my-progress-empty__sub {
+  margin: 0;
+  font-size: clamp(11.5px, 0.9cqw + 6px, 12.5px);
+  font-weight: 400;
+  color: var(--empty-gray);
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+/* Container query responsiveness */
+@container (max-height: 180px) {
+  .my-progress-empty {
+    padding: 12px 16px;
+  }
+  .my-progress-empty__content {
+    gap: 8px;
+    max-width: 55%;
+  }
+  .my-progress-empty__title {
+    font-size: 13.5px;
+  }
+  .my-progress-empty__pill {
+    height: 13px;
+  }
+  .my-progress-empty__heading {
+    font-size: 16px;
+    line-height: 1.2;
+  }
+  .my-progress-empty__sub {
+    font-size: 11.5px;
+  }
+}
+
+@container (max-height: 150px) {
+  .my-progress-empty {
+    padding: 10px 14px;
+  }
+  .my-progress-empty__content {
+    gap: 6px;
+  }
+  .my-progress-empty__heading {
+    font-size: 14.5px;
+  }
+  .my-progress-empty__sub {
+    font-size: 11px;
+  }
+}
+
+@container (max-width: 280px) {
+  .my-progress-empty__art {
+    width: 48%;
+  }
+  .my-progress-empty__content {
+    max-width: 60%;
+  }
+  .my-progress-empty__heading {
+    font-size: 15px;
+  }
+  .my-progress-empty__sub {
+    font-size: 11px;
+    white-space: normal;
+  }
+}
+
+@container (max-width: 220px) {
+  .my-progress-empty {
+    padding: 10px 12px;
+  }
+  .my-progress-empty__art {
+    opacity: 0.35;
+    width: 65%;
+  }
+  .my-progress-empty__content {
+    max-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .my-progress-empty__illustration {
+    filter: none;
+  }
+}

@@ -9,6 +9,7 @@ import {
 import { ArrowRight, CalendarDays, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { MyProgressProps } from './my-progress.types';
+import { MyProgressEmpty } from './MyProgressEmpty';
 import './index.css';
 
 function buildChartPoints(days: NonNullable<MyProgressProps['chartData']>) {
@@ -57,6 +58,10 @@ export function MyProgress({
       navigate('/profile?tab=activity');
     }
   };
+
+  if (!loading && !error && !hasProgress) {
+    return <MyProgressEmpty />;
+  }
 
   return (
     <section
