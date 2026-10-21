@@ -11,7 +11,10 @@
   --weekly-goal-hours-top: clamp(6px, calc(10cqh - 22px), 11px);
   --weekly-goal-message-top: clamp(2px, calc(5.5cqh - 16px), 4px);
   --weekly-goal-days-top: clamp(6px, calc(15cqh - 40px), 14px);
-  padding: 14px 18px 14px !important;
+  padding-top: clamp(10px, calc(14cqh - 26px), 20px) !important;
+  padding-bottom: clamp(10px, calc(14cqh - 26px), 20px) !important;
+  padding-left: 18px !important;
+  padding-right: 18px !important;
 }
 
 /* ── Set Goal first-time prompt ─────────────────────────── */

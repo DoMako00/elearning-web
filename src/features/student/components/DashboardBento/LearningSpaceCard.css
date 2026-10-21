@@ -9,7 +9,10 @@
   grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
   align-items: stretch;
   overflow: hidden;
-  padding: clamp(14px, 3.1cqw, 26px);
+  padding-top: clamp(10px, calc(14cqh - 26px), 20px);
+  padding-bottom: clamp(10px, calc(14cqh - 26px), 20px);
+  padding-left: clamp(14px, 3.1cqw, 24px);
+  padding-right: clamp(14px, 3.1cqw, 24px);
   border: 1px solid #e4e9ef;
   border-radius: 18px;
   background: #fff;
@@ -136,9 +139,10 @@
 .learning-space-card__actions {
   display: flex;
   min-width: 0;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 8px;
+  margin-top: auto;
 }
 
 .learning-space-card__action {
@@ -148,7 +152,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 0 24px;
+  padding: 0 clamp(12px, 2cqw, 20px);
   border-radius: 11px;
   font-size: 14px;
   font-weight: 600;
@@ -157,6 +161,7 @@
   white-space: nowrap;
   cursor: pointer;
   transition: all 300ms ease;
+  box-sizing: border-box;
 }
 
 .learning-space-card__action:focus-visible,
