@@ -1117,7 +1117,8 @@ main[data-main-workspace] {
   }
 
   .student-page--courses,
-  .student-page--assignments {
+  .student-page--assignments,
+  .student-page--assessments {
     display: flex;
     flex-direction: column;
   }
@@ -1985,7 +1986,8 @@ main[data-main-workspace] {
 @media (max-width: 1199px) {
 
   .student-page--courses,
-  .student-page--assignments {
+  .student-page--assignments,
+  .student-page--assessments {
     overflow-y: auto;
     overflow-x: hidden;
     height: 100%;
