@@ -100,7 +100,7 @@ export function CalendarGridView({
                   return (
                     <div
                       key={dayIdx}
-                      className={`calendar-grid__cell ${isDragOver ? "calendar-grid__cell--drag-over" : ""}`}
+                      className={`calendar-grid__cell ${dateStr === egyptNow.dateStr ? "calendar-grid__cell--today" : ""} ${isDragOver ? "calendar-grid__cell--drag-over" : ""}`}
                       onDragOver={(e) => {
                         e.preventDefault();
                         e.dataTransfer.dropEffect = "move";

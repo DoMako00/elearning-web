@@ -427,6 +427,8 @@ export function CalendarWorkspace() {
         <CalendarSidebar
           agendaItems={agendaItems}
           studyGoal={studyGoal}
+          studyGoalLoading={progressQuery.isLoading || preferencesQuery.isLoading}
+          studyGoalUnavailable={progressQuery.isError || preferencesQuery.isError}
           reminders={reminders}
           onOpenNewEventForToday={() => {
             setNewEventDraft({ date: currentDate, startTime: "12:00", endTime: "13:00", type: "study_block" });
