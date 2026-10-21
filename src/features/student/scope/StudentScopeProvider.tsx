@@ -4,6 +4,7 @@ import { getStudentAuthMethods } from "../../auth/api/identityApi";
 import { BrandOverrideProvider } from "../../../app/providers/BrandProvider";
 import { RouteLoadingFallback } from "../../../components/layout/RouteLoadingFallback";
 import { useIsMobile } from "../../../hooks/useIsMobile";
+import { NEXUS_LOGO_URL } from "../../../shared/brandAssets";
 import {
   brandDisplayName,
   institutionCodeForBrand,
@@ -111,7 +112,12 @@ export function StudentScopeProvider({ children }: PropsWithChildren) {
     };
   }, [profile, sessionBrandQuery.data]);
   const brandValue = useMemo(
-    () => (scope ? { id: scope.brand, name: scope.brandName, shortName: scope.brandName.slice(0, 2).toUpperCase() } : null),
+    () => (scope ? {
+      id: scope.brand,
+      name: scope.brandName,
+      shortName: scope.brandName.slice(0, 2).toUpperCase(),
+      logoUrl: scope.brand === "nexus" ? NEXUS_LOGO_URL : undefined,
+    } : null),
     [scope],
   );
 

@@ -6,6 +6,7 @@ import { useAuth, type AuthState } from "../../../app/providers/AuthProvider";
 import { activateProvisionedStudent, initiateOtpLogin, verifyOtp } from "../api/identityApi";
 import { getAdminOverview } from "../../admin-v2/api/adminOperationsApi";
 import { assignLocation, reloadPage } from "../../../shared/utils/hardNavigation";
+import { NEXUS_LOGO_URL } from "../../../shared/brandAssets";
 
 vi.mock("../../../app/providers/AuthProvider", () => ({ useAuth: vi.fn() }));
 vi.mock("../api/identityApi", async (importOriginal) => ({
@@ -34,6 +35,14 @@ beforeEach(() => {
 });
 
 describe("SignInPage navigation after sign-in", () => {
+  it("uses the Nexus logo when the Nexus account brand is selected", () => {
+    const { container } = renderPage();
+    fireEvent.change(container.querySelector("#signin-brand")!, { target: { value: "nexus" } });
+    const logo = screen.getByRole("img", { name: "Nexus logo" });
+    expect(logo.querySelector("img")?.getAttribute("src")).toBe(NEXUS_LOGO_URL);
+    expect(screen.getByRole("link", { name: "Nexus sign in" })).toBeTruthy();
+  });
+
   it("a student OTP sign-in does one full navigation to the destination (no SPA navigate + reload race)", async () => {
     vi.mocked(initiateOtpLogin).mockResolvedValue({ challengeId: "challenge-1" });
     vi.mocked(verifyOtp).mockResolvedValue({ accessToken: "a", refreshToken: "r", authUserId: "u1", expiresAt: new Date().toISOString() });

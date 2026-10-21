@@ -6,6 +6,7 @@ import { useBrand } from "../../../app/providers/BrandProvider";
 import { useStudentProfile } from "../api/useStudentLearning";
 import { StudentLearningApiError } from "../api/studentLearningApi";
 import { getStudentAuthMethods } from "../../auth/api/identityApi";
+import { NEXUS_LOGO_URL } from "../../../shared/brandAssets";
 
 vi.mock("../api/useStudentLearning", () => ({ useStudentProfile: vi.fn() }));
 vi.mock("../../auth/api/identityApi", () => ({ getStudentAuthMethods: vi.fn() }));
@@ -24,7 +25,10 @@ function profile(brand: string, institution: string) {
 function ScopeProbe() {
   const scope = useStudentScope();
   const { brand } = useBrand();
-  return <p>scope {scope.brand}/{scope.institutionCode} brand-name {brand.name}</p>;
+  return <>
+    <p>scope {scope.brand}/{scope.institutionCode} brand-name {brand.name}</p>
+    {brand.logoUrl ? <img src={brand.logoUrl} alt={`${brand.name} logo`} /> : null}
+  </>;
 }
 
 function renderScope() {
@@ -42,12 +46,14 @@ describe("StudentScopeProvider", () => {
     vi.mocked(useStudentProfile).mockReturnValue(profileQuery({ data: profile("nexus", "delta") }));
     renderScope();
     expect(screen.getByText("scope nexus/delta brand-name Nexus")).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Nexus logo" }).getAttribute("src")).toBe(NEXUS_LOGO_URL);
   });
 
   it.each([["medway", "buc"], ["elite", "buc"]])("accepts %s → %s", (brand, institution) => {
     vi.mocked(useStudentProfile).mockReturnValue(profileQuery({ data: profile(brand, institution) }));
     renderScope();
     expect(screen.getByText(new RegExp(`scope ${brand}/${institution}`))).toBeTruthy();
+    expect(screen.queryByRole("img", { name: "Nexus logo" })).toBeNull();
   });
 
   it.each([["nexus", "buc"], ["medway", "delta"], ["greenlearn", "buc"]])("blocks student content for the invalid pair %s / %s", (brand, institution) => {

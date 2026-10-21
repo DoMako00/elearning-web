@@ -4,6 +4,7 @@ import { useBrand } from "../../../app/providers/BrandProvider";
 import { useMessages } from "../../../app/providers/MessagesProvider";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import { SidebarNavItem } from "./SidebarNavItem";
+import { BrandLogoMark } from "../../brand/BrandLogoMark";
 import {
   primarySidebarItems,
   secondarySidebarItems,
@@ -59,9 +60,13 @@ export function Sidebar() {
     >
       <div className="sidebar-brand-wrapper">
         <div className="sidebar-brand flex h-10 shrink-0 items-center gap-3 px-3.75">
-          <span className="sidebar-brand-mark grid size-8 place-items-center rounded-2.25 bg-(--color-brand-hover) text-white">
-            <Leaf className="size-5" strokeWidth={2} aria-hidden="true" />
-          </span>
+          {brand.logoUrl ? (
+            <BrandLogoMark brandName={brand.name} src={brand.logoUrl} className="sidebar-brand-mark size-8 rounded-2.25" />
+          ) : (
+            <span className="sidebar-brand-mark grid size-8 place-items-center rounded-2.25 bg-(--color-brand-hover) text-white">
+              <Leaf className="size-5" strokeWidth={2} aria-hidden="true" />
+            </span>
+          )}
           <span className="sidebar-brand-name truncate text-19px font-semibold text-(--color-text-primary)">
             {brand.name}
           </span>
