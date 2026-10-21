@@ -5,13 +5,13 @@
 }
 
 .sidebar-brand-logo {
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
 }
 
 .mobile-topbar-logo-lockup {
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
 }
 
 .signin-brand-logo {
@@ -21,7 +21,7 @@
 
 @media (max-width: 1535px) {
   .sidebar-brand-logo {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
   }
 }
