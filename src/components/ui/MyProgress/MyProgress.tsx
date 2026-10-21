@@ -8,6 +8,7 @@ import {
 import { RefreshCw, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { MyProgressProps } from './my-progress.types';
+import { MyProgressEmpty } from './MyProgressEmpty';
 import './index.css';
 
 function buildChartPoints(values: number[]) {
@@ -34,6 +35,7 @@ export function MyProgress({
   growthLabel = 'this month',
   onViewProgress,
   chartData,
+  hasProgress,
 }: MyProgressProps) {
   const navigate = useNavigate();
   const points = buildChartPoints(chartData ?? []);
@@ -45,6 +47,10 @@ export function MyProgress({
       navigate('/profile?tab=activity');
     }
   };
+
+  if (hasProgress === false) {
+    return <MyProgressEmpty />;
+  }
 
   return (
     <section

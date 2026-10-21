@@ -3,7 +3,7 @@ import { ArrowLeft, Sparkles, X, TrendingUp } from "lucide-react";
 import robotAsset from "../../../../Assets/dashboard/doctor-robot.webp";
 import { AILearningGuide } from "../../../../components/ui/AILearningGuide";
 import ContinueLearning from "../../../../components/ui/Continue_Learning/continue_learning";
-import { MyProgress } from "../../../../components/ui/MyProgress";
+import { MyProgress, MyProgressEmpty } from "../../../../components/ui/MyProgress";
 import { RecommendedSessions } from "../../../../components/ui/RecommendedCourses/RecommendedSessions";
 import { SessionContentCard } from "./SessionContentCard";
 import { LearningSpaceCard } from "./LearningSpaceCard";
@@ -20,20 +20,7 @@ export interface DashboardBentoProps {
 }
 
 function NoSessionProgressCard() {
-  return (
-    <div className="no-session-card" role="status" aria-label="Start your first session to unlock progress tracking">
-      <p className="no-session-card__title">My Progress</p>
-      <div className="no-session-card__icon" aria-hidden="true">
-        <TrendingUp strokeWidth={1.5} />
-      </div>
-      <p className="no-session-card__sub">Start your first lesson to see your learning progress here.</p>
-      <div className="no-session-card__dots" aria-hidden="true">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <span key={i} className="no-session-card__dot" style={{ animationDelay: `${i * 0.15}s` }} />
-        ))}
-      </div>
-    </div>
-  );
+  return <MyProgressEmpty />;
 }
 
 export function DashboardBento({ courses = [] }: DashboardBentoProps) {
