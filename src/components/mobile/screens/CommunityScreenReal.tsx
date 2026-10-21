@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { ChevronRight, MessageSquare, ThumbsUp, Users } from "lucide-react";
+import { BookOpen, ChevronRight, GraduationCap, MessageSquare, ThumbsUp, Users } from "lucide-react";
 import { TopAppBar } from "../TopAppBar";
 import { useScreenStack } from "../ScreenStack";
 import { HeroBand } from "../shared/HeroBand";
@@ -10,7 +10,7 @@ import { MobileToast } from "../shared/MobileToast";
 import { CreateThreadModal } from "../../../features/community/components/CreateThreadModal";
 import type { TopicCategory } from "../../../features/community/types/community";
 import { mapCommunityPost, mapCommunityComment } from "../../../features/student/api/studentCommunityMapper";
-import { useCreateStudentCommunityPost, useCreateStudentCommunityComment, useSetStudentCommunityReaction, useStudentCommunityComments, useStudentCommunityPosts } from "../../../features/student/api/useStudentCommunity";
+import { useCreateStudentCommunityPost, useCreateStudentCommunityComment, useSetStudentCommunityReaction, useStudentCommunityComments, useStudentCommunityPosts, useStudentCommunityRooms } from "../../../features/student/api/useStudentCommunity";
 import { useStudentProfile } from "../../../features/student/api/useStudentLearning";
 
 const categories = [
@@ -23,11 +23,15 @@ export const CommunityScreen: React.FC = () => {
   const stack = useScreenStack();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<TopicCategory>("all");
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const profile = useStudentProfile();
-  const feed = useStudentCommunityPosts();
+  const roomsQuery = useStudentCommunityRooms();
+  const rooms = roomsQuery.data ?? [];
+  const selectedRoom = rooms.find((room) => room.id === selectedRoomId) ?? rooms.find((room) => room.kind === "course") ?? rooms[0] ?? null;
+  const feed = useStudentCommunityPosts(selectedRoom?.id ?? null);
   const createPost = useCreateStudentCommunityPost();
   const posts = feed.data ?? [];
   const filtered = useMemo(() => posts.filter((post) => {
@@ -44,17 +48,22 @@ export const CommunityScreen: React.FC = () => {
 
   const submitPost = async (input: { title: string; body: string; categoryKey: string }) => {
     setCreateError(null);
+    if (!selectedRoom) {
+      const message = "No discussion room is available for your account.";
+      setCreateError(message);
+      throw new Error(message);
+    }
     try {
-      const post = await createPost.mutateAsync({ id: crypto.randomUUID(), title: input.title, body: input.body, categoryKey: input.categoryKey as "react" | "design" | "datascience" | "backend" | "general" });
+      const post = await createPost.mutateAsync({ id: crypto.randomUUID(), title: input.title, body: input.body, categoryKey: input.categoryKey as "react" | "design" | "datascience" | "backend" | "general", roomId: selectedRoom.id });
       setCreateOpen(false);
-      showToast("Discussion saved.");
+      showToast("Discussion saved in this room.");
       stack.push({
         id: `community-${post.id}`,
         title: "Discussion",
         tabRoot: "settings",
         variant: "detail",
         backLabel: "Community",
-        component: <CommunityDetailScreen postId={post.id} />,
+        component: <CommunityDetailScreen postId={post.id} roomId={selectedRoom.id} />,
       });
     } catch (error) {
       setCreateError(error instanceof Error ? error.message : "Discussion could not be saved.");
@@ -68,7 +77,7 @@ export const CommunityScreen: React.FC = () => {
     tabRoot: "settings",
     variant: "detail",
     backLabel: "Community",
-    component: <CommunityDetailScreen postId={postId} />,
+    component: <CommunityDetailScreen postId={postId} roomId={selectedRoom?.id ?? undefined} />,
   });
 
   const topicCounts = posts.reduce<Record<string, number>>((acc, post) => {
@@ -90,19 +99,25 @@ export const CommunityScreen: React.FC = () => {
           illustration={<div className="relative w-32 h-24 sm:w-36 sm:h-28 flex items-center justify-end"><div className="w-16 h-16 rounded-full bg-emerald-100/70 text-emerald-700 flex items-center justify-center shadow-xs"><Users className="w-8 h-8" /></div></div>}
         />
         <div className="px-4 pb-20 space-y-5 max-w-lg mx-auto">
-          <MobileSearchBar value={search} onChange={setSearch} placeholder="Search saved discussions..." />
+          <MobileSearchBar value={search} onChange={setSearch} placeholder="Search discussions..." />
           <div className="flex items-center justify-between gap-2">
             <div className="flex-1 min-w-0 overflow-x-auto no-scrollbar"><CategoryChipsRow categories={categories} activeKey={category} onChange={(key) => setCategory(key as TopicCategory)} /></div>
             <button type="button" onClick={() => { setCreateError(null); setCreateOpen(true); }} aria-label="Create discussion" className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-colors shrink-0 cursor-pointer">+</button>
           </div>
-          <section className="p-4 bg-linear-to-br from-emerald-900 via-emerald-800 to-teal-900 rounded-3xl text-white shadow-sm border border-emerald-700/60 space-y-2">
-            <span className="text-[10px] font-extrabold uppercase tracking-wide text-emerald-200">Your academic community</span>
-            <h3 className="text-base font-bold">{profile.data ? `${profile.data.institution.name} · ${profile.data.brand.name}` : profile.isPending ? "Loading community scope…" : "Community scope unavailable"}</h3>
-            <p className="text-xs text-emerald-100/80 leading-relaxed">Discussions are visible only within your active Brand and Institution.</p>
+          <section className="p-4 bg-linear-to-br from-emerald-900 via-emerald-800 to-emerald-700 rounded-3xl text-white shadow-sm border border-emerald-700/60 space-y-2">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wide text-emerald-200">{selectedRoom?.kind === "course" ? <GraduationCap className="size-3.5" /> : <Users className="size-3.5" />}{selectedRoom?.kind === "course" ? "Course room" : "Your community"}</span>
+            <h3 className="text-base font-bold">{roomsQuery.isPending ? "Loading your rooms…" : selectedRoom?.title ?? "Learning community"}</h3>
+            <p className="text-xs text-emerald-100/80 leading-relaxed">{selectedRoom?.kind === "course" ? [selectedRoom.code, selectedRoom.semesterTitle].filter(Boolean).join(" · ") : profile.data ? `${profile.data.institution.name} · ${profile.data.brand.name}` : "Shared with students in your active academic community."}</p>
+          </section>
+          <section className="space-y-2.5">
+            <SectionHeader title="Your rooms" />
+            {roomsQuery.isPending ? <p role="status" className="p-3 bg-white rounded-2xl border border-slate-100 text-xs text-slate-500">Loading rooms…</p> : null}
+            {roomsQuery.isError ? <p role="alert" className="p-3 bg-rose-50 rounded-2xl border border-rose-100 text-xs text-rose-700">Course rooms could not be loaded.</p> : null}
+            {roomsQuery.isSuccess && rooms.length === 0 ? <p className="p-3 bg-white rounded-2xl border border-slate-100 text-xs text-slate-500">No rooms are available for your current course access.</p> : rooms.map((room) => <button key={room.id} type="button" onClick={() => { setSelectedRoomId(room.id); setCategory("all"); }} aria-pressed={selectedRoom?.id === room.id} className={`w-full flex items-center gap-2.5 rounded-2xl border p-3 text-left transition-colors ${selectedRoom?.id === room.id ? "border-emerald-200 bg-emerald-50" : "border-slate-100 bg-white"}`}><span className="grid size-8 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700"><BookOpen className="size-4" /></span><span className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-800">{room.title}</span><span className="text-[10px] text-slate-400">{room.discussionCount}</span></button>)}
           </section>
           <section className="space-y-2.5">
             <SectionHeader title="Topics in discussions" />
-            {Object.entries(topicCounts).length === 0 ? <p className="p-3 bg-white rounded-2xl border border-slate-100 text-xs text-slate-500">Topics appear as Students create discussions.</p> : Object.entries(topicCounts).map(([key, count]) => <div key={key} className="flex items-center justify-between p-3 bg-white rounded-2xl border border-slate-100 text-xs"><span className="font-semibold text-slate-700">{key === "datascience" ? "Data Science & AI" : key === "backend" ? "Backend & APIs" : key === "react" ? "React & Next.js" : key === "design" ? "UI/UX Design" : "General"}</span><span className="text-slate-500">{count} threads</span></div>)}
+            {feed.isPending ? <p role="status" className="p-3 bg-white rounded-2xl border border-slate-100 text-xs text-slate-500">Loading topics…</p> : feed.isError ? <p role="alert" className="p-3 bg-rose-50 rounded-2xl border border-rose-100 text-xs text-rose-700">Topics could not be loaded.</p> : Object.entries(topicCounts).length === 0 ? <p className="p-3 bg-white rounded-2xl border border-slate-100 text-xs text-slate-500">Topics appear as Students create discussions.</p> : Object.entries(topicCounts).map(([key, count]) => <div key={key} className="flex items-center justify-between p-3 bg-white rounded-2xl border border-slate-100 text-xs"><span className="font-semibold text-slate-700">{key === "datascience" ? "Data Science & AI" : key === "backend" ? "Backend & APIs" : key === "react" ? "React & Next.js" : key === "design" ? "UI/UX Design" : "General"}</span><span className="text-slate-500">{count} threads</span></div>)}
           </section>
           <section className="space-y-2.5">
             <SectionHeader title="Recent discussions" actionLabel="Create" onAction={() => setCreateOpen(true)} />
@@ -116,7 +131,7 @@ export const CommunityScreen: React.FC = () => {
               </button>;
             })}
           </section>
-          <section className="p-4 bg-white rounded-3xl border border-slate-100 shadow-2xs"><SectionHeader title="Community activity" /><div className="mt-3 grid grid-cols-3 gap-2 text-center"><div><strong className="block text-sm text-slate-900">{posts.length}</strong><span className="text-[10px] text-slate-500">discussions</span></div><div><strong className="block text-sm text-slate-900">{comments}</strong><span className="text-[10px] text-slate-500">replies</span></div><div><strong className="block text-sm text-slate-900">{likes}</strong><span className="text-[10px] text-slate-500">likes</span></div></div></section>
+          <section className="p-4 bg-white rounded-3xl border border-slate-100 shadow-2xs"><SectionHeader title="Community activity" /><div className="mt-3 grid grid-cols-3 gap-2 text-center"><div><strong className="block text-sm text-slate-900">{feed.isPending || feed.isError ? "—" : posts.length}</strong><span className="text-[10px] text-slate-500">discussions</span></div><div><strong className="block text-sm text-slate-900">{feed.isPending || feed.isError ? "—" : comments}</strong><span className="text-[10px] text-slate-500">replies</span></div><div><strong className="block text-sm text-slate-900">{feed.isPending || feed.isError ? "—" : likes}</strong><span className="text-[10px] text-slate-500">likes</span></div></div></section>
         </div>
       </div>
       <CreateThreadModal isOpen={createOpen} onClose={() => setCreateOpen(false)} onSubmit={submitPost} isSubmitting={createPost.isPending} errorMessage={createError} />
@@ -124,9 +139,9 @@ export const CommunityScreen: React.FC = () => {
   );
 };
 
-function CommunityDetailScreen({ postId }: { postId: string }) {
+function CommunityDetailScreen({ postId, roomId }: { postId: string; roomId?: string }) {
   const { pop } = useScreenStack();
-  const postQuery = useStudentCommunityPosts();
+  const postQuery = useStudentCommunityPosts(roomId ?? null);
   const commentsQuery = useStudentCommunityComments(postId);
   const addComment = useCreateStudentCommunityComment(postId);
   const reaction = useSetStudentCommunityReaction();

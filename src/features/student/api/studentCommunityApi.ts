@@ -2,6 +2,17 @@ import { requireApiClient, extractApiErrorMessage } from "../../../app/api/clien
 
 export type StudentCommunityCategoryKey = "general" | "react" | "design" | "datascience" | "backend";
 
+export interface StudentCommunityRoomDto {
+  id: string;
+  kind: "community" | "course";
+  courseId: string | null;
+  title: string;
+  code: string | null;
+  semesterTitle: string | null;
+  discussionCount: number;
+  lastActivityAt: string | null;
+}
+
 export interface StudentCommunityPostDto {
   id: string;
   title: string | null;
@@ -43,9 +54,10 @@ async function write<T>(method: "POST" | "PUT", path: string, body: unknown, sig
 }
 
 export const studentCommunityApi = {
-  listPosts: (signal?: AbortSignal) => read<StudentCommunityPostDto[]>("/v1/student/community/posts", signal),
+  listRooms: (signal?: AbortSignal) => read<StudentCommunityRoomDto[]>("/v1/student/community/rooms", signal),
+  listPosts: (signal?: AbortSignal, roomId?: string | null) => read<StudentCommunityPostDto[]>(`/v1/student/community/posts${roomId ? `?roomId=${encodeURIComponent(roomId)}` : ""}`, signal),
   listComments: (postId: string, signal?: AbortSignal) => read<StudentCommunityCommentDto[]>(`/v1/student/community/posts/${encodeURIComponent(postId)}/comments`, signal),
-  createPost: (input: { id: string; title: string; categoryKey: StudentCommunityCategoryKey; body: string }, signal?: AbortSignal) => write<StudentCommunityPostDto>("POST", "/v1/student/community/posts", input, signal),
+  createPost: (input: { id: string; title: string; categoryKey: StudentCommunityCategoryKey; body: string; roomId?: string | null }, signal?: AbortSignal) => write<StudentCommunityPostDto>("POST", "/v1/student/community/posts", input, signal),
   createComment: (postId: string, input: { id: string; body: string }, signal?: AbortSignal) => write<StudentCommunityCommentDto>("POST", `/v1/student/community/posts/${encodeURIComponent(postId)}/comments`, input, signal),
   setReaction: (postId: string, active: boolean, signal?: AbortSignal) => write<{ postId: string; active: boolean; reactionCount: number }>("PUT", `/v1/student/community/posts/${encodeURIComponent(postId)}/reaction`, { active }, signal),
 };

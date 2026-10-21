@@ -315,7 +315,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
             <CourseResourcesPanel resources={learningSpaceResources} courseTitle={course.title} onOpenLesson={startLesson} />
           </div>
           <div className="course-overview-panel course-overview-panel--discussion" role="tabpanel" id="course-overview-panel-discussion" aria-labelledby="course-overview-tab-discussion" hidden={activeTab !== "discussion"}>
-            <CourseDiscussionPanel />
+            <CourseDiscussionPanel courseId={course.courseId} />
           </div>
         </div>
 

@@ -585,7 +585,7 @@ function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, 
             <CourseResourcesPanel resources={learningSpaceResources} courseTitle={course.title} onOpenLesson={openLesson} />
           </div>
           <div className="course-overview-panel course-overview-panel--discussion" role="tabpanel" id="lesson-player-panel-discussion" aria-labelledby="lesson-player-tab-discussion" hidden={activeTab !== "discussion"}>
-            <CourseDiscussionPanel />
+            <CourseDiscussionPanel courseId={course.courseId} />
           </div>
 
           {progressError ? <p role="alert" className="dashboard-feedback--error">{progressError}</p> : null}

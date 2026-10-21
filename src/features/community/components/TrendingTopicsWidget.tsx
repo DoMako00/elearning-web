@@ -12,12 +12,16 @@ import type { TrendingTopic } from "../types/community";
 
 interface TrendingTopicsWidgetProps {
   topics: TrendingTopic[];
+  isLoading?: boolean;
+  errorMessage?: string | null;
   onTopicClick?: (topic: TrendingTopic) => void;
   onViewAllClick?: () => void;
 }
 
 export function TrendingTopicsWidget({
   topics,
+  isLoading = false,
+  errorMessage = null,
   onTopicClick,
   onViewAllClick,
 }: TrendingTopicsWidgetProps) {
@@ -81,7 +85,7 @@ export function TrendingTopicsWidget({
 
         {/* Topics List */}
         <div className="divide-y divide-slate-100/90">
-          {topics.length === 0 && <p className="py-4 text-xs text-slate-400">Topics will appear when discussions are posted.</p>}
+          {errorMessage ? <p role="alert" className="py-4 text-xs text-rose-700">{errorMessage}</p> : isLoading ? <p role="status" className="py-4 text-xs text-slate-400">Loading topics…</p> : topics.length === 0 ? <p className="py-4 text-xs text-slate-400">Topics will appear when discussions are posted.</p> : null}
           {topics.slice(0, 5).map((topic) => (
             <button
               key={topic.id}
