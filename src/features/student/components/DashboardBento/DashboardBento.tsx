@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Sparkles, X, TrendingUp } from "lucide-react";
+import { ArrowLeft, Sparkles, X } from "lucide-react";
 import robotAsset from "../../../../Assets/dashboard/doctor-robot.webp";
 import { AILearningGuide } from "../../../../components/ui/AILearningGuide";
 import ContinueLearning from "../../../../components/ui/Continue_Learning/continue_learning";
