@@ -1815,9 +1815,9 @@ main[data-main-workspace] {
 .course-summary--pace {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(102px, .66fr) minmax(0, 1.34fr);
+  grid-template-columns: minmax(180px, max-content) minmax(0, 1fr);
   grid-template-rows: auto auto;
-  column-gap: 8px;
+  column-gap: 16px;
   align-items: end;
 }
 
@@ -1837,18 +1837,16 @@ main[data-main-workspace] {
 .course-summary--pace .pace-header-actions {
   position: absolute;
   z-index: 2;
-  /* top: clamp(2px, 0.35vw, 2px); */
-  right: clamp(10px, 0.8vw, 12px);
+  top: clamp(12px, 1.1vw, 16px);
+  right: clamp(12px, 1.1vw, 16px);
   display: flex;
   align-items: center;
   gap: 7px;
-  /* padding: 20px; */
 }
 
 .course-summary--pace .pace-header-actions>svg {
   width: 18px;
   height: 18px;
-  /* padding-top: px; */
   color: var(--color-brand);
   flex-shrink: 0;
 }
@@ -1906,7 +1904,7 @@ main[data-main-workspace] {
   grid-column: 2;
   grid-row: 1 / span 2;
   align-self: end;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .pace-tooltip {
@@ -1929,7 +1927,7 @@ main[data-main-workspace] {
   grid-row: 2;
   align-items: center;
   gap: 5px;
-  margin: 4px 0 0;
+  margin: 8px 0 0;
   color: var(--color-brand-hover);
   font-size: 11px;
   font-weight: 700;

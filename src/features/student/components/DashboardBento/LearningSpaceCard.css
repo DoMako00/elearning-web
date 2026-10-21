@@ -143,46 +143,61 @@
 
 .learning-space-card__action {
   display: inline-flex;
-  min-height: clamp(38px, 7.3cqh, 52px);
+  height: 48px;
+  min-height: 48px;
   align-items: center;
   justify-content: center;
-  gap: clamp(7px, 1.3cqw, 11px);
-  padding: 0 clamp(10px, 2.2cqw, 18px);
-  border: 1px solid #e4e9ef;
+  gap: 8px;
+  padding: 0 24px;
   border-radius: 11px;
-  color: #101a2d;
-  font-size: clamp(11px, 1.7cqw, 15px);
-  font-weight: 750;
+  font-size: 14px;
+  font-weight: 600;
   line-height: 1;
   text-decoration: none;
   white-space: nowrap;
-  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
-}
-
-.learning-space-card__action:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 5px 14px rgb(16 26 45 / 10%);
+  cursor: pointer;
+  transition: all 300ms ease;
 }
 
 .learning-space-card__action:focus-visible,
 .learning-space-card__ai-link:focus-visible,
 .dashboard-ai-legacy-back:focus-visible {
-  outline: 2px solid #00875e;
+  outline: 2px solid #28ad68;
   outline-offset: 3px;
 }
 
 .learning-space-card__action--primary {
-  border-color: #00875e;
-  background: #00875e;
-  color: #fff;
+  border: 1px solid transparent;
+  background: #28ad68;
+  color: #ffffff;
 }
 
 .learning-space-card__action--primary:hover {
-  background: #087b59;
+  background: #239c5d;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  transform: none;
+}
+
+.learning-space-card__action--primary:active {
+  transform: scale(0.99);
 }
 
 .learning-space-card__action--secondary {
-  background: rgb(255 255 255 / 86%);
+  border: 1px solid #e5eaee;
+  background: #fbfdfb;
+  color: #149653;
+}
+
+.learning-space-card__action--secondary:hover {
+  border-color: #cfe8da;
+  background: #e8f8ef;
+  color: #15803d;
+  transform: none;
+  box-shadow: none;
+}
+
+.learning-space-card__action--secondary:active {
+  transform: scale(0.99);
 }
 
 .learning-space-card__action-icon {
