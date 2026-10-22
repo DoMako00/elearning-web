@@ -205,7 +205,7 @@ function StudentLayoutContent() {
           className={`student-dashboard__header${showCenteredSearch ? " student-dashboard__header--home" : ""}`}
           aria-label="Student dashboard header"
         >
-          <div className="flex items-center min-w-0">
+          <div className="student-dashboard__breadcrumb-area">
             {renderBreadcrumb()}
           </div>
           {showCenteredSearch && (

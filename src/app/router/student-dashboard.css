@@ -42,10 +42,20 @@ main[data-main-workspace] {
   box-sizing: border-box;
 }
 
+.student-dashboard__breadcrumb-area {
+  display: flex;
+  align-items: center;
+  min-width: max-content;
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 5;
+}
+
 .student-dashboard__header--home {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
 }
 
 .student-dashboard__search {
@@ -56,10 +66,10 @@ main[data-main-workspace] {
 
 .student-dashboard__header--home .student-dashboard__search {
   position: absolute;
-  left: calc(50% + -150px);
+  left: 50%;
   transform: translateX(-50%);
-  width: min(calc(100% - 380px), 680px);
-  max-width: 680px;
+  width: min(calc(100% - 700px), 540px);
+  max-width: 540px;
   margin: 0;
   z-index: 10;
 }
@@ -68,6 +78,7 @@ main[data-main-workspace] {
   margin-left: auto;
   position: relative;
   z-index: 20;
+  flex: 0 0 auto;
 }
 
 .student-dashboard__page-title {
@@ -165,9 +176,11 @@ main[data-main-workspace] {
 }
 
 .student-dashboard__actions {
-  min-width: 0;
+  min-width: max-content;
   margin-left: auto;
-  flex: 0 1 auto;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
   overflow: visible;
 }
 
@@ -718,9 +731,10 @@ main[data-main-workspace] {
   .student-dashboard__header--home .student-dashboard__search {
     position: static !important;
     transform: none !important;
-    flex: 1 1 0 !important;
+    flex: 1 1 auto !important;
     width: auto !important;
-    max-width: none !important;
+    max-width: 440px !important;
+    margin: 0 auto !important;
   }
 
   [data-app-shell] {
