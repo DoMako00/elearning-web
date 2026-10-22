@@ -52,10 +52,16 @@ main[data-main-workspace] {
 }
 
 .student-dashboard__header--home {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
+  gap: clamp(12px, 1.7vw, 32px);
   position: relative;
+}
+
+.student-dashboard__header--home .student-dashboard__breadcrumb-area {
+  justify-self: start;
+  flex: 0 0 auto;
 }
 
 .student-dashboard__search {
@@ -65,16 +71,17 @@ main[data-main-workspace] {
 }
 
 .student-dashboard__header--home .student-dashboard__search {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(calc(100% - 700px), 540px);
-  max-width: 540px;
-  margin: 0;
+  position: static;
+  width: min(100%, 600px);
+  max-width: 600px;
+  justify-self: center;
+  margin: 0 auto;
+  transform: none;
   z-index: 10;
 }
 
 .student-dashboard__header--home .student-dashboard__actions {
+  justify-self: end;
   margin-left: auto;
   position: relative;
   z-index: 20;
@@ -726,6 +733,14 @@ main[data-main-workspace] {
 
   .student-dashboard__header--home {
     display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+    gap: 12px !important;
+  }
+
+  .student-dashboard__header--home .student-dashboard__breadcrumb-area {
+    flex: 0 0 auto !important;
   }
 
   .student-dashboard__header--home .student-dashboard__search {

@@ -38,24 +38,30 @@
   gap: clamp(12px, 1.7vw, 32px);
 }
 
-/* Reference Home: search and account actions. Normal flow prevents overlap
-   when a real account name or notification control takes more space. */
+/* Reference Home: breadcrumb on left, search in center, account actions on right. */
 .student-dashboard__header--home {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(12px, 1.7vw, 32px);
+}
+
+.student-dashboard__header--home .student-dashboard__breadcrumb-area {
+  justify-self: start;
 }
 
 .student-dashboard__header--home .student-dashboard__search {
   position: static;
-  width: min(100%, 680px);
-  max-width: 680px;
+  width: min(100%, 600px);
+  max-width: 600px;
   justify-self: center;
-  margin: 0;
+  margin: 0 auto;
   transform: none;
 }
 
 .student-dashboard__header--home .student-dashboard__actions {
-  margin-left: 0;
+  justify-self: end;
+  margin-left: auto;
 }
 
 /* One scroll owner for Home. Bento cards retain their container queries;
