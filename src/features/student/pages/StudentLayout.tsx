@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
 import { AppShell } from "../../../components/layout/AppShell";
 import { SearchBar } from "../../../components/ui/SearchBar";
@@ -9,6 +9,7 @@ import { useAuth } from "../../../app/providers/AuthProvider";
 import { useStudentProfile } from "../api/useStudentLearning";
 import { useMarkStudentNotificationsRead, useStudentNotifications } from "../api/useStudentNotifications";
 import { MessagesProvider } from "../../../app/providers/MessagesProvider";
+import { PageBreadcrumb } from "../../../components/ui/PageBreadcrumb";
 
 import { lazy, Suspense } from "react";
 
@@ -91,120 +92,93 @@ function StudentLayoutContent() {
 
   const renderBreadcrumb = () => {
     if (isSettings) {
-      return (
-        <div className="student-dashboard__page-title">
-          <span className="student-dashboard__page-title-label">LEARNING SPACE</span>
-          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-          <h1>Settings</h1>
-        </div>
-      );
+      return <PageBreadcrumb trail={[{ label: "LEARNING SPACE", to: "/" }]} title="Settings" />;
     }
 
     if (isHelp) {
-      return (
-        <div className="student-dashboard__page-title">
-          <span className="student-dashboard__page-title-label">LEARNING SPACE</span>
-          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-          <h1>Help Center</h1>
-        </div>
-      );
+      return <PageBreadcrumb trail={[{ label: "LEARNING SPACE", to: "/" }]} title="Help Center" />;
     }
 
     if (isInstructorProfile) {
-      return (
-        <div className="student-dashboard__page-title">
-          <span className="student-dashboard__page-title-label font-bold text-emerald-600">
-            Profile
-          </span>
-          <span className="student-dashboard__page-title-separator" aria-hidden="true">
-            /
-          </span>
-          <h1>Instructor Profile</h1>
-        </div>
-      );
+      return <PageBreadcrumb trail={[{ label: "PROFILE", to: "/" }]} title="Instructor Profile" />;
     }
 
     if (isProfile) {
-      return (
-        <div className="student-dashboard__page-title">
-          <span className="student-dashboard__page-title-label">Student Account</span>
-          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-          <h1>My Profile</h1>
-        </div>
-      );
+      return <PageBreadcrumb trail={[{ label: "STUDENT ACCOUNT", to: "/" }]} title="My Profile" />;
     }
 
     if (isCommunity) {
-      return (
-        <div className="student-dashboard__page-title">
-          <span className="student-dashboard__page-title-label">Learning space</span>
-          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-          <h1>Community</h1>
-        </div>
-      );
+      return <PageBreadcrumb trail={[{ label: "LEARNING SPACE", to: "/" }]} title="Community" />;
     }
 
     if (isCourseOverview) {
-      return (
-        <nav className="student-dashboard__course-breadcrumb" aria-label="Lesson breadcrumb">
-          <Link to="/my-courses">My Courses</Link>
-          <span aria-hidden="true">›</span>
-          <h1 id="course-overview-title" className="student-dashboard__course-breadcrumb-title">{currentCourseTitle}</h1>
-        </nav>
-      );
+      return <PageBreadcrumb trail={[{ label: "MY COURSES", to: "/my-courses" }]} title={currentCourseTitle} />;
     }
 
     if (isLessonPlayer) {
       return (
-        <nav className="student-dashboard__course-breadcrumb" aria-label="Lesson breadcrumb">
-          <Link to="/my-courses">My Courses</Link>
-          <span aria-hidden="true">›</span>
-          <Link to={`/my-courses/${currentCourseId}`} state={{ courseTitle: currentCourseTitle, courseId: currentCourseId }}>{currentCourseTitle}</Link>
-          <span aria-hidden="true">›</span>
-          <strong aria-current="page">Lesson Player</strong>
-        </nav>
+        <PageBreadcrumb
+          trail={[
+            { label: "MY COURSES", to: "/my-courses" },
+            { label: currentCourseTitle.toUpperCase(), to: `/my-courses/${currentCourseId}` },
+          ]}
+          title="Lesson Player"
+        />
       );
     }
 
     if (isAssignmentDetail) {
       return (
-        <div className="student-dashboard__page-title">
-          <span className="student-dashboard__page-title-label">Learning space</span>
-          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-          <Link to="/assignments" style={{ color: "inherit", textDecoration: "none" }}>
-            <span style={{ color: "#64748b", fontWeight: 600 }}>Assignments</span>
-          </Link>
-          <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-          <h1>Assignment details</h1>
-        </div>
+        <PageBreadcrumb
+          trail={[
+            { label: "LEARNING SPACE", to: "/" },
+            { label: "ASSIGNMENTS", to: "/assignments" },
+          ]}
+          title="Assignment details"
+        />
       );
     }
 
-    let title = "Dashboard";
-    if (isMyCourses) title = "My Courses";
-    else if (isExplore) title = "Explore";
-    else if (isAssignments) title = "Assignments";
-    else if (isCalendar) title = "Calendar";
-    else if (isMessages) title = "Messages";
-    else if (isTestInactivity) title = "Inactivity Prompt Test";
-    else if (isTestXP) title = "XP Reward Test";
-    else if (isTestStreak) title = "Streak Analytics Test";
-    else {
-      const segments = pathname.split("/").filter(Boolean);
-      const lastSegment = segments[segments.length - 1] || "Dashboard";
-      title = lastSegment
-        .split("-")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
+    if (isMyCourses) {
+      return <PageBreadcrumb trail={[{ label: "LEARNING SPACE", to: "/" }]} title="My Courses" />;
     }
 
-    return (
-      <div className="student-dashboard__page-title">
-        <span className="student-dashboard__page-title-label">Learning space</span>
-        <span className="student-dashboard__page-title-separator" aria-hidden="true">/</span>
-        <h1>{title}</h1>
-      </div>
-    );
+    if (isExplore) {
+      return <PageBreadcrumb trail={[{ label: "DISCOVER", to: "/" }]} title="Explore" />;
+    }
+
+    if (isAssignments) {
+      return <PageBreadcrumb trail={[{ label: "LEARNING SPACE", to: "/" }]} title="Assignments" />;
+    }
+
+    if (isCalendar) {
+      return <PageBreadcrumb trail={[{ label: "LEARNING SPACE", to: "/" }]} title="Calendar" />;
+    }
+
+    if (isMessages) {
+      return <PageBreadcrumb trail={[{ label: "LEARNING SPACE", to: "/" }]} title="Messages" />;
+    }
+
+    if (isTestInactivity) {
+      return <PageBreadcrumb trail={[{ label: "LEARNING SPACE", to: "/" }]} title="Inactivity Prompt Test" />;
+    }
+
+    if (isTestXP) {
+      return <PageBreadcrumb trail={[{ label: "LEARNING SPACE", to: "/" }]} title="XP Reward Test" />;
+    }
+
+    if (isTestStreak) {
+      return <PageBreadcrumb trail={[{ label: "LEARNING SPACE", to: "/" }]} title="Streak Analytics Test" />;
+    }
+
+    const segments = pathname.split("/").filter(Boolean);
+    const lastSegment = segments[segments.length - 1] || "Dashboard";
+    const title = lastSegment
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+
+    return <PageBreadcrumb trail={[{ label: "LEARNING SPACE", to: "/" }]} title={title} />;
   };
 
   const isScrollablePage = isTestXP || isTestStreak || isTestInactivity;
@@ -231,15 +205,16 @@ function StudentLayoutContent() {
           className={`student-dashboard__header${showCenteredSearch ? " student-dashboard__header--home" : ""}`}
           aria-label="Student dashboard header"
         >
-          {showCenteredSearch ? (
+          <div className="flex items-center min-w-0">
+            {renderBreadcrumb()}
+          </div>
+          {showCenteredSearch && (
             <div className="student-dashboard__search">
               <SearchBar
                 placeholder="Search courses, topics or skills..."
                 isLoading={auth.status === "loading"}
               />
             </div>
-          ) : (
-            renderBreadcrumb()
           )}
           <div className="student-dashboard__actions">
             {auth.status === "authenticated" ? (

@@ -3,10 +3,144 @@ import { Navigate } from "react-router-dom";
 import { SignInPage } from "../../features/auth/pages/SignInPage";
 import { MyProgressEmpty } from "../../features/student/components/MyProgress";
 import { WeeklyGoalCard } from "../../features/student/components/WeeklyGoalCard";
+// import { PageBreadcrumb } from "../../components/ui/PageBreadcrumb";
+// import { BreadcrumbEcg } from "../../components/ui/PageBreadcrumb/BreadcrumbEcg";
+
+// function BreadcrumbPreview() {
+//   return (
+//     <div style={{ padding: "40px", background: "#f8fafc", minHeight: "100vh", display: "flex", flexDirection: "column", gap: "32px", fontFamily: "system-ui, sans-serif" }}>
+//       <div>
+//         <h1 style={{ fontSize: "24px", fontWeight: "800", color: "#0f172a", margin: "0 0 6px" }}>
+//           Signature Canvas ECG Breadcrumb Preview
+//         </h1>
+//         <p style={{ fontSize: "14px", color: "#64748b", margin: 0 }}>
+//           Oscilloscope sweep animation with anatomical P-Q-R-S-T cardiac cycle beneath the active page heading.
+//         </p>
+//       </div>
+
+//       {/* Mocked Student Dashboard Topbar (Light) */}
+//       <div style={{ background: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", padding: "24px", display: "flex", flexDirection: "column", gap: "20px" }}>
+//         <span style={{ fontSize: "13px", fontWeight: 700, color: "#047857", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+//           1. In-Context Student Topbar (Height: 76px) — Dashboard
+//         </span>
+//         <div style={{
+//           height: "76px",
+//           display: "flex",
+//           alignItems: "center",
+//           padding: "0 28px",
+//           border: "1px solid #e5ebe7",
+//           borderRadius: "12px",
+//           background: "#ffffff"
+//         }}>
+//           <PageBreadcrumb trail={[{ label: "LEARNING SPACE", to: "/" }]} title="Dashboard" />
+//         </div>
+//       </div>
+
+//       {/* Multi-level Trail */}
+//       <div style={{ background: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", padding: "24px", display: "flex", flexDirection: "column", gap: "20px" }}>
+//         <span style={{ fontSize: "13px", fontWeight: 700, color: "#047857", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+//           2. Multi-level Trail (Lesson Player)
+//         </span>
+//         <div style={{
+//           height: "76px",
+//           display: "flex",
+//           alignItems: "center",
+//           padding: "0 28px",
+//           border: "1px solid #e5ebe7",
+//           borderRadius: "12px",
+//           background: "#ffffff"
+//         }}>
+//           <PageBreadcrumb
+//             trail={[
+//               { label: "MY COURSES", to: "/my-courses" },
+//               { label: "ANATOMY & PHYSIOLOGY", to: "/my-courses/bio-101" },
+//             ]}
+//             title="Lesson Player"
+//           />
+//         </div>
+//       </div>
+
+//       {/* Detail Trail */}
+//       <div style={{ background: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", padding: "24px", display: "flex", flexDirection: "column", gap: "20px" }}>
+//         <span style={{ fontSize: "13px", fontWeight: 700, color: "#047857", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+//           3. Section Detail (Settings & Assignments)
+//         </span>
+//         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+//           <div style={{ height: "64px", display: "flex", alignItems: "center", padding: "0 24px", border: "1px solid #e5ebe7", borderRadius: "12px", background: "#ffffff" }}>
+//             <PageBreadcrumb trail={[{ label: "LEARNING SPACE", to: "/" }]} title="Settings" />
+//           </div>
+//           <div style={{ height: "64px", display: "flex", alignItems: "center", padding: "0 24px", border: "1px solid #e5ebe7", borderRadius: "12px", background: "#ffffff" }}>
+//             <PageBreadcrumb
+//               trail={[
+//                 { label: "LEARNING SPACE", to: "/" },
+//                 { label: "ASSIGNMENTS", to: "/assignments" },
+//               ]}
+//               title="Assignment details"
+//             />
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Dark Mode Card */}
+//       <div style={{ background: "#0b1329", borderRadius: "16px", border: "1px solid #1e293b", padding: "24px", display: "flex", flexDirection: "column", gap: "20px" }}>
+//         <span style={{ fontSize: "13px", fontWeight: 700, color: "#34d399", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+//           4. Dark Mode Variant (#34d399 trace)
+//         </span>
+//         <div style={{
+//           height: "76px",
+//           display: "flex",
+//           alignItems: "center",
+//           padding: "0 28px",
+//           border: "1px solid #1e293b",
+//           borderRadius: "12px",
+//           background: "#0f172a"
+//         }}>
+//           <div style={{ color: "#34d399" }}>
+//             <PageBreadcrumb
+//               trail={[{ label: "LEARNING SPACE", to: "/" }]}
+//               title="Cardiology & Vital Signs"
+//             />
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Raw Oscilloscope Canvas Component */}
+//       <div style={{ background: "#ffffff", borderRadius: "16px", border: "1px solid #e2e8f0", padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
+//         <span style={{ fontSize: "13px", fontWeight: 700, color: "#047857", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+//           5. Standalone BreadcrumbEcg Canvas (Various Rates)
+//         </span>
+//         <div style={{ display: "flex", flexDirection: "column", gap: "16px", maxWidth: "480px" }}>
+//           <div>
+//             <span style={{ fontSize: "12px", color: "#64748b" }}>Normal Sinus Rhythm (72 BPM)</span>
+//             <div style={{ position: "relative", width: "100%", height: "24px", background: "#f8fafc", borderRadius: "6px", overflow: "hidden", color: "#047857", marginTop: "4px" }}>
+//               <BreadcrumbEcg bpm={72} />
+//             </div>
+//           </div>
+//           <div>
+//             <span style={{ fontSize: "12px", color: "#64748b" }}>Bradycardia (52 BPM)</span>
+//             <div style={{ position: "relative", width: "100%", height: "24px", background: "#f8fafc", borderRadius: "6px", overflow: "hidden", color: "#0284c7", marginTop: "4px" }}>
+//               <BreadcrumbEcg bpm={52} />
+//             </div>
+//           </div>
+//           <div>
+//             <span style={{ fontSize: "12px", color: "#64748b" }}>Tachycardia (115 BPM)</span>
+//             <div style={{ position: "relative", width: "100%", height: "24px", background: "#f8fafc", borderRadius: "6px", overflow: "hidden", color: "#e11d48", marginTop: "4px" }}>
+//               <BreadcrumbEcg bpm={115} />
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 
 export const publicRoutes: RouteObject[] = [
   ...(import.meta.env.DEV
     ? [
+        // {
+        //   path: "/test-breadcrumb",
+        //   element: <BreadcrumbPreview />,
+        // },
         {
           path: "/test-empty-progress",
           element: (

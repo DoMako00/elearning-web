@@ -1,0 +1,140 @@
+.page-breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.page-breadcrumb__list {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  gap: 8px;
+}
+
+.page-breadcrumb__item {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.page-breadcrumb__item--trail {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.page-breadcrumb__trail-link,
+.page-breadcrumb__trail-text {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #047857; /* emerald-700 */
+  white-space: nowrap;
+}
+
+.page-breadcrumb__trail-link {
+  position: relative;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.page-breadcrumb__trail-link:hover {
+  color: #059669;
+}
+
+.page-breadcrumb__trail-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 1px;
+  background-color: #059669;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.page-breadcrumb__trail-link:hover::after {
+  transform: scaleX(1);
+}
+
+.page-breadcrumb__chevron {
+  color: #cbd5e1;
+  size: 14px;
+  flex-shrink: 0;
+}
+
+.page-breadcrumb__item--current {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.page-breadcrumb__title-wrapper {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.page-breadcrumb__title {
+  margin: 0;
+  color: var(--color-text-primary, #111827);
+  font-family: var(--font-heading, inherit);
+  font-size: clamp(20px, 1.8vw, 28px);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── ECG canvas (oscilloscope sweep) ───────────────────────────────────────── */
+.page-breadcrumb__pulse-canvas {
+  position: absolute;
+  left: 0;
+  bottom: -20px;
+  display: block;
+  pointer-events: none;
+  z-index: 1;
+  color: #047857; /* Light mode trace color */
+}
+
+@media (prefers-color-scheme: dark) {
+  .page-breadcrumb__pulse-canvas {
+    color: #34d399; /* Dark mode trace color */
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-breadcrumb__pulse-canvas {
+    display: none;
+  }
+}
+
+.page-breadcrumb__item--meta {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  .page-breadcrumb__item--trail {
+    display: none;
+  }
+}
