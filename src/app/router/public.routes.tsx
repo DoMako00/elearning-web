@@ -1,8 +1,124 @@
+// import { useState } from "react";
 import type { RouteObject } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 import { SignInPage } from "../../features/auth/pages/SignInPage";
 import { MyProgressEmpty } from "../../features/student/components/MyProgress";
 import { WeeklyGoalCard } from "../../features/student/components/WeeklyGoalCard";
+// import { AssignmentsWorkspace } from "../../components/ui/Assignments";
+
+// function DevAssignmentsPreview() {
+//   const [devState, setDevState] = useState<
+//     "true-empty" | "filtered-in-progress" | "filtered-submitted" | "filtered-graded" | "partial-rail"
+//   >("true-empty");
+
+//   return (
+//     <div style={{ display: "flex", flexDirection: "column", width: "100vw", height: "100vh", background: "#f0f4f2", overflow: "hidden" }}>
+//       <div style={{
+//         display: "flex",
+//         alignItems: "center",
+//         gap: "10px",
+//         padding: "8px 20px",
+//         background: "#ffffff",
+//         borderBottom: "1px solid #e2e8f0",
+//         flexShrink: 0,
+//         zIndex: 50,
+//       }}>
+//         <span style={{ fontSize: "12px", fontWeight: 700, color: "#15803d", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+//           QA Switcher:
+//         </span>
+//         <button
+//           type="button"
+//           onClick={() => setDevState("true-empty")}
+//           style={{
+//             padding: "5px 12px",
+//             fontSize: "12px",
+//             fontWeight: 650,
+//             borderRadius: "6px",
+//             border: "1px solid",
+//             borderColor: devState === "true-empty" ? "#20a862" : "#cbd5e1",
+//             background: devState === "true-empty" ? "#eefaf2" : "#ffffff",
+//             color: devState === "true-empty" ? "#15803d" : "#475569",
+//             cursor: "pointer",
+//           }}
+//         >
+//           1. True Empty (0 Items)
+//         </button>
+//         <button
+//           type="button"
+//           onClick={() => setDevState("partial-rail")}
+//           style={{
+//             padding: "5px 12px",
+//             fontSize: "12px",
+//             fontWeight: 650,
+//             borderRadius: "6px",
+//             border: "1px solid",
+//             borderColor: devState === "partial-rail" ? "#20a862" : "#cbd5e1",
+//             background: devState === "partial-rail" ? "#eefaf2" : "#ffffff",
+//             color: devState === "partial-rail" ? "#15803d" : "#475569",
+//             cursor: "pointer",
+//           }}
+//         >
+//           2. Partial Data (Rail Card Empties)
+//         </button>
+//         <button
+//           type="button"
+//           onClick={() => setDevState("filtered-in-progress")}
+//           style={{
+//             padding: "5px 12px",
+//             fontSize: "12px",
+//             fontWeight: 650,
+//             borderRadius: "6px",
+//             border: "1px solid",
+//             borderColor: devState === "filtered-in-progress" ? "#20a862" : "#cbd5e1",
+//             background: devState === "filtered-in-progress" ? "#eefaf2" : "#ffffff",
+//             color: devState === "filtered-in-progress" ? "#15803d" : "#475569",
+//             cursor: "pointer",
+//           }}
+//         >
+//           3. Filtered (In Progress)
+//         </button>
+//         <button
+//           type="button"
+//           onClick={() => setDevState("filtered-submitted")}
+//           style={{
+//             padding: "5px 12px",
+//             fontSize: "12px",
+//             fontWeight: 650,
+//             borderRadius: "6px",
+//             border: "1px solid",
+//             borderColor: devState === "filtered-submitted" ? "#20a862" : "#cbd5e1",
+//             background: devState === "filtered-submitted" ? "#eefaf2" : "#ffffff",
+//             color: devState === "filtered-submitted" ? "#15803d" : "#475569",
+//             cursor: "pointer",
+//           }}
+//         >
+//           4. Filtered (Submitted)
+//         </button>
+//         <button
+//           type="button"
+//           onClick={() => setDevState("filtered-graded")}
+//           style={{
+//             padding: "5px 12px",
+//             fontSize: "12px",
+//             fontWeight: 650,
+//             borderRadius: "6px",
+//             border: "1px solid",
+//             borderColor: devState === "filtered-graded" ? "#20a862" : "#cbd5e1",
+//             background: devState === "filtered-graded" ? "#eefaf2" : "#ffffff",
+//             color: devState === "filtered-graded" ? "#15803d" : "#475569",
+//             cursor: "pointer",
+//           }}
+//         >
+//           5. Filtered (Graded)
+//         </button>
+//       </div>
+
+//       <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0, padding: "20px", gap: 0, overflow: "hidden" }}>
+//         <AssignmentsWorkspace devState={devState} key={devState} />
+//       </div>
+//     </div>
+//   );
+// }
 // import { PageBreadcrumb } from "../../components/ui/PageBreadcrumb";
 // import { BreadcrumbEcg } from "../../components/ui/PageBreadcrumb/BreadcrumbEcg";
 
@@ -185,6 +301,10 @@ export const publicRoutes: RouteObject[] = [
             </div>
           ),
         },
+        // {
+        //   path: "/test-assignments",
+        //   element: <DevAssignmentsPreview />,
+        // },
       ]
     : []),
   { path: "/auth/sign-in", element: <SignInPage /> },

@@ -2,15 +2,22 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
-  Bookmark,
+  BookOpen,
   CalendarDays,
   Check,
   ChevronDown,
+  Filter,
   SlidersHorizontal,
+  TrendingUp,
 } from "lucide-react";
 import { useStudentAssignments } from "../../../features/student/api/useStudentAssignments";
 import { mapStudentAssignment } from "../../../features/student/api/studentAssignmentMapper";
 import { StudentWorkNavigation } from "../../../features/student/components/StudentWorkNavigation";
+import { ASSIGNMENT_ITEMS } from "./assignments.data";
+import {
+  EmptyState,
+  AssignmentsEmptyIllustration,
+} from "../EmptyState";
 import type {
   AssignmentFilter,
   AssignmentItem,
@@ -134,7 +141,9 @@ function AssignmentCard({
         </span>
 
         <div className="assignment-card__body">
-          <div className="assignment-card__art" aria-hidden="true">{item.image ? <img src={item.image} alt="" /> : <span className="assignment-card__art-placeholder">A</span>}</div>
+          <div className="assignment-card__art" aria-hidden="true">
+            {item.image ? <img src={item.image} alt="" /> : <span className="assignment-card__art-placeholder">A</span>}
+          </div>
 
           <div className="assignment-card__info">
             <h3>{item.title}</h3>
@@ -155,33 +164,24 @@ function AssignmentCard({
           <span className={`assignment-card__status assignment-card__status--${item.status}`}>
             {statusLabel(item.status)}
           </span>
-          <button
-            type="button"
-            className="assignment-card__bookmark"
-            aria-label="Assignment bookmarking is unavailable"
-            title="Assignment bookmarking is not available yet"
-            disabled
-          >
-            <Bookmark aria-hidden="true" />
-          </button>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          <span className="assignment-card__points">{item.points === null ? "Score not set" : `${item.points} points`}</span>
-          <div className="assignment-card__progress" aria-hidden={item.status !== "in-progress" || typeof item.progress !== "number"}>
-            {item.status === "in-progress" && typeof item.progress === "number" ? (
-              <>
-                <i><b style={{ width: `${item.progress}%` }} /></i>
-                <strong>{item.progress}%</strong>
-              </>
-            ) : (
-              <i className="assignment-card__progress-placeholder" />
-            )}
-          </div>
+        <div className="assignment-card__stats">
+          <div className="assignment-card__points">{item.points != null ? `${item.points} pts` : "Ungraded"}</div>
+          {item.status === "in-progress" ? (
+            <div className="assignment-card__progress">
+              <i>
+                <b style={{ width: `${item.progress ?? 0}%` }} />
+              </i>
+              <strong>{item.progress ?? 0}%</strong>
+            </div>
+          ) : (
+            <span className="assignment-card__progress-placeholder" />
+          )}
         </div>
 
-        <button 
-          type="button" 
+        <button
+          type="button"
           className={`assignment-card__action assignment-card__action--${item.status}`}
           onClick={(e) => {
             e.stopPropagation();
@@ -195,11 +195,52 @@ function AssignmentCard({
   );
 }
 
-export function AssignmentsWorkspace() {
+export interface AssignmentsWorkspaceProps {
+  /** DEV preview state switcher for testing empty/filtered/partial states */
+  devState?: "auto" | "true-empty" | "filtered-in-progress" | "filtered-submitted" | "filtered-graded" | "partial-rail" | "populated";
+}
+
+export function AssignmentsWorkspace({ devState = "auto" }: AssignmentsWorkspaceProps) {
   const navigate = useNavigate();
   const assignmentsQuery = useStudentAssignments();
-  const items = useMemo(() => (assignmentsQuery.data ?? []).map((assignment) => mapStudentAssignment(assignment)), [assignmentsQuery.data]);
-  const [filter, setFilter] = useState<AssignmentFilter>("all");
+  
+  // Base raw items
+  const rawItems = useMemo(
+    () => (assignmentsQuery.data ?? []).map((assignment) => mapStudentAssignment(assignment)),
+    [assignmentsQuery.data]
+  );
+
+  // Apply dev state overrides when running in DEV mode
+  const items = useMemo(() => {
+    if (import.meta.env.DEV && devState !== "auto") {
+      if (devState === "true-empty") return [];
+      if (devState === "partial-rail") {
+        // Return assignments that are not started (no deadlines, no feedback)
+        return rawItems.length > 0
+          ? rawItems.slice(0, 2).map((item) => ({ ...item, status: "not-started" as const, actionable: false }))
+          : [
+              { ...ASSIGNMENT_ITEMS[0], actionable: false, status: "not-started" as const },
+              { ...ASSIGNMENT_ITEMS[1], actionable: false, status: "not-started" as const },
+            ];
+      }
+      if (devState.startsWith("filtered-")) {
+        const base = rawItems.length > 0 ? rawItems : ASSIGNMENT_ITEMS;
+        const targetFilter = devState.replace("filtered-", "");
+        // Filter out the selected category so it has 0 matches (filtered empty)
+        return base.filter((item) => item.status !== targetFilter);
+      }
+    }
+    return rawItems;
+  }, [devState, rawItems]);
+
+  const [filter, setFilter] = useState<AssignmentFilter>(() => {
+    if (import.meta.env.DEV && devState.startsWith("filtered-")) {
+      const parsed = devState.replace("filtered-", "") as AssignmentFilter;
+      return parsed;
+    }
+    return "all";
+  });
+
   const [sortBy, setSortBy] = useState<AssignmentSort>("due");
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
@@ -244,8 +285,21 @@ export function AssignmentsWorkspace() {
     return showAll ? sorted : sorted.slice(0, PAGE_SIZE);
   }, [filter, items, sortBy, showAll]);
 
-  const deadlines = useMemo(() => items.filter((item) => item.actionable && !item.isOverdue && item.dueAt.startsWith("2")).sort((a, b) => a.dueAt.localeCompare(b.dueAt)).slice(0, 4), [items]);
-  const feedback = useMemo(() => (assignmentsQuery.data ?? []).filter((item) => item.submission?.status === "reviewed"), [assignmentsQuery.data]);
+  const deadlines = useMemo(
+    () =>
+      items
+        .filter((item) => item.actionable && !item.isOverdue && item.dueAt.startsWith("2"))
+        .sort((a, b) => a.dueAt.localeCompare(b.dueAt))
+        .slice(0, 4),
+    [items]
+  );
+
+  const feedback = useMemo(() => {
+    if (import.meta.env.DEV && devState === "partial-rail") {
+      return [];
+    }
+    return (assignmentsQuery.data ?? []).filter((item) => item.submission?.status === "reviewed");
+  }, [assignmentsQuery.data, devState]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -257,186 +311,346 @@ export function AssignmentsWorkspace() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const hasAny = items.length > 0;
+  const hasMatches = visibleItems.length > 0;
   const totalForFilter = filter === "all" ? counts.all : counts[filter];
   const showingFrom = visibleItems.length === 0 ? 0 : 1;
   const showingTo = visibleItems.length;
   const sortLabel = SORT_OPTIONS.find((option) => option.id === sortBy)?.label ?? "Due date";
 
-  return (
-    <div className="assignments-workspace">
-      <div className="assignments-main">
-        {/* <header className="assignments-heading">
-          <div>
-            <h1 id="assignments-title">Assignments</h1>
-            <p>Stay on track, complete your tasks, and master medicine.</p>
-          </div>
-        </header> */}
+  // Filtered empty copy mapping per specification table
+  const getFilteredEmptyCopy = () => {
+    if (filter === "in-progress") {
+      return {
+        title: "Nothing in progress",
+        description: "Open an assignment from the full list to get started.",
+        action: "View all assignments",
+      };
+    }
+    if (filter === "submitted") {
+      return {
+        title: "Nothing submitted yet",
+        description: "Work you've handed in will wait here for review.",
+        action: "View all assignments",
+      };
+    }
+    if (filter === "graded") {
+      return {
+        title: "No grades yet",
+        description: "Graded work and instructor feedback will appear here after review.",
+        action: "View all assignments",
+      };
+    }
+    return {
+      title: "No matches",
+      description: "Try different filters.",
+      action: "Clear filters",
+    };
+  };
 
+  const filteredCopy = getFilteredEmptyCopy();
+
+  return (
+    <div className={`assignments-workspace${!hasAny ? " assignments-workspace--true-empty" : ""}`}>
+      <div className="assignments-main">
+        {/* Toolbar region */}
         <div className="assignments-toolbar">
           <div className="assignments-toolbar__main">
+            {/* Always keep the Assignments | Assessments toggle */}
             <StudentWorkNavigation />
-            <div className="assignments-filters" role="tablist" aria-label="Assignment status">
-              {FILTERS.map((item) => (
+
+            {/* Status pills: hidden on true empty */}
+            {hasAny && (
+              <div className="assignments-filters" role="tablist" aria-label="Assignment status">
+                {FILTERS.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={filter === item.id}
+                    className={`assignments-filter${filter === item.id ? " is-active" : ""}`}
+                    onClick={() => {
+                      setFilter(item.id);
+                      setShowAll(false);
+                    }}
+                  >
+                    {item.label} <b>({counts[item.id]})</b>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Sort & filter tools: hidden on true empty */}
+          {hasAny && (
+            <div className="assignments-toolbar__tools">
+              <div className="relative" ref={sortRef}>
                 <button
-                  key={item.id}
                   type="button"
-                  role="tab"
-                  aria-selected={filter === item.id}
-                  className={`assignments-filter${filter === item.id ? " is-active" : ""}`}
-                  onClick={() => {
-                    setFilter(item.id);
-                    setShowAll(false);
-                  }}
+                  className="assignments-sort"
+                  aria-haspopup="listbox"
+                  aria-expanded={isSortOpen}
+                  onClick={() => setIsSortOpen((open) => !open)}
                 >
-                  {item.label} <b>({counts[item.id]})</b>
+                  Sort by: {sortLabel}
+                  <ChevronDown aria-hidden="true" className={isSortOpen ? "rotate-180" : ""} />
                 </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="assignments-toolbar__tools">
-            <div className="relative" ref={sortRef}>
-              <button
-                type="button"
-                className="assignments-sort"
-                aria-haspopup="listbox"
-                aria-expanded={isSortOpen}
-                onClick={() => setIsSortOpen((open) => !open)}
-              >
-                Sort by: {sortLabel}
-                <ChevronDown aria-hidden="true" className={isSortOpen ? "rotate-180" : ""} />
+                {isSortOpen ? (
+                  <ul className="assignments-sort-menu" role="listbox" aria-label="Sort options">
+                    {SORT_OPTIONS.map((option) => (
+                      <li
+                        key={option.id}
+                        role="option"
+                        aria-selected={sortBy === option.id}
+                        className={sortBy === option.id ? "is-active" : ""}
+                        onClick={() => {
+                          setSortBy(option.id);
+                          setIsSortOpen(false);
+                        }}
+                      >
+                        {option.label}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+              <button type="button" className="assignments-filter-icon" aria-label="More filters">
+                <SlidersHorizontal aria-hidden="true" />
               </button>
-              {isSortOpen ? (
-                <ul className="assignments-sort-menu" role="listbox" aria-label="Sort options">
-                  {SORT_OPTIONS.map((option) => (
-                    <li
-                      key={option.id}
-                      role="option"
-                      aria-selected={sortBy === option.id}
-                      className={sortBy === option.id ? "is-active" : ""}
-                      onClick={() => {
-                        setSortBy(option.id);
-                        setIsSortOpen(false);
-                      }}
-                    >
-                      {option.label}
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
             </div>
-            <button type="button" className="assignments-filter-icon" aria-label="More filters">
-              <SlidersHorizontal aria-hidden="true" />
-            </button>
-          </div>
+          )}
         </div>
 
-        <div className="assignments-grid" aria-label="Assignment list">
-          {assignmentsQuery.isLoading ? <p role="status" className="assignments-empty-state">Loading assignments…</p>
-            : assignmentsQuery.isError ? <div role="alert" className="assignments-empty-state"><p>{assignmentsQuery.error instanceof Error ? assignmentsQuery.error.message : "Assignments could not be loaded."}</p><button type="button" onClick={() => void assignmentsQuery.refetch()}>Try again</button></div>
-            : visibleItems.length === 0 ? <p role="status" className="assignments-empty-state">No assignments match this view.</p>
-            : visibleItems.map((item) => (
-            <AssignmentCard
-              key={item.id}
-              item={item}
-              onOpenDetail={() => handleOpenDetail(item)}
+        {/* Content list or empty state */}
+        <div
+          className={`assignments-grid${!hasAny ? " assignments-grid--empty" : ""}`}
+          aria-label="Assignment list"
+        >
+          {assignmentsQuery.isLoading ? (
+            <p role="status" className="assignments-empty-state assignments-empty-state--loading">
+              Loading assignments…
+            </p>
+          ) : assignmentsQuery.isError ? (
+            <div role="alert" className="assignments-empty-state">
+              <p>
+                {assignmentsQuery.error instanceof Error
+                  ? assignmentsQuery.error.message
+                  : "Assignments could not be loaded."}
+              </p>
+              <button type="button" onClick={() => void assignmentsQuery.refetch()}>
+                Try again
+              </button>
+            </div>
+          ) : !hasAny ? (
+            /* True Empty Hero: Full main area centered with handcrafted illustration */
+            <EmptyState
+              size="page"
+              illustration={<AssignmentsEmptyIllustration />}
+              title="No assignments yet"
+              description="When your instructors post assignments, they'll appear here with deadlines and grading status."
+              actions={
+                <>
+                  <button
+                    type="button"
+                    className="gl-empty-btn gl-empty-btn--primary"
+                    onClick={() => navigate("/my-courses")}
+                  >
+                    <BookOpen aria-hidden="true" />
+                    Go to My Courses
+                  </button>
+                  <button
+                    type="button"
+                    className="gl-empty-btn gl-empty-btn--secondary"
+                    onClick={() => navigate("/calendar")}
+                  >
+                    <CalendarDays aria-hidden="true" />
+                    Open calendar
+                  </button>
+                </>
+              }
             />
-          ))}
+          ) : !hasMatches ? (
+            /* Filtered Empty: Compact EmptyState in list region */
+            <div className="assignments-filtered-empty-wrapper">
+              <EmptyState
+                size="card"
+                icon={<Filter aria-hidden="true" />}
+                title={filteredCopy.title}
+                description={filteredCopy.description}
+                actions={
+                  <button
+                    type="button"
+                    className="gl-empty-btn gl-empty-btn--secondary"
+                    onClick={() => {
+                      setFilter("all");
+                      setShowAll(false);
+                    }}
+                  >
+                    {filteredCopy.action}
+                  </button>
+                }
+              />
+            </div>
+          ) : (
+            visibleItems.map((item) => (
+              <AssignmentCard
+                key={item.id}
+                item={item}
+                onOpenDetail={() => handleOpenDetail(item)}
+              />
+            ))
+          )}
         </div>
-        <footer className="assignments-footer">
-          <span>
-            Showing {showingFrom}–{showingTo} of {totalForFilter} assignments
-          </span>
-          {totalForFilter > PAGE_SIZE ? (
-            <button type="button" onClick={() => setShowAll((value) => !value)}>
-              {showAll ? "Show fewer" : "View all assignments"} <ArrowRight aria-hidden="true" />
-            </button>
-          ) : null}
-        </footer>
 
+        {/* Footer: hidden on true empty */}
+        {hasAny && (
+          <footer className="assignments-footer">
+            <span>
+              {!hasMatches
+                ? `Showing 0 of ${counts.all} assignments`
+                : `Showing ${showingFrom}–${showingTo} of ${totalForFilter} assignments`}
+            </span>
+            {hasMatches && totalForFilter > PAGE_SIZE ? (
+              <button type="button" onClick={() => setShowAll((value) => !value)}>
+                {showAll ? "Show fewer" : "View all assignments"} <ArrowRight aria-hidden="true" />
+              </button>
+            ) : null}
+          </footer>
+        )}
       </div>
 
-      <aside className="assignments-rail" aria-label="Assignment insights">
-        <section className="assignments-widget">
-          <h2>Upcoming deadlines</h2>
-          <ul className="assignments-deadlines">
-            {deadlines.map((deadline) => (
-              <li key={deadline.id}>
-                <div>
-                  <b>{deadline.title}</b>
-                  <small>{deadline.dueLabel}</small>
-                </div>
-                <span className={urgencyClass(deadline.urgency)}>{deadline.relativeLabel}</span>
-              </li>
-            ))}
-            {!assignmentsQuery.isLoading && deadlines.length === 0 && <li>No upcoming deadlines are available.</li>}
-          </ul>
-          <button type="button" className="assignments-widget__link" onClick={() => navigate("/calendar")}>
-            View calendar <ArrowRight aria-hidden="true" />
-          </button>
-        </section>
+      {/* Right Rail: unmounted completely on true empty */}
+      {hasAny && (
+        <aside className="assignments-rail" aria-label="Assignment insights">
+          {/* Widget 1: Upcoming deadlines */}
+          <section className="assignments-widget">
+            <h2>Upcoming deadlines</h2>
+            {deadlines.length > 0 ? (
+              <ul className="assignments-deadlines">
+                {deadlines.map((deadline) => (
+                  <li key={deadline.id}>
+                    <div>
+                      <b>{deadline.title}</b>
+                      <small>{deadline.dueLabel}</small>
+                    </div>
+                    <span className={urgencyClass(deadline.urgency)}>{deadline.relativeLabel}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState
+                size="card"
+                icon={<CalendarDays aria-hidden="true" />}
+                title="No upcoming deadlines"
+                description="You're all caught up."
+              />
+            )}
+            <button
+              type="button"
+              className="assignments-widget__link"
+              onClick={() => navigate("/calendar")}
+            >
+              View calendar <ArrowRight aria-hidden="true" />
+            </button>
+          </section>
 
-        <section className="assignments-widget assignments-widget--progress">
-          <h2>Your progress</h2>
-          <div className="assignments-progress">
-            <ProgressDonut
-              completed={counts.completed}
-              inProgress={counts["in-progress"]}
-              notStarted={counts.notStarted}
-              total={counts.all}
-            />
-            <ul>
-              <li>
-                <i className="dot dot--completed" />
-                <div>
-                  Completed <b>{counts.completed}</b>
-                </div>
-                <span>{counts.all ? Math.round((counts.completed / counts.all) * 100) : 0}%</span>
-              </li>
-              <li>
-                <i className="dot dot--progress" />
-                <div>
-                  In progress <b>{counts["in-progress"]}</b>
-                </div>
-                <span>{counts.all ? Math.round((counts["in-progress"] / counts.all) * 100) : 0}%</span>
-              </li>
-              <li>
-                <i className="dot dot--idle" />
-                <div>
-                  Not started <b>{counts.notStarted}</b>
-                </div>
-                <span>{counts.all ? Math.round((counts.notStarted / counts.all) * 100) : 0}%</span>
-              </li>
-            </ul>
-          </div>
-          <button type="button" className="assignments-widget__link" onClick={() => navigate("/profile?tab=activity")}>
-            View all stats <ArrowRight aria-hidden="true" />
-          </button>
-        </section>
+          {/* Widget 2: Your progress */}
+          <section className="assignments-widget assignments-widget--progress">
+            <h2>Your progress</h2>
+            {counts.all > 0 ? (
+              <div className="assignments-progress">
+                <ProgressDonut
+                  completed={counts.completed}
+                  inProgress={counts["in-progress"]}
+                  notStarted={counts.notStarted}
+                  total={counts.all}
+                />
+                <ul>
+                  <li>
+                    <i className="dot dot--completed" />
+                    <div>
+                      Completed <b>{counts.completed}</b>
+                    </div>
+                    <span>{counts.all ? Math.round((counts.completed / counts.all) * 100) : 0}%</span>
+                  </li>
+                  <li>
+                    <i className="dot dot--progress" />
+                    <div>
+                      In progress <b>{counts["in-progress"]}</b>
+                    </div>
+                    <span>{counts.all ? Math.round((counts["in-progress"] / counts.all) * 100) : 0}%</span>
+                  </li>
+                  <li>
+                    <i className="dot dot--idle" />
+                    <div>
+                      Not started <b>{counts.notStarted}</b>
+                    </div>
+                    <span>{counts.all ? Math.round((counts.notStarted / counts.all) * 100) : 0}%</span>
+                  </li>
+                </ul>
+              </div>
+            ) : (
+              <EmptyState
+                size="card"
+                icon={<TrendingUp aria-hidden="true" />}
+                title="No assignment activity"
+                description="Activity will appear as you start working."
+              />
+            )}
+            <button
+              type="button"
+              className="assignments-widget__link"
+              onClick={() => navigate("/profile?tab=activity")}
+            >
+              View all stats <ArrowRight aria-hidden="true" />
+            </button>
+          </section>
 
-        <section className="assignments-widget">
-          <h2>Recent feedback</h2>
-          <ul className="assignments-feedback">
-            {feedback.map((item) => (
-              <li key={item.id}>
-                <span className="assignments-feedback__icon" aria-hidden="true">
-                  <Check />
-                </span>
-                <div>
-                  <b>{item.title}</b>
-                  <p>{item.submission?.feedback ?? "Reviewed by your instructor."}</p>
-                  <small>{item.submission?.submittedAt ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(item.submission.submittedAt)) : ""}</small>
-                </div>
-                <strong>{item.submission?.score ?? "—"}</strong>
-              </li>
-            ))}
-            {feedback.length === 0 && <li>No reviewed feedback is available yet.</li>}
-          </ul>
-          <button type="button" className="assignments-widget__link" disabled>
-            View all feedback <ArrowRight aria-hidden="true" />
-          </button>
-        </section>
-      </aside>
+          {/* Widget 3: Recent feedback */}
+          <section className="assignments-widget">
+            <h2>Recent feedback</h2>
+            {feedback.length > 0 ? (
+              <ul className="assignments-feedback">
+                {feedback.map((item) => (
+                  <li key={item.id}>
+                    <span className="assignments-feedback__icon" aria-hidden="true">
+                      <Check />
+                    </span>
+                    <div>
+                      <b>{item.title}</b>
+                      <p>{item.submission?.feedback ?? "Reviewed by your instructor."}</p>
+                      <small>
+                        {item.submission?.submittedAt
+                          ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(
+                              new Date(item.submission.submittedAt)
+                            )
+                          : ""}
+                      </small>
+                    </div>
+                    <strong>{item.submission?.score ?? "—"}</strong>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState
+                size="card"
+                icon={<Check aria-hidden="true" />}
+                title="No feedback yet"
+                description="Reviewed work will show up here."
+              />
+            )}
+            <button
+              type="button"
+              className="assignments-widget__link"
+              disabled={feedback.length === 0}
+            >
+              View all feedback <ArrowRight aria-hidden="true" />
+            </button>
+          </section>
+        </aside>
+      )}
     </div>
   );
 }
+
+export default AssignmentsWorkspace;

@@ -2,18 +2,21 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
+  BookOpen,
   CalendarDays,
   Check,
   ChevronDown,
   ClipboardCheck,
   ClipboardList,
   Clock3,
+  Filter,
   SlidersHorizontal,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import { studentAssessmentApi, type StudentAssessmentDto } from "../api/studentAssessmentApi";
 import { StudentWorkNavigation } from "./StudentWorkNavigation";
+import { EmptyState, AssessmentsEmptyIllustration } from "../../../components/ui/EmptyState";
 import "../../../components/ui/Assignments/Assignments.css";
 import "./AssessmentsWorkspace.css";
 
@@ -199,14 +202,32 @@ function AssessmentCard({ item }: { item: StudentAssessmentDto }) {
   return <article className="assignment-card assessment-assignment-card">{cardContent}</article>;
 }
 
-export function AssessmentsWorkspace() {
+export interface AssessmentsWorkspaceProps {
+  devState?: "auto" | "true-empty" | "filtered-empty" | "partial-rail" | "populated";
+}
+
+export function AssessmentsWorkspace({ devState = "auto" }: AssessmentsWorkspaceProps) {
+  const navigate = useNavigate();
   const auth = useAuth();
   const query = useQuery({
     queryKey: ["student", "assessments"],
     queryFn: ({ signal }) => studentAssessmentApi.list(signal),
     enabled: auth.status === "authenticated",
   });
-  const items = query.data ?? [];
+
+  const rawItems = query.data ?? [];
+  const items = useMemo(() => {
+    if (import.meta.env.DEV && devState !== "auto") {
+      if (devState === "true-empty") return [];
+      if (devState === "partial-rail") {
+        return rawItems.length > 0
+          ? rawItems.slice(0, 2).map((item) => ({ ...item, status: "closed" as const }))
+          : [];
+      }
+    }
+    return rawItems;
+  }, [devState, rawItems]);
+
   const [filter, setFilter] = useState<AssessmentFilter>("all");
   const [sortBy, setSortBy] = useState<AssessmentSort>("availability");
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -265,6 +286,8 @@ export function AssessmentsWorkspace() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const hasAny = items.length > 0;
+  const hasMatches = visibleItems.length > 0;
   const completedCount = counts.completed;
   const inProgressCount = counts["in-progress"];
   const otherCount = Math.max(0, counts.all - completedCount - inProgressCount);
@@ -274,123 +297,217 @@ export function AssessmentsWorkspace() {
   const sortLabel = SORT_OPTIONS.find((option) => option.id === sortBy)?.label ?? "Availability";
 
   return (
-    <div className="assignments-workspace assessments-workspace">
+    <div className={`assignments-workspace assessments-workspace${!hasAny ? " assignments-workspace--true-empty" : ""}`}>
       <div className="assignments-main">
         <h1 id="assessments-title" className="assessment-sr-only">Assessments</h1>
         <div className="assignments-toolbar">
           <div className="assignments-toolbar__main">
+            {/* Always keep the Assignments | Assessments toggle */}
             <StudentWorkNavigation />
-            <div className="assignments-filters" role="tablist" aria-label="Assessment status">
-              {FILTERS.map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={filter === option.id}
-                  className={`assignments-filter${filter === option.id ? " is-active" : ""}`}
-                  onClick={() => { setFilter(option.id); setShowAll(false); }}
-                >
-                  {option.label} <b>({counts[option.id]})</b>
-                </button>
-              ))}
-            </div>
-          </div>
 
-          <div className="assignments-toolbar__tools">
-            <div className="assessment-sort-wrap relative" ref={sortRef}>
-              <button type="button" className="assignments-sort" aria-haspopup="listbox" aria-expanded={isSortOpen} onClick={() => setIsSortOpen((open) => !open)}>
-                Sort by: {sortLabel}<ChevronDown aria-hidden="true" className={isSortOpen ? "rotate-180" : ""} />
-              </button>
-              {isSortOpen ? (
-                <ul className="assignments-sort-menu" role="listbox" aria-label="Sort assessments">
-                  {SORT_OPTIONS.map((option) => (
-                    <li key={option.id}>
-                      <button type="button" role="option" aria-selected={sortBy === option.id} className={sortBy === option.id ? "is-active" : ""} onClick={() => { setSortBy(option.id); setIsSortOpen(false); }}>
-                        {option.label}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </div>
-            <button type="button" className="assignments-filter-icon" aria-label="Assessment filters are not available yet" title="Assessment filters are not available yet" disabled>
-              <SlidersHorizontal aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-
-        <div className="assignments-grid" aria-label="Assessment list">
-          {query.isLoading ? <p role="status" className="assignments-empty-state">Loading assessments…</p>
-            : query.isError ? (
-              <div role="alert" className="assignments-empty-state">
-                <p>{query.error instanceof Error ? query.error.message : "Assessments could not be loaded."}</p>
-                <button type="button" onClick={() => void query.refetch()}>Try again</button>
+            {/* Status pills: hidden on true empty */}
+            {hasAny && (
+              <div className="assignments-filters" role="tablist" aria-label="Assessment status">
+                {FILTERS.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={filter === option.id}
+                    className={`assignments-filter${filter === option.id ? " is-active" : ""}`}
+                    onClick={() => { setFilter(option.id); setShowAll(false); }}
+                  >
+                    {option.label} <b>({counts[option.id]})</b>
+                  </button>
+                ))}
               </div>
-            )
-              : visibleItems.length === 0 ? <p role="status" className="assignments-empty-state">No assessments match this view.</p>
-                : visibleItems.map((item) => <AssessmentCard key={item.id} item={item} />)}
+            )}
+          </div>
+
+          {/* Sort & filter tools: hidden on true empty */}
+          {hasAny && (
+            <div className="assignments-toolbar__tools">
+              <div className="assessment-sort-wrap relative" ref={sortRef}>
+                <button type="button" className="assignments-sort" aria-haspopup="listbox" aria-expanded={isSortOpen} onClick={() => setIsSortOpen((open) => !open)}>
+                  Sort by: {sortLabel}<ChevronDown aria-hidden="true" className={isSortOpen ? "rotate-180" : ""} />
+                </button>
+                {isSortOpen ? (
+                  <ul className="assignments-sort-menu" role="listbox" aria-label="Sort assessments">
+                    {SORT_OPTIONS.map((option) => (
+                      <li key={option.id}>
+                        <button type="button" role="option" aria-selected={sortBy === option.id} className={sortBy === option.id ? "is-active" : ""} onClick={() => { setSortBy(option.id); setIsSortOpen(false); }}>
+                          {option.label}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+              <button type="button" className="assignments-filter-icon" aria-label="Assessment filters are not available yet" title="Assessment filters are not available yet" disabled>
+                <SlidersHorizontal aria-hidden="true" />
+              </button>
+            </div>
+          )}
         </div>
 
-        <footer className="assignments-footer">
-          <span>Showing {showingFrom}–{showingTo} of {totalForFilter} assessments</span>
-          {totalForFilter > PAGE_SIZE ? (
-            <button type="button" onClick={() => setShowAll((value) => !value)}>
-              {showAll ? "Show fewer" : "View all assessments"} <ArrowRight aria-hidden="true" />
-            </button>
-          ) : null}
-        </footer>
+        <div className={`assignments-grid${!hasAny ? " assignments-grid--empty" : ""}`} aria-label="Assessment list">
+          {query.isLoading ? (
+            <p role="status" className="assignments-empty-state">Loading assessments…</p>
+          ) : query.isError ? (
+            <div role="alert" className="assignments-empty-state">
+              <p>{query.error instanceof Error ? query.error.message : "Assessments could not be loaded."}</p>
+              <button type="button" onClick={() => void query.refetch()}>Try again</button>
+            </div>
+          ) : !hasAny ? (
+            /* True Empty Hero for Assessments */
+            <EmptyState
+              size="page"
+              illustration={<AssessmentsEmptyIllustration />}
+              title="No assessments yet"
+              description="Quizzes and exams from your courses will appear here once they're scheduled."
+              actions={
+                <>
+                  <button
+                    type="button"
+                    className="gl-empty-btn gl-empty-btn--primary"
+                    onClick={() => navigate("/my-courses")}
+                  >
+                    <BookOpen aria-hidden="true" />
+                    Go to My Courses
+                  </button>
+                  <button
+                    type="button"
+                    className="gl-empty-btn gl-empty-btn--secondary"
+                    onClick={() => navigate("/calendar")}
+                  >
+                    <CalendarDays aria-hidden="true" />
+                    Open calendar
+                  </button>
+                </>
+              }
+            />
+          ) : !hasMatches ? (
+            /* Filtered Empty */
+            <div className="assignments-filtered-empty-wrapper">
+              <EmptyState
+                size="card"
+                icon={<Filter aria-hidden="true" />}
+                title="No matches"
+                description="Try different filters."
+                actions={
+                  <button
+                    type="button"
+                    className="gl-empty-btn gl-empty-btn--secondary"
+                    onClick={() => {
+                      setFilter("all");
+                      setShowAll(false);
+                    }}
+                  >
+                    View all assessments
+                  </button>
+                }
+              />
+            </div>
+          ) : (
+            visibleItems.map((item) => <AssessmentCard key={item.id} item={item} />)
+          )}
+        </div>
+
+        {/* Footer: hidden on true empty */}
+        {hasAny && (
+          <footer className="assignments-footer">
+            <span>
+              {!hasMatches
+                ? `Showing 0 of ${counts.all} assessments`
+                : `Showing ${showingFrom}–${showingTo} of ${totalForFilter} assessments`}
+            </span>
+            {hasMatches && totalForFilter > PAGE_SIZE ? (
+              <button type="button" onClick={() => setShowAll((value) => !value)}>
+                {showAll ? "Show fewer" : "View all assessments"} <ArrowRight aria-hidden="true" />
+              </button>
+            ) : null}
+          </footer>
+        )}
       </div>
 
-      <aside className="assignments-rail" aria-label="Assessment insights">
-        <section className="assignments-widget">
-          <h2>Upcoming assessments</h2>
-          <ul className="assignments-deadlines">
-            {upcomingItems.map((item) => (
-              <li key={item.id}>
-                <span className="assessment-insight-icon" aria-hidden="true">{item.kind === "exam" ? <ClipboardList /> : <ClipboardCheck />}</span>
-                <div><b>{item.title}</b><small>{availabilityLabel(item)}</small></div>
-                <span className={`assignments-urgency ${item.status === "available" ? "assignments-urgency--done" : "assignments-urgency--later"}`}>
-                  {item.latestAttempt?.status === "in_progress" ? "Resume" : item.status === "available" ? "Open" : "Upcoming"}
-                </span>
-              </li>
-            ))}
-            {!query.isLoading && upcomingItems.length === 0 ? <li className="assessment-insight-empty">No upcoming assessments are available.</li> : null}
-          </ul>
-          <Link className="assignments-widget__link" to="/calendar">View calendar <ArrowRight aria-hidden="true" /></Link>
-        </section>
+      {/* Right Rail: unmounted on true empty */}
+      {hasAny && (
+        <aside className="assignments-rail" aria-label="Assessment insights">
+          <section className="assignments-widget">
+            <h2>Upcoming assessments</h2>
+            {upcomingItems.length > 0 ? (
+              <ul className="assignments-deadlines">
+                {upcomingItems.map((item) => (
+                  <li key={item.id}>
+                    <span className="assessment-insight-icon" aria-hidden="true">{item.kind === "exam" ? <ClipboardList /> : <ClipboardCheck />}</span>
+                    <div><b>{item.title}</b><small>{availabilityLabel(item)}</small></div>
+                    <span className={`assignments-urgency ${item.status === "available" ? "assignments-urgency--done" : "assignments-urgency--later"}`}>
+                      {item.latestAttempt?.status === "in_progress" ? "Resume" : item.status === "available" ? "Open" : "Upcoming"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState
+                size="card"
+                icon={<CalendarDays aria-hidden="true" />}
+                title="No upcoming deadlines"
+                description="You're all caught up."
+              />
+            )}
+            <Link className="assignments-widget__link" to="/calendar">View calendar <ArrowRight aria-hidden="true" /></Link>
+          </section>
 
-        <section className="assignments-widget assignments-widget--progress">
-          <h2>Your progress</h2>
-          <div className="assignments-progress">
-            <AssessmentProgressDonut completed={completedCount} inProgress={inProgressCount} other={otherCount} total={counts.all} />
-            <ul>
-              <li><i className="dot dot--completed" /><div>Completed <b>{completedCount}</b></div><span>{counts.all ? Math.round((completedCount / counts.all) * 100) : 0}%</span></li>
-              <li><i className="dot dot--progress" /><div>In progress <b>{inProgressCount}</b></div><span>{counts.all ? Math.round((inProgressCount / counts.all) * 100) : 0}%</span></li>
-              <li><i className="dot dot--idle" /><div>Other <b>{otherCount}</b></div><span>{counts.all ? Math.round((otherCount / counts.all) * 100) : 0}%</span></li>
-            </ul>
-          </div>
-          <span className="assessment-progress-note">Based on assessment attempts recorded by your account.</span>
-        </section>
+          <section className="assignments-widget assignments-widget--progress">
+            <h2>Your progress</h2>
+            {counts.all > 0 ? (
+              <div className="assignments-progress">
+                <AssessmentProgressDonut completed={completedCount} inProgress={inProgressCount} other={otherCount} total={counts.all} />
+                <ul>
+                  <li><i className="dot dot--completed" /><div>Completed <b>{completedCount}</b></div><span>{counts.all ? Math.round((completedCount / counts.all) * 100) : 0}%</span></li>
+                  <li><i className="dot dot--progress" /><div>In progress <b>{inProgressCount}</b></div><span>{counts.all ? Math.round((inProgressCount / counts.all) * 100) : 0}%</span></li>
+                  <li><i className="dot dot--idle" /><div>Other <b>{otherCount}</b></div><span>{counts.all ? Math.round((otherCount / counts.all) * 100) : 0}%</span></li>
+                </ul>
+              </div>
+            ) : (
+              <EmptyState
+                size="card"
+                icon={<SlidersHorizontal aria-hidden="true" />}
+                title="No assessment activity"
+                description="Activity will appear as you start working."
+              />
+            )}
+            <span className="assessment-progress-note">Based on assessment attempts recorded by your account.</span>
+          </section>
 
-        <section className="assignments-widget">
-          <h2>Latest results</h2>
-          <ul className="assignments-feedback">
-            {results.map((item) => (
-              <li key={item.id}>
-                <span className="assignments-feedback__icon" aria-hidden="true"><Check /></span>
-                <div>
-                  <b>{item.title}</b>
-                  <p>{item.latestAttempt?.status === "scored" ? "Scored assessment" : "Submitted for review"}</p>
-                  <small>{formatDate(item.latestAttempt?.submittedAt ?? null, false) ?? "Submission date unavailable"}</small>
-                </div>
-                <strong>{item.latestAttempt?.score ?? "—"}</strong>
-              </li>
-            ))}
-            {!query.isLoading && results.length === 0 ? <li className="assessment-insight-empty">No assessment results yet.</li> : null}
-          </ul>
-          <span className="assignments-widget__link assessment-static-link">Scores appear after an attempt is submitted.</span>
-        </section>
-      </aside>
+          <section className="assignments-widget">
+            <h2>Latest results</h2>
+            {results.length > 0 ? (
+              <ul className="assignments-feedback">
+                {results.map((item) => (
+                  <li key={item.id}>
+                    <span className="assignments-feedback__icon" aria-hidden="true"><Check /></span>
+                    <div>
+                      <b>{item.title}</b>
+                      <p>{item.latestAttempt?.status === "scored" ? "Scored assessment" : "Submitted for review"}</p>
+                      <small>{formatDate(item.latestAttempt?.submittedAt ?? null, false) ?? "Submission date unavailable"}</small>
+                    </div>
+                    <strong>{item.latestAttempt?.score ?? "—"}</strong>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState
+                size="card"
+                icon={<Check aria-hidden="true" />}
+                title="No feedback yet"
+                description="Reviewed work will show up here."
+              />
+            )}
+            <span className="assignments-widget__link assessment-static-link">Scores appear after an attempt is submitted.</span>
+          </section>
+        </aside>
+      )}
     </div>
   );
 }
