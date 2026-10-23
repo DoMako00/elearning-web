@@ -61,7 +61,6 @@ export const AccountTab: React.FC<AccountTabProps> = ({
           <button
             type="button"
             onClick={onUpgradePlanClick}
-            disabled
             title="Purchases are managed by an authorized Admin."
             className="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold text-emerald-900 bg-white hover:bg-emerald-50/60 border border-emerald-300 rounded-xl transition-all shadow-2xs hover:shadow-xs cursor-pointer shrink-0"
           >
@@ -80,7 +79,6 @@ export const AccountTab: React.FC<AccountTabProps> = ({
           <button
             type="button"
             onClick={onAddPaymentMethodClick}
-            disabled
             className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100/80 rounded-xl border border-emerald-200 transition-colors cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -167,7 +165,6 @@ export const AccountTab: React.FC<AccountTabProps> = ({
           <button
             type="button"
             onClick={onCloseAccountClick}
-            disabled
             className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors cursor-pointer shrink-0 shadow-xs"
           >
             <Trash2 className="w-3.5 h-3.5" />
