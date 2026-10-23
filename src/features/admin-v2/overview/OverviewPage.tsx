@@ -1,4 +1,4 @@
-import { Activity, ArrowUpRight, BookOpen, CalendarDays, CircleAlert, CircleDollarSign, CreditCard, FileText, GraduationCap, LibraryBig, LockKeyhole, ShieldCheck, Users, WalletCards } from "lucide-react";
+import { Activity, ArrowUpRight, BookOpen, CalendarDays, CircleAlert, CircleDollarSign, CreditCard, FileText, GraduationCap, LibraryBig, LockKeyhole, ShieldCheck, UserCog, UserRound, Users, WalletCards } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useMemo, type ComponentType, type CSSProperties, type ReactNode } from "react";
 import { AdminV2DomainStatus, useAdminV2 } from "../layout/AdminV2Layout";
@@ -34,6 +34,10 @@ export function OverviewPage() {
 
   return <section className="admin-v2__page admin-v2__overview-page">
     <AdminV2DomainStatus />
+    <section className="admin-v2__overview-identity" aria-label="Super Admin workspace">
+      <div className="admin-v2__overview-identity-copy"><span>SUPER ADMIN · PLATFORM OPERATIONS</span><strong>Cross-brand oversight</strong><p>Manage instructors, roles, student access, and platform activity from one workspace.</p></div>
+      <div className="admin-v2__overview-identity-actions"><Link to="/admin/instructors" className="admin-v2__overview-identity-link"><UserRound size={15} />Manage instructors</Link><Link to="/admin/roles" className="admin-v2__overview-identity-link is-primary"><UserCog size={15} />Roles &amp; permissions</Link></div>
+    </section>
     <div className="admin-v2__overview-kpis">
       <OverviewMetric icon={Users} label="Total Students" value={String(overview?.counts.totalStudents ?? 0)} note={`${activeStudents} active`} tone="green" />
       <OverviewMetric icon={BookOpen} label="Published Courses" value={String(activeCourses)} note="Persisted course records" tone="green" />
@@ -49,7 +53,7 @@ export function OverviewPage() {
     <div className="admin-v2__overview-bottom-grid">
       <section className="admin-v2__overview-card admin-v2__overview-attention"><OverviewHeader title="Needs Attention" detail="Derived from persisted Admin records" action={<span className="admin-v2__overview-count">{attention.filter((item) => item.value > 0).length}</span>} /><div className="admin-v2__overview-attention-list">{attention.map((item) => { const Icon = item.icon; return <Link key={item.label} to={item.route} className={`admin-v2__overview-attention-row is-${item.tone}`}><span><Icon size={16} /></span><strong>{item.label}<small>{item.value ? "Requires review" : "Nothing pending"}</small></strong><b>{item.value}</b><ArrowUpRight size={14} /></Link>; })}</div></section>
       <section className="admin-v2__overview-card admin-v2__overview-payment"><OverviewHeader title="Payment Status" detail="Manual payment orders" /><div className="admin-v2__payment-summary"><div className="admin-v2__payment-donut" style={{ "--approved": `${paymentCounts.approved / Math.max(scoped.payments.length, 1) * 100}%`, "--pending": `${paymentCounts.pending / Math.max(scoped.payments.length, 1) * 100}%` } as CSSProperties}><div><strong>{scoped.payments.length}</strong><span>orders</span></div></div><div className="admin-v2__payment-legend"><PaymentLegend label="Approved" value={paymentCounts.approved} tone="success" /><PaymentLegend label="Pending review" value={paymentCounts.pending} tone="warning" /><PaymentLegend label="Rejected" value={paymentCounts.rejected} tone="danger" /></div></div><div className="admin-v2__overview-card-footer"><span>Revenue unavailable</span><Link to="/admin/payments">View transactions <ArrowUpRight size={13} /></Link></div></section>
-      <section className="admin-v2__overview-card admin-v2__overview-links"><OverviewHeader title="Quick Links" detail="Implemented Admin workspaces" /><div className="admin-v2__overview-link-grid"><QuickLink icon={GraduationCap} label="Manage Students" to="/admin/students" /><QuickLink icon={CalendarDays} label="Subscriptions" to="/admin/subscriptions" /><QuickLink icon={BookOpen} label="Curriculum" to="/admin/curriculum" /><QuickLink icon={LibraryBig} label="Courses" to="/admin/courses" /><QuickLink icon={FileText} label="Content" to="/admin/content" /><QuickLink icon={ShieldCheck} label="Security" to="/admin/security" /></div></section>
+      <section className="admin-v2__overview-card admin-v2__overview-links"><OverviewHeader title="Quick Links" detail="Implemented Admin workspaces" /><div className="admin-v2__overview-link-grid"><QuickLink icon={GraduationCap} label="Manage Students" to="/admin/students" /><QuickLink icon={CalendarDays} label="Subscriptions" to="/admin/subscriptions" /><QuickLink icon={BookOpen} label="Curriculum" to="/admin/curriculum" /><QuickLink icon={LibraryBig} label="Courses" to="/admin/courses" /><QuickLink icon={FileText} label="Content" to="/admin/content" /><QuickLink icon={ShieldCheck} label="Security" to="/admin/security" /><QuickLink icon={UserCog} label="Roles & permissions" to="/admin/roles" /></div></section>
     </div>
   </section>;
 }
