@@ -8,6 +8,7 @@ export const adminNavigation: readonly AdminNavigationItem[] = [
   { label: "Overview", path: "/admin", icon: LayoutDashboard, description: "Welcome back, Admin. Here's what's happening with your platform today." },
   { label: "Curriculum", path: "/admin/curriculum", icon: BookOpen, description: "Manage university academic levels, semesters, and shared module references." },
   { label: "Courses", path: "/admin/courses", icon: LibraryBig, description: "Manage brand-owned courses, map them to curriculum modules, and manage teaching assignments." },
+  { label: "Teaching overview", path: "/admin/instructor", icon: GraduationCap, description: "Review courses, learning materials, exams, and student work." },
   { label: "Instructors", path: "/admin/instructors", icon: UserRound, description: "Manage your global instructor directory, brand assignments, and course allocations." },
   { label: "Roles & Permissions", path: "/admin/roles", icon: UserCog, permission: "admin.roles.read", description: "Assign audited Admin roles and link Instructor logins to teaching profiles." },
   { label: "Students", path: "/admin/students", icon: GraduationCap, permission: "admin.students.read", description: "Student identity, enrollment, and access summaries." },
