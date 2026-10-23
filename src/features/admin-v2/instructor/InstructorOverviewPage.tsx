@@ -26,40 +26,40 @@ function SuperAdminTeachingOverview() {
   const publishedExams = visibleAssessments.filter(item => item.status === "published").length;
 
   return <section className="admin-v2__page admin-v2__teaching-overview">
-    <header className="admin-v2__page-header"><div><h1>Teaching overview</h1><p>Course plans, learning materials, exams, and student work in one place.</p></div></header>
+    <header className="admin-v2__page-header"><div><h1>Teaching overview</h1><p>A clear view of courses, lesson approvals, exams, and student submissions.</p></div></header>
 
     <aside className="admin-v2__teaching-role-note">
       <span><ShieldCheck size={19} /></span>
-      <div><strong>You are signed in as Super Admin</strong><p>You can manage course outlines, review lesson materials, and oversee student work. Creating or publishing exams and assignments requires a separate Instructor sign-in assigned to that course.</p></div>
+      <div><strong>Super Admin view</strong><p>Review course plans, approve lesson materials, and monitor student submissions. Course instructors create and publish assignments and exams from their own assigned accounts.</p></div>
       <Link to="/admin/roles">Instructor access <ArrowRight size={14} /></Link>
     </aside>
 
     <div className="admin-v2__metrics admin-v2__teaching-metrics">
-      <article className="admin-v2__metric"><span className="admin-v2__metric-icon"><BookOpen size={18} /></span><div><span className="admin-v2__metric-label">Courses</span><strong>{courses.length}</strong><small>Available in the selected brand view</small></div></article>
-      <article className="admin-v2__metric"><span className="admin-v2__metric-icon"><ClipboardCheck size={18} /></span><div><span className="admin-v2__metric-label">Student work to review</span><strong>{assignments.isLoading || assignments.isError ? "—" : needsReview}</strong><small>Submitted assignment responses</small></div></article>
-      <article className="admin-v2__metric"><span className="admin-v2__metric-icon"><GraduationCap size={18} /></span><div><span className="admin-v2__metric-label">Published exams</span><strong>{assessments.isLoading || assessments.isError ? "—" : publishedExams}</strong><small>Currently visible to students</small></div></article>
-      <article className="admin-v2__metric"><span className="admin-v2__metric-icon"><FileClock size={18} /></span><div><span className="admin-v2__metric-label">Materials awaiting review</span><strong>{reviews.isLoading || reviews.isError ? "—" : waitingForApproval}</strong><small>Video, PDF, or lesson changes</small></div></article>
+      <article className="admin-v2__metric"><span className="admin-v2__metric-icon"><BookOpen size={18} /></span><div><span className="admin-v2__metric-label">Courses in this view</span><strong>{courses.length}</strong><small>Based on the selected brand</small></div></article>
+      <article className="admin-v2__metric"><span className="admin-v2__metric-icon"><ClipboardCheck size={18} /></span><div><span className="admin-v2__metric-label">Submitted assignments</span><strong>{assignments.isLoading || assignments.isError ? "—" : needsReview}</strong><small>Waiting for an instructor to grade</small></div></article>
+      <article className="admin-v2__metric"><span className="admin-v2__metric-icon"><GraduationCap size={18} /></span><div><span className="admin-v2__metric-label">Published exams</span><strong>{assessments.isLoading || assessments.isError ? "—" : publishedExams}</strong><small>Available to students</small></div></article>
+      <article className="admin-v2__metric"><span className="admin-v2__metric-icon"><FileClock size={18} /></span><div><span className="admin-v2__metric-label">Lessons to approve</span><strong>{reviews.isLoading || reviews.isError ? "—" : waitingForApproval}</strong><small>Video, PDF, or lesson updates</small></div></article>
     </div>
 
     {(assignments.isError || assessments.isError || reviews.isError) && <p role="alert" className="admin-v2__inline-notice">Some teaching information could not be loaded. The course list remains available; retry the related page to refresh its records.</p>}
 
     <div className="admin-v2__workgrid has-inspector">
       <section className="admin-v2__table-card">
-        <header className="admin-v2__table-toolbar"><div><strong>Courses and teaching teams</strong><span>{courses.length}</span></div><Link className="admin-v2__button" to="/admin/courses">All courses <ArrowRight size={13} /></Link></header>
-        {courses.length ? <div className="admin-v2__table-scroll"><table className="admin-v2__table"><thead><tr><th>Course</th><th>Instructor</th><th>Student work</th><th></th></tr></thead><tbody>{courses.slice(0, 12).map(course => {
+        <header className="admin-v2__table-toolbar"><div><strong>Course overview</strong><span>{courses.length}</span></div><Link className="admin-v2__button" to="/admin/courses">View all courses <ArrowRight size={13} /></Link></header>
+        {courses.length ? <div className="admin-v2__table-scroll"><table className="admin-v2__table admin-v2__teaching-course-table"><thead><tr><th>Course</th><th>Assigned doctor</th><th>Submitted work</th><th></th></tr></thead><tbody>{courses.map(course => {
           const courseAssignments = visibleAssignments.filter(item => item.brandCourseId === course.id);
           const courseNeedsReview = courseAssignments.reduce((count, item) => count + item.needsReviewCount, 0);
           const instructors = course.instructors.map(item => item.name).filter(Boolean).join(", ");
-          return <tr key={course.id}><td><strong>{course.title}</strong><small>{course.code || courseUnitLabel(data, course)}</small></td><td>{instructors || "No instructor assigned"}</td><td>{assignments.isLoading || assignments.isError ? "—" : courseNeedsReview}</td><td><Link className="admin-v2__button" to={`/admin/courses/${course.id}/builder`}>Course outline <ArrowRight size={13} /></Link></td></tr>;
+          return <tr key={course.id}><td><strong>{course.title}</strong><small>{course.code || courseUnitLabel(data, course)}</small></td><td>{instructors || "No doctor assigned"}</td><td>{assignments.isLoading || assignments.isError ? "—" : courseNeedsReview}</td><td><Link className="admin-v2__button" to={`/admin/courses/${course.id}/builder`}>View course plan <ArrowRight size={13} /></Link></td></tr>;
         })}</tbody></table></div> : <div className="admin-v2__empty"><BookOpen size={20} /><strong>No courses are available in this view</strong><span>Choose another brand or check the course catalogue.</span><Link className="admin-v2__button" to="/admin/courses">Open course catalogue</Link></div>}
       </section>
 
       <aside className="admin-v2__inspector admin-v2__teaching-actions">
-        <header className="admin-v2__inspector-title"><div><h2>What would you like to review?</h2><small>Open the relevant area to take action.</small></div></header>
+        <header className="admin-v2__inspector-title"><div><h2>Review and monitor</h2><small>Choose an area to see its current work.</small></div></header>
         <div className="admin-v2__access-list">
-          <article><Files size={16} /><div><Link to="/admin/content"><strong>Review lesson materials</strong></Link><small>{reviews.isLoading || reviews.isError ? "Review status is unavailable" : `${waitingForApproval} item${waitingForApproval === 1 ? "" : "s"} waiting for approval`}</small></div><ArrowRight size={14} /></article>
-          <article><ClipboardCheck size={16} /><div><Link to="/admin/assignments"><strong>Review student assignments</strong></Link><small>{assignments.isLoading || assignments.isError ? "Submission status is unavailable" : `${needsReview} response${needsReview === 1 ? "" : "s"} need review`}</small></div><ArrowRight size={14} /></article>
-          <article><GraduationCap size={16} /><div><Link to="/admin/assessments"><strong>Monitor exams and quizzes</strong></Link><small>{assessments.isLoading || assessments.isError ? "Exam status is unavailable" : `${visibleAssessments.length} assessment${visibleAssessments.length === 1 ? "" : "s"} in this view`}</small></div><ArrowRight size={14} /></article>
+          <article><Files size={16} /><div><Link to="/admin/content"><strong>Approve lesson materials</strong></Link><small>{reviews.isLoading || reviews.isError ? "Approval status is unavailable" : `${waitingForApproval} item${waitingForApproval === 1 ? "" : "s"} waiting for approval`}</small></div><ArrowRight size={14} /></article>
+          <article><ClipboardCheck size={16} /><div><Link to="/admin/assignments"><strong>View student submissions</strong></Link><small>{assignments.isLoading || assignments.isError ? "Submission status is unavailable" : `${needsReview} response${needsReview === 1 ? "" : "s"} awaiting an instructor grade`}</small></div><ArrowRight size={14} /></article>
+          <article><GraduationCap size={16} /><div><Link to="/admin/assessments"><strong>Monitor exams and quizzes</strong></Link><small>{assessments.isLoading || assessments.isError ? "Exam status is unavailable" : `${visibleAssessments.length} exam${visibleAssessments.length === 1 ? "" : "s"} in this view`}</small></div><ArrowRight size={14} /></article>
         </div>
       </aside>
     </div>

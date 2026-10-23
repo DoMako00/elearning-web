@@ -70,7 +70,7 @@ export function RolesPage() {
       {query.data.permissionCodes.length > 0 && <details className="admin-v2__roles-technical"><summary>Technical access details</summary><div><p>These system permissions control what the pages and API allow. They do not change the responsibilities shown above.</p><dl><dt>Active role</dt><dd>{query.data.roleCodes.map(code => roleTitle(code)).join(", ") || "None returned"}</dd><dt>Brand</dt><dd>{query.data.brand.name}</dd><dt>Permission names</dt><dd>{query.data.permissionCodes.join(", ")}</dd></dl></div></details>}
     </>}
 
-    {canManage && <section className="admin-v2__roles-admin-grid">
+    {canManage && (!assignments.data || assignments.isError || instructorAccounts.length > 0) && <section className="admin-v2__roles-admin-grid">
       <article className="admin-v2__roles-card admin-v2__roles-management">
         <header><span><ShieldCheck size={18} /></span><div><h2>Connect an Instructor sign-in</h2><p>Choose an existing Instructor account and the matching active doctor profile.</p></div></header>
         {assignments.isLoading && <p role="status" className="admin-v2__roles-feedback">Loading team accounts…</p>}
