@@ -15,6 +15,7 @@ export interface MediaAssetDto {
   documentDeliveryMode: string | null; watermarkRequired: boolean; videoDurationSeconds: number | null; maxCompletedViews: number; version: number;
 }
 export interface LessonMediaInventory { assets: MediaAssetDto[]; uploadPolicy: { multipartThresholdBytes: number; maxUploadBytes: number | null; namespace: "production" | "acceptance" }; }
+export interface ContentReviewRequestDto { id:string;targetType:"lesson"|"resource";targetId:string;brandId:string;brandCode:string;courseId:string;courseTitle:string;targetTitle:string|null;submittedByAdminProfileId:string;submittedVersion:number;status:"submitted"|"approved"|"rejected"|"cancelled";reviewedByAdminProfileId:string|null;reviewedAt:string|null;rejectionReason:string|null;submissionReason:string;createdAt:string;version:number; }
 export interface ContentScope { brand: BrandAccess; course: BrandCourse; chapter: StructureItem; lesson: StructureItem; }
 export interface LessonMediaScope { brand: Pick<BrandAccess, "id">; course: Pick<BrandCourse, "id">; lesson: Pick<StructureItem, "id">; }
 
@@ -51,6 +52,18 @@ export async function getLessonResource(brandId: string, courseId: string, resou
 
 export async function listLessonMedia(scope: LessonMediaScope): Promise<LessonMediaInventory> {
   return request((api) => api.GET("/v1/admin/brands/{brandId}/courses/{courseId}/lessons/{lessonId}/media" as never, mediaPath(scope)));
+}
+
+export async function submitContentReview(brandId:string,courseId:string,input:{targetType:"lesson"|"resource";targetId:string;reason:string}) {
+  return request<Record<string,unknown>>((api)=>api.POST(`/v1/admin/brands/{brandId}/courses/{courseId}/content-review-requests` as never,{params:{path:{brandId,courseId}},...writeHeaders(),body:input}));
+}
+
+export async function listContentReviewRequests(signal?:AbortSignal) {
+  return request<{items:ContentReviewRequestDto[]}>((api)=>api.GET("/v1/admin/content-review-requests" as never,{signal}));
+}
+
+export async function decideContentReview(requestId:string,decision:"approve"|"reject",reason:string) {
+  return request<Record<string,unknown>>((api)=>api.POST(`/v1/admin/content-review-requests/{requestId}/${decision}` as never,{params:{path:{requestId}},...writeHeaders(),body:{reason}}));
 }
 
 export async function createLessonResource(scope: ContentScope, title: string, sortOrder: number, resourceKind: "video" | "document") {

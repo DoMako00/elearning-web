@@ -12,6 +12,9 @@ const AdminSupportInboxPage = lazy(() => import("../../features/admin-v2/Support
 const AdminAssessmentsPage = lazy(() => import("../../features/admin-v2/assessments/AssessmentsPage").then((m) => ({ default: m.AssessmentsPage })));
 const AdminRolesPage = lazy(() => import("../../features/admin-v2/roles/RolesPage").then((m) => ({ default: m.RolesPage })));
 const AdminAssignmentReviewPage = lazy(() => import("../../features/admin-v2/assignments/AssignmentReviewPage").then((m) => ({ default: m.AssignmentReviewPage })));
+const InstructorCoursesPage = lazy(() => import("../../features/admin-v2/instructor/InstructorCoursesPage").then((m) => ({ default: m.InstructorCoursesPage })));
+const InstructorOverviewPage = lazy(() => import("../../features/admin-v2/instructor/InstructorOverviewPage").then((m) => ({ default: m.InstructorOverviewPage })));
+const InstructorCourseContentPage = lazy(() => import("../../features/admin-v2/instructor/InstructorCourseContentPage").then((m) => ({ default: m.InstructorCourseContentPage })));
 
 function withAdminSuspense<P extends object>(Component: ComponentType<P>, props: P) {
   return (
@@ -36,6 +39,12 @@ export const adminRoutes: RouteObject[] = [{
     { path: "media", element: <Navigate to="/admin/content" replace /> },
     { path: "assessments", element: withAdminSuspense(AdminAssessmentsPage, {}) },
     { path: "assignments", element: withAdminSuspense(AdminAssignmentReviewPage, {}) },
+    { path: "instructor", element: withAdminSuspense(InstructorOverviewPage, {}) },
+    { path: "instructor/courses", element: withAdminSuspense(InstructorCoursesPage, {}) },
+    { path: "instructor/courses/:courseId", element: withAdminSuspense(InstructorCourseContentPage, {}) },
+    { path: "instructor/content", element: <Navigate to="/admin/instructor/courses" replace /> },
+    { path: "instructor/assignments", element: withAdminSuspense(AdminAssignmentReviewPage, {}) },
+    { path: "instructor/assessments", element: withAdminSuspense(AdminAssessmentsPage, {}) },
     { path: "audit", element: <Navigate to="/admin/security" replace /> },
     { path: "roles", element: withAdminSuspense(AdminRolesPage, {}) },
   ],

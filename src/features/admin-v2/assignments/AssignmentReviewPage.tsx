@@ -4,11 +4,14 @@ import { ClipboardCheck, Download, RefreshCw } from "lucide-react";
 import { adminAssignmentsApi } from "../api/adminAssignmentsApi";
 import { InspectorFields, InspectorSection, TableFrame } from "../shared/AdminV2Table";
 import { StatusBadge } from "../shared/AdminV2Primitives";
+import { useAdminV2 } from "../layout/AdminV2Layout";
 
 const errorText = (error: unknown) => error instanceof Error ? error.message : "The Assignment request failed.";
 const when = (value: string | null) => value ? new Date(value).toLocaleString() : "—";
 
 export function AssignmentReviewPage() {
+  const { workspace } = useAdminV2();
+  const isInstructor = workspace.workspace === "instructor";
   const client = useQueryClient();
   const list = useQuery({ queryKey: ["admin", "assignments"], queryFn: ({ signal }) => adminAssignmentsApi.list(signal) });
   const items = list.data?.items ?? [];
@@ -19,8 +22,15 @@ export function AssignmentReviewPage() {
   const [feedback, setFeedback] = useState("");
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState("");
+  const [newCourseId, setNewCourseId] = useState("");
+  const [newTitle, setNewTitle] = useState("");
+  const [newInstructions, setNewInstructions] = useState("");
+  const [newDueAt, setNewDueAt] = useState("");
+  const [newMaxScore, setNewMaxScore] = useState("");
   const [openingAttachmentId, setOpeningAttachmentId] = useState<string | null>(null);
   const selected = useMemo(() => items.find(item => item.id === selectedId) ?? items[0] ?? null, [items, selectedId]);
+  const courseOptions = workspace.courses.filter(course => course.academicInstitutionId && course.academicLevelId && course.academicSemesterId && course.status !== "archived");
+  const selectedCourse = courseOptions.find(course => course.id === newCourseId) ?? null;
   const submissions = useQuery({ queryKey: ["admin", "assignment-submissions", selected?.id], queryFn: ({ signal }) => adminAssignmentsApi.submissions(selected!.id, signal), enabled: Boolean(selected) });
   const submission = useMemo(() => submissions.data?.items.find(item => item.id === selectedSubmissionId) ?? submissions.data?.items.find(item => item.status === "submitted") ?? submissions.data?.items[0] ?? null, [submissions.data, selectedSubmissionId]);
 
@@ -47,6 +57,26 @@ export function AssignmentReviewPage() {
     onSuccess: async () => { setMessage(decision === "reviewed" ? "Submission review saved." : "Submission returned to the Student with feedback."); setReason(""); await Promise.all([client.invalidateQueries({ queryKey: ["admin", "assignments"] }), client.invalidateQueries({ queryKey: ["admin", "assignment-submissions", selected?.id] })]); },
     onError: error => setMessage(errorText(error)),
   });
+  const createAssignment = useMutation({
+    mutationFn: () => {
+      if (!selectedCourse) throw new Error("Choose one of your mapped courses.");
+      if (!newTitle.trim()) throw new Error("Enter an Assignment title.");
+      const parsedScore = newMaxScore.trim() ? Number(newMaxScore) : null;
+      if (parsedScore !== null && (!Number.isFinite(parsedScore) || parsedScore <= 0)) throw new Error("Maximum score must be a positive number.");
+      const dueAt = newDueAt ? new Date(newDueAt).toISOString() : null;
+      return adminAssignmentsApi.create(selectedCourse.brandId, { assignmentId: crypto.randomUUID(), brandCourseId: selectedCourse.id, academicInstitutionId: selectedCourse.academicInstitutionId!, academicLevelId: selectedCourse.academicLevelId!, academicSemesterId: selectedCourse.academicSemesterId!, title: newTitle.trim(), instructions: newInstructions.trim(), availableFrom: null, dueAt, maxScore: parsedScore });
+    },
+    onSuccess: async result => { setMessage("Draft Assignment created. Review it and publish when it is ready for students."); setNewTitle(""); setNewInstructions(""); setNewDueAt(""); setNewMaxScore(""); await client.invalidateQueries({ queryKey: ["admin", "assignments"] }); setSelectedId(result.assignmentId); },
+    onError: error => setMessage(errorText(error)),
+  });
+  const lifecycle = useMutation({
+    mutationFn: (status: "published" | "closed") => {
+      if (!selected) throw new Error("Select an Assignment first.");
+      return adminAssignmentsApi.update(selected.id, { expectedVersion: selected.version, status });
+    },
+    onSuccess: async result => { setMessage(result.status === "published" ? "Assignment published for students in this course." : "Assignment closed."); await client.invalidateQueries({ queryKey: ["admin", "assignments"] }); },
+    onError: error => setMessage(errorText(error)),
+  });
 
   const openAttachment = async (attachmentId: string) => {
     if (!selected || !submission) return;
@@ -67,9 +97,21 @@ export function AssignmentReviewPage() {
   };
 
   return <section className="admin-v2__page">
-    <header className="admin-v2__page-header"><div><h1>Assignment Review</h1><p>Review persisted Student submissions, record scores, or return work with feedback.</p></div></header>
+    <header className="admin-v2__page-header"><div><h1>{isInstructor ? "Assignments" : "Assignment Review"}</h1><p>{isInstructor ? "Create course assignments, publish them to students, and review submissions." : "Review persisted Student submissions, record scores, or return work with feedback."}</p></div></header>
     {message && <p role="status" className="admin-v2__inline-notice">{message}</p>}
     {list.isError && <p role="alert" className="admin-v2__inline-notice">{errorText(list.error)} <button className="admin-v2__button" type="button" onClick={() => void list.refetch()}>Retry</button></p>}
+    {isInstructor && <form className="admin-v2__inspector-content" onSubmit={event => { event.preventDefault(); createAssignment.mutate(); }}>
+      <div className="admin-v2__page-header"><div><h2>Create an Assignment</h2><p>Assignments are scoped to your assigned courses and publish directly to those students.</p></div></div>
+      <div className="admin-v2__table-tools">
+        <label className="admin-v2__field"><span>Course</span><select aria-label="Assignment course" value={newCourseId} onChange={event => setNewCourseId(event.target.value)} required><option value="">Choose course</option>{courseOptions.map(course => <option key={course.id} value={course.id}>{course.title}</option>)}</select></label>
+        <label className="admin-v2__field"><span>Title</span><input value={newTitle} onChange={event => setNewTitle(event.target.value)} maxLength={240} required /></label>
+        <label className="admin-v2__field"><span>Maximum score</span><input type="number" min={0.01} step="0.01" value={newMaxScore} onChange={event => setNewMaxScore(event.target.value)} placeholder="Optional" /></label>
+        <label className="admin-v2__field"><span>Due date</span><input type="datetime-local" value={newDueAt} onChange={event => setNewDueAt(event.target.value)} /></label>
+        <label className="admin-v2__field"><span>Instructions</span><textarea rows={3} maxLength={20000} value={newInstructions} onChange={event => setNewInstructions(event.target.value)} /></label>
+        <button className="admin-v2__button is-primary" type="submit" disabled={!selectedCourse || !newTitle.trim() || createAssignment.isPending}>{createAssignment.isPending ? "Creating…" : "Create draft"}</button>
+        {!courseOptions.length && <p className="admin-v2__muted">Your assigned courses need a verified academic placement before you can create an Assignment.</p>}
+      </div>
+    </form>}
     <div className="admin-v2__workgrid has-inspector">
       <TableFrame title="Assignment review queue" count={list.isLoading ? "Loading…" : `${items.length} assignments`} toolbar={<div className="admin-v2__table-tools"><button className="admin-v2__button" type="button" onClick={() => void list.refetch()} disabled={list.isFetching}><RefreshCw size={13} /> Refresh</button></div>}>
         {list.isLoading ? <div className="admin-v2__empty" role="status">Loading saved Assignments…</div> : items.length === 0 ? <div className="admin-v2__empty"><ClipboardCheck size={18} /><strong>No Assignments</strong><span>Assignments will appear here when they are published for your authorized Brands.</span></div> : <table className="admin-v2__table"><thead><tr><th>Assignment</th><th>Course</th><th>Status</th><th>To review</th><th>Due</th></tr></thead><tbody>{items.map(item => <tr key={item.id} onClick={() => { setSelectedId(item.id); setSelectedSubmissionId(""); setMessage(""); }} className={selected?.id === item.id ? "is-selected" : ""}><td><strong>{item.title}</strong><small>{item.brandCode}</small></td><td>{item.courseTitle ?? "—"}</td><td>{item.status}</td><td>{item.needsReviewCount}</td><td>{when(item.dueAt)}</td></tr>)}</tbody></table>}
@@ -78,7 +120,10 @@ export function AssignmentReviewPage() {
         </section>}
       </TableFrame>
       <aside className="admin-v2__inspector admin-v2__course-inspector">
-        {!submission || !selected ? <div className="admin-v2__empty-inspector"><ClipboardCheck size={22} /><strong>Select a submission</strong><span>Choose persisted Student work to review.</span></div> : <>
+        {!selected ? <div className="admin-v2__empty-inspector"><ClipboardCheck size={22} /><strong>Select an Assignment</strong><span>Choose a course Assignment to inspect submissions.</span></div> : <>
+          <header className="admin-v2__inspector-title"><div><h2>{selected.title}</h2><small>{selected.courseTitle ?? "Course Assignment"} · {selected.status}</small></div><StatusBadge status={selected.status === "published" ? "Published" : selected.status === "draft" ? "Draft" : selected.status === "archived" ? "Archived" : "Closed"} /></header>
+          <InspectorSection title="Assignment lifecycle"><div className="admin-v2__inspector-content"><p>Students see published assignments in this course. Drafts remain instructor-only; Super Admin may close a published Assignment when needed.</p>{isInstructor && selected.status === "draft" && <button type="button" className="admin-v2__button is-primary" onClick={() => lifecycle.mutate("published")} disabled={lifecycle.isPending}>{lifecycle.isPending ? "Publishing…" : "Publish to students"}</button>}{selected.status === "published" && <button type="button" className="admin-v2__button" onClick={() => lifecycle.mutate("closed")} disabled={lifecycle.isPending}>{lifecycle.isPending ? "Closing…" : "Close Assignment"}</button>}</div></InspectorSection>
+          {!submission ? <div className="admin-v2__empty-inspector"><ClipboardCheck size={22} /><strong>No submission selected</strong><span>Student submissions for this Assignment will appear here.</span></div> : <>
           <header className="admin-v2__inspector-title"><div><h2>{submission.studentName ?? "Student"}</h2><small>{selected.title}</small></div><StatusBadge status={submission.status === "reviewed" ? "Reviewed" : submission.status === "returned" ? "Returned" : "Submitted"} /></header>
           <InspectorFields fields={[["Submitted", when(submission.submittedAt)], ["Course", selected.courseTitle ?? "—"], ["Maximum score", submissions.data?.assignment.maxScore ?? "Not configured"], ["Last reviewed", when(submission.reviewedAt)]]} />
           <InspectorSection title="Student response"><div className="admin-v2__inspector-content"><p className="admin-v2__assignment-response">{submission.responseText || "No text response was submitted."}</p></div></InspectorSection>
@@ -94,6 +139,7 @@ export function AssignmentReviewPage() {
             {submission.status === "returned" && <p className="admin-v2__muted">This submission was returned and is awaiting a Student resubmission before another review.</p>}
             <button type="button" className="admin-v2__button is-primary" onClick={() => review.mutate()} disabled={review.isPending || submission.status !== "submitted" || !reason.trim() || (decision === "returned" && !feedback.trim())}>{review.isPending ? "Saving…" : submission.status === "returned" ? "Awaiting resubmission" : submission.status === "reviewed" ? "Review complete" : decision === "returned" ? "Return submission" : "Save review"}</button>
           </div></InspectorSection>
+          </>}
         </>}
       </aside>
     </div>

@@ -18,7 +18,7 @@ export interface AdminAssignmentSubmissionsDto {
   items: AdminAssignmentSubmissionDto[];
 }
 
-async function request<T>(method: "GET" | "POST", path: string, body?: unknown, headers?: Record<string, string>, signal?: AbortSignal): Promise<T> {
+async function request<T>(method: "GET" | "POST" | "PATCH", path: string, body?: unknown, headers?: Record<string, string>, signal?: AbortSignal): Promise<T> {
   const api = await requireApiClient();
   const result = method === "GET"
     ? await api.getJson<Envelope<T>>(path, { signal })
@@ -30,6 +30,8 @@ async function request<T>(method: "GET" | "POST", path: string, body?: unknown, 
 
 export const adminAssignmentsApi = {
   list: (signal?: AbortSignal) => request<{ items: AdminAssignmentDto[] }>("GET", "/v1/admin/assignments", undefined, undefined, signal),
+  create: (brandId: string, body: { assignmentId: string; brandCourseId: string; academicInstitutionId: string; academicLevelId: string; academicSemesterId: string; title: string; instructions: string; availableFrom: string | null; dueAt: string | null; maxScore: number | null }) => request<{ assignmentId: string; status: "draft"; version: number }>("POST", `/v1/admin/assignments?brandId=${encodeURIComponent(brandId)}`, body, { "Idempotency-Key": crypto.randomUUID() }),
+  update: (assignmentId: string, body: { expectedVersion: number; title?: string; instructions?: string; availableFrom?: string | null; dueAt?: string | null; maxScore?: number | null; status?: "published" | "closed" }) => request<{ assignmentId: string; status: AdminAssignmentDto["status"]; version: number }>("PATCH", `/v1/admin/assignments/${encodeURIComponent(assignmentId)}`, body, { "Idempotency-Key": crypto.randomUUID() }),
   submissions: (assignmentId: string, signal?: AbortSignal) => request<AdminAssignmentSubmissionsDto>("GET", `/v1/admin/assignments/${encodeURIComponent(assignmentId)}/submissions`, undefined, undefined, signal),
   async openAttachment(assignmentId: string, submissionId: string, attachmentId: string): Promise<string> {
     const api = await requireApiClient();

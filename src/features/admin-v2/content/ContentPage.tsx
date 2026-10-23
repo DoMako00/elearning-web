@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ChangeEvent, type DragEvent, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Archive, BookOpen, CalendarClock, ChevronRight, Eye, ExternalLink, FileText, FolderOpen, HardDrive, MoreHorizontal, Pencil, Play, Search, Settings2, Upload, Video } from "lucide-react";
 import { AdminV2DomainStatus, useAdminV2 } from "../layout/AdminV2Layout";
@@ -6,7 +6,8 @@ import { ContentStructureExplorer } from "./ContentStructureExplorer";
 import { ConfirmDialog, Drawer, FormActions, FormField, StatusBadge } from "../shared/AdminV2Primitives";
 import type { ContentResource, ContentResourceType, CourseChapter, CourseLesson, CourseRecord } from "../types/adminV2.types";
 import { listBrandAccess, listCourses, listStructure } from "../api/adminAcademicApi";
-import { archiveLessonResource, configureVideoViewLimit, createLessonResource, createMediaAsset, listLessonMedia, listLessonResources, publishMedia, updateLessonResource, uploadAndVerifyMedia } from "../api/adminContentApi";
+import { archiveLessonResource, configureVideoViewLimit, createLessonResource, createMediaAsset, listLessonMedia, listLessonResources, updateLessonResource, uploadAndVerifyMedia } from "../api/adminContentApi";
+import { ContentReviewQueue } from "./ContentReviewQueue";
 
 type ContentTab = "Resources" | "Details";
 type ResourceAction = "preview" | "edit" | "publish" | "archive";
@@ -16,7 +17,7 @@ type MediaResourceEntry = { item: ContentResource; lesson: CourseLesson; chapter
 
 export function ContentPage() {
   const [searchParams] = useSearchParams();
-  const { data, brand, refreshServerDomains, reportDomainError } = useAdminV2();
+  const { data, brand, workspace, refreshServerDomains, reportDomainError } = useAdminV2();
   const [courseId, setCourseId] = useState(searchParams.get("courseId") ?? data.courses[0]?.id ?? "");
   const [lessonId, setLessonId] = useState(searchParams.get("lessonId") ?? "");
   const [resourceId, setResourceId] = useState("");
@@ -33,8 +34,6 @@ export function ContentPage() {
   const [error, setError] = useState("");
   const [confirmId, setConfirmId] = useState("");
   const [actionMenuId, setActionMenuId] = useState("");
-  const [dragActive, setDragActive] = useState(false);
-  const [dropError, setDropError] = useState("");
   const [mutationPending, setMutationPending] = useState(false);
   const previewUrls: Record<string, string> = {};
   const availableCourses = useMemo(() => data.courses.filter((item) => item.status !== "Archived" && (brand === "all" || item.brand === brand)), [brand, data.courses]);
@@ -113,7 +112,6 @@ export function ContentPage() {
     setType(nextFile && (nextFile.type === "application/pdf" || extension === "pdf") ? "PDF" : "Video");
     setFile(nextFile ?? null);
     setError("");
-    setDropError("");
     setEditor({ kind: "upload" });
   };
   const resolveResourceScope = async (item: ContentResource) => {
@@ -214,11 +212,7 @@ export function ContentPage() {
     if (action === "preview") reportDomainError("Protected media preview requires Student authorization; no Admin preview URL is available.");
     if (action === "edit") setEditor({ kind: "edit", id: item.id });
     if (action === "publish") {
-      if (!item.mediaAssetId || (action === "publish" && item.uploadStatus !== "verified")) { reportDomainError("Upload and verify a media file before publishing this resource."); return; }
-      setMutationPending(true);
-      try { const { scope, resource } = await resolveResourceScope(item); await publishMedia(scope, resource, item.mediaAssetId); refreshServerDomains(); }
-      catch (cause) { reportDomainError(cause instanceof Error ? cause.message : "The media lifecycle request failed."); }
-      finally { setMutationPending(false); }
+      reportDomainError("Student access is published only when a Super Admin approves the Instructor's submitted content version in the review queue.");
     }
     if (action === "archive") setConfirmId(item.id);
   };
@@ -232,17 +226,9 @@ export function ContentPage() {
     } catch (cause) { reportDomainError(cause instanceof Error ? cause.message : "Video playback settings could not be saved."); }
     finally { setMutationPending(false); }
   };
-  const handleFileDrop = (event: DragEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    setDragActive(false);
-    const droppedFile = event.dataTransfer.files[0];
-    if (!droppedFile) return;
-    if (!isSupportedLocalFile(droppedFile)) { setDropError("Use a supported video file or PDF."); return; }
-    openUpload(droppedFile);
-  };
-
   return <section className="admin-v2__page admin-v2__content-page">
     <AdminV2DomainStatus />
+    {workspace.workspace === "super_admin" && <ContentReviewQueue />}
     <nav className="v2-phase-tabs v2-content-tabs" aria-label="Content sections">
       <button type="button" className={libraryTab === "Content Library" ? "is-active" : ""} aria-current={libraryTab === "Content Library" ? "page" : undefined} onClick={() => setLibraryTab("Content Library")}><FolderOpen size={15} />Content Library</button>
       <button type="button" className={libraryTab === "Media Library" ? "is-active" : ""} aria-current={libraryTab === "Media Library" ? "page" : undefined} onClick={() => setLibraryTab("Media Library")}><HardDrive size={15} />Media Library</button>
@@ -265,16 +251,13 @@ export function ContentPage() {
             <button type="button" role="tab" disabled title="No lesson analytics are available locally">Analytics</button>
           </div>
           {tab === "Resources" ? <>
-            <div className="v2-resource-toolbar"><div><h3>Lesson Resources</h3><span>Manage Video and PDF files attached to this lesson.</span></div><button type="button" className="admin-v2__button is-primary" onClick={() => openUpload()}><Upload size={14} />Upload Resource</button></div>
+            <div className="v2-resource-toolbar"><div><h3>Lesson Resources</h3><span>Instructor files stay private until a submitted version is approved below.</span></div></div>
             <div className="v2-resource-columns" aria-hidden="true"><span>Resource</span><span>Type</span><span>Duration / pages</span><span>Status</span><span>Actions</span></div>
             <div className="v2-resource-list">
               {resources.map((item) => <ResourceRow key={item.id} item={item} selected={selectedResource?.id === item.id} previewUrl={previewUrls[item.id]} menuOpen={actionMenuId === item.id} onSelect={() => setResourceId(item.id)} onToggleMenu={() => setActionMenuId((current) => current === item.id ? "" : item.id)} onAction={(action) => runResourceAction(action, item)} />)}
               {!resources.length && <div className="v2-empty v2-resource-empty"><FileText size={22} /><strong>No resources attached</strong><span>Upload a Video or PDF to start this lesson's library.</span></div>}
             </div>
-            <button type="button" className={["v2-content-dropzone", dragActive ? "is-dragging" : ""].join(" ")} onClick={() => openUpload()} onDragEnter={(event) => { event.preventDefault(); setDragActive(true); }} onDragOver={(event) => { event.preventDefault(); setDragActive(true); }} onDragLeave={() => setDragActive(false)} onDrop={handleFileDrop}>
-              <span><Upload size={19} /></span><strong>Drag and drop files here or <em>click to upload</em></strong><small>Private backend upload supports MP4 video and PDF</small>
-            </button>
-            {dropError && <p className="v2-content-drop-error" role="alert">{dropError}</p>}
+            <div className="v2-empty v2-resource-empty"><Upload size={20}/><strong>Uploads are managed by the Instructor</strong><span>Submitted lesson files will appear here. Review and approval happen above.</span></div>
           </> : <div className="v2-content-details"><h3>Lesson details</h3><p>{lesson.description || "No lesson description has been added yet."}</p><dl className="v2-detail-grid"><div><dt>Course</dt><dd>{course.title}</dd></div><div><dt>Chapter</dt><dd>{chapter?.title}</dd></div><div><dt>Lesson order</dt><dd>{lesson.order}</dd></div><div><dt>Status</dt><dd><StatusBadge status={lesson.status} /></dd></div></dl></div>}
         </> : <div className="v2-empty"><FolderOpen size={22} /><strong>Select a lesson</strong><span>Choose a course with an active chapter and lesson to manage resources.</span>{course && <Link className="admin-v2__button" to={"/admin/courses/" + course.id + "/builder"}>Open Course Builder</Link>}</div>}
       </section>
@@ -311,7 +294,7 @@ export function ContentPage() {
       courses={availableCourses}
       previewUrls={previewUrls}
       menuOpenId={actionMenuId}
-      canUpload={Boolean(lesson) && !mutationPending}
+      canUpload={workspace.workspace === "instructor" && Boolean(lesson) && !mutationPending}
       onSearch={setMediaSearch}
       onTypeFilter={setMediaType}
       onStatusFilter={setMediaStatus}
@@ -474,8 +457,4 @@ function formatMediaMeta(item: ContentResource) {
   if (item.type === "Video" && item.durationSeconds) return formatDuration(item.durationSeconds);
   if (item.type === "PDF" && item.pageCount) return item.pageCount + " pages";
   return "N/A";
-}
-function isSupportedLocalFile(file: File) {
-  const extension = file.name.split(".").pop()?.toLowerCase();
-  return file.type === "application/pdf" || extension === "pdf" || file.type.startsWith("video/") || ["mp4", "mov", "webm", "m4v"].includes(extension ?? "");
 }
