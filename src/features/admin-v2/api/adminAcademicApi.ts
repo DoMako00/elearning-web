@@ -31,6 +31,7 @@ export interface StructureCommandResult {
   replayed?: boolean;
 }
 export interface AdminApiError extends Error { status?:number; code?:string; correlationId?:string; }
+export interface InstructorLoginInvite { adminProfileId:string; instructorId:string; brandId:string; brandCode:BrandCode; brandName:string; loginMethod:"email_otp"; invitationSent:boolean; }
 
 const idempotencyKey=()=>crypto.randomUUID();
 function unwrap<T>(result:{data?:unknown;error?:unknown;response?:Response}):T {
@@ -69,6 +70,7 @@ export const setCourseInstructorStatus=(brandId:string,courseId:string,instructo
 export const listInstructors=()=>call<Instructor[]>((api)=>api.GET("/v1/admin/instructors" as never));
 export const getInstructor=(id:string)=>call<Instructor>((api)=>api.GET("/v1/admin/instructors/{instructorId}" as never,{params:{path:{instructorId:id}}}));
 export const listInstructorBrands=(id:string)=>call<InstructorBrand[]>((api)=>api.GET("/v1/admin/instructors/{instructorId}/brands" as never,{params:{path:{instructorId:id}}}));
+export const createInstructorLogin=(brandId:string,instructorId:string,body:{email:string;reason:string})=>call<InstructorLoginInvite>((api)=>api.POST("/v1/admin/brands/{brandId}/instructors/{instructorId}/credentials" as never,{params:{path:{brandId,instructorId}},...writeHeaders(),body}));
 export const writeInstructor=(id:string|undefined,body:Record<string,unknown>)=>call<unknown>((api)=>id?api.PATCH("/v1/admin/instructors/{instructorId}" as never,{params:{path:{instructorId:id}},...writeHeaders(),body}):api.POST("/v1/admin/instructors" as never,{...writeHeaders(),body}));
 export async function createDirectoryInstructor(body:Record<string,unknown>){const result=await writeInstructor(undefined,body) as {instructorId?:string};if(!result.instructorId)throw new Error("The server did not return the created Instructor ID.");return result.instructorId;}
 export const setInstructorStatus=(id:string,body:Record<string,unknown>)=>call<unknown>((api)=>api.PATCH("/v1/admin/instructors/{instructorId}/status" as never,{params:{path:{instructorId:id}},...writeHeaders(),body}));

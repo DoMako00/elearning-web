@@ -949,6 +949,7 @@
 .admin-v2__instructor-course-row > button:hover { background: #fff1ef; }
 .admin-v2__instructor-inspector-actions { display: grid; gap: 8px; padding: 13px 15px 15px; }
 .admin-v2__instructor-inspector-actions .admin-v2__button { justify-content: center; }
+.admin-v2__instructor-credential-notice { margin: 10px 15px 0; border: 1px solid #bfe6cb; border-radius: 5px; background: #f0fbf3; color: #28643c; padding: 9px 11px; font-size: 9px; line-height: 1.45; }
 .admin-v2__instructor-warning { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #f0dfb8; border-radius: 5px; background: #fffaf0; color: #85610c; padding: 8px; font-size: 8.5px; line-height: 1.35; }
 .admin-v2__empty-inspector, .admin-v2__empty-inspector-tab { min-height: 180px; display: grid; justify-items: center; align-content: center; gap: 7px; color: #7c8b82; padding: 20px; text-align: center; }
 .admin-v2__empty-inspector strong, .admin-v2__empty-inspector-tab strong { color: #405247; font-size: 11px; }

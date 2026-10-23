@@ -29,6 +29,14 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html[data-app-font-size="large"] {
+  font-size: 115%;
+}
+
+html[data-app-font-size="extraLarge"] {
+  font-size: 125%;
+}
+
 body {
   background: var(--color-bg);
 }

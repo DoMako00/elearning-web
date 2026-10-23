@@ -47,7 +47,7 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
       {/* 1. Theme Selection Cards */}
       <SettingsCard
         title="Theme Selection"
-        subtitle="Appearance customization is not currently applied by the application."
+        subtitle="The current app theme is light. Other themes are not available yet."
         icon={<Palette className="w-4 h-4 stroke-2" />}
       >
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
@@ -59,10 +59,11 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
                 type="button"
                 onClick={() => onUpdate("theme", card.id)}
                 disabled
-                className={`p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                aria-pressed={isSelected}
+                className={`p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-not-allowed opacity-70 ${
                   isSelected
                     ? "border-emerald-500 bg-emerald-50/40 ring-2 ring-emerald-500/20 shadow-xs"
-                    : "border-gray-200/80 bg-white hover:border-gray-300 hover:bg-gray-50/50"
+                    : "border-gray-200/80 bg-white"
                 }`}
               >
                 <div
@@ -91,7 +92,7 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
       {/* 2. Motion Preferences */}
       <SettingsCard
         title="Motion & Transitions"
-        subtitle="Fine-tune animations and visual effects."
+        subtitle="Motion settings are managed by the platform so course and interface animations stay consistent."
       >
         <div className="pt-1">
           <ToggleSwitch
@@ -99,7 +100,7 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
             onChange={(checked) => onUpdate("reduceMotion", checked)}
             disabled
             label="Reduce UI Animations"
-            description="Disables gamification confetti and page transitions."
+            description="This control is unavailable in the current app version."
           />
         </div>
       </SettingsCard>
@@ -107,7 +108,7 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
       {/* 3. Accessibility & Scaling */}
       <SettingsCard
         title="Accessibility & Typography"
-        subtitle="Configure the standard reading font size and interface scale."
+        subtitle="Choose a comfortable text and interface scale for this device."
         icon={<Eye className="w-4 h-4 stroke-2" />}
       >
         <div className="pt-1 max-w-sm">
@@ -123,8 +124,7 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
                   e.target.value as AppearancePreferences["fontSize"]
                 )
               }
-              disabled
-              className="w-full h-9 pl-3 pr-8 text-xs bg-gray-50/80 border border-gray-200/90 rounded-xl text-gray-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white cursor-not-allowed appearance-none transition-all shadow-2xs"
+              className="w-full h-9 pl-3 pr-8 text-xs bg-gray-50/80 border border-gray-200/90 rounded-xl text-gray-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white cursor-pointer appearance-none transition-all shadow-2xs"
             >
               <option value="standard">Standard (Default 100%)</option>
               <option value="large">Large (Comfortable 115%)</option>
@@ -133,7 +133,7 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
             <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
           <p className="text-[10.5px] text-gray-400 mt-1.5 leading-normal">
-            Applies to lecture notes, flashcards, transcript summaries, and system headers.
+            Applies across the app and is saved on this device.
           </p>
         </div>
       </SettingsCard>
