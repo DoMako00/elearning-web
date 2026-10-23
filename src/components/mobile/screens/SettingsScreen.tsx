@@ -31,6 +31,7 @@ import { useStudentSettingsDevices, useStudentCommercialSettings, useStudentLear
 import { studentLearningApi } from "../../../features/student/api/studentLearningApi";
 import { completeStudentEmailLink, getStudentAuthMethods, initiateOtpLogin, initiateStudentEmailLink, verifyOtpProof } from "../../../features/auth/api/identityApi";
 import { downloadStudentAccountData } from "../../../features/settings/studentDataExport";
+import { normalizeStudentPhone } from "../../../features/settings/profilePhone";
 import { useAuth } from "../../../app/providers/AuthProvider";
 
 export const SettingsScreen: React.FC = () => {
@@ -66,7 +67,7 @@ export const SettingsScreen: React.FC = () => {
           onSave={async (newProfile) => {
             const current=profileQuery.data;
             if(!current) throw new Error("Student profile is still loading.");
-            const phone=newProfile.phoneNumber?.trim()?newProfile.phoneNumber.trim():null;
+            const phone=normalizeStudentPhone("+20",newProfile.phoneNumber??"");
             await studentLearningApi.updateProfile({fullName:(newProfile.fullName??current.fullName).trim(),phone,expectedVersion:current.version});
             await profileQuery.refetch();
             showToast("Profile updated from your account.");
@@ -626,7 +627,7 @@ const EditProfileSubScreen: React.FC<{
   };
 
   const verifyEmailCode=async()=>{
-    if(!/^\d{8}$/.test(emailCode)){setError("Enter the 8-digit code sent to your email.");return;}
+    if(!/^\d{6}$/.test(emailCode)){setError("Enter the 6-digit code sent to your email.");return;}
     try{
       if(emailStage==="current"){
         const proof=await verifyOtpProof({challengeId,code:emailCode});
@@ -668,6 +669,7 @@ const EditProfileSubScreen: React.FC<{
               type="tel"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
+              placeholder="e.g. +20 10 1234 5678"
               className="w-full px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs focus:outline-emerald-500"
             />
           </div>
@@ -676,7 +678,7 @@ const EditProfileSubScreen: React.FC<{
 
         <div className="bg-white rounded-3xl border border-slate-100 p-4 space-y-3 shadow-2xs">
           <div><h3 className="text-xs font-bold text-slate-800">Link or change verified email</h3><p className="text-[10.5px] text-slate-500 mt-1">Ownership is verified by email code. The email is not changed until verification succeeds.</p></div>
-          {emailStage==="idle"?<div className="flex gap-2"><input type="email" value={emailToLink} onChange={event=>setEmailToLink(event.target.value)} placeholder="Your real email address" className="min-w-0 flex-1 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs focus:outline-emerald-500"/><button type="button" disabled={!emailToLink.trim()} onClick={()=>void startEmailVerification()} className="px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold disabled:opacity-50">Send code</button></div>:<div className="flex gap-2"><input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={emailCode} onChange={event=>setEmailCode(event.target.value.replace(/\D/g,""))} placeholder={emailStage==="current"?"Code to current email":"Code to new email"} className="min-w-0 flex-1 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs focus:outline-emerald-500"/><button type="button" onClick={()=>void verifyEmailCode()} className="px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold">{emailStage==="current"?"Continue":"Verify email"}</button></div>}
+          {emailStage==="idle"?<div className="flex gap-2"><input type="email" value={emailToLink} onChange={event=>setEmailToLink(event.target.value)} placeholder="Your real email address" className="min-w-0 flex-1 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs focus:outline-emerald-500"/><button type="button" disabled={!emailToLink.trim()} onClick={()=>void startEmailVerification()} className="px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold disabled:opacity-50">Send code</button></div>:<div className="flex gap-2"><input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={emailCode} onChange={event=>setEmailCode(event.target.value.replace(/\D/g,"").slice(0,6))} placeholder={emailStage==="current"?"6-digit code to current email":"6-digit code to new email"} className="min-w-0 flex-1 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs focus:outline-emerald-500"/><button type="button" onClick={()=>void verifyEmailCode()} className="px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold">{emailStage==="current"?"Continue":"Verify email"}</button></div>}
           {error&&<p role="alert" className="text-xs text-rose-600">{error}</p>}
         </div>
 

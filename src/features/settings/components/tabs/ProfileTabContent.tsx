@@ -42,6 +42,7 @@ interface ProfileTabContentProps {
   emailCode: string;
   setEmailCode: (code:string) => void;
   emailFlowStep: "idle" | "current" | "new";
+  isEmailBusy?: boolean;
   linkedEmail?: string;
   onDownloadDataClick: () => void;
   onSwitchAccountClick: () => void;
@@ -70,6 +71,7 @@ export const ProfileTabContent: React.FC<ProfileTabContentProps> = ({
   emailCode,
   setEmailCode,
   emailFlowStep,
+  isEmailBusy = false,
   linkedEmail,
   onDownloadDataClick,
   onSwitchAccountClick,
@@ -138,13 +140,14 @@ export const ProfileTabContent: React.FC<ProfileTabContentProps> = ({
           {/* Form Input + CTA */}
           <div className="flex flex-col sm:flex-row items-center gap-2.5">
             {contactSubTab === "email" && emailFlowStep !== "idle" ? <>
-            <input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={emailCode} onChange={e=>setEmailCode(e.target.value.replace(/\D/g,""))} placeholder={emailFlowStep === "current" ? "Code sent to your current verified email" : "Code sent to the new email"} className="flex-1 w-full h-9.5 px-3.5 text-xs bg-gray-50/70 border border-gray-200/90 rounded-xl text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white placeholder-gray-400 shadow-2xs transition-all" />
-            <button type="button" onClick={onVerifyEmail} className="w-full sm:w-auto h-9.5 px-4 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-xl shadow-xs transition-all cursor-pointer whitespace-nowrap">{emailFlowStep === "current" ? "Continue securely" : "Verify new email"}</button>
+            <input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={emailCode} onChange={e=>setEmailCode(e.target.value.replace(/\D/g,"").slice(0,6))} placeholder={emailFlowStep === "current" ? "6-digit code sent to your current email" : "6-digit code sent to your new email"} className="flex-1 w-full h-9.5 px-3.5 text-xs bg-gray-50/70 border border-gray-200/90 rounded-xl text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white placeholder-gray-400 shadow-2xs transition-all" disabled={isEmailBusy} />
+            <button type="button" onClick={onVerifyEmail} disabled={isEmailBusy || emailCode.length !== 6} className="w-full sm:w-auto h-9.5 px-4 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 disabled:opacity-60 rounded-xl shadow-xs transition-all cursor-pointer whitespace-nowrap">{isEmailBusy ? "Verifying…" : emailFlowStep === "current" ? "Continue securely" : "Verify new email"}</button>
             </> : <>
             <input
               type={contactSubTab === "email" ? "email" : "tel"}
               value={newContactValue}
               onChange={(e) => setNewContactValue(e.target.value)}
+              disabled={isEmailBusy}
               placeholder={
                 contactSubTab === "email"
                   ? "Enter your new email address"
@@ -155,9 +158,10 @@ export const ProfileTabContent: React.FC<ProfileTabContentProps> = ({
             <button
               type="button"
               onClick={onSendVerificationCode}
-              className="w-full sm:w-auto h-9.5 px-4 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-xl shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              disabled={isEmailBusy || !newContactValue.trim()}
+              className="w-full sm:w-auto h-9.5 px-4 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 disabled:opacity-60 rounded-xl shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
-              Send verification code
+              {isEmailBusy ? "Sending…" : "Send verification code"}
             </button>
             </>}
           </div>

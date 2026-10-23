@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { User, Camera, ChevronDown, Check } from "lucide-react";
 import type { StudentProfileData } from "../../../../types/settings";
 import { SettingsCard } from "../common/SettingsCard";
+import { studentPhoneCountryCodes } from "../../profilePhone";
 
 interface ProfileTabProps {
   profile: StudentProfileData;
@@ -127,13 +128,22 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               </label>
               <div className="flex items-center gap-1.5">
                 <div className="relative shrink-0">
-                    <span className="h-9 px-2.5 bg-gray-50/80 border border-gray-200/90 rounded-xl text-xs text-gray-700 flex items-center font-medium">{profile.phoneCountryCode || "+"}</span>
+                  <label className="sr-only" htmlFor="student-phone-country-code">Country calling code</label>
+                  <select
+                    id="student-phone-country-code"
+                    aria-label="Country calling code"
+                    value={profile.phoneCountryCode || "+20"}
+                    onChange={(e) => onUpdateProfile("phoneCountryCode", e.target.value)}
+                    className="h-9 px-2 bg-gray-50/80 border border-gray-200/90 rounded-xl text-xs text-gray-700 font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  >
+                    {studentPhoneCountryCodes.map((code) => <option key={code} value={code}>{code}</option>)}
+                  </select>
                 </div>
                 <input
                   type="tel"
                   value={profile.phoneNumber}
                   onChange={(e) => onUpdateProfile("phoneNumber", e.target.value)}
-                placeholder="Optional phone in international format"
+                placeholder="Phone number"
                   className="flex-1 h-9 px-3 text-xs bg-gray-50/80 border border-gray-200/90 rounded-xl text-gray-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white transition-all min-w-0 shadow-2xs"
                 />
               </div>

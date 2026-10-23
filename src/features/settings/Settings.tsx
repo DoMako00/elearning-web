@@ -23,6 +23,7 @@ import { useStudentSettingsDevices, useStudentCommercialSettings, useStudentLear
 import { studentLearningApi } from "../student/api/studentLearningApi";
 import { downloadStudentAccountData } from "./studentDataExport";
 import { useAuth } from "../../app/providers/AuthProvider";
+import { normalizeStudentPhone, splitStudentPhone } from "./profilePhone";
 
 export const Settings: React.FC = () => {
   const {
@@ -62,17 +63,18 @@ export const Settings: React.FC = () => {
   const [linkedEmail, setLinkedEmail] = useState("");
   const [emailStage,setEmailStage]=useState<"idle"|"current"|"new">("idle");
   const [emailCode,setEmailCode]=useState("");
+  const [isEmailBusy,setIsEmailBusy]=useState(false);
   const [emailChallengeId,setEmailChallengeId]=useState("");
   const [emailLinkTicket,setEmailLinkTicket]=useState("");
   // The verified, validated scope brand; never a guessed default.
   const {brand:studentBrand}=useStudentScope();
 
-  useEffect(()=>{const dto=profileQuery.data;if(!dto)return;const phone=dto.phone??"";const phoneParts=phone.match(/^(\+\d{1,3})(.*)$/);setProfile({fullName:dto.fullName,studentId:dto.studentCode??"—",email:dto.verifiedEmail??"",phoneCountryCode:phoneParts?.[1]??"",phoneCountryFlag:"",phoneNumber:phoneParts?.[2]??phone,university:dto.institution.name,academicYear:dto.level.title,major:"—",avatarUrl:""});setLinkedEmail(dto.verifiedEmail??"");},[profileQuery.data,setProfile]);
+  useEffect(()=>{const dto=profileQuery.data;if(!dto)return;const phoneParts=splitStudentPhone(dto.phone);setProfile({fullName:dto.fullName,studentId:dto.studentCode??"—",email:dto.verifiedEmail??"",phoneCountryCode:phoneParts.countryCode,phoneCountryFlag:"",phoneNumber:phoneParts.nationalNumber,university:dto.institution.name,academicYear:dto.level.title,major:"—",avatarUrl:""});setLinkedEmail(dto.verifiedEmail??"");},[profileQuery.data,setProfile]);
   useEffect(()=>{const devices=devicesQuery.devices.data;if(!devices)return;const currentDeviceId=devicesQuery.session.data?.deviceId;setDevices(devices.filter(device=>!device.revokedAt).map(device=>({id:device.id,name:device.platform??"Registered device",os:device.platform??"",browser:device.browser??"",location:"",ipAddress:"",lastActive:new Date(device.lastSeenAt).toLocaleString(),isCurrent:device.id===currentDeviceId,deviceType:/mobile|phone/i.test(device.platform??"")?"mobile":/tablet|ipad/i.test(device.platform??"")?"tablet":"desktop"})));},[devicesQuery.devices.data,devicesQuery.session.data?.deviceId,setDevices]);
   useEffect(()=>{const value=commercialQuery.data;if(!value)return;setSubscription({name:value.semesterOffering?.title??"No active Offering",status:value.subscriptionStatus==="active"?"Active":value.subscriptionStatus==="expired"||value.subscriptionStatus==="cancelled"?"Expired":"Unavailable",seats:value.seatStatus==="assigned"?1:0,duration:"",renewDate:value.subscriptionEndsAt?new Date(value.subscriptionEndsAt).toLocaleDateString():"",planType:"individual"});},[commercialQuery.data,setSubscription]);
   useEffect(()=>{const value=preferencesQuery.data?.notificationPreferences;if(!value)return;setNotifications({learningAlerts:{assignmentDeadlines:value.assignmentDeadlines,lessonReminders:value.lessonReminders,dailyStreakWarnings:value.dailyStreakWarnings},socialCommunity:{directMessages:value.directMessages,mentionsInCommunity:value.mentionsInCommunity,repliesToPosts:value.repliesToPosts},systemAlerts:{securityAlerts:value.securityAlerts,billingUpdates:value.billingUpdates}});},[preferencesQuery.data,setNotifications]);
 
-  const handleSaveProfile=async()=>{const dto=profileQuery.data;if(!dto)throw new Error("Student profile is still loading.");const phoneInput=profile.phoneNumber.trim();const phone=phoneInput?`${profile.phoneCountryCode}${phoneInput.replace(/[^0-9]/g,"")}`:null;try{await studentLearningApi.updateProfile({fullName:profile.fullName.trim(),phone,expectedVersion:dto.version});await profileQuery.refetch();showToast("Profile updated from your account.");}catch(error){showToast(error instanceof Error?error.message:"Profile update failed.","error");throw error;}};
+  const handleSaveProfile=async()=>{const dto=profileQuery.data;if(!dto)throw new Error("Student profile is still loading.");const phone=normalizeStudentPhone(profile.phoneCountryCode,profile.phoneNumber);try{await studentLearningApi.updateProfile({fullName:profile.fullName.trim(),phone,expectedVersion:dto.version});await profileQuery.refetch();showToast("Profile updated from your account.");}catch(error){showToast(error instanceof Error?error.message:"Profile update failed.","error");throw error;}};
   const handleSignOut=()=>auth.signOut({revokeServerSession:true});
   const handleDownloadData=async()=>{if(isExportingData)return;setIsExportingData(true);try{await downloadStudentAccountData();showToast("Your account data download is ready.");}catch(error){showToast(error instanceof Error?error.message:"Your account data could not be exported.");}finally{setIsExportingData(false);}};
   const handleRevokeOtherSessions=async()=>{try{await revokeOtherSessions.mutateAsync();await Promise.all([devicesQuery.devices.refetch(),devicesQuery.session.refetch()]);showToast("Other active sessions were revoked. This device remains signed in.");}catch(error){showToast(error instanceof Error?error.message:"Other sessions could not be revoked.");}};
@@ -94,11 +96,13 @@ export const Settings: React.FC = () => {
   useEffect(()=>{void getStudentAuthMethods().then(methods=>{setLinkedEmail(methods.verifiedEmail??"");}).catch(()=>undefined);},[]);
 
   const handleSendVerificationCode = async () => {
+    if (isEmailBusy) return;
     if (!newContactValue.trim()) {
       showToast(`Please enter a valid new ${contactSubTab}.`,"error");
       return;
     }
     if(contactSubTab==="phone") { showToast("Phone is optional contact information only; it is not a sign-in or OTP method.","info"); return; }
+    setIsEmailBusy(true);
     try {
       const methods=await getStudentAuthMethods();
       setLinkedEmail(methods.verifiedEmail??"");
@@ -113,10 +117,13 @@ export const Settings: React.FC = () => {
         showToast("A verification code was sent to the new email address.");
       }
     } catch(error) { showToast(error instanceof Error?error.message:"Unable to start email verification.","error"); }
+    finally { setIsEmailBusy(false); }
   };
 
   const handleVerifyEmail=async()=>{
-    if(!/^\d{8}$/.test(emailCode.trim())){showToast("Enter the 8-digit verification code from your email.","error");return;}
+    if (isEmailBusy) return;
+    if(!/^\d{6}$/.test(emailCode.trim())){showToast("Enter the 6-digit verification code from your email.","error");return;}
+    setIsEmailBusy(true);
     try{
       if(emailStage==="current"){
         const proof=await verifyOtpProof({challengeId:emailChallengeId,code:emailCode});
@@ -130,6 +137,7 @@ export const Settings: React.FC = () => {
         window.location.reload();
       }
     }catch(error){showToast(error instanceof Error?error.message:"Email verification failed. Check the code and try again.","error");}
+    finally { setIsEmailBusy(false); }
   };
 
   const profileContentProps: React.ComponentProps<typeof ProfileTabContent> = {
@@ -150,6 +158,7 @@ export const Settings: React.FC = () => {
       emailCode,
       setEmailCode,
       emailFlowStep: emailStage,
+      isEmailBusy,
       linkedEmail,
       onDownloadDataClick: () => { void handleDownloadData(); },
       onSwitchAccountClick: () => { void handleSignOut(); },
