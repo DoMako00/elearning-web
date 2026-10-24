@@ -150,6 +150,8 @@ export const Settings: React.FC = () => {
       setContactSubTab,
       newContactValue,
       setNewContactValue,
+      subscriptionDataUnavailable: commercialQuery.isError,
+      onRetrySubscription: () => { void commercialQuery.refetch(); },
       onChangePhotoClick: () => showToast("Profile photo changes are not supported by the current account API.","info"),
       onManageDevicesClick: () => setIsDevicesModalOpen(true),
       onCloseAccountClick: () => showToast("Account closure is not available as a self-service action.","info"),

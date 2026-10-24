@@ -44,6 +44,8 @@ interface ProfileTabContentProps {
   emailFlowStep: "idle" | "current" | "new";
   isEmailBusy?: boolean;
   linkedEmail?: string;
+  subscriptionDataUnavailable?: boolean;
+  onRetrySubscription?: () => void;
   onDownloadDataClick: () => void;
   onSwitchAccountClick: () => void;
   onViewPlansClick: () => void;
@@ -73,6 +75,8 @@ export const ProfileTabContent: React.FC<ProfileTabContentProps> = ({
   emailFlowStep,
   isEmailBusy = false,
   linkedEmail,
+  subscriptionDataUnavailable = false,
+  onRetrySubscription,
   onDownloadDataClick,
   onSwitchAccountClick,
   onViewPlansClick,
@@ -476,20 +480,29 @@ export const ProfileTabContent: React.FC<ProfileTabContentProps> = ({
                 <UserCheck className="w-4 h-4" />
               </div>
               <div>
-                <h5 className="text-xs font-bold text-gray-900">{subscription.name}</h5>
+                <h5 className="text-xs font-bold text-gray-900">
+                  {subscriptionDataUnavailable ? "Offering details unavailable" : subscription.name || "Subscription details"}
+                </h5>
                 <p className="text-[10.5px] text-gray-500">
-                  {subscription.seats} seat • {subscription.duration}
+                  {subscriptionDataUnavailable
+                    ? "We couldn't load your current Offering and seat details."
+                    : `${subscription.seats} seat${subscription.seats === 1 ? "" : "s"}${subscription.duration ? ` · ${subscription.duration}` : ""}`}
                 </p>
               </div>
             </div>
 
             <div className="text-right">
-              <span className="px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-100 rounded-full">
-                {subscription.status}
+              <span className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full ${subscriptionDataUnavailable ? "text-amber-800 bg-amber-100" : "text-emerald-700 bg-emerald-100"}`}>
+                {subscriptionDataUnavailable ? "Details unavailable" : subscription.status}
               </span>
               <p className="text-[10px] text-gray-400 mt-1">
-                Term ends {subscription.renewDate}
+                {subscriptionDataUnavailable ? "Term details not loaded" : subscription.renewDate ? `Term ends ${subscription.renewDate}` : "No term end date"}
               </p>
+              {subscriptionDataUnavailable && onRetrySubscription ? (
+                <button type="button" onClick={onRetrySubscription} className="mt-1 text-[10px] font-semibold text-emerald-700 hover:text-emerald-900">
+                  Retry details
+                </button>
+              ) : null}
             </div>
           </div>
 
