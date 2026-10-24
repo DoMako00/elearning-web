@@ -169,7 +169,6 @@ export async function acceptSupabaseInviteFromUrl(): Promise<ProviderSessionBund
     expiresAt: new Date(expiryMs).toISOString(),
     email: typeof user.email === "string" ? user.email : null,
   };
-  persistProviderSession({ ...session, remember: true });
   return session;
 }
 

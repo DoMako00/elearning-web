@@ -18,6 +18,7 @@ import {
   restoreSupabaseSession,
   type SupabaseAuthenticatedUser,
 } from "../../features/auth/api/supabaseAuth";
+import { completeInstructorInviteSession } from "../../features/auth/api/identityApi";
 import { requireApiClient } from "../api/client";
 import { resetQueryCache, setQueryCacheScope } from "./QueryProvider";
 import { clearAllAssessmentDrafts } from "../../features/student/api/assessmentDrafts";
@@ -80,12 +81,22 @@ export function AuthProvider({ children }: PropsWithChildren) {
       setStatus("unauthenticated");
       return () => { active = false; };
     }
-    void acceptSupabaseInviteFromUrl().catch(() => null).then(() => restoreSupabaseSession()).then((session) => {
+    void (async () => {
+      const invitation = await acceptSupabaseInviteFromUrl();
+      if (invitation) await completeInstructorInviteSession(invitation);
+      return restoreSupabaseSession();
+    })().then((session) => {
       if (!active) return;
       userIdRef.current = session?.user.id ?? null;
       setQueryCacheScope(userIdRef.current);
       setUser(session ? toAuthUser(session.user) : null);
       setStatus(session ? "authenticated" : "unauthenticated");
+    }).catch(() => {
+      if (!active) return;
+      userIdRef.current = null;
+      setQueryCacheScope(null);
+      setUser(null);
+      setStatus("unauthenticated");
     });
     return () => { active = false; };
   }, [configured]);

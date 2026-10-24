@@ -1,5 +1,5 @@
 import { env } from "../../../app/config/env";
-import { createAnonymousProviderSession, getSupabaseAccessToken, persistProviderSession } from "./supabaseAuth";
+import { createAnonymousProviderSession, getSupabaseAccessToken, persistProviderSession, type ProviderSessionBundle } from "./supabaseAuth";
 
 import type { BrandCode } from "../../../shared/domain/brandInstitution";
 
@@ -51,6 +51,12 @@ export async function verifyOtp(input: Readonly<{ challengeId: string; code: str
   await request("/v1/auth/login/complete",{challengeId:input.challengeId,...deviceClassification()},{token:verified.accessToken,idempotency:false});
   persistProviderSession({ ...verified, email: input.email, remember: input.remember });
   return verified;
+}
+
+/** Bind a confirmed Instructor invite to the backend's persisted app session before storing it as signed in. */
+export async function completeInstructorInviteSession(session: ProviderSessionBundle) {
+  await request("/v1/auth/instructor-invite/complete", deviceClassification(), { token: session.accessToken });
+  persistProviderSession({ ...session, remember: true });
 }
 
 export async function verifyOtpProof(input:Readonly<{challengeId:string;code:string}>){

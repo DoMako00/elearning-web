@@ -87,20 +87,46 @@ describe("AuthProvider sign-out", () => {
 });
 
 describe("AuthProvider instructor invitation confirmation", () => {
-  it("accepts the confirmed Supabase session and stays on the instructor workspace", async () => {
+  it("binds the confirmed Supabase invite to the backend before signing in", async () => {
     const expiresAt = Math.floor(Date.now() / 1_000) + 3_600;
     window.history.replaceState({}, "", `/admin/instructor#access_token=invite-access&refresh_token=invite-refresh&expires_at=${expiresAt}&expires_in=3600&type=invite`);
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
-      id: "instructor-auth-id",
-      email: "doctor@example.test",
-      email_confirmed_at: new Date().toISOString(),
-    }), { status: 200, headers: { "content-type": "application/json" } })));
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/auth/v1/user")) return new Response(JSON.stringify({
+        id: "instructor-auth-id",
+        email: "doctor@example.test",
+        email_confirmed_at: new Date().toISOString(),
+      }), { status: 200, headers: { "content-type": "application/json" } });
+      if (url.endsWith("/v1/auth/instructor-invite/complete")) {
+        expect(new Headers(init?.headers).get("authorization")).toBe("Bearer invite-access");
+        expect(JSON.parse(String(init?.body))).toMatchObject({ platform: expect.any(String), deviceKey: expect.any(String) });
+        return new Response(JSON.stringify({ ok: true, data: { id: "app-session" } }), { status: 200, headers: { "content-type": "application/json" } });
+      }
+      throw new Error(`Unexpected request: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
 
     renderAuth();
 
     await waitFor(() => expect(screen.getByTestId("auth").textContent).toBe("authenticated:instructor-auth-id"));
+    expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(window.location.pathname).toBe("/admin/instructor");
     expect(window.location.hash).toBe("");
+    expect(window.localStorage.getItem(SESSION_KEY)).toContain("invite-access");
+    expect(reloadPage).not.toHaveBeenCalled();
+  });
+
+  it("does not persist an invite when the backend rejects its Instructor scope", async () => {
+    const expiresAt = Math.floor(Date.now() / 1_000) + 3_600;
+    window.history.replaceState({}, "", `/admin/instructor#access_token=invite-access&refresh_token=invite-refresh&expires_at=${expiresAt}&expires_in=3600&type=invite`);
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => String(input).endsWith("/auth/v1/user")
+      ? new Response(JSON.stringify({ id: "unlinked-auth-id", email: "not-an-instructor@example.test", email_confirmed_at: new Date().toISOString() }), { status: 200, headers: { "content-type": "application/json" } })
+      : new Response(JSON.stringify({ ok: false, error: { code: "forbidden", message: "Instructor access unavailable." } }), { status: 403, headers: { "content-type": "application/json" } })));
+
+    renderAuth();
+
+    await waitFor(() => expect(screen.getByTestId("auth").textContent).toBe("unauthenticated:none"));
+    expect(window.localStorage.getItem(SESSION_KEY)).toBeNull();
     expect(reloadPage).not.toHaveBeenCalled();
   });
 });
