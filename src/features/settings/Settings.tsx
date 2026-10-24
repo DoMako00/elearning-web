@@ -150,6 +150,7 @@ export const Settings: React.FC = () => {
       setContactSubTab,
       newContactValue,
       setNewContactValue,
+      subscriptionDataLoading: commercialQuery.isLoading,
       subscriptionDataUnavailable: commercialQuery.isError,
       onRetrySubscription: () => { void commercialQuery.refetch(); },
       onChangePhotoClick: () => showToast("Profile photo changes are not supported by the current account API.","info"),

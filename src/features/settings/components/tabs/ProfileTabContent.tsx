@@ -44,6 +44,7 @@ interface ProfileTabContentProps {
   emailFlowStep: "idle" | "current" | "new";
   isEmailBusy?: boolean;
   linkedEmail?: string;
+  subscriptionDataLoading?: boolean;
   subscriptionDataUnavailable?: boolean;
   onRetrySubscription?: () => void;
   onDownloadDataClick: () => void;
@@ -75,6 +76,7 @@ export const ProfileTabContent: React.FC<ProfileTabContentProps> = ({
   emailFlowStep,
   isEmailBusy = false,
   linkedEmail,
+  subscriptionDataLoading = false,
   subscriptionDataUnavailable = false,
   onRetrySubscription,
   onDownloadDataClick,
@@ -481,22 +483,28 @@ export const ProfileTabContent: React.FC<ProfileTabContentProps> = ({
               </div>
               <div>
                 <h5 className="text-xs font-bold text-gray-900">
-                  {subscriptionDataUnavailable ? "Offering details unavailable" : subscription.name || "Subscription details"}
+                  {subscriptionDataLoading
+                    ? "Loading Offering details…"
+                    : subscriptionDataUnavailable
+                      ? "Offering details unavailable"
+                      : subscription.name || "Subscription details"}
                 </h5>
                 <p className="text-[10.5px] text-gray-500">
-                  {subscriptionDataUnavailable
-                    ? "We couldn't load your current Offering and seat details."
-                    : `${subscription.seats} seat${subscription.seats === 1 ? "" : "s"}${subscription.duration ? ` · ${subscription.duration}` : ""}`}
+                  {subscriptionDataLoading
+                    ? "Checking your current Offering and seat details."
+                    : subscriptionDataUnavailable
+                      ? "We couldn't load your current Offering and seat details."
+                      : `${subscription.seats} seat${subscription.seats === 1 ? "" : "s"}${subscription.duration ? ` · ${subscription.duration}` : ""}`}
                 </p>
               </div>
             </div>
 
             <div className="text-right">
               <span className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full ${subscriptionDataUnavailable ? "text-amber-800 bg-amber-100" : "text-emerald-700 bg-emerald-100"}`}>
-                {subscriptionDataUnavailable ? "Details unavailable" : subscription.status}
+                {subscriptionDataLoading ? "Loading" : subscriptionDataUnavailable ? "Details unavailable" : subscription.status}
               </span>
               <p className="text-[10px] text-gray-400 mt-1">
-                {subscriptionDataUnavailable ? "Term details not loaded" : subscription.renewDate ? `Term ends ${subscription.renewDate}` : "No term end date"}
+                {subscriptionDataLoading ? "Loading term details" : subscriptionDataUnavailable ? "Term details not loaded" : subscription.renewDate ? `Term ends ${subscription.renewDate}` : "No term end date"}
               </p>
               {subscriptionDataUnavailable && onRetrySubscription ? (
                 <button type="button" onClick={onRetrySubscription} className="mt-1 text-[10px] font-semibold text-emerald-700 hover:text-emerald-900">
