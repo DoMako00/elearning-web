@@ -27,4 +27,27 @@ describe("AccountTab actions", () => {
     expect(onDownloadDataClick).toHaveBeenCalledOnce();
     expect(onCloseAccountClick).toHaveBeenCalledOnce();
   });
+
+  it("keeps account actions available when the commercial summary is unavailable", () => {
+    const onRetrySubscription = vi.fn();
+    const onDownloadDataClick = vi.fn();
+
+    render(<AccountTab
+      subscription={{ name: "", status: "Unavailable", seats: 0, duration: "", renewDate: "", planType: "individual" }}
+      subscriptionDataUnavailable
+      onRetrySubscription={onRetrySubscription}
+      onUpgradePlanClick={vi.fn()}
+      onDownloadDataClick={onDownloadDataClick}
+      onCloseAccountClick={vi.fn()}
+    />);
+
+    expect(screen.getByText("Details unavailable")).toBeTruthy();
+    expect(screen.getByText(/couldn't load your current Offering and seat details/i)).toBeTruthy();
+    expect(screen.queryByText(/No current Semester Offering subscription is recorded/i)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /retry details/i }));
+    fireEvent.click(screen.getByRole("button", { name: /download my data/i }));
+
+    expect(onRetrySubscription).toHaveBeenCalledOnce();
+    expect(onDownloadDataClick).toHaveBeenCalledOnce();
+  });
 });

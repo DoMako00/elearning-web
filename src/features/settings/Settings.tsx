@@ -172,8 +172,8 @@ export const Settings: React.FC = () => {
     <>
       <ToastNotification message={toastMessage} tone={toastTone} />
 
-      {(profileQuery.isLoading || devicesQuery.devices.isLoading || devicesQuery.session.isLoading || commercialQuery.isLoading || preferencesQuery.isLoading) && <p role="status" className="px-3 py-2 text-xs text-gray-500">Loading saved account settings…</p>}
-      {(profileQuery.isError || devicesQuery.devices.isError || devicesQuery.session.isError || commercialQuery.isError || preferencesQuery.isError) && <p role="alert" className="mx-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">Some saved settings could not be loaded. <button type="button" onClick={() => { void Promise.all([profileQuery.refetch(), devicesQuery.devices.refetch(), devicesQuery.session.refetch(), commercialQuery.refetch(), preferencesQuery.refetch()]); }}>Retry</button></p>}
+      {(profileQuery.isLoading || devicesQuery.devices.isLoading || devicesQuery.session.isLoading || preferencesQuery.isLoading) && <p role="status" className="px-3 py-2 text-xs text-gray-500">Loading saved account settings…</p>}
+      {(profileQuery.isError || devicesQuery.devices.isError || devicesQuery.session.isError || preferencesQuery.isError) && <p role="alert" className="mx-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">Some saved settings could not be loaded. <button type="button" onClick={() => { void Promise.all([profileQuery.refetch(), devicesQuery.devices.refetch(), devicesQuery.session.refetch(), preferencesQuery.refetch()]); }}>Retry</button></p>}
 
       <SettingsLayout
         activeTab={activeTab}
@@ -193,8 +193,10 @@ export const Settings: React.FC = () => {
 
         {/* Tab 2: Account (Lifecycle & Billing) */}
         {activeTab === "account" && (
-          commercialQuery.isLoading ? <p role="status" className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">Loading your saved Offering and Seat…</p> : commercialQuery.isError ? <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">{commercialQuery.error instanceof Error ? commercialQuery.error.message : "Your commercial summary could not be loaded."}</p> : <AccountTab
+          commercialQuery.isLoading ? <p role="status" className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">Loading your saved Offering and Seat…</p> : <AccountTab
             subscription={subscription}
+            subscriptionDataUnavailable={commercialQuery.isError}
+            onRetrySubscription={() => { void commercialQuery.refetch(); }}
             paymentMethods={paymentMethods}
             onUpgradePlanClick={() => showToast("Purchases are managed by an authorized Admin.","info")}
             onAddPaymentMethodClick={() => showToast("Stored card and payment-method management are not part of manual payment review.","info")}
