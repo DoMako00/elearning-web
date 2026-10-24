@@ -115,6 +115,64 @@ export function readStoredAuthUserId(): string | null {
 
 export interface ProviderSessionBundle { readonly accessToken:string; readonly refreshToken:string; readonly authUserId:string; readonly expiresAt:string; readonly email?:string|null; }
 
+/**
+ * Supabase invite links return a short-lived session in the URL fragment after
+ * email confirmation. Verify that access token with Auth before trusting it,
+ * then move the session into the same storage used by the OTP login flow.
+ */
+export async function acceptSupabaseInviteFromUrl(): Promise<ProviderSessionBundle | null> {
+  if (typeof window === "undefined") return null;
+  const fragment = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  if (fragment.get("type") !== "invite") return null;
+
+  // Remove bearer credentials from browser history before making a request.
+  window.history.replaceState(window.history.state, "", `${window.location.pathname}${window.location.search}`);
+
+  const accessToken = fragment.get("access_token");
+  const refreshToken = fragment.get("refresh_token");
+  const expiresAtValue = fragment.get("expires_at");
+  const expiresInValue = fragment.get("expires_in");
+  const expiresAtSeconds = expiresAtValue ? Number(expiresAtValue) : Number.NaN;
+  const expiresInSeconds = expiresInValue ? Number(expiresInValue) : Number.NaN;
+  const hasAbsoluteExpiry = Number.isFinite(expiresAtSeconds) && expiresAtSeconds > 0;
+  const hasRelativeExpiry = Number.isFinite(expiresInSeconds) && expiresInSeconds > 0;
+  if (!accessToken || !refreshToken || (!hasAbsoluteExpiry && !hasRelativeExpiry)) {
+    throw new SupabaseAuthClientError("The invitation link is incomplete. Ask your Admin to send a new invitation.");
+  }
+  const expiryMs = hasAbsoluteExpiry
+    ? expiresAtSeconds * 1_000
+    : Date.now() + expiresInSeconds * 1_000;
+  if (!Number.isFinite(expiryMs) || expiryMs <= Date.now()) {
+    throw new SupabaseAuthClientError("The invitation link is incomplete. Ask your Admin to send a new invitation.");
+  }
+  if (!canUseSupabaseAuth()) throw new SupabaseAuthClientError("Supabase authentication is not configured for this web build.");
+
+  let response: Response;
+  try {
+    response = await fetch(`${env.supabaseUrl}/auth/v1/user`, {
+      headers: { apikey: env.supabasePublishableKey, Authorization: `Bearer ${accessToken}`, accept: "application/json" },
+    });
+  } catch {
+    throw new SupabaseAuthNetworkError("The invitation could not be verified. Check your connection and try again.");
+  }
+  if (!response.ok) throw new SupabaseAuthClientError("This invitation link is invalid or expired. Ask your Admin to send a new invitation.");
+
+  const user = await response.json().catch(() => null) as { id?: unknown; email?: unknown; email_confirmed_at?: unknown; confirmed_at?: unknown } | null;
+  if (!user || typeof user.id !== "string" || !user.id || (typeof user.email_confirmed_at !== "string" && typeof user.confirmed_at !== "string")) {
+    throw new SupabaseAuthClientError("The confirmed invitation session is incomplete. Ask your Admin to send a new invitation.");
+  }
+
+  const session: ProviderSessionBundle = {
+    accessToken,
+    refreshToken,
+    authUserId: user.id,
+    expiresAt: new Date(expiryMs).toISOString(),
+    email: typeof user.email === "string" ? user.email : null,
+  };
+  persistProviderSession({ ...session, remember: true });
+  return session;
+}
+
 /** Creates a no-email Supabase identity for the one-time provisioned-account activation. */
 export async function createAnonymousProviderSession(): Promise<ProviderSessionBundle> {
   if (!canUseSupabaseAuth()) throw new SupabaseAuthClientError("Supabase authentication is not configured for this web build.");

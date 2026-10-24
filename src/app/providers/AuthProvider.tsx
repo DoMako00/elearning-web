@@ -11,6 +11,7 @@ import {
 import {
   AUTH_SESSION_CHANGED_EVENT,
   AUTH_SESSION_STORAGE_KEYS,
+  acceptSupabaseInviteFromUrl,
   clearSupabaseSession,
   isSupabaseAuthConfigured,
   readStoredAuthUserId,
@@ -79,7 +80,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       setStatus("unauthenticated");
       return () => { active = false; };
     }
-    void restoreSupabaseSession().then((session) => {
+    void acceptSupabaseInviteFromUrl().catch(() => null).then(() => restoreSupabaseSession()).then((session) => {
       if (!active) return;
       userIdRef.current = session?.user.id ?? null;
       setQueryCacheScope(userIdRef.current);

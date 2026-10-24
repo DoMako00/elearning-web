@@ -42,6 +42,9 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllGlobals();
   signOutRef = null;
+  window.localStorage.clear();
+  window.sessionStorage.clear();
+  window.history.replaceState({}, "", "/");
 });
 
 describe("AuthProvider sign-out", () => {
@@ -80,6 +83,25 @@ describe("AuthProvider sign-out", () => {
     await waitFor(() => expect(screen.getByTestId("auth").textContent).toBe("authenticated:student-a"));
     await act(async () => { await signOutRef!(); });
     expect(window.sessionStorage.getItem("assessment-draft:student-a:attempt-1")).toBeNull();
+  });
+});
+
+describe("AuthProvider instructor invitation confirmation", () => {
+  it("accepts the confirmed Supabase session and stays on the instructor workspace", async () => {
+    const expiresAt = Math.floor(Date.now() / 1_000) + 3_600;
+    window.history.replaceState({}, "", `/admin/instructor#access_token=invite-access&refresh_token=invite-refresh&expires_at=${expiresAt}&expires_in=3600&type=invite`);
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      id: "instructor-auth-id",
+      email: "doctor@example.test",
+      email_confirmed_at: new Date().toISOString(),
+    }), { status: 200, headers: { "content-type": "application/json" } })));
+
+    renderAuth();
+
+    await waitFor(() => expect(screen.getByTestId("auth").textContent).toBe("authenticated:instructor-auth-id"));
+    expect(window.location.pathname).toBe("/admin/instructor");
+    expect(window.location.hash).toBe("");
+    expect(reloadPage).not.toHaveBeenCalled();
   });
 });
 
