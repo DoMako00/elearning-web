@@ -15,8 +15,16 @@ import {
   CourseOverviewSkeleton,
   LessonPlayerSkeleton,
   SkeletonListRow,
+  AdminOverviewSkeleton,
+  InstructorOverviewSkeleton,
+  AdminTableSkeleton,
+  InstructorCourseContentSkeleton,
+  CourseBuilderSkeleton,
+  AssignmentDetailSkeleton,
+  AssessmentDetailSkeleton,
 } from "../ui/Skeleton";
 import { StudentShellSkeleton } from "./StudentShellSkeleton";
+import { AdminShellSkeleton } from "./AdminShellSkeleton";
 
 export interface RouteLoadingFallbackProps {
   message?: string;
@@ -46,6 +54,55 @@ export const RouteLoadingFallback: React.FC<RouteLoadingFallbackProps> = ({
   }
 
   const renderContent = () => {
+    // ══════════════════════════════════════════════════════
+    // A. INSTRUCTOR ROUTES (/admin/instructor/...)
+    // ══════════════════════════════════════════════════════
+    if (pathname.startsWith("/admin/instructor")) {
+      // 1. Instructor Course Content (chapters & lessons)
+      if (/^\/admin\/instructor\/courses\/[^/]+$/.test(pathname)) {
+        return <InstructorCourseContentSkeleton />;
+      }
+
+      // 2. Instructor Courses List
+      if (pathname === "/admin/instructor/courses") {
+        return <AdminTableSkeleton columns={5} rows={6} />;
+      }
+
+      // 3. Instructor Assignments / Grading
+      if (pathname.startsWith("/admin/instructor/assignments")) {
+        return <AdminTableSkeleton columns={6} rows={6} />;
+      }
+
+      // 4. Instructor Exams / Quizzes
+      if (pathname.startsWith("/admin/instructor/assessments")) {
+        return <AdminTableSkeleton columns={5} rows={6} />;
+      }
+
+      // 5. Instructor Dashboard / Overview
+      return <InstructorOverviewSkeleton />;
+    }
+
+    // ══════════════════════════════════════════════════════
+    // B. SUPER ADMIN ROUTES (/admin/...)
+    // ══════════════════════════════════════════════════════
+    if (pathname.startsWith("/admin")) {
+      // 1. Course Builder
+      if (/^\/admin\/courses\/[^/]+\/builder$/.test(pathname)) {
+        return <CourseBuilderSkeleton />;
+      }
+
+      // 2. Super Admin Overview
+      if (pathname === "/admin" || pathname === "/admin/overview") {
+        return <AdminOverviewSkeleton />;
+      }
+
+      // 3. Admin Data Tables (Courses, Instructors, Students, Content Approvals, Payments, Curriculum, Subscriptions, Roles, Security, Support)
+      return <AdminTableSkeleton columns={6} rows={7} />;
+    }
+
+    // ══════════════════════════════════════════════════════
+    // C. STUDENT ROUTES
+    // ══════════════════════════════════════════════════════
     // 1. Home Dashboard
     if (pathname === "/" || pathname === "") {
       return <HomeDashboardSkeleton />;
@@ -61,7 +118,7 @@ export const RouteLoadingFallback: React.FC<RouteLoadingFallbackProps> = ({
       return <ProfileSkeleton activeTab={activeTab} />;
     }
 
-    // 2B. Instructor Profile
+    // 2B. Instructor Public Profile (from Student perspective)
     if (pathname.startsWith("/instructor") || pathname.startsWith("/instructors")) {
       return <ProfileSkeleton activeTab="overview" />;
     }
@@ -92,11 +149,17 @@ export const RouteLoadingFallback: React.FC<RouteLoadingFallbackProps> = ({
     }
 
     // 8. Assignments
+    if (/^\/assignments\/[^/]+$/.test(pathname)) {
+      return <AssignmentDetailSkeleton />;
+    }
     if (pathname.startsWith("/assignments")) {
       return <AssignmentsSkeleton />;
     }
 
     // 9. Assessments
+    if (/^\/assessments\/[^/]+$/.test(pathname)) {
+      return <AssessmentDetailSkeleton />;
+    }
     if (pathname.startsWith("/assessments")) {
       return <AssignmentsSkeleton />;
     }
@@ -149,6 +212,9 @@ export const RouteLoadingFallback: React.FC<RouteLoadingFallbackProps> = ({
   const content = renderContent();
 
   if (withShell) {
+    if (pathname.startsWith("/admin")) {
+      return <AdminShellSkeleton pathname={pathname}>{content}</AdminShellSkeleton>;
+    }
     return <StudentShellSkeleton pathname={pathname}>{content}</StudentShellSkeleton>;
   }
 

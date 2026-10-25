@@ -12,6 +12,7 @@ import { emptyAdminV2ServerDomainData } from "../api/adminV2Mappers";
 import { adminV2ServerDomainsChanged, loadAdminV2ServerData, persistAdminV2ServerChanges, type ServerDomainData } from "../api/adminV2ServerData";
 import { loadAdminOverviewData, loadAdminSecurityData, loadAdminSecurityEvents, type AdminOverviewView } from "../api/adminV2OperationalData";
 import { AdminV2UiProvider } from "../shared/adminV2Theme";
+import { RouteLoadingFallback } from "../../../components/layout/RouteLoadingFallback";
 import "../styles/admin-v2.css";
 import "../styles/admin-v2-phase2.css";
 
@@ -165,10 +166,14 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
     try { window.localStorage.setItem(BRAND_FILTER_STORAGE_KEY, brand); } catch { /* The in-memory selection still works in restricted storage contexts. */ }
   }, [brand]);
 
-  if (auth.status === "loading" || (auth.status === "authenticated" && adminAccess === "checking")) return <main aria-live="polite">Checking your Admin session…</main>;
+  if (auth.status === "loading" || (auth.status === "authenticated" && adminAccess === "checking")) {
+    return <RouteLoadingFallback withShell={true} isMobile={false} message="Checking your Admin session…" />;
+  }
   if (auth.status !== "authenticated" || adminAccess === "denied") return <Navigate to="/auth/sign-in" replace state={{ from: pathname }} />;
   if (adminAccess === "error") return <main role="alert">The Admin session could not be checked. Please reload and try again.</main>;
-  if (!workspace || !context) return <main aria-live="polite">Loading your workspace…</main>;
+  if (!workspace || !context) {
+    return <RouteLoadingFallback withShell={true} isMobile={false} message="Loading your workspace…" />;
+  }
   if (workspace.workspace === "instructor" && pathname === "/admin") return <Navigate to="/admin/instructor" replace />;
   if (workspace.workspace === "super_admin" && (pathname === "/admin/instructor" || pathname.startsWith("/admin/instructor/") || pathname.startsWith("/admin/assignments") || pathname.startsWith("/admin/assessments") || /^\/admin\/courses\/[^/]+\/builder$/.test(pathname))) return <Navigate to="/admin" replace />;
   if (workspace.workspace === "instructor" && pathname.startsWith("/admin/") && !pathname.startsWith("/admin/instructor/") && pathname !== "/admin") return <Navigate to="/admin/instructor/courses" replace />;

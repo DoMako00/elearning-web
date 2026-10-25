@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { studentAssessmentApi, type StudentAssessmentQuestionDto } from "../api/studentAssessmentApi";
 import { clearAssessmentDraft, loadAssessmentDraft, saveAssessmentDraft } from "../api/assessmentDrafts";
 import { useAuth } from "../../../app/providers/AuthProvider";
+import { AssessmentDetailSkeleton } from "../../../components/ui/Skeleton";
 import "./student-extra-pages.css";
 
 function optionLabel(option: unknown): string {
@@ -133,6 +134,10 @@ export function AssessmentDetailPage() {
     setDraftSaved(saveAssessmentDraft(userId, attemptId, answers));
   }, [answers, attemptId, userId]);
 
+  if (query.isLoading) {
+    return <AssessmentDetailSkeleton />;
+  }
+
   const allAnswered = questions.length > 0 && questions.every(question => isAnswered(answers[question.id]));
   return (
     <main className="student-extra-page assessment-detail-page" aria-labelledby="assessment-detail-title">
@@ -140,10 +145,6 @@ export function AssessmentDetailPage() {
         <ArrowLeft aria-hidden="true" />
         All assessments
       </Link>
-
-      {query.isLoading ? (
-        <p className="student-extra-page__state" role="status">Loading assessment…</p>
-      ) : null}
       {query.error ? (
         <p className="student-extra-page__state student-extra-page__state--error" role="alert">
           {query.error instanceof Error ? query.error.message : "Assessment could not be loaded."}

@@ -5,6 +5,7 @@ import { SubmitAssignmentModal } from "./SubmitAssignmentModal";
 import { isAssignmentSubmissionWindowOpen } from "../../../features/student/api/studentAssignmentMapper";
 import { useStudentAssignments, useSubmitStudentAssignment } from "../../../features/student/api/useStudentAssignments";
 import { studentAssignmentsApi } from "../../../features/student/api/studentAssignmentsApi";
+import { AssignmentDetailSkeleton } from "../Skeleton";
 import "./AssignmentDetailPage.css";
 
 function formatDate(value: string | null) {
@@ -24,7 +25,7 @@ export function AssignmentDetailPage() {
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
   const [openingAttachmentId, setOpeningAttachmentId] = useState<string | null>(null);
 
-  if (assignments.isLoading) return <FeedbackState title="Assignment" message="Loading the persisted assignment…" />;
+  if (assignments.isLoading) return <AssignmentDetailSkeleton />;
   if (assignments.isError) return <FeedbackState title="Assignment unavailable" message={assignments.error instanceof Error ? assignments.error.message : "The assignment could not be loaded."} error onRetry={() => void assignments.refetch()} />;
   const assignment = assignments.data?.find((item) => item.id === assignmentId);
   if (!assignment) return <FeedbackState title="Assignment not found" message="This assignment is not available to the current Student account." error />;

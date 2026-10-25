@@ -114,7 +114,7 @@ export const HomeDashboardSkeleton: React.FC = () => {
 
         {/* Weekly Goal Card */}
         <div className="dashboard-bento__slot dashboard-bento__slot--weekly">
-          <div className="weekly-goal-card h-full flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-[--color-border-subtle)] bg-[--color-surface)]">
+          <div className="weekly-goal-card h-full flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-[--color-border-subtle] bg-[--color-surface]">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <Skeleton width={20} height={20} borderRadius={4} />
@@ -150,7 +150,7 @@ export const HomeDashboardSkeleton: React.FC = () => {
       <div className="dashboard-bento__row dashboard-bento__row--middle">
         {/* My Progress */}
         <div className="dashboard-bento__slot dashboard-bento__slot--progress">
-          <div className="my-progress-card h-full flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-[--color-border-subtle)] bg-[--color-surface)]">
+          <div className="my-progress-card h-full flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-[--color-border-subtle] bg-[--color-surface]">
             <div className="flex justify-between items-center">
               <Skeleton width={95} height={18} borderRadius={4} />
               <Skeleton width={28} height={28} borderRadius={8} />
@@ -172,7 +172,7 @@ export const HomeDashboardSkeleton: React.FC = () => {
 
         {/* Upcoming / Session Contents */}
         <div className="dashboard-bento__slot dashboard-bento__slot--upcoming">
-          <div className="upcoming-card h-full flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-[--color-border-subtle)] bg-[--color-surface)]">
+          <div className="upcoming-card h-full flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-[--color-border-subtle] bg-[--color-surface]">
             <div className="flex justify-between items-center">
               <Skeleton width={135} height={18} borderRadius={4} />
               <Skeleton width={44} height={26} borderRadius={8} />
@@ -194,7 +194,7 @@ export const HomeDashboardSkeleton: React.FC = () => {
 
         {/* Your Streak */}
         <div className="dashboard-bento__slot dashboard-bento__slot--streak">
-          <div className="your-streak-card h-full flex items-center justify-between p-4 sm:p-5 rounded-2xl border border-[--color-border-subtle)] bg-[--color-surface)]">
+          <div className="your-streak-card h-full flex items-center justify-between p-4 sm:p-5 rounded-2xl border border-[--color-border-subtle] bg-[--color-surface]">
             <div className="space-y-1.5 flex-1">
               <div className="flex items-center gap-2">
                 <Skeleton width={20} height={20} borderRadius={4} />
@@ -219,7 +219,7 @@ export const HomeDashboardSkeleton: React.FC = () => {
       {/* Bottom row: Recommended sessions */}
       <div className="dashboard-bento__row dashboard-bento__row--bottom">
         <div className="dashboard-bento__slot dashboard-bento__slot--recommended">
-          <div className="recommended-card h-full flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-[--color-border-subtle)] bg-[--color-surface)]">
+          <div className="recommended-card h-full flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-[--color-border-subtle] bg-[--color-surface]">
             <div className="recommended-header flex justify-between items-center mb-1">
               <Skeleton width={170} height={20} borderRadius={5} />
               <Skeleton width={75} height={16} borderRadius={4} />
@@ -1320,3 +1320,178 @@ export const ProfileSkeleton: React.FC<{ activeTab?: "overview" | "achievements"
     </section>
   );
 };
+
+/**
+ * 11. ASSIGNMENT DETAIL SKELETON
+ * Matches AssignmentDetailPage layout:
+ * - Header Card with breadcrumb, title, tags, due pill, and 4 metric cards
+ * - Main Column with Brief card, Submission details, Resources
+ * - Sidebar Column with Submission action card, Rubric/Score card, Timeline
+ */
+export const AssignmentDetailSkeleton: React.FC = () => {
+  return (
+    <div className="assignment-detail-page" aria-busy="true" aria-label="Loading assignment details">
+      <div className="assignment-detail-container">
+        {/* Header Card */}
+        <section className="assignment-detail-header-card">
+          <div className="assignment-detail-header-top">
+            <div className="assignment-detail-meta-left space-y-2">
+              <div className="flex items-center gap-2">
+                <Skeleton width={80} height={14} borderRadius={4} />
+                <Skeleton width={14} height={14} borderRadius={2} />
+                <Skeleton width={100} height={14} borderRadius={4} />
+              </div>
+              <Skeleton width="60%" height={28} borderRadius={6} />
+              <div className="flex gap-2">
+                <Skeleton width={90} height={22} borderRadius={999} />
+                <Skeleton width={60} height={22} borderRadius={999} />
+              </div>
+            </div>
+            <div className="assignment-detail-header-actions">
+              <Skeleton width={150} height={32} borderRadius={999} />
+            </div>
+          </div>
+          <div className="assignment-detail-metrics-row">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="assignment-detail-metric-card">
+                <Skeleton width={44} height={44} borderRadius={10} />
+                <div className="assignment-detail-metric-content space-y-1">
+                  <Skeleton width={75} height={12} borderRadius={3} />
+                  <Skeleton width={110} height={16} borderRadius={4} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Body Layout */}
+        <div className="assignment-detail-body-layout">
+          <div className="assignment-detail-main-column">
+            <div className="assignment-detail-brief-row">
+              <section className="assignment-detail-section-card assignment-detail-brief-card space-y-3">
+                <div className="flex items-center gap-2">
+                  <Skeleton width={20} height={20} borderRadius={4} />
+                  <Skeleton width={130} height={18} borderRadius={4} />
+                </div>
+                <SkeletonText lines={3} />
+                <Skeleton width={160} height={16} borderRadius={4} />
+                <div className="space-y-2 pt-2">
+                  <Skeleton width="90%" height={14} borderRadius={4} />
+                  <Skeleton width="80%" height={14} borderRadius={4} />
+                </div>
+              </section>
+              <section className="assignment-detail-section-card assignment-detail-submit-info-card space-y-3">
+                <div className="flex items-center gap-2">
+                  <Skeleton width={20} height={20} borderRadius={4} />
+                  <Skeleton width={140} height={18} borderRadius={4} />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton width="95%" height={14} borderRadius={4} />
+                  <Skeleton width="85%" height={14} borderRadius={4} />
+                </div>
+                <div className="pt-2">
+                  <Skeleton width="100%" height={40} borderRadius={8} />
+                </div>
+              </section>
+            </div>
+            <section className="assignment-detail-section-card assignment-detail-resources-section space-y-3">
+              <div className="flex items-center gap-2">
+                <Skeleton width={20} height={20} borderRadius={4} />
+                <Skeleton width={160} height={18} borderRadius={4} />
+              </div>
+              <Skeleton width={240} height={14} borderRadius={4} />
+              <div className="h-16 rounded-xl border border-dashed border-gray-200 flex items-center justify-center">
+                <Skeleton width={180} height={14} borderRadius={4} />
+              </div>
+            </section>
+          </div>
+
+          <aside className="assignment-detail-sidebar-column">
+            <section className="assignment-detail-sidebar-card assignment-submission-action-card space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Skeleton width={18} height={18} borderRadius={4} />
+                  <Skeleton width={110} height={16} borderRadius={4} />
+                </div>
+                <Skeleton width={70} height={16} borderRadius={4} />
+              </div>
+              <Skeleton width={90} height={22} borderRadius={999} />
+              <Skeleton width="100%" height={8} borderRadius={4} />
+              <Skeleton width="100%" height={32} borderRadius={4} />
+              <Skeleton width="100%" height={44} borderRadius={10} />
+            </section>
+            <section className="assignment-detail-sidebar-card space-y-2">
+              <div className="flex items-center gap-2">
+                <Skeleton width={18} height={18} borderRadius={4} />
+                <Skeleton width={100} height={16} borderRadius={4} />
+              </div>
+              <Skeleton width={140} height={14} borderRadius={4} />
+            </section>
+            <section className="assignment-detail-sidebar-card space-y-3">
+              <div className="flex items-center gap-2">
+                <Skeleton width={18} height={18} borderRadius={4} />
+                <Skeleton width={130} height={16} borderRadius={4} />
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Skeleton width={12} height={12} circle />
+                  <div className="space-y-1">
+                    <Skeleton width={80} height={11} borderRadius={2} />
+                    <Skeleton width={60} height={14} borderRadius={3} />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Skeleton width={12} height={12} circle />
+                  <div className="space-y-1">
+                    <Skeleton width={80} height={11} borderRadius={2} />
+                    <Skeleton width={50} height={14} borderRadius={3} />
+                  </div>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * 12. ASSESSMENT DETAIL SKELETON
+ * Matches AssessmentDetailPage layout:
+ * - Back link
+ * - Assessment Hero Card (kind badge, title, course, meta items)
+ * - Questions list skeletons
+ */
+export const AssessmentDetailSkeleton: React.FC = () => {
+  return (
+    <main className="student-extra-page assessment-detail-page p-6 max-w-4xl mx-auto space-y-6" aria-busy="true" aria-label="Loading assessment details">
+      <div className="flex items-center gap-2">
+        <Skeleton width={16} height={16} borderRadius={4} />
+        <Skeleton width={110} height={14} borderRadius={4} />
+      </div>
+      <header className="assessment-detail-hero space-y-3 p-6 rounded-2xl bg-white border border-[#dfe9e4]">
+        <Skeleton width={70} height={22} borderRadius={999} />
+        <Skeleton width="55%" height={32} borderRadius={6} />
+        <Skeleton width={180} height={16} borderRadius={4} />
+        <div className="flex gap-4 pt-2">
+          <Skeleton width={140} height={14} borderRadius={4} />
+          <Skeleton width={110} height={14} borderRadius={4} />
+        </div>
+      </header>
+      <div className="space-y-4 pt-2">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <section key={i} className="assessment-question p-5 rounded-xl bg-white border border-[#dfe9e4] space-y-3">
+            <Skeleton width="70%" height={20} borderRadius={4} />
+            <div className="space-y-2 pt-2">
+              <Skeleton width="100%" height={38} borderRadius={8} />
+              <Skeleton width="100%" height={38} borderRadius={8} />
+              <Skeleton width="100%" height={38} borderRadius={8} />
+            </div>
+          </section>
+        ))}
+      </div>
+    </main>
+  );
+};
+

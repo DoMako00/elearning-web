@@ -21,13 +21,15 @@ export const StudentShellSkeleton: React.FC<StudentShellSkeletonProps> = ({
   const isCourseOverview = pathname.startsWith("/my-courses/") && !pathname.includes("/lessons/");
   const isLessonPlayer = pathname.includes("/lessons/");
   const isExplore = pathname.startsWith("/explore");
-  const isAssignments = pathname.startsWith("/assignments");
+  const isAssignments = pathname === "/assignments";
+  const isAssignmentDetail = pathname.startsWith("/assignments/");
   const isAssessments = pathname.startsWith("/assessments");
   const isCalendar = pathname.startsWith("/calendar");
   const isMessages = pathname.startsWith("/messages");
   const isCommunity = pathname.startsWith("/community");
   const isHelp = pathname.startsWith("/help");
   const isSettings = pathname.startsWith("/settings");
+  const isScrollablePage = pathname.startsWith("/test-");
 
   // Determine breadcrumb labels
   let breadcrumbCategory = "LEARNING SPACE";
@@ -51,6 +53,9 @@ export const StudentShellSkeleton: React.FC<StudentShellSkeletonProps> = ({
   } else if (isExplore) {
     breadcrumbCategory = "DISCOVER";
     breadcrumbTitle = "Explore";
+  } else if (isAssignmentDetail) {
+    breadcrumbCategory = "LEARNING SPACE";
+    breadcrumbTitle = "Assignment details";
   } else if (isAssignments) {
     breadcrumbCategory = "LEARNING SPACE";
     breadcrumbTitle = "Assignments";
@@ -178,11 +183,13 @@ export const StudentShellSkeleton: React.FC<StudentShellSkeletonProps> = ({
             isMyCourses ? " student-dashboard--my-courses" : ""
           }${isCourseOverview ? " student-dashboard--course-overview" : ""}${
             isAssignments ? " student-dashboard--assignments" : ""
-          }${isCalendar ? " student-dashboard--calendar" : ""}${
-            isMessages ? " student-dashboard--messages" : ""
-          }${isCommunity ? " student-dashboard--community" : ""}${
-            isHelp ? " student-dashboard--help" : ""
-          }${isSettings ? " student-dashboard--settings" : ""}`}
+          }${isAssignmentDetail ? " student-dashboard--assignment-detail" : ""}${
+            isCalendar ? " student-dashboard--calendar" : ""
+          }${isMessages ? " student-dashboard--messages" : ""}${
+            isCommunity ? " student-dashboard--community" : ""
+          }${isHelp ? " student-dashboard--help" : ""}${
+            isSettings ? " student-dashboard--settings" : ""
+          }${isScrollablePage ? " student-dashboard--scrollable" : ""}`}
         >
           {/* Header */}
           <header

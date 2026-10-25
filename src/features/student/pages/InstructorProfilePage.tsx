@@ -4,12 +4,13 @@ import { studentInstructorApi } from "../api/studentInstructorApi";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import { useParams } from "react-router-dom";
 import type { InstructorProfile as InstructorProfileDto } from "../../../types/instructor";
+import { ProfileSkeleton } from "../../../components/ui/Skeleton";
 
 export function InstructorProfilePage() {
   const auth=useAuth();
   const {instructorId}=useParams();
   const query=useQuery({queryKey:["student","instructors"],queryFn:({signal})=>studentInstructorApi.list(signal),enabled:auth.status==="authenticated"});
-  if(query.isLoading)return <div className="p-6 text-sm text-slate-500" role="status">Loading instructor directory…</div>;
+  if(query.isLoading)return <ProfileSkeleton activeTab="overview" />;
   if(query.error)return <div className="p-6 text-sm text-rose-700" role="alert">{query.error instanceof Error?query.error.message:"Instructor directory could not be loaded."}</div>;
   const instructors=query.data??[];
   const found=instructorId?instructors.find(value=>value.id===instructorId):instructors[0];

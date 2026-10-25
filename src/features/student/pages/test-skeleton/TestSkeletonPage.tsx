@@ -10,6 +10,13 @@ import {
   SettingsSkeleton,
   HelpCenterSkeleton,
   ProfileSkeleton,
+  AdminOverviewSkeleton,
+  InstructorOverviewSkeleton,
+  AdminTableSkeleton,
+  InstructorCourseContentSkeleton,
+  CourseBuilderSkeleton,
+  AssignmentDetailSkeleton,
+  AssessmentDetailSkeleton,
 } from "../../../../components/ui/Skeleton";
 import { SearchBar } from "../../../../components/ui/SearchBar";
 
@@ -33,11 +40,18 @@ export function TestSkeletonPage() {
             { id: "explore", label: "Explore" },
             { id: "calendar", label: "Calendar" },
             { id: "assignments", label: "Assignments" },
+            { id: "assignment-detail", label: "Assignment Detail" },
+            { id: "assessment-detail", label: "Assessment Detail" },
             { id: "messages", label: "Messages" },
             { id: "community", label: "Community" },
             { id: "settings", label: "Settings" },
             { id: "help", label: "Help Center" },
             { id: "profile", label: "Profile" },
+            { id: "admin-overview", label: "Admin: Overview" },
+            { id: "admin-table", label: "Admin: Table" },
+            { id: "admin-builder", label: "Admin: Builder" },
+            { id: "instructor-overview", label: "Instructor: Overview" },
+            { id: "instructor-content", label: "Instructor: Content" },
             { id: "searchbar", label: "Search Bar" },
           ].map((view) => (
             <button
@@ -82,11 +96,18 @@ export function TestSkeletonPage() {
         {selectedView === "explore" && <ExploreSkeleton />}
         {selectedView === "calendar" && <CalendarSkeleton />}
         {selectedView === "assignments" && <AssignmentsSkeleton />}
+        {selectedView === "assignment-detail" && <AssignmentDetailSkeleton />}
+        {selectedView === "assessment-detail" && <AssessmentDetailSkeleton />}
         {selectedView === "messages" && <div className="h-150"><MessagesSkeleton /></div>}
         {selectedView === "community" && <div className="h-150"><CommunitySkeleton /></div>}
         {selectedView === "settings" && <SettingsSkeleton />}
         {selectedView === "help" && <HelpCenterSkeleton />}
         {selectedView === "profile" && <ProfileSkeleton activeTab={profileTab} />}
+        {selectedView === "admin-overview" && <AdminOverviewSkeleton />}
+        {selectedView === "admin-table" && <AdminTableSkeleton />}
+        {selectedView === "admin-builder" && <CourseBuilderSkeleton />}
+        {selectedView === "instructor-overview" && <InstructorOverviewSkeleton />}
+        {selectedView === "instructor-content" && <InstructorCourseContentSkeleton />}
         {selectedView === "searchbar" && (
           <div className="space-y-4 max-w-xl mx-auto pt-10">
             <h3 className="text-sm font-bold text-gray-700">Active vs Skeleton Search Bar</h3>
