@@ -12,7 +12,7 @@ export function RequireStudentAuth({ children }: PropsWithChildren) {
   const isMobile = useIsMobile();
 
   if (auth.status === "loading") {
-    return <RouteLoadingFallback isMobile={isMobile} message="Checking your session…" />;
+    return <RouteLoadingFallback isMobile={isMobile} withShell message="Checking your session…" />;
   }
   if (auth.status !== "authenticated") {
     const from = `${location.pathname}${location.search}`;

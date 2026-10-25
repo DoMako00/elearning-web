@@ -62,88 +62,187 @@ export const HomeDashboardSkeleton: React.FC = () => {
     <section className="dashboard-bento" aria-busy="true" aria-label="Loading student home dashboard">
       {/* Top row */}
       <div className="dashboard-bento__row dashboard-bento__row--top">
+        {/* Continue Learning */}
         <div className="dashboard-bento__slot dashboard-bento__slot--continue">
-          <SkeletonHeroCard height="100%" className="h-full" />
-        </div>
-        <div className="dashboard-bento__slot dashboard-bento__slot--ai">
-          <SkeletonCardWrapper className="h-full flex flex-col justify-between">
-            <div className="flex items-center gap-3">
-              <Skeleton width={44} height={44} borderRadius={12} />
-              <div className="space-y-1.5 flex-1">
-                <Skeleton width="60%" height={16} borderRadius={4} />
-                <Skeleton width="40%" height={12} borderRadius={4} />
+          <div className="continue-learning-card h-full flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-[--color-border-subtle] bg-[--color-surface]">
+            <div className="flex items-center justify-between pb-1">
+              <Skeleton width={140} height={18} borderRadius={4} />
+              <Skeleton width={28} height={28} borderRadius={8} />
+            </div>
+            <div className="flex items-center gap-4 py-2">
+              <div className="relative shrink-0 w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center">
+                <Skeleton width="100%" height="100%" borderRadius={12} />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Skeleton width={36} height={36} circle />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0 flex flex-col justify-between self-stretch py-0.5 space-y-1.5">
+                <Skeleton width={75} height={20} borderRadius={999} />
+                <Skeleton width="90%" height={18} borderRadius={4} />
+                <Skeleton width="65%" height={13} borderRadius={4} />
+                <div className="pt-1 space-y-1">
+                  <Skeleton width="75%" height={12} borderRadius={4} />
+                  <Skeleton width="55%" height={11} borderRadius={4} />
+                </div>
               </div>
             </div>
-            <div className="space-y-2 my-2">
-              <Skeleton width="90%" height={14} borderRadius={4} />
-              <Skeleton width="75%" height={14} borderRadius={4} />
+            <div className="flex items-center gap-3 pt-1">
+              <Skeleton width="100%" height={40} borderRadius={10} />
+              <Skeleton width={40} height={40} borderRadius={10} className="shrink-0" />
             </div>
-            <Skeleton width="100%" height={38} borderRadius={10} />
-          </SkeletonCardWrapper>
+          </div>
         </div>
+
+        {/* Learning Space Card */}
+        <div className="dashboard-bento__slot dashboard-bento__slot--ai">
+          <div className="learning-space-card h-full flex flex-col justify-between p-5 rounded-2xl border border-[#cbe4d5] bg-[#edf7f1] relative overflow-hidden">
+            <div className="flex items-center gap-2">
+              <Skeleton width={20} height={20} borderRadius={4} />
+              <Skeleton width={150} height={18} borderRadius={4} />
+            </div>
+            <div className="space-y-2 my-auto py-2">
+              <Skeleton width="80%" height={22} borderRadius={6} />
+              <Skeleton width="65%" height={22} borderRadius={6} />
+              <Skeleton width="85%" height={13} borderRadius={4} className="mt-1" />
+            </div>
+            <div className="flex items-center gap-3">
+              <Skeleton width={115} height={36} borderRadius={999} />
+              <Skeleton width={100} height={36} borderRadius={999} />
+            </div>
+          </div>
+        </div>
+
+        {/* Weekly Goal Card */}
         <div className="dashboard-bento__slot dashboard-bento__slot--weekly">
-          <SkeletonCardWrapper className="h-full flex flex-col justify-between">
+          <div className="weekly-goal-card h-full flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-[--color-border-subtle)] bg-[--color-surface)]">
             <div className="flex justify-between items-center">
-              <Skeleton width={100} height={18} borderRadius={4} />
-              <Skeleton width={32} height={32} circle />
+              <div className="flex items-center gap-2">
+                <Skeleton width={20} height={20} borderRadius={4} />
+                <div className="space-y-1">
+                  <Skeleton width={90} height={16} borderRadius={4} />
+                  <Skeleton width={60} height={9} borderRadius={2} />
+                </div>
+              </div>
+              <Skeleton width={32} height={32} borderRadius={8} />
             </div>
-            <div className="flex justify-center my-1">
-              <Skeleton width={80} height={80} circle />
+            <div className="flex items-center gap-3 py-1">
+              <Skeleton width={84} height={84} circle className="shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton width={55} height={10} borderRadius={2} />
+                <Skeleton width={95} height={18} borderRadius={4} />
+                <Skeleton width="100%" height={8} borderRadius={999} />
+                <Skeleton width={80} height={12} borderRadius={3} />
+              </div>
             </div>
-            <Skeleton width="100%" height={12} borderRadius={999} />
-          </SkeletonCardWrapper>
+            <div className="grid grid-cols-7 gap-1 pt-1 border-t border-slate-100">
+              {Array.from({ length: 7 }).map((_, i) => (
+                <div key={i} className="flex flex-col items-center gap-1">
+                  <Skeleton width={10} height={10} circle />
+                  <Skeleton width={10} height={12} borderRadius={2} />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Middle row */}
       <div className="dashboard-bento__row dashboard-bento__row--middle">
+        {/* My Progress */}
         <div className="dashboard-bento__slot dashboard-bento__slot--progress">
-          <SkeletonCardWrapper className="h-full flex flex-col justify-between">
+          <div className="my-progress-card h-full flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-[--color-border-subtle)] bg-[--color-surface)]">
             <div className="flex justify-between items-center">
-              <Skeleton width={90} height={18} borderRadius={4} />
-              <Skeleton width={50} height={14} borderRadius={4} />
+              <Skeleton width={95} height={18} borderRadius={4} />
+              <Skeleton width={28} height={28} borderRadius={8} />
             </div>
-            <div className="space-y-2">
-              <Skeleton width="100%" height={8} borderRadius={999} />
-              <div className="flex justify-between">
-                <Skeleton width={60} height={12} borderRadius={4} />
-                <Skeleton width={40} height={12} borderRadius={4} />
+            <div className="flex items-end justify-between py-1">
+              <div className="space-y-1">
+                <Skeleton width={110} height={12} borderRadius={3} />
+                <Skeleton width={75} height={32} borderRadius={6} />
+              </div>
+              <div className="w-24 h-10 flex items-end">
+                <Skeleton width="100%" height={32} borderRadius={6} />
               </div>
             </div>
-          </SkeletonCardWrapper>
+            <div className="flex items-center justify-between pt-1">
+              <Skeleton width={110} height={22} borderRadius={999} />
+            </div>
+          </div>
         </div>
+
+        {/* Upcoming / Session Contents */}
         <div className="dashboard-bento__slot dashboard-bento__slot--upcoming">
-          <SkeletonCardWrapper className="h-full flex flex-col justify-between">
+          <div className="upcoming-card h-full flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-[--color-border-subtle)] bg-[--color-surface)]">
             <div className="flex justify-between items-center">
-              <Skeleton width={120} height={18} borderRadius={4} />
-              <Skeleton width={28} height={20} borderRadius={6} />
+              <Skeleton width={135} height={18} borderRadius={4} />
+              <Skeleton width={44} height={26} borderRadius={8} />
             </div>
-            <div className="space-y-2 my-1">
-              <Skeleton width="100%" height={28} borderRadius={6} />
-              <Skeleton width="100%" height={28} borderRadius={6} />
+            <div className="space-y-1.5 py-1 flex-1 flex flex-col justify-center">
+              {[0, 1].map((idx) => (
+                <div key={idx} className="flex items-center gap-3 p-1.5 rounded-xl bg-slate-50/80">
+                  <Skeleton width={32} height={32} borderRadius={8} className="shrink-0" />
+                  <div className="space-y-1 flex-1">
+                    <Skeleton width="80%" height={12} borderRadius={3} />
+                    <Skeleton width="45%" height={10} borderRadius={3} />
+                  </div>
+                </div>
+              ))}
             </div>
-          </SkeletonCardWrapper>
+            <Skeleton width="100%" height={36} borderRadius={10} />
+          </div>
         </div>
+
+        {/* Your Streak */}
         <div className="dashboard-bento__slot dashboard-bento__slot--streak">
-          <SkeletonCardWrapper className="h-full flex items-center justify-between">
-            <div className="space-y-2">
-              <Skeleton width={110} height={18} borderRadius={4} />
-              <Skeleton width={80} height={32} borderRadius={6} />
-              <Skeleton width={140} height={12} borderRadius={4} />
+          <div className="your-streak-card h-full flex items-center justify-between p-4 sm:p-5 rounded-2xl border border-[--color-border-subtle)] bg-[--color-surface)]">
+            <div className="space-y-1.5 flex-1">
+              <div className="flex items-center gap-2">
+                <Skeleton width={20} height={20} borderRadius={4} />
+                <Skeleton width={90} height={18} borderRadius={4} />
+              </div>
+              <div className="flex items-baseline gap-2">
+                <Skeleton width={45} height={30} borderRadius={6} />
+                <Skeleton width={85} height={13} borderRadius={3} />
+              </div>
+              <div className="flex items-center gap-2 py-0.5">
+                {[0, 1, 2, 3, 4].map((dot) => (
+                  <Skeleton key={dot} width={14} height={14} circle />
+                ))}
+              </div>
+              <Skeleton width={180} height={11} borderRadius={3} />
             </div>
-            <Skeleton width={64} height={64} circle />
-          </SkeletonCardWrapper>
+            <Skeleton width={80} height={80} borderRadius={16} className="shrink-0 ml-3" />
+          </div>
         </div>
       </div>
 
-      {/* Bottom row */}
+      {/* Bottom row: Recommended sessions */}
       <div className="dashboard-bento__row dashboard-bento__row--bottom">
         <div className="dashboard-bento__slot dashboard-bento__slot--recommended">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 h-full">
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
+          <div className="recommended-card h-full flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-[--color-border-subtle)] bg-[--color-surface)]">
+            <div className="recommended-header flex justify-between items-center mb-1">
+              <Skeleton width={170} height={20} borderRadius={5} />
+              <Skeleton width={75} height={16} borderRadius={4} />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 flex-1 min-h-0 pt-1">
+              {[0, 1, 2, 3, 4].map((k) => (
+                <div key={k} className="recommended-course flex flex-col h-full rounded-xl border border-[#e5eaee] bg-white overflow-hidden">
+                  <div className="w-full h-20 sm:h-24 bg-slate-100 shrink-0">
+                    <Skeleton width="100%" height="100%" />
+                  </div>
+                  <div className="p-2 flex-1 flex flex-col justify-between space-y-1">
+                    <div className="space-y-1">
+                      <Skeleton width="85%" height={13} borderRadius={3} />
+                      <Skeleton width="60%" height={10} borderRadius={3} />
+                    </div>
+                    <div className="flex items-center justify-between pt-0.5">
+                      <Skeleton width={75} height={11} borderRadius={3} />
+                      <Skeleton width={12} height={12} borderRadius={3} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

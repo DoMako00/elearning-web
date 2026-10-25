@@ -135,7 +135,7 @@ export function StudentScopeProvider({ children }: PropsWithChildren) {
     );
   }
   if (profileQuery.isPending || (profileUnavailable && sessionBrandQuery.isPending)) {
-    return <RouteLoadingFallback isMobile={isMobile} message="Loading your learning space…" />;
+    return <RouteLoadingFallback isMobile={isMobile} withShell message="Loading your learning space…" />;
   }
   if (profileFailure && !profileUnavailable) {
     // 401/403/404: a membership or session problem — retrying cannot help.

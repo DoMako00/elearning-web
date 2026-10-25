@@ -4,10 +4,10 @@ import type { ClassifiedStudentApiError } from "../api/studentApiErrors";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import { DashboardBento } from "../components/DashboardBento";
 import { EmptyLearningState } from "../components/EmptyLearningState";
-import { HomeDashboardSkeletonV2 } from "../components/HomeDashboard/HomeDashboard";
+import { HomeDashboardSkeleton } from "../../../components/ui/Skeleton";
 
 function DashboardLoadingState() {
-  return <HomeDashboardSkeletonV2 />;
+  return <HomeDashboardSkeleton />;
 }
 
 function DashboardErrorState({ error, onRetry }: { error?: ClassifiedStudentApiError; onRetry: () => void }) {
