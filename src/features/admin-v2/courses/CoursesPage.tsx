@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ChevronRight, Copy, Filter, Pencil, Plus, Search, SlidersHorizontal, Users, Archive, X, GraduationCap, Workflow } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, ChevronRight, Copy, Filter, Pencil, Plus, Search, SlidersHorizontal, Users, Archive, X } from "lucide-react";
 import humanAnatomy from "../../../Assets/course-library/human-anatomy.webp";
 import medicalPhysiology from "../../../Assets/course-library/medical-physiology.webp";
 import histologyBasics from "../../../Assets/course-library/histology-basics.webp";
@@ -14,7 +14,6 @@ import { courseLevel, courseSemester, courseUnitLabel, expectedUnitType, institu
 
 const PAGE_SIZE = 10;
 export function CoursesPage() {
-  const navigate = useNavigate();
   const { data, setData, brand, setBrand, globalSearch, refreshServerDomains } = useAdminV2();
   const [search, setSearch] = useState("");
   const [scope, setScope] = useState("all");
@@ -27,8 +26,6 @@ export function CoursesPage() {
   const [editing, setEditing] = useState<CourseRecord | null | false>(false);
   const [confirmId, setConfirmId] = useState("");
   const [notice, setNotice] = useState("");
-  const [studentsOpen, setStudentsOpen] = useState(false);
-  const [courseStudentIds] = useState<string[]>([]);
   const [formBrand, setFormBrand] = useState<BrandCode>("medway");
   const [formScope, setFormScope] = useState<CourseRecord["scope"]>("Curriculum");
   const [institutionId, setInstitutionId] = useState(data.institutions[0]?.id ?? "");
@@ -86,8 +83,6 @@ export function CoursesPage() {
   const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   const visible = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const selected = selectedId ? rows.find((course) => course.id === selectedId) ?? rows[0] : undefined;
-  const enrolled: AdminV2Data["enrollments"] = [];
-  const eligibleStudents: AdminV2Data["students"] = [];
 
   const saveCourse = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -142,11 +137,6 @@ export function CoursesPage() {
   };
   const updateCourse = (id: string, patch: Partial<CourseRecord>) => setData((current) => ({ ...current, courses: current.courses.map((item) => item.id === id ? { ...item, ...patch } : item) }));
   const duplicateCourse = async (course: CourseRecord) => { try { const brandId = course.brandId ?? (await listBrandAccess()).find((item) => item.code === course.brand)?.id; if (!brandId) throw new Error("The Course Brand is unavailable."); const copyTitle = `${course.title} (Copy)`; const id = await createBrandCourse(brandId, { title: copyTitle, classification: course.scope === "Standalone" ? "standalone" : "academic_module_offering", cataloguePresentation: course.cataloguePresentation ?? "module_based", academicInstitutionId: course.academicInstitutionId ?? institutionForBrand(data, course.brand)?.id, academicModuleId: course.scope === "Standalone" ? null : course.curriculumUnitId, reason: "Duplicate Admin V2 course" }); for (const assignment of course.instructors) if (assignment.instructorId) { const assignedBrands = await listInstructorBrands(assignment.instructorId); if (assignedBrands.some((item) => item.brandId === brandId && item.status === "active")) await assignInstructor(brandId, id, assignment.instructorId, "Copy course teaching assignment"); } refreshServerDomains(); setSelectedId(id); setNotice(course.instructors.length ? "Course duplicated and teaching assignments copied. Lead/Co-Instructor roles are not stored by the backend." : "Course duplicated as a draft."); } catch (error) { setNotice(error instanceof Error ? error.message : "Course could not be duplicated."); } };
-  const manageStudents = () => { setNotice("Direct Course enrollment is not available. Student access is controlled by Subscription Seats and AccessGrants."); };
-  const saveStudents = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); setNotice("Direct Course enrollment is not available. Student access is controlled by Subscription Seats and AccessGrants."); setStudentsOpen(false);
-  };
-
   return <section className="admin-v2__page admin-v2__courses">
     <AdminV2DomainStatus />
     <div className="admin-v2__filterbar">
@@ -171,11 +161,10 @@ export function CoursesPage() {
         </InspectorSection>
         <InspectorSection title="Actions"><div className="admin-v2__action-list">
           <button onClick={() => duplicateCourse(selected)}><span><Copy size={15} /></span><b>Duplicate course<small>Create a new draft copy</small></b><ChevronRight size={15} /></button>
-          <button onClick={() => navigate(`/admin/courses/${selected.id}/builder`)}><span><Workflow size={15} /></span><b>Open Course Builder<small>Manage chapters and lessons</small></b><ChevronRight size={15} /></button>
           <button className="is-danger" onClick={() => setConfirmId(selected.id)}><span><Archive size={15} /></span><b>{selected.status === "Archived" ? "Restore course" : "Archive course"}<small>Student access is retained</small></b><ChevronRight size={15} /></button>
         </div></InspectorSection>
-        <InspectorSection title="Enrolled Students" action={<button className="admin-v2__text-button" disabled={selected.status === "Archived"} title={selected.status === "Archived" ? "Restore this course before assigning Students." : "Manage enrolled Students"} onClick={manageStudents}><GraduationCap size={14} /> Manage students</button>}>
-          <div className="admin-v2__member-list">{enrolled.map((enrollment) => { const student = data.students.find((item) => item.id === enrollment.studentId); return student ? <div key={enrollment.id}><span>{student.fullName.slice(0, 2).toUpperCase()}</span><b>{student.fullName}<small>{student.accountIdentifier} Â· {enrollment.source}</small></b><StatusBadge status={student.status} /></div> : null; })}{!enrolled.length && <p className="admin-v2__empty-inline">No Students assigned to this course.</p>}</div>
+        <InspectorSection title="Teaching content">
+          <div className="admin-v2__teaching-content-note"><p>Assigned instructors build chapters and lessons, then upload videos or PDFs for approval.</p><Link to="/admin/content" className="admin-v2__button">Review submitted materials <ChevronRight size={13} /></Link></div>
         </InspectorSection>
         {notice && <div className="admin-v2__inline-notice" role="status"><button aria-label="Dismiss" onClick={() => setNotice("")}><X size={12} /></button>{notice}</div>}
       </aside>}
@@ -196,7 +185,6 @@ export function CoursesPage() {
         <FormField label="Co-instructor"><select name="co" defaultValue={editing ? instructorValue(data, editing.instructors.find((item) => item.role === "Co-Instructor")) : ""}><option value="">None</option>{instructorOptions.map((item) => <option key={item.id} value={item.id} disabled={item.status === "Inactive" && !editing?.instructors.some((assignment) => assignment.instructorId === item.id || assignment.name === item.fullName)}>{item.fullName}{item.status === "Inactive" ? " (Inactive)" : ""}</option>)}</select></FormField>
       </form>
     </Drawer>}
-    {studentsOpen && selected && <Drawer title="Manage enrolled Students" subtitle={`${selected.title} Â· eligible accounts only`} onClose={() => setStudentsOpen(false)} footer={<FormActions><button className="admin-v2__button" onClick={() => setStudentsOpen(false)}>Cancel</button><button className="admin-v2__button is-primary" form="course-student-form" type="submit">Save enrollment</button></FormActions>}><form id="course-student-form" className="admin-v2__picker-list" onSubmit={saveStudents}>{eligibleStudents.map((student) => <label key={student.id}><input type="checkbox" name="students" value={student.id} defaultChecked={courseStudentIds.includes(student.id)} /><span><strong>{student.fullName}</strong><small>{student.accountIdentifier} Â· {student.brand} Â· {student.academicLevel}</small></span><StatusBadge status={student.status} /></label>)}{!eligibleStudents.length && <p className="admin-v2__empty-inline">No eligible Students match this course's brand and academic level.</p>}</form></Drawer>}
     {confirmId && <ConfirmDialog title={data.courses.find((item) => item.id === confirmId)?.status === "Archived" ? "Restore this course?" : "Archive this course?"} detail="The change is submitted to the backend and the course list is refreshed." confirmLabel={data.courses.find((item) => item.id === confirmId)?.status === "Archived" ? "Restore course" : "Archive course"} onCancel={() => setConfirmId("")} onConfirm={() => { const archived = data.courses.find((item) => item.id === confirmId)?.status === "Archived"; updateCourse(confirmId, { status: archived ? "Draft" : "Archived" }); setConfirmId(""); }} />}
   </section>;
 }

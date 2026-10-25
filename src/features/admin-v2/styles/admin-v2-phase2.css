@@ -1128,3 +1128,97 @@
   .admin-v2__teaching-overview > .admin-v2__page-header h1 { font-size: 20px; }
   .admin-v2__table-scroll .admin-v2__teaching-course-table { min-width: 760px; }
 }
+
+/* Role workspaces: keep the existing GreenLearn motion and shell, then make
+   the first useful action obvious for administrators and instructors. */
+.admin-v2__workflow-page { display: grid; align-content: start; gap: 16px; }
+.admin-v2__workflow-welcome { overflow: hidden; border-color: #d5e8d9; background: radial-gradient(ellipse at 88% 0, #e5f5e9 0, #f6fbf7 42%, #fff 82%); }
+.admin-v2__workflow-welcome h1 { color: #213a2b; font-size: clamp(22px, 2vw, 29px); line-height: 1.18; letter-spacing: -.025em; }
+.admin-v2__workflow-welcome .mantine-Text-root { max-width: 760px; line-height: 1.6; }
+.admin-v2__workflow-welcome-icon { flex: 0 0 auto; border: 1px solid #d2e8d8; box-shadow: 0 8px 20px #18834b12; }
+.admin-v2__workflow-metric { min-height: 104px; border-color: #e2ebe4; background: linear-gradient(145deg, #fff 45%, #f9fcfa); }
+.admin-v2__workflow-metric .mantine-Text-root { line-height: 1.4; overflow-wrap: anywhere; }
+.admin-v2__workflow-metric-value { color: #1b3626; font-variant-numeric: tabular-nums; }
+.admin-v2__workflow { min-width: 0; display: grid; gap: 11px; }
+.admin-v2__workflow-heading { min-width: 0; }
+.admin-v2__workflow-heading h2 { color: #23392c; font-size: 20px; line-height: 1.25; }
+.admin-v2__workflow-heading .mantine-Text-root { max-width: 840px; line-height: 1.55; }
+.admin-v2__workflow-note { border: 1px solid #dce9df; border-radius: 999px; background: #f6faf7; color: #55705d; padding: 7px 11px; }
+.admin-v2__workflow-sequence { border-color: #e0e9e3; background: linear-gradient(180deg, #fff, #fbfdfb); }
+.admin-v2__workflow-sequence .mantine-Stepper-stepIcon { border-width: 1px; font-weight: 700; }
+.admin-v2__workflow-sequence .mantine-Stepper-stepLabel { color: #31473a; font-size: 11px; font-weight: 700; }
+.admin-v2__workflow-sequence .mantine-Stepper-stepDescription { max-width: 170px; color: #75847a; font-size: 10px; line-height: 1.35; }
+.admin-v2__workflow-sequence .mantine-Stepper-separator { background: #dce8df; }
+.admin-v2__workflow-action { min-height: 205px; display: flex; flex-direction: column; border-color: #e0e9e3; box-shadow: 0 2px 9px #213b2d08; }
+.admin-v2__workflow-action .admin-v2__workflow-action-copy { flex: 1; }
+.admin-v2__workflow-action .mantine-Text-root { overflow-wrap: anywhere; }
+.admin-v2__workflow-action .mantine-Button-root { min-height: 42px; }
+.admin-v2__workflow-action:hover, .admin-v2__instructor-course-card:hover { border-color: #b9d8c2; box-shadow: 0 7px 20px #1a693411; }
+.admin-v2__workflow-quick-access, .admin-v2__instructor-courses { min-width: 0; }
+.admin-v2__workflow-quick-access { border-color: #e0e9e3; background: #fff; }
+.admin-v2__workflow-quick-link { min-width: 0; min-height: 65px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid #e5ece7; border-radius: 10px; background: #fbfdfb; color: #29533a; padding: 11px 13px; text-decoration: none; }
+.admin-v2__workflow-quick-link:hover { border-color: #b9d8c2; background: #f3f9f4; }
+.admin-v2__workflow-quick-link span { min-width: 0; }
+.admin-v2__workflow-quick-link strong, .admin-v2__workflow-quick-link small { display: block; }
+.admin-v2__workflow-quick-link strong { color: #2a4032; font-size: 12px; }
+.admin-v2__workflow-quick-link small { margin-top: 4px; color: #748379; font-size: 10px; line-height: 1.4; }
+.admin-v2__instructor-courses > .mantine-Group-root { min-width: 0; }
+.admin-v2__instructor-courses h3, .admin-v2__approvals h2, .admin-v2__approvals h3 { color: #273c2e; }
+.admin-v2__instructor-course-card { min-height: 214px; display: flex; flex-direction: column; border-color: #e1eae3; }
+.admin-v2__instructor-course-card .mantine-Stack-root { flex: 1; }
+.admin-v2__instructor-course-card .mantine-Text-root { overflow-wrap: anywhere; }
+.admin-v2__instructor-course-card .mantine-Button-root { min-height: 42px; }
+.admin-v2__instructor-empty { min-height: 130px; display: flex; align-items: center; gap: 15px; border-color: #d9e9dd; background: linear-gradient(120deg, #f4faf5, #fff 76%); }
+.admin-v2__approvals-page { display: block; }
+.admin-v2__approvals { min-width: 0; display: grid; align-content: start; gap: 14px; }
+.admin-v2__approvals-heading h2 { color: #223a2b; font-size: 23px; }
+.admin-v2__approvals-heading .mantine-Text-root { max-width: 820px; line-height: 1.55; }
+.admin-v2__approvals-panel, .admin-v2__approvals-history { border-color: #dfe9e2; }
+.admin-v2__approval-card { min-width: 0; display: flex; flex-direction: column; gap: 12px; border-color: #e2ebe4; background: linear-gradient(180deg, #fff, #fcfdfc); }
+.admin-v2__approval-card .mantine-Group-root { min-width: 0; }
+.admin-v2__approval-card .mantine-Group-root > .mantine-Group-root { min-width: 0; }
+.admin-v2__approval-card .mantine-Group-root > .mantine-Group-root .mantine-Stack-root { min-width: 0; }
+.admin-v2__approval-card .mantine-Text-root { overflow-wrap: anywhere; }
+.admin-v2__approval-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.admin-v2__approval-meta > span { min-width: 0; display: grid; gap: 4px; border-radius: 9px; background: #f5f9f6; color: #53685a; padding: 9px 11px; font-size: 11px; overflow-wrap: anywhere; }
+.admin-v2__approval-meta strong { color: #7a897e; font-size: 9px; text-transform: uppercase; letter-spacing: .06em; }
+.admin-v2__approval-reason { border-left: 2px solid #b8d9c2; padding-left: 9px; line-height: 1.5; }
+.admin-v2__approval-card .mantine-Textarea-input { min-height: 82px; }
+.admin-v2__approval-card .mantine-Button-root { min-height: 42px; }
+.admin-v2__approvals-empty { min-height: 160px; display: flex; align-items: center; gap: 14px; border: 1px dashed #cfe3d4; border-radius: 12px; background: #f8fbf9; padding: 20px; }
+.admin-v2__approval-history-row { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px 14px; border: 1px solid #e6ede8; border-radius: 9px; background: #fff; padding: 11px 13px; }
+.admin-v2__approval-history-row > div { min-width: 0; }
+.admin-v2__approval-history-row .mantine-Text-root { overflow-wrap: anywhere; }
+.admin-v2__approval-history-reason { grid-column: 1 / -1; border-top: 1px solid #eef2ef; padding-top: 8px; }
+.admin-v2__teaching-content-note { display: grid; gap: 10px; border: 1px solid #d9e9dd; border-radius: 9px; background: #f7fbf8; padding: 13px; }
+.admin-v2__teaching-content-note p { margin: 0; color: #52675a; font-size: 11px; line-height: 1.55; }
+.admin-v2__teaching-content-note > a { width: fit-content; min-height: 40px; display: inline-flex; align-items: center; gap: 7px; }
+.admin-v2__workflow-page .mantine-Button-root:focus-visible, .admin-v2__approvals .mantine-Button-root:focus-visible, .admin-v2__workflow-quick-link:focus-visible { outline: 2px solid #25864c; outline-offset: 2px; }
+
+@media (max-width: 900px) {
+  .admin-v2__workflow-page { gap: 13px; }
+  .admin-v2__workflow-sequence .mantine-Stepper-stepDescription { max-width: none; }
+}
+@media (max-width: 620px) {
+  .admin-v2__workflow-page { gap: 11px; padding: 12px 12px 18px; }
+  .admin-v2__workflow-welcome { padding: 14px !important; }
+  .admin-v2__workflow-welcome h1 { font-size: 20px; }
+  .admin-v2__workflow-welcome-icon { width: 45px; height: 45px; }
+  .admin-v2__workflow-metric { min-height: 92px; padding: 11px !important; }
+  .admin-v2__workflow-heading { align-items: flex-start; }
+  .admin-v2__workflow-heading h2 { font-size: 18px; }
+  .admin-v2__workflow-note { border-radius: 8px; }
+  .admin-v2__workflow-sequence { padding: 12px !important; }
+  .admin-v2__workflow-sequence .mantine-Stepper-stepDescription { font-size: 10px; }
+  .admin-v2__workflow-action { min-height: 185px; }
+  .admin-v2__workflow-quick-access { padding: 12px !important; }
+  .admin-v2__instructor-empty, .admin-v2__approvals-empty { align-items: flex-start; }
+  .admin-v2__approvals-heading h2 { font-size: 20px; }
+  .admin-v2__approvals-panel, .admin-v2__approvals-history { padding: 12px !important; }
+  .admin-v2__approval-card { padding: 12px !important; }
+  .admin-v2__approval-meta { grid-template-columns: minmax(0, 1fr); }
+  .admin-v2__approval-card > .mantine-Group-root:last-child { align-items: stretch; flex-direction: column; }
+  .admin-v2__approval-card > .mantine-Group-root:last-child > .mantine-Button-root { width: 100%; }
+  .admin-v2__approval-history-row { grid-template-columns: minmax(0, 1fr); }
+  .admin-v2__approval-history-row > div:last-of-type { justify-self: start; }
+}

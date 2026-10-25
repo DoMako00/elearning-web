@@ -118,7 +118,7 @@ export interface ProviderSessionBundle { readonly accessToken:string; readonly r
 /**
  * Supabase invite links return a short-lived session in the URL fragment after
  * email confirmation. Verify that access token with Auth before trusting it,
- * then move the session into the same storage used by the OTP login flow.
+ * then let the backend bind it before the caller persists the session.
  */
 export async function acceptSupabaseInviteFromUrl(): Promise<ProviderSessionBundle | null> {
   if (typeof window === "undefined") return null;

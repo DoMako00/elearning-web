@@ -52,7 +52,7 @@ describe("restoreSupabaseSession refresh failures", () => {
 });
 
 describe("acceptSupabaseInviteFromUrl", () => {
-  it("verifies a confirmed invite, stores its session, and removes tokens from the URL", async () => {
+  it("verifies a confirmed invite without persisting it before backend binding, and removes URL tokens", async () => {
     const expiresAt = Math.floor(Date.now() / 1_000) + 3_600;
     window.history.replaceState({}, "", `/admin/instructor?source=invite#access_token=invite-access&refresh_token=invite-refresh&expires_at=${expiresAt}&expires_in=3600&type=invite`);
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
@@ -70,8 +70,8 @@ describe("acceptSupabaseInviteFromUrl", () => {
       authUserId: "instructor-auth-id",
       email: "doctor@example.test",
     });
-    expect(readStoredAuthUserId()).toBe("instructor-auth-id");
-    expect(window.localStorage.getItem(SESSION_KEY)).not.toBeNull();
+    expect(readStoredAuthUserId()).toBeNull();
+    expect(window.localStorage.getItem(SESSION_KEY)).toBeNull();
     expect(window.location.pathname).toBe("/admin/instructor");
     expect(window.location.search).toBe("?source=invite");
     expect(window.location.hash).toBe("");

@@ -15,6 +15,7 @@ const AdminAssignmentReviewPage = lazy(() => import("../../features/admin-v2/ass
 const InstructorCoursesPage = lazy(() => import("../../features/admin-v2/instructor/InstructorCoursesPage").then((m) => ({ default: m.InstructorCoursesPage })));
 const InstructorOverviewPage = lazy(() => import("../../features/admin-v2/instructor/InstructorOverviewPage").then((m) => ({ default: m.InstructorOverviewPage })));
 const InstructorCourseContentPage = lazy(() => import("../../features/admin-v2/instructor/InstructorCourseContentPage").then((m) => ({ default: m.InstructorCourseContentPage })));
+const AdminContentApprovalsPage = lazy(() => import("../../features/admin-v2/content/ContentApprovalsPage").then((m) => ({ default: m.ContentApprovalsPage })));
 
 function withAdminSuspense<P extends object>(Component: ComponentType<P>, props: P) {
   return (
@@ -82,7 +83,7 @@ export const adminRoutes: RouteObject[] = [{
 {
   path: "/admin/content",
   element: <AdminV2Layout />,
-  children: [{ index: true, element: withAdminSuspense(lazy(() => import("../../features/admin-v2/content/ContentPage").then((m) => ({ default: m.ContentPage }))), {}) }],
+  children: [{ index: true, element: withAdminSuspense(AdminContentApprovalsPage, {}) }],
 },
 {
   path: "/admin/payments",

@@ -1,112 +1,112 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BookOpen, ClipboardCheck, FileClock, Files, GraduationCap, ShieldCheck } from "lucide-react";
+import { Alert, Badge, Button, Card, Group, SimpleGrid, Stack, Text, ThemeIcon, Title } from "@mantine/core";
+import { AlertCircle, ArrowUpRight, BookOpen, CheckCircle2, ClipboardCheck, FileCheck2, GraduationCap, Layers3 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { adminAssignmentsApi } from "../api/adminAssignmentsApi";
 import { adminAssessmentApi } from "../api/adminAssessmentApi";
 import { listContentReviewRequests } from "../api/adminContentApi";
-import { courseUnitLabel } from "../data/adminV2.selectors";
 import { useAdminV2 } from "../layout/AdminV2Layout";
+import { WorkspaceWorkflow } from "../shared/WorkspaceWorkflow";
 
 export function InstructorOverviewPage() {
   const { workspace } = useAdminV2();
-  return workspace.workspace === "super_admin" ? <SuperAdminTeachingOverview /> : <InstructorTeachingOverview />;
-}
-
-function SuperAdminTeachingOverview() {
-  const { data, brand } = useAdminV2();
-  const assignments = useQuery({ queryKey: ["admin", "teaching-overview", "assignments"], queryFn: ({ signal }) => adminAssignmentsApi.list(signal) });
-  const assessments = useQuery({ queryKey: ["admin", "teaching-overview", "assessments"], queryFn: ({ signal }) => adminAssessmentApi.list(signal) });
-  const reviews = useQuery({ queryKey: ["admin", "teaching-overview", "content-review-requests"], queryFn: ({ signal }) => listContentReviewRequests(signal) });
-  const courses = data.courses.filter(course => brand === "all" || course.brand === brand);
-  const visibleAssignments = assignments.data?.items.filter(item => brand === "all" || item.brandCode === brand) ?? [];
-  const visibleAssessments = assessments.data?.items.filter(item => brand === "all" || item.brandCode === brand) ?? [];
-  const visibleReviews = reviews.data?.items.filter(item => brand === "all" || item.brandCode === brand) ?? [];
-  const needsReview = visibleAssignments.reduce((count, item) => count + item.needsReviewCount, 0);
-  const waitingForApproval = visibleReviews.filter(item => item.status === "submitted").length;
-  const publishedExams = visibleAssessments.filter(item => item.status === "published").length;
-
-  return <section className="admin-v2__page admin-v2__teaching-overview">
-    <header className="admin-v2__page-header"><div><h1>Teaching overview</h1><p>A clear view of courses, lesson approvals, exams, and student submissions.</p></div></header>
-
-    <aside className="admin-v2__teaching-role-note">
-      <span><ShieldCheck size={19} /></span>
-      <div><strong>Super Admin view</strong><p>Review course plans, approve lesson materials, and monitor student submissions. Course instructors create and publish assignments and exams from their own assigned accounts.</p></div>
-      <Link to="/admin/roles">Instructor access <ArrowRight size={14} /></Link>
-    </aside>
-
-    <div className="admin-v2__metrics admin-v2__teaching-metrics">
-      <article className="admin-v2__metric"><span className="admin-v2__metric-icon"><BookOpen size={18} /></span><div><span className="admin-v2__metric-label">Courses in this view</span><strong>{courses.length}</strong><small>Based on the selected brand</small></div></article>
-      <article className="admin-v2__metric"><span className="admin-v2__metric-icon"><ClipboardCheck size={18} /></span><div><span className="admin-v2__metric-label">Submitted assignments</span><strong>{assignments.isLoading || assignments.isError ? "—" : needsReview}</strong><small>Waiting for an instructor to grade</small></div></article>
-      <article className="admin-v2__metric"><span className="admin-v2__metric-icon"><GraduationCap size={18} /></span><div><span className="admin-v2__metric-label">Published exams</span><strong>{assessments.isLoading || assessments.isError ? "—" : publishedExams}</strong><small>Available to students</small></div></article>
-      <article className="admin-v2__metric"><span className="admin-v2__metric-icon"><FileClock size={18} /></span><div><span className="admin-v2__metric-label">Lessons to approve</span><strong>{reviews.isLoading || reviews.isError ? "—" : waitingForApproval}</strong><small>Video, PDF, or lesson updates</small></div></article>
-    </div>
-
-    {(assignments.isError || assessments.isError || reviews.isError) && <p role="alert" className="admin-v2__inline-notice">Some teaching information could not be loaded. The course list remains available; retry the related page to refresh its records.</p>}
-
-    <div className="admin-v2__workgrid has-inspector">
-      <section className="admin-v2__table-card">
-        <header className="admin-v2__table-toolbar"><div><strong>Course overview</strong><span>{courses.length}</span></div><Link className="admin-v2__button" to="/admin/courses">View all courses <ArrowRight size={13} /></Link></header>
-        {courses.length ? <div className="admin-v2__table-scroll"><table className="admin-v2__table admin-v2__teaching-course-table"><thead><tr><th>Course</th><th>Assigned doctor</th><th>Submitted work</th><th></th></tr></thead><tbody>{courses.map(course => {
-          const courseAssignments = visibleAssignments.filter(item => item.brandCourseId === course.id);
-          const courseNeedsReview = courseAssignments.reduce((count, item) => count + item.needsReviewCount, 0);
-          const instructors = course.instructors.map(item => item.name).filter(Boolean).join(", ");
-          return <tr key={course.id}><td><strong>{course.title}</strong><small>{course.code || courseUnitLabel(data, course)}</small></td><td>{instructors || "No doctor assigned"}</td><td>{assignments.isLoading || assignments.isError ? "—" : courseNeedsReview}</td><td><Link className="admin-v2__button" to={`/admin/courses/${course.id}/builder`}>View course plan <ArrowRight size={13} /></Link></td></tr>;
-        })}</tbody></table></div> : <div className="admin-v2__empty"><BookOpen size={20} /><strong>No courses are available in this view</strong><span>Choose another brand or check the course catalogue.</span><Link className="admin-v2__button" to="/admin/courses">Open course catalogue</Link></div>}
-      </section>
-
-      <aside className="admin-v2__inspector admin-v2__teaching-actions">
-        <header className="admin-v2__inspector-title"><div><h2>Review and monitor</h2><small>Choose an area to see its current work.</small></div></header>
-        <div className="admin-v2__access-list">
-          <article><Files size={16} /><div><Link to="/admin/content"><strong>Approve lesson materials</strong></Link><small>{reviews.isLoading || reviews.isError ? "Approval status is unavailable" : `${waitingForApproval} item${waitingForApproval === 1 ? "" : "s"} waiting for approval`}</small></div><ArrowRight size={14} /></article>
-          <article><ClipboardCheck size={16} /><div><Link to="/admin/assignments"><strong>View student submissions</strong></Link><small>{assignments.isLoading || assignments.isError ? "Submission status is unavailable" : `${needsReview} response${needsReview === 1 ? "" : "s"} awaiting an instructor grade`}</small></div><ArrowRight size={14} /></article>
-          <article><GraduationCap size={16} /><div><Link to="/admin/assessments"><strong>Monitor exams and quizzes</strong></Link><small>{assessments.isLoading || assessments.isError ? "Exam status is unavailable" : `${visibleAssessments.length} exam${visibleAssessments.length === 1 ? "" : "s"} in this view`}</small></div><ArrowRight size={14} /></article>
-        </div>
-      </aside>
-    </div>
-  </section>;
-}
-
-function InstructorTeachingOverview() {
-  const { workspace } = useAdminV2();
   const assignments = useQuery({ queryKey: ["instructor", "assignments"], queryFn: ({ signal }) => adminAssignmentsApi.list(signal) });
+  const assessments = useQuery({ queryKey: ["instructor", "assessments"], queryFn: ({ signal }) => adminAssessmentApi.list(signal) });
   const reviews = useQuery({ queryKey: ["instructor", "content-review-requests"], queryFn: ({ signal }) => listContentReviewRequests(signal) });
   const courses = workspace.courses;
-  const items = assignments.data?.items ?? [];
+  const assignmentItems = assignments.data?.items ?? [];
+  const assessmentItems = assessments.data?.items ?? [];
   const reviewItems = reviews.data?.items ?? [];
-  const needsReview = items.reduce((sum, item) => sum + item.needsReviewCount, 0);
-  const publishedAssignments = items.filter(item => item.status === "published").length;
-  const submittedContent = reviewItems.filter(item => item.status === "submitted").length;
-  const rejectedContent = reviewItems.filter(item => item.status === "rejected").length;
+  const needsGrading = assignmentItems.reduce((sum, item) => sum + item.needsReviewCount, 0);
+  const pendingMaterials = reviewItems.filter((item) => item.status === "submitted").length;
+  const returnedMaterials = reviewItems.filter((item) => item.status === "rejected").length;
+  const publishedAssessments = assessmentItems.filter((item) => item.status === "published").length;
+  const firstCoursePath = courses[0] ? `/admin/instructor/courses/${courses[0].id}` : "/admin/instructor/courses";
+  const countLabel = (loading: boolean, error: boolean, value: number) => loading ? "…" : error ? "—" : value.toLocaleString();
+  const workflow = [
+    { title: "Open an assigned course", detail: courses.length ? "Choose a course you are responsible for." : "A Super Admin assigns courses to your teaching account.", action: "View my courses", to: "/admin/instructor/courses", icon: BookOpen },
+    { title: "Build lessons and add files", detail: "Create chapters and lessons, upload videos or PDFs, then send them for approval.", action: courses.length ? "Build course content" : "View course access", to: firstCoursePath, icon: Layers3 },
+    { title: "Create exams and quizzes", detail: "Add questions, set availability, and publish assessments to your course.", action: "Manage exams", to: "/admin/instructor/assessments", icon: GraduationCap },
+    { title: "Publish assignments", detail: "Create coursework and publish it directly to students in your course.", action: "Manage assignments", to: "/admin/instructor/assignments", icon: FileCheck2 },
+    { title: "Grade student work", detail: "Review submitted answers, leave feedback, and record grades.", action: "Open submissions", to: "/admin/instructor/assignments", icon: ClipboardCheck },
+  ];
 
-  return <section className="admin-v2__page">
-    <header className="admin-v2__page-header"><div><h1>Teaching overview</h1><p>A live summary of your assigned courses, student submissions, and content review status.</p></div></header>
-    <div className="admin-v2__metrics" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))", marginBottom: 14 }}>
-      <article className="admin-v2__metric"><span className="admin-v2__metric-icon"><BookOpen size={18} /></span><div><span className="admin-v2__metric-label">Assigned courses</span><strong>{courses.length}</strong><small>From your active course assignments</small></div></article>
-      <article className="admin-v2__metric"><span className="admin-v2__metric-icon"><ClipboardCheck size={18} /></span><div><span className="admin-v2__metric-label">Assignments to review</span><strong>{assignments.isLoading || assignments.isError ? "—" : needsReview}</strong><small>Submitted student work</small></div></article>
-      <article className="admin-v2__metric"><span className="admin-v2__metric-icon"><GraduationCap size={18} /></span><div><span className="admin-v2__metric-label">Published assignments</span><strong>{assignments.isLoading || assignments.isError ? "—" : publishedAssignments}</strong><small>Visible to students</small></div></article>
-      <article className="admin-v2__metric"><span className="admin-v2__metric-icon"><FileClock size={18} /></span><div><span className="admin-v2__metric-label">Content awaiting review</span><strong>{reviews.isLoading || reviews.isError ? "—" : submittedContent}</strong><small>{reviews.isLoading || reviews.isError ? "Review status unavailable" : `${rejectedContent} returned for changes`}</small></div></article>
-    </div>
-    {assignments.isError && <p role="alert" className="admin-v2__inline-notice">{assignments.error instanceof Error ? assignments.error.message : "Assignment data could not be loaded."} <button className="admin-v2__button" type="button" onClick={() => void assignments.refetch()}>Retry</button></p>}
-    {reviews.isError && <p role="alert" className="admin-v2__inline-notice">{reviews.error instanceof Error ? reviews.error.message : "Content review data could not be loaded."} <button className="admin-v2__button" type="button" onClick={() => void reviews.refetch()}>Retry</button></p>}
-    <div className="admin-v2__workgrid has-inspector">
-      <section className="admin-v2__table-card">
-        <header className="admin-v2__table-toolbar"><div><strong>My courses</strong><span>{courses.length}</span></div><Link className="admin-v2__button" to="/admin/instructor/courses">View all <ArrowRight size={13} /></Link></header>
-        {courses.length ? <table className="admin-v2__table"><thead><tr><th>Course</th><th>Brand</th><th>Assignments</th><th>To review</th><th></th></tr></thead><tbody>{courses.map(course => {
-          const courseAssignments = items.filter(item => item.brandCourseId === course.id);
-          const courseNeedsReview = courseAssignments.reduce((sum, item) => sum + item.needsReviewCount, 0);
-          return <tr key={course.id}><td><strong>{course.title}</strong><small>{course.code}</small></td><td>{course.brandName}</td><td>{assignments.isLoading || assignments.isError ? "—" : courseAssignments.length}</td><td>{assignments.isLoading || assignments.isError ? "—" : courseNeedsReview}</td><td><Link className="admin-v2__button" to={`/admin/instructor/courses/${course.id}`}>Open <ArrowRight size={13} /></Link></td></tr>;
-        })}</tbody></table> : <div className="admin-v2__empty"><BookOpen size={20} /><strong>No assigned courses yet</strong><span>A Super Admin must link your teaching profile, Brand, and course before the course appears here.</span></div>}
+  return (
+    <section className="admin-v2__page admin-v2__workflow-page" aria-label="Instructor dashboard">
+      <Card className="admin-v2__workflow-welcome" withBorder shadow="xs" p="lg">
+        <Group justify="space-between" align="center" wrap="wrap">
+          <Stack gap={5}>
+            <Badge color="green" variant="light" w="fit-content">INSTRUCTOR WORKSPACE</Badge>
+            <Title order={1}>Your teaching, one step at a time</Title>
+            <Text c="dimmed" size="sm">Build course lessons, publish assessments, and support your students from your assigned courses.</Text>
+          </Stack>
+          <ThemeIcon className="admin-v2__workflow-welcome-icon" color="green" variant="light" size={58} radius="xl"><GraduationCap size={28} /></ThemeIcon>
+        </Group>
+      </Card>
+
+      <SimpleGrid className="admin-v2__workflow-metrics" cols={{ base: 1, xs: 2, lg: 4 }} spacing="sm">
+        <Metric label="My courses" value={courses.length.toLocaleString()} note="Assigned by your Super Admin" icon={BookOpen} />
+        <Metric label="Assignments to grade" value={countLabel(assignments.isLoading, assignments.isError, needsGrading)} note="Submitted student work" icon={ClipboardCheck} />
+        <Metric label="Published exams" value={countLabel(assessments.isLoading, assessments.isError, publishedAssessments)} note="Available to your students" icon={GraduationCap} />
+        <Metric label="Materials in review" value={countLabel(reviews.isLoading, reviews.isError, pendingMaterials)} note={reviews.isError ? "Review status unavailable" : returnedMaterials ? `${returnedMaterials} returned with notes` : "Waiting for Super Admin approval"} icon={FileCheck2} />
+      </SimpleGrid>
+
+      {(assignments.isError || assessments.isError || reviews.isError) && <Alert color="red" variant="light" icon={<AlertCircle size={17} />} title="Some teaching records could not be loaded">
+        <Group gap="xs" mt={5}>
+          {assignments.isError && <Button size="xs" variant="subtle" onClick={() => void assignments.refetch()}>Retry assignments</Button>}
+          {assessments.isError && <Button size="xs" variant="subtle" onClick={() => void assessments.refetch()}>Retry exams</Button>}
+          {reviews.isError && <Button size="xs" variant="subtle" onClick={() => void reviews.refetch()}>Retry content status</Button>}
+        </Group>
+      </Alert>}
+
+      <WorkspaceWorkflow
+        eyebrow="YOUR TEACHING FLOW"
+        title="From course content to student feedback"
+        description="Follow the course tasks in order. Lesson files stay private until they are approved; assignments and exams can be published by you."
+        steps={workflow}
+      />
+
+      <section className="admin-v2__instructor-courses" aria-labelledby="instructor-courses-title">
+        <Group justify="space-between" align="center" mb="sm">
+          <div><Title id="instructor-courses-title" order={3}>Your assigned courses</Title><Text c="dimmed" size="xs">Open a course to build its lessons and learning materials.</Text></div>
+          <Button component={Link} to="/admin/instructor/courses" variant="light" color="green" rightSection={<ArrowUpRight size={14} />}>All courses</Button>
+        </Group>
+        {courses.length ? <SimpleGrid cols={{ base: 1, sm: 2, xl: 3 }} spacing="sm">
+          {courses.map((course) => <Card key={course.id} className="admin-v2__instructor-course-card" withBorder shadow="xs" p="md">
+            <Group justify="space-between" align="flex-start" wrap="nowrap">
+              <ThemeIcon color="green" variant="light" size={40} radius="md"><BookOpen size={19} /></ThemeIcon>
+              <Badge variant="light" color="green">{course.status}</Badge>
+            </Group>
+            <Stack gap={5} mt="md" mb="md">
+              <Text c="dimmed" size="xs" fw={650}>{course.brandName} · {course.code}</Text>
+              <Text fw={700} size="sm">{course.title}</Text>
+              <Text c="dimmed" size="xs">{assignmentCourseSummary(assignmentItems, course.id, assignments.isLoading, assignments.isError)}</Text>
+            </Stack>
+            <Button component={Link} to={`/admin/instructor/courses/${course.id}`} color="green" variant="light" fullWidth rightSection={<ArrowUpRight size={14} />}>Build course content</Button>
+          </Card>)}
+        </SimpleGrid> : <Card className="admin-v2__instructor-empty" withBorder shadow="xs" p="lg">
+          <ThemeIcon color="green" variant="light" size={46} radius="xl"><CheckCircle2 size={21} /></ThemeIcon>
+          <Stack gap={4}>
+            <Text fw={700}>No courses are assigned yet</Text>
+            <Text c="dimmed" size="sm">Ask your Super Admin to link your teaching profile to a course. Once assigned, it will appear here and in My Courses.</Text>
+          </Stack>
+        </Card>}
       </section>
-      <aside className="admin-v2__inspector">
-        <header className="admin-v2__inspector-title"><div><h2>Teaching tasks</h2><small>Current records from the Admin API</small></div></header>
-        <div className="admin-v2__access-list">
-          <article><ClipboardCheck size={16} /><div><Link to="/admin/instructor/assignments"><strong>Review submissions</strong></Link><small>{assignments.isLoading ? "Loading assignment status…" : assignments.isError ? "Assignment status unavailable" : `${needsReview} submitted response${needsReview === 1 ? "" : "s"} need review`}</small></div><ArrowRight size={14} /></article>
-          <article><Files size={16} /><div><Link to="/admin/instructor/content"><strong>Prepare course content</strong></Link><small>{reviews.isLoading ? "Loading review status…" : reviews.isError ? "Content review status unavailable" : `${submittedContent} item${submittedContent === 1 ? "" : "s"} awaiting Super Admin review`}</small></div><ArrowRight size={14} /></article>
-          <article><GraduationCap size={16} /><div><Link to="/admin/instructor/assessments"><strong>Manage exams and quizzes</strong></Link><small>Create questions and publish assessments for assigned courses</small></div><ArrowRight size={14} /></article>
-        </div>
-      </aside>
-    </div>
-  </section>;
+    </section>
+  );
+}
+
+function Metric({ label, value, note, icon: Icon }: { label: string; value: string; note: string; icon: LucideIcon }) {
+  return <Card className="admin-v2__workflow-metric" withBorder shadow="xs" p="md"><Group wrap="nowrap"><ThemeIcon color="green" variant="light" size={42} radius="md"><Icon size={19} /></ThemeIcon><Stack gap={2} style={{ minWidth: 0 }}><Text c="dimmed" size="xs" fw={600}>{label}</Text><Text className="admin-v2__workflow-metric-value" fw={750} size="xl">{value}</Text><Text c="dimmed" size="xs">{note}</Text></Stack></Group></Card>;
+}
+
+function assignmentCourseSummary(items: Array<{ brandCourseId: string | null; needsReviewCount: number }>, courseId: string, loading: boolean, error: boolean) {
+  if (loading) return "Loading assignment activity…";
+  if (error) return "Assignment activity unavailable";
+  const courseAssignments = items.filter((item) => item.brandCourseId === courseId);
+  const needsReview = courseAssignments.reduce((sum, item) => sum + item.needsReviewCount, 0);
+  return `${courseAssignments.length} assignment${courseAssignments.length === 1 ? "" : "s"} · ${needsReview} to grade`;
 }
 
 export default InstructorOverviewPage;

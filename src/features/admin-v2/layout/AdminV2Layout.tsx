@@ -10,7 +10,8 @@ import { ConfirmDialog } from "../shared/AdminV2Primitives";
 import type { AdminV2Data, BrandFilter } from "../types/adminV2.types";
 import { emptyAdminV2ServerDomainData } from "../api/adminV2Mappers";
 import { adminV2ServerDomainsChanged, loadAdminV2ServerData, persistAdminV2ServerChanges, type ServerDomainData } from "../api/adminV2ServerData";
-import { loadAdminContentData, loadAdminOverviewData, loadAdminSecurityData, loadAdminSecurityEvents, type AdminOverviewView } from "../api/adminV2OperationalData";
+import { loadAdminOverviewData, loadAdminSecurityData, loadAdminSecurityEvents, type AdminOverviewView } from "../api/adminV2OperationalData";
+import { AdminV2UiProvider } from "../shared/adminV2Theme";
 import "../styles/admin-v2.css";
 import "../styles/admin-v2-phase2.css";
 
@@ -36,11 +37,10 @@ const brandChoices: BrandFilter[] = ["all", "medway", "elite", "nexus"];
 const BRAND_FILTER_STORAGE_KEY = "greenlearn.admin-v2.brand-filter";
 const routeIcons = [LayoutDashboard, BookOpen, LibraryBig, UserRound, GraduationCap, CreditCard, CalendarDays, Files, ShieldCheck, MessageSquare, ClipboardCheck];
 const instructorNavigation = [
-  { label: "Overview", path: "/admin/instructor", icon: LayoutDashboard, description: "Teaching activity across your assigned courses." },
-  { label: "My courses", path: "/admin/instructor/courses", icon: LibraryBig, description: "Your assigned teaching courses." },
-  { label: "Content", path: "/admin/instructor/content", icon: Files, description: "Prepare course lessons and resources for review." },
-  { label: "Assignments", path: "/admin/instructor/assignments", icon: ClipboardCheck, description: "Create assignments and grade student submissions." },
-  { label: "Assessments", path: "/admin/instructor/assessments", icon: CalendarDays, description: "Create and publish course quizzes and exams." },
+  { label: "Dashboard", path: "/admin/instructor", icon: LayoutDashboard, description: "Your next teaching tasks and course activity." },
+  { label: "My courses", path: "/admin/instructor/courses", icon: LibraryBig, description: "Build lessons and learning materials for assigned courses." },
+  { label: "Assignments & grading", path: "/admin/instructor/assignments", icon: ClipboardCheck, description: "Publish coursework and grade student submissions." },
+  { label: "Exams & quizzes", path: "/admin/instructor/assessments", icon: GraduationCap, description: "Create, publish, and review course assessments." },
 ];
 
 export function useAdminV2() {
@@ -62,7 +62,6 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
   const { pathname } = useLocation();
   const [adminAccess, setAdminAccess] = useState<"checking" | "allowed" | "denied" | "error">("checking");
   const [workspace, setWorkspace] = useState<AdminWorkspaceDto | null>(null);
-  const builderCourseId = pathname.match(/^\/admin\/courses\/([^/]+)\/builder$/)?.[1];
   const [serverDomains, setServerDomains] = useState<ServerDomainData>(() => emptyAdminV2ServerDomainData());
   const [overview, setOverview] = useState<AdminOverviewView | null>(null);
   const [domainLoading, setDomainLoading] = useState(true);
@@ -93,15 +92,20 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
     const saved = window.localStorage.getItem(BRAND_FILTER_STORAGE_KEY) as BrandFilter | null;
     return saved && brandChoices.includes(saved) ? saved : "all";
   });
-  const routeBrand = workspace?.workspace === "instructor" ? workspace.brands[0]?.code ?? "all" : pathname === "/admin/content" && brand === "all" ? "elite" : brand;
-  const routeBrandChoices = workspace?.workspace === "super_admin" ? (pathname === "/admin/content" ? brandChoices.filter((choice) => choice !== "all") : brandChoices) : [];
+  const routeBrand = workspace?.workspace === "instructor" ? workspace.brands[0]?.code ?? "all" : brand;
+  const routeBrandChoices = workspace?.workspace === "super_admin" ? brandChoices : [];
   const [globalSearch, setGlobalSearch] = useState("");
   const [noticeOpen, setNoticeOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const navigation = workspace?.workspace === "instructor" ? instructorNavigation : adminNavigation;
-  const routeLabel = useMemo(() => workspace?.workspace === "super_admin" && (pathname === "/admin" || pathname === "/admin/overview") ? "Super Admin Overview" : workspace?.workspace === "instructor" && pathname === "/admin/instructor" ? "Teaching overview" : pathname.match(/^\/admin\/courses\/[^/]+\/builder$/) ? "Course Builder" : navigation.find((route) => route.path === pathname)?.label ?? (workspace?.displayRole ?? "Admin"), [navigation, pathname, workspace?.displayRole, workspace?.workspace]);
-  const routeSubtitle = routeLabel === "Super Admin Overview" ? "Platform-wide operations, people, and access across your brands." : routeLabel === "Overview" ? "Welcome back, Admin. Here is what is happening across your platform." : routeLabel === "Teaching overview" && workspace?.workspace === "instructor" ? "Your assigned courses, student work, and content review status." : routeLabel === "Teaching overview" ? "Review course plans, teaching materials, exams, and student work." : routeLabel === "Roles & Permissions" ? "Choose who can teach and manage the learning platform." : routeLabel === "Security" ? "Monitor persisted devices, sessions, and security events." : routeLabel === "Courses" ? "Manage course offerings, curriculum mapping, and instructor assignments." : routeLabel === "Instructors" ? "Manage your global instructor directory, brand assignments, and course allocations." : routeLabel === "Students" ? "Manage student identity, access, devices, and sessions." : routeLabel === "Payments" ? "Review manual payment submissions and approve or reject pending reviews." : routeLabel === "Curriculum" ? "Manage approved academic structures by institution." : routeLabel === "Course Builder" ? "Build chapters and lessons independently from curriculum mapping." : routeLabel === "Content" ? "Manage video and PDF resources attached to course lessons." : routeLabel === "Assignment Review" ? "Review Student submissions, scores, and return-for-revision decisions." : routeLabel === "Support Inbox" ? "Read and reply to persisted Student support conversations." : "Manage subscription plans, seats, and student lifecycle.";
+  const routeLabel = useMemo(() => {
+    if (workspace?.workspace === "super_admin" && (pathname === "/admin" || pathname === "/admin/overview")) return "Super Admin overview";
+    if (workspace?.workspace === "instructor" && pathname === "/admin/instructor") return "Instructor dashboard";
+    if (workspace?.workspace === "instructor" && /^\/admin\/instructor\/courses\/[^/]+$/.test(pathname)) return "Course content";
+    return navigation.find((route) => route.path === pathname)?.label ?? workspace?.displayRole ?? "Admin";
+  }, [navigation, pathname, workspace?.displayRole, workspace?.workspace]);
+  const routeSubtitle = routeLabel === "Super Admin overview" ? "Run platform operations, configure courses, and review instructor submissions." : routeLabel === "Instructor dashboard" ? "Follow your teaching workflow from course setup to grading." : routeLabel === "Course content" ? "Build chapters and lessons, then send videos or PDFs for approval." : routeLabel === "Dashboard" ? "Your next teaching tasks and course activity." : routeLabel === "Assignments & grading" ? "Publish assignments and review submitted student work." : routeLabel === "Exams & quizzes" ? "Create questions, set availability, and publish assessments." : routeLabel === "Course setup" ? "Create course offerings, map curriculum, and assign instructors." : routeLabel === "Instructors" ? "Manage teaching profiles, account access, and course assignments." : routeLabel === "Content approvals" ? "Review videos and documents sent by instructors before student release." : routeLabel === "Roles & Permissions" ? "Choose who can teach and manage the learning platform." : routeLabel === "Security" ? "Monitor persisted devices, sessions, and security events." : routeLabel === "Students" ? "Manage student identity, access, devices, and sessions." : routeLabel === "Payments" ? "Review manual payment submissions and approve or reject pending reviews." : routeLabel === "Curriculum" ? "Manage approved academic structures by institution." : routeLabel === "Support Inbox" ? "Read and reply to persisted student support conversations." : "Manage subscription plans, seats, and student lifecycle.";
   const reportDomainError = (message: string) => setDomainError(message);
   const context = useMemo(() => workspace ? ({ data, setData, brand: routeBrand, setBrand, globalSearch, setGlobalSearch, domainLoading, domainError, refreshServerDomains, reportDomainError, overview, workspace }) : null, [data, routeBrand, globalSearch, domainLoading, domainError, overview, workspace]);
   useEffect(() => {
@@ -128,10 +132,9 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
     (async () => {
       let refreshResult: AdminV2RefreshResult;
       try {
-        const loaded = workspace?.workspace === "instructor" ? emptyAdminV2ServerDomainData() : await loadAdminV2ServerData(builderCourseId);
+        const loaded = workspace?.workspace === "instructor" ? emptyAdminV2ServerDomainData() : await loadAdminV2ServerData();
         let operational: Partial<AdminV2Data> = {};
         let overviewResult: AdminOverviewView | null = null;
-        if (workspace?.workspace === "super_admin" && pathname === "/admin/content") operational = await loadAdminContentData(loaded.courses);
         if (workspace?.workspace === "super_admin" && pathname === "/admin/security") operational = await loadAdminSecurityData(brand);
         if (workspace?.workspace === "super_admin" && pathname === "/admin/instructors") operational = { auditEvents: await loadAdminSecurityEvents(brand) };
         if (workspace?.workspace === "super_admin" && (pathname === "/admin" || pathname === "/admin/overview")) { const result = await loadAdminOverviewData(brand, loaded.courses); operational = result.data; overviewResult = result.overview; }
@@ -152,7 +155,7 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
       }
     })();
     return () => controller.abort();
-  }, [adminAccess, builderCourseId, pathname, brand, refreshSequence, workspace]);
+  }, [adminAccess, pathname, brand, refreshSequence, workspace]);
   useEffect(() => {
     const focusSearch = (event: KeyboardEvent) => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); searchRef.current?.focus(); } };
     window.addEventListener("keydown", focusSearch);
@@ -167,9 +170,9 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
   if (adminAccess === "error") return <main role="alert">The Admin session could not be checked. Please reload and try again.</main>;
   if (!workspace || !context) return <main aria-live="polite">Loading your workspace…</main>;
   if (workspace.workspace === "instructor" && pathname === "/admin") return <Navigate to="/admin/instructor" replace />;
-  if (workspace.workspace === "super_admin" && pathname.startsWith("/admin/instructor/") ) return <Navigate to="/admin/instructor" replace />;
+  if (workspace.workspace === "super_admin" && (pathname === "/admin/instructor" || pathname.startsWith("/admin/instructor/") || pathname.startsWith("/admin/assignments") || pathname.startsWith("/admin/assessments") || /^\/admin\/courses\/[^/]+\/builder$/.test(pathname))) return <Navigate to="/admin" replace />;
   if (workspace.workspace === "instructor" && pathname.startsWith("/admin/") && !pathname.startsWith("/admin/instructor/") && pathname !== "/admin") return <Navigate to="/admin/instructor/courses" replace />;
-  return <AdminV2Context.Provider value={context}>
+  return <AdminV2Context.Provider value={context}><AdminV2UiProvider>
     <div className="admin-v2">
       <aside className="admin-v2__sidebar">
         <NavLink to="/admin/courses" className="admin-v2__brand" aria-label="GreenLearn Admin home"><span className="admin-v2__brand-mark"><BookOpen aria-hidden="true" /></span><span><strong>GreenLearn</strong><small>ADMIN CONSOLE</small></span></NavLink>
@@ -192,5 +195,5 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
       </div>
     </div>
     {resetOpen && <ConfirmDialog title="Reset local Admin cache?" detail="This clears this browser's saved Admin cache. Server records are not changed." confirmLabel="Reset cache" onCancel={() => setResetOpen(false)} onConfirm={() => { resetAdminV2(); setResetOpen(false); }} />}
-  </AdminV2Context.Provider>;
+  </AdminV2UiProvider></AdminV2Context.Provider>;
 }

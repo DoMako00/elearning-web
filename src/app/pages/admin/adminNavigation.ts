@@ -1,4 +1,4 @@
-import { BookOpen, CalendarDays, ClipboardCheck, CreditCard, Files, GraduationCap, LayoutDashboard, LibraryBig, MessageSquare, ShieldCheck, UserCog, UserRound, type LucideIcon } from "lucide-react";
+import { BookOpen, CalendarDays, CreditCard, Files, GraduationCap, LayoutDashboard, LibraryBig, MessageSquare, ShieldCheck, UserCog, UserRound, type LucideIcon } from "lucide-react";
 import type { AdminPermissionCode } from "../../../features/admin/api";
 
 export interface AdminNavigationItem { label: string; path: string; icon: LucideIcon; permission?: AdminPermissionCode; description: string; }
@@ -7,17 +7,15 @@ export interface AdminNavigationItem { label: string; path: string; icon: Lucide
 export const adminNavigation: readonly AdminNavigationItem[] = [
   { label: "Overview", path: "/admin", icon: LayoutDashboard, description: "Welcome back, Admin. Here's what's happening with your platform today." },
   { label: "Curriculum", path: "/admin/curriculum", icon: BookOpen, description: "Manage university academic levels, semesters, and shared module references." },
-  { label: "Courses", path: "/admin/courses", icon: LibraryBig, description: "Manage brand-owned courses, map them to curriculum modules, and manage teaching assignments." },
-  { label: "Teaching overview", path: "/admin/instructor", icon: GraduationCap, description: "Review courses, learning materials, exams, and student work." },
+  { label: "Course setup", path: "/admin/courses", icon: LibraryBig, description: "Create brand courses, map approved curriculum, and assign instructors." },
   { label: "Instructors", path: "/admin/instructors", icon: UserRound, description: "Manage your global instructor directory, brand assignments, and course allocations." },
   { label: "Roles & Permissions", path: "/admin/roles", icon: UserCog, permission: "admin.roles.read", description: "Assign audited Admin roles and link Instructor logins to teaching profiles." },
   { label: "Students", path: "/admin/students", icon: GraduationCap, permission: "admin.students.read", description: "Student identity, enrollment, and access summaries." },
   { label: "Payments", path: "/admin/payments", icon: CreditCard, permission: "admin.payments.read", description: "Payments, orders, and review status." },
   { label: "Subscriptions", path: "/admin/subscriptions", icon: CalendarDays, permission: "admin.subscriptions.read", description: "Plans, seats, and subscription lifecycle." },
-  { label: "Content", path: "/admin/content", icon: Files, permission: "admin.content.read", description: "Lessons, resources, and release readiness." },
+  { label: "Content approvals", path: "/admin/content", icon: Files, permission: "admin.content.read", description: "Approve or return lesson materials submitted by instructors." },
   { label: "Security", path: "/admin/security", icon: ShieldCheck, permission: "admin.security.read", description: "Security events and account risk." },
   { label: "Support Inbox", path: "/admin/support", icon: MessageSquare, permission: "admin.support.read", description: "Student support requests and replies." },
-  { label: "Assignment Review", path: "/admin/assignments", icon: ClipboardCheck, description: "Review persisted Student Assignment submissions and feedback." },
 ];
 
 const additionalRouteMetadata: readonly Omit<AdminNavigationItem, "icon">[] = [
