@@ -5,6 +5,7 @@ import { SignInPage } from "./SignInPage";
 import { useAuth, type AuthState } from "../../../app/providers/AuthProvider";
 import { activateProvisionedStudent, initiateOtpLogin, verifyOtp } from "../api/identityApi";
 import { getAdminOverview } from "../../admin-v2/api/adminOperationsApi";
+import { getAdminWorkspace } from "../../admin-v2/api/adminRolesApi";
 import { assignLocation, reloadPage } from "../../../shared/utils/hardNavigation";
 import { NEXUS_LOGO_URL } from "../../../shared/brandAssets";
 
@@ -16,6 +17,7 @@ vi.mock("../api/identityApi", async (importOriginal) => ({
   verifyOtp: vi.fn(),
 }));
 vi.mock("../../admin-v2/api/adminOperationsApi", () => ({ getAdminOverview: vi.fn() }));
+vi.mock("../../admin-v2/api/adminRolesApi", () => ({ getAdminWorkspace: vi.fn() }));
 vi.mock("../../../shared/utils/hardNavigation", () => ({ assignLocation: vi.fn(), reloadPage: vi.fn() }));
 
 const reloadSpy = vi.fn();
@@ -32,6 +34,8 @@ beforeEach(() => {
   vi.mocked(assignLocation).mockClear();
   vi.mocked(reloadPage).mockClear();
   reloadSpy.mockClear();
+  // Default: not an admin workspace (student user).
+  vi.mocked(getAdminWorkspace).mockRejectedValue(Object.assign(new Error("forbidden"), { status: 403 }));
 });
 
 describe("SignInPage navigation after sign-in", () => {

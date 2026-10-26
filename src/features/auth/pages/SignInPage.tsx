@@ -10,6 +10,7 @@ import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import { activateProvisionedStudent, IdentityApiError, initiateOtpLogin, verifyOtp, type BrandCode } from "../api/identityApi";
 import { getAdminOverview } from "../../admin-v2/api/adminOperationsApi";
+import { getAdminWorkspace } from "../../admin-v2/api/adminRolesApi";
 import { assignLocation } from "../../../shared/utils/hardNavigation";
 import authBotanicalBg from "../../../Assets/onboarding/auth-botanical-bg.jpg";
 import { BrandLogo } from "../../../components/brand/BrandLogo";
@@ -62,17 +63,38 @@ export function SignInPage() {
         setChallengeId(challenge.challengeId);
       } else {
         await verifyOtp({ challengeId, code: otp, email: identifier, remember });
-        let hasAdminAccess = false;
-        let adminCheckUnavailable = false;
-        for (const adminBrand of ["elite", "medway", "nexus"] as const) {
-          try { await getAdminOverview(adminBrand); hasAdminAccess = true; break; }
-          catch (error) {
-            const status = (error as { status?: number }).status;
-            if (status !== 403 && status !== 404) { adminCheckUnavailable = true; break; }
+        const savedDestination = typeof returnTo === "string" && returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : null;
+        // First: check the workspace endpoint — works for both super admins and instructors.
+        let adminDestination: string | null = null;
+        try {
+          const workspace = await getAdminWorkspace();
+          if (workspace.workspace === "instructor") {
+            adminDestination = "/admin/instructor";
+          } else {
+            adminDestination = "/admin";
+          }
+        } catch (workspaceError) {
+          const wsStatus = (workspaceError as { status?: number }).status;
+          if (wsStatus !== 403 && wsStatus !== 404) {
+            // Network / server error — fall back to optimistic /admin so the layout can decide.
+            adminDestination = "/admin";
           }
         }
-        const savedDestination = typeof returnTo === "string" && returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : null;
-        assignLocation(hasAdminAccess || adminCheckUnavailable ? (savedDestination?.startsWith("/admin") ? savedDestination : "/admin") : (savedDestination?.startsWith("/admin") ? "/" : savedDestination ?? "/"));
+        // If workspace check didn't resolve, try the super-admin overview as a secondary check.
+        if (!adminDestination) {
+          for (const adminBrand of ["elite", "medway", "nexus"] as const) {
+            try { await getAdminOverview(adminBrand); adminDestination = "/admin"; break; }
+            catch (error) {
+              const status = (error as { status?: number }).status;
+              if (status !== 403 && status !== 404) { adminDestination = "/admin"; break; }
+            }
+          }
+        }
+        if (adminDestination) {
+          assignLocation(savedDestination?.startsWith("/admin") ? savedDestination : adminDestination);
+        } else {
+          assignLocation(savedDestination?.startsWith("/admin") ? "/" : savedDestination ?? "/");
+        }
       }
     } catch (error) {
       const loginEligibilityFailure = error instanceof IdentityApiError && error.code === "student_email_link_required";
