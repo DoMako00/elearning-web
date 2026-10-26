@@ -3,6 +3,7 @@ import { ArrowUpRight, BookOpen, ClipboardCheck, FileCheck2, GraduationCap, Laye
 import { Link } from "react-router-dom";
 import { useAdminV2 } from "../layout/AdminV2Layout";
 import { getWorkspaceCopy } from "../copy/workspace-copy";
+import { instructorCourseArtwork } from "./instructor-course-art";
 import "./instructor-courses.css";
 
 export function InstructorCoursesPage() {
@@ -20,8 +21,8 @@ export function InstructorCoursesPage() {
       <header data-instructor-guide-target="course-list-header"><div><h2>Courses</h2>{domainLoading ? <Skeleton className="instructor-courses-view__count-skeleton" height={24} width={24} circle /> : <span>{courses.length}</span>}</div><LibraryBig size={17} /></header>
       <label className="instructor-courses-view__search"><Search size={16} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search courses" aria-label="Search courses" /></label>
       <div data-instructor-guide-target="course-card" className="instructor-courses-view__list">
-        {domainLoading ? <div className="instructor-courses-view__course-skeletons" role="status" aria-label="Loading assigned courses">{courses.length ? courses.slice(0, 3).map(course => <CourseOptionSkeleton key={course.id} />) : <CourseListEmptySkeleton />}</div> : visibleCourses.map(course => <button key={course.id} type="button" className={`instructor-courses-view__course-option${selected?.id === course.id ? " is-selected" : ""}`} onClick={() => setSelectedId(course.id)} aria-pressed={selected?.id === course.id}>
-          <span className="instructor-courses-view__course-icon"><BookOpen size={22} /></span><span className="instructor-courses-view__course-copy"><strong>{course.title}</strong><small>{course.brandName}</small><i>{course.status}</i></span>
+        {domainLoading ? <div className="instructor-courses-view__course-skeletons" role="status" aria-label="Loading assigned courses">{courses.length ? courses.slice(0, 3).map(course => <CourseOptionSkeleton key={course.id} />) : <CourseListEmptySkeleton />}</div> : visibleCourses.map((course, index) => <button key={course.id} type="button" className={`instructor-courses-view__course-option${selected?.id === course.id ? " is-selected" : ""}`} onClick={() => setSelectedId(course.id)} aria-pressed={selected?.id === course.id}>
+          <span className="instructor-courses-view__course-icon"><img src={instructorCourseArtwork(`${course.title} ${course.code}`, index)} alt="" loading="lazy" /></span><span className="instructor-courses-view__course-copy"><strong>{course.title}</strong><small>{course.brandName}</small><i>{course.status}</i></span>
         </button>)}
         {!domainLoading && !visibleCourses.length && <div className="instructor-courses-view__empty-list"><BookOpen size={20} /><strong>{courses.length ? "No matching courses" : "No assigned courses yet"}<small>{courses.length ? "Try another search." : "Ask your administrator to assign a course to your instructor account."}</small></strong></div>}
       </div>
@@ -31,7 +32,7 @@ export function InstructorCoursesPage() {
     {domainLoading ? courses.length ? <CourseDetailSkeleton /> : <CourseEmptySkeleton /> : selected ? <section className="instructor-courses-view__detail">
       <article data-instructor-guide-target="course-open" className="instructor-courses-view__hero">
         <div className="instructor-courses-view__hero-copy"><div className="instructor-courses-view__badges"><span>{selected.brandName}</span><span className="is-status">{selected.status}</span></div><h1>{selected.title}</h1><p>{selected.code}</p><small>{selected.academicLevelId ? copy.courses.placementConfirmed : copy.courses.placementUnavailable}</small></div>
-        <div className="instructor-courses-view__hero-art" aria-hidden="true"><BookOpen size={92} strokeWidth={1.1} /></div>
+        <div className="instructor-courses-view__hero-art" aria-hidden="true"><img src={instructorCourseArtwork(`${selected.title} ${selected.code}`)} alt="" /></div>
         <Link className="instructor-courses-view__open" to={coursePath} aria-label={`Open course builder for ${selected.title}`}>Open course builder<ArrowUpRight size={15} /></Link>
       </article>
       <div className="instructor-courses-view__panels">

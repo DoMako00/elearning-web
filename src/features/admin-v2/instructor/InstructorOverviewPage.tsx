@@ -8,6 +8,7 @@ import { adminAssessmentApi } from "../api/adminAssessmentApi";
 import { listContentReviewRequests } from "../api/adminContentApi";
 import { useAdminV2 } from "../layout/AdminV2Layout";
 import { getWorkspaceCopy } from "../copy/workspace-copy";
+import { instructorCourseArtwork, instructorHeroArtwork } from "./instructor-course-art";
 import "./instructor-home.css";
 
 export function InstructorOverviewPage() {
@@ -51,7 +52,7 @@ export function InstructorOverviewPage() {
           </Group>
         </Alert>}
       </div>
-      <div className="instructor-home__hero-art" aria-hidden="true"><div className="instructor-home__art-orbit" /><div className="instructor-home__art-glow" /><BookOpen size={132} strokeWidth={1.05} /><GraduationCap size={46} strokeWidth={1.2} /></div>
+      <div className="instructor-home__hero-art" aria-hidden="true"><img src={instructorHeroArtwork} alt="" /></div>
     </Card>
     <Card data-instructor-guide-target="home-workflow" className="instructor-home__next-steps" withBorder shadow="xs">
       <header><span>START HERE</span><h2>Next steps</h2></header>
@@ -67,7 +68,7 @@ export function InstructorOverviewPage() {
       <header className="instructor-home__section-heading"><div><span>YOUR TEACHING SPACE</span><h2 id="instructor-courses-title">Assigned courses</h2></div><Button data-instructor-guide-target="home-all-courses" component={Link} to="/admin/instructor/courses" variant="subtle" color="green" rightSection={<ArrowUpRight size={14} />}>View all</Button></header>
       {domainLoading ? courses.length ? <div className="instructor-home__course-grid instructor-home__course-grid--loading" style={{ gridTemplateColumns: `repeat(${Math.min(courses.length, 3)}, minmax(0, 1fr))` }} role="status" aria-label="Loading assigned courses">{courses.slice(0, 3).map((course, index) => <CourseSkeleton key={course.id ?? index} />)}</div> : <div className="instructor-home__empty instructor-home__empty--skeleton" role="status" aria-label="Loading course access"><Skeleton height={24} width={24} circle /><span><Skeleton height={10} width={142} /><Skeleton height={8} width="82%" /></span></div> : courses.length ? <div className="instructor-home__course-grid" style={{ gridTemplateColumns: `repeat(${Math.min(courses.length, 3)}, minmax(0, 1fr))` }}>
         {courses.slice(0, 3).map((course, index) => <Card key={course.id} className="instructor-home__course" withBorder shadow="xs">
-          <div className={`instructor-home__course-art is-${index % 3}`}><BookOpen size={34} strokeWidth={1.3} /><span>{course.brandName}</span></div>
+          <div className={`instructor-home__course-art is-${index % 3}`}><img src={instructorCourseArtwork(`${course.title} ${course.code}`, index)} alt="" loading="lazy" /><span>{course.brandName}</span></div>
           <div className="instructor-home__course-body"><span className="instructor-home__course-code">{course.code} · {course.status}</span><h3>{course.title}</h3><p>{assignmentCourseSummary(assignmentItems, course.id, assignments.isLoading, assignments.isError)}</p><Button data-instructor-guide-target={index === 0 ? "home-course-card" : undefined} component={Link} to={`/admin/instructor/courses/${course.id}`} variant="light" color="green" fullWidth rightSection={<ArrowRight size={14} />}>{copy.courses.openCourseAction}</Button></div>
         </Card>)}
       </div> : <div data-instructor-guide-target="home-course-card" className="instructor-home__empty"><CheckCircle2 size={22} /><div><strong>No courses assigned yet</strong><p>Ask your administrator to assign a course. It will appear here when it is ready for teaching.</p></div></div>}

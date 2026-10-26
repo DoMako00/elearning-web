@@ -12,16 +12,13 @@
 .instructor-home > * { min-width: 0; min-height: 0; margin: 0; }
 .instructor-home__hero { position: relative; grid-area: hero; display: flex; align-items: center; overflow: hidden; padding: clamp(19px, 2.2vw, 34px) clamp(20px, 2.3vw, 38px); border-color: #cce8d4; border-radius: 16px; background: linear-gradient(112deg, #d7f7e1 0%, #e8faec 62%, #d2f3de 100%); }
 .instructor-home__hero::before { position: absolute; inset: 0; background: radial-gradient(ellipse at 24% 10%, rgb(255 255 255 / 62%), transparent 52%); content: ""; pointer-events: none; }
-.instructor-home__hero-copy { position: relative; z-index: 1; width: min(72%, 650px); }
+.instructor-home__hero-copy { position: relative; z-index: 1; width: min(62%, 700px); }
 .instructor-home__eyebrow, .instructor-home__section-heading > div > span, .instructor-home__next-steps > header > span, .instructor-home__teaching-flow > header > span { display: block; color: #23804b; font-size: 9px; font-weight: 850; letter-spacing: .13em; }
 .instructor-home__hero h2 { margin: 8px 0 7px; color: #10281b; font-size: clamp(25px, 2.4vw, 38px); font-weight: 780; letter-spacing: -.045em; line-height: 1.06; }
 .instructor-home__hero-copy > p { max-width: 540px; margin: 0 0 15px; color: #526c5c; font-size: clamp(11px, 1.05vw, 14px); line-height: 1.5; }
 .instructor-home__hero .mantine-Button-root { min-height: 38px; padding-inline: 16px; border-radius: 8px; box-shadow: 0 7px 16px rgb(13 115 58 / 15%); font-size: 11px; font-weight: 750; }
-.instructor-home__hero-art { position: absolute; right: 7%; top: 50%; width: clamp(145px, 21vw, 270px); height: 82%; display: grid; place-items: center; color: #17864d; transform: translateY(-50%); }
-.instructor-home__hero-art > svg:first-of-type { position: relative; z-index: 1; width: clamp(88px, 9.5vw, 146px); height: auto; filter: drop-shadow(0 12px 10px rgb(17 112 57 / 12%)); }
-.instructor-home__hero-art > svg:last-of-type { position: absolute; z-index: 2; right: 4%; top: 8%; color: #50af74; }
-.instructor-home__art-orbit { position: absolute; inset: 13% 0 3%; border: 1px solid rgb(34 145 78 / 26%); border-radius: 50%; transform: rotate(-18deg); }
-.instructor-home__art-glow { position: absolute; inset: 25%; border-radius: 50%; background: #8fe1aa; filter: blur(25px); opacity: .56; }
+.instructor-home__hero-art { position: absolute; right: 2%; top: 50%; width: min(47%, 690px); height: 95%; display: flex; align-items: center; justify-content: flex-end; transform: translateY(-50%); pointer-events: none; }
+.instructor-home__hero-art img { width: 100%; height: 100%; object-fit: contain; object-position: right center; filter: drop-shadow(0 12px 14px rgb(17 112 57 / 11%)); }
 .instructor-home__error { max-width: 500px; margin-top: 9px; padding: 7px 10px; }
 .instructor-home__error .mantine-Alert-title { font-size: 10px; }
 .instructor-home__error .mantine-Alert-message { font-size: 9px; }
@@ -54,10 +51,11 @@
 .instructor-home__section-heading .mantine-Button-root { min-height: 29px; padding-inline: 8px; font-size: 9px; }
 .instructor-home__course-grid { min-height: 0; flex: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .instructor-home__course { min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; padding: 0; border-color: #e1eae4; border-radius: 11px; background: #fff; }
-.instructor-home__course-art { min-height: 52px; flex: 0 0 26%; display: flex; align-items: center; justify-content: space-between; overflow: hidden; padding: 10px 15px; color: #c2f3d1; background: radial-gradient(ellipse at 78% 0, #26a966, transparent 54%), linear-gradient(118deg,#075938,#0c7647); }
+.instructor-home__course-art { position: relative; min-height: 52px; flex: 0 0 26%; display: flex; align-items: flex-start; justify-content: flex-end; overflow: hidden; padding: 10px 15px; color: #c2f3d1; background: radial-gradient(ellipse at 78% 0, #26a966, transparent 54%), linear-gradient(118deg,#075938,#0c7647); }
 .instructor-home__course-art.is-1 { color: #18834b; background: radial-gradient(ellipse at 80% 14%, #fff 0, transparent 42%), linear-gradient(120deg,#c7f5d4,#e4fae9); }
 .instructor-home__course-art.is-2 { color: #c6f5d6; background: radial-gradient(ellipse at 83% 10%, #34b875, transparent 45%), linear-gradient(120deg,#064c37,#0c6943); }
-.instructor-home__course-art span { border: 1px solid rgb(255 255 255 / 35%); border-radius: 999px; background: rgb(255 255 255 / 13%); padding: 4px 8px; font-size: 8px; font-weight: 700; }
+.instructor-home__course-art > img { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; object-fit: contain; object-position: center; filter: drop-shadow(0 3px 5px rgb(0 57 32 / 15%)); }
+.instructor-home__course-art span { position: relative; z-index: 1; border: 1px solid rgb(255 255 255 / 35%); border-radius: 999px; background: rgb(255 255 255 / 20%); padding: 4px 8px; font-size: 8px; font-weight: 700; }
 .instructor-home__course-body { min-height: 0; flex: 1; display: flex; flex-direction: column; padding: 9px 11px 10px; }
 .instructor-home__course-code { overflow: hidden; color: #27824c; font-size: 8px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
 .instructor-home__course-body h3 { display: -webkit-box; overflow: hidden; margin: 4px 0; color: #24392c; font-size: 11px; font-weight: 750; line-height: 1.25; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
@@ -135,6 +133,7 @@
   .instructor-home__hero h2 { font-size: clamp(27px,3vw,36px); }
   .instructor-home__hero-copy > p { font-size: 13px; }
   .instructor-home__hero .mantine-Button-root { min-height: 40px; font-size: 11px; }
+  .instructor-home__hero-art { width: 42%; }
   .instructor-home__next-steps, .instructor-home__teaching-flow { padding: 14px; }
   .instructor-home__next-steps h2, .instructor-home__teaching-flow h2 { font-size: 19px; }
   .instructor-home__step-copy strong { font-size: 11px; }
@@ -175,7 +174,7 @@
   .instructor-home__course { min-height: 205px; }
 }
 @media (max-width: 420px) {
-  .instructor-home__hero-art { right: -8%; width: 150px; opacity: .58; }
+  .instructor-home__hero-art { right: -8%; width: 150px; opacity: .42; }
   .instructor-home__hero-copy { width: 83%; }
   .instructor-home__metrics { grid-template-columns: minmax(0,1fr) !important; }
 }
