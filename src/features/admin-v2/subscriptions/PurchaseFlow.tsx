@@ -3,12 +3,13 @@ import { BookOpen, Check, ChevronLeft, ChevronRight, Layers3, UserRound, Users, 
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { BrandFilter } from "../types/adminV2.types";
 import { listAllAdminStudents } from "../api/adminOperationsApi";
-import { createSemesterOfferingOrder, type SemesterOfferingPaymentMethod } from "../api/adminCommercialApi";
+import { createSemesterOfferingOrder, type CreateSemesterOfferingOrderInput, type SemesterOfferingPaymentMethod } from "../api/adminCommercialApi";
 import { listSemesterOfferings, getSemesterOffering, type SemesterOffering } from "../api/semesterOfferingsApi";
 import type { AdminStudentListItem } from "../api/adminStudentsApi";
 import { isAdminTestStudentName, toEnglishStudentName } from "../api/studentDisplay";
 import { extractApiErrorMessage } from "../../../app/api/client";
 import { BrandBadge, Drawer, FormActions, FormField } from "../shared/AdminV2Primitives";
+import { createInstructorPurchaseRequest, getInstructorSemesterOffering, listInstructorSemesterOfferings, listInstructorStudents } from "../api/instructorWorkspaceApi";
 
 type Capacity = 1 | 3 | 5;
 type Step = 1 | 2 | 3 | 4;
@@ -68,7 +69,7 @@ function unavailableReason(offering: SemesterOffering, now = Date.now()) {
   return "Unavailable for purchase.";
 }
 
-export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
+export function PurchaseFlow({ brand, mode = "admin", onInstructorOrderCreated }: { brand: BrandFilter; mode?: "admin" | "instructor"; onInstructorOrderCreated?: (order: { orderId: string }) => void }) {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const autoOpenHandled = useRef(false);
@@ -110,10 +111,9 @@ export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
     setOpen(true);
     setLoading(true);
     try {
-      const [studentRows, offeringResult] = await Promise.all([
-        listAllAdminStudents(brand),
-        listSemesterOfferings(brand === "all" ? {} : { brand }),
-      ]);
+      const [studentRows, offeringResult] = await Promise.all(mode === "instructor"
+        ? [listInstructorStudents(), listInstructorSemesterOfferings()] as const
+        : [listAllAdminStudents(brand), listSemesterOfferings(brand === "all" ? {} : { brand })] as const);
       setStudents(studentRows);
       setOfferings(offeringResult.items);
     } catch (cause) {
@@ -121,7 +121,7 @@ export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
     } finally {
       setLoading(false);
     }
-  }, [brand]);
+  }, [brand, mode]);
 
   const autoStart = params.get("startPurchase") === "1";
   const autoStudentId = params.get("purchaseStudent");
@@ -184,7 +184,7 @@ export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
     setPriceConfirmed(false);
     setError("");
     try {
-      setOfferingDetail(await getSemesterOffering(offering.id));
+      setOfferingDetail(mode === "instructor" ? await getInstructorSemesterOffering(offering.id) : await getSemesterOffering(offering.id));
     } catch (cause) {
       setError(extractApiErrorMessage(cause, "Offering details could not be loaded."));
     }
@@ -197,17 +197,21 @@ export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
     setMutating(true);
     setError("");
     try {
-      const order = await createSemesterOfferingOrder({
+      const input: CreateSemesterOfferingOrderInput = {
         semesterOfferingId: selectedOffering.id,
         planCode: planCode(capacity),
         selectedStudentProfileIds: selectedStudentIds,
         paymentMethod,
         ...(paymentReference.trim() ? { paymentReference: paymentReference.trim() } : {}),
         ...(paymentEvidenceNote.trim() ? { paymentEvidenceNote: paymentEvidenceNote.trim() } : {}),
-      });
+      };
+      const order = mode === "instructor"
+        ? await createInstructorPurchaseRequest(input)
+        : await createSemesterOfferingOrder(input);
       if (order.status !== "pending_review") throw new Error("The server did not return a pending-review Order.");
       setOpen(false);
-      navigate(`/admin/payments?payment=${encodeURIComponent(order.orderId)}`);
+      if (mode === "instructor") onInstructorOrderCreated?.({ orderId: order.orderId });
+      else navigate(`/admin/payments?payment=${encodeURIComponent(order.orderId)}`);
     } catch (cause) {
       setError(extractApiErrorMessage(cause, "The manual payment Order could not be created."));
     } finally {
@@ -233,7 +237,7 @@ export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
   return <>
     <section className="admin-v2__table-card admin-v2__plans" aria-labelledby="admin-v2-plans-title">
       <header>
-        <div><h2 id="admin-v2-plans-title">Plans &amp; Packages</h2><p>Each purchase is tied to one real Semester Offering.</p></div>
+        <div><h2 id="admin-v2-plans-title">{mode === "instructor" ? "Student purchase options" : "Plans &amp; Packages"}</h2><p>{mode === "instructor" ? "Submit the selected plan for Super Admin payment review." : "Each purchase is tied to one real Semester Offering."}</p></div>
       </header>
       <div className="admin-v2__plan-grid">
         {plans.map((plan) => {
@@ -249,21 +253,21 @@ export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
               <li><Check size={13} />{priceCopy}</li>
               {plan.capacity > 1 && <li><Check size={13} />Friend pricing is eligibility-based, never automatic</li>}
             </ul>
-            <button type="button" onClick={() => void startPurchase(plan.capacity)}>Start purchase</button>
+            <button type="button" onClick={() => void startPurchase(plan.capacity)}>{mode === "instructor" ? "Prepare request" : "Start purchase"}</button>
           </article>;
         })}
       </div>
     </section>
 
     {open && <Drawer
-      title="Create manual-payment Order"
-      subtitle={`${currentPlan.name} · ${capacity} Seat${capacity === 1 ? "" : "s"} · access activates only after authorized Admin approval`}
+      title={mode === "instructor" ? "Prepare student purchase" : "Create manual-payment Order"}
+      subtitle={`${currentPlan.name} · ${capacity} Seat${capacity === 1 ? "" : "s"} · access activates only after Super Admin payment approval`}
       onClose={close}
       footer={<FormActions>
         {step > 1 && <button type="button" className="admin-v2__button" disabled={mutating} onClick={() => setStep((current) => (current - 1) as Step)}><ChevronLeft size={14} /> Back</button>}
         <button type="button" className="admin-v2__button" disabled={mutating} onClick={close}>Cancel</button>
         <button type="button" className="admin-v2__button is-primary" disabled={mutating || loading || !canContinue} onClick={next}>
-          {mutating ? "Creating…" : step === 4 ? "Create pending-review Order" : "Continue"}{step < 4 && <ChevronRight size={14} />}
+          {mutating ? "Creating…" : step === 4 ? mode === "instructor" ? "Submit for payment review" : "Create pending-review Order" : "Continue"}{step < 4 && <ChevronRight size={14} />}
         </button>
       </FormActions>}
     >
@@ -276,7 +280,7 @@ export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
       {!loading && step === 1 && <div className="admin-v2__purchase-step">
         <h3>Select Students</h3>
         <p>Choose one to {capacity} Students. The backend verifies every Student’s brand and academic placement against the selected Offering.</p>
-        {eligibleStudents.length > 0 && !hasSaleableOfferingForEligibleStudents && <div className="admin-v2__inline-notice" role="status">Compatible Students are shown from persisted records, but no matching Semester Offering is currently open for purchase. Activate a compatible Offering in Manage Semester Offerings before continuing.</div>}
+        {eligibleStudents.length > 0 && !hasSaleableOfferingForEligibleStudents && <div className="admin-v2__inline-notice" role="status">{mode === "instructor" ? "Your students are listed, but no active purchase Offering contains only courses assigned to you." : "Compatible Students are shown from persisted records, but no matching Semester Offering is currently open for purchase. Activate a compatible Offering in Manage Semester Offerings before continuing."}</div>}
         <FormField label="Plan capacity" wide><select value={capacity} onChange={(event) => {
           const value = Number(event.target.value) as Capacity;
           if (selectedStudentIds.length > value) { setError("Remove Students before selecting a smaller capacity."); return; }
@@ -340,7 +344,7 @@ export function PurchaseFlow({ brand }: { brand: BrandFilter }) {
           <div><small>Manual payment</small><strong>{methods.find((method) => method.value === paymentMethod)?.label}</strong><span>{paymentReference.trim() ? `Reference: ${paymentReference.trim()}` : "No reference supplied"}</span></div>
           <div><small>Order total</small><strong>{formatMoney(orderTotalMinor, selectedOffering.currency)}</strong></div>
         </div>
-        <p className="admin-v2__purchase-pending-note"><Layers3 size={14} />The Order will be created as Pending Review. No Subscription, Seat entitlement, or AccessGrant is activated until an authorized Admin approves the payment.</p>
+        <p className="admin-v2__purchase-pending-note"><Layers3 size={14} />The Order will be created as Pending Review. No Subscription, Seat entitlement, or AccessGrant is activated until the Super Admin approves the payment.</p>
       </div>}
     </Drawer>}
   </>;

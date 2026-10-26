@@ -28,6 +28,8 @@ export function InstructorOverviewPage() {
   const countLabel = (loading: boolean, error: boolean, value: number) => loading ? "…" : error ? "—" : value.toLocaleString();
   const workflow = [
     { title: "Open an assigned course", detail: courses.length ? "Choose a course you are responsible for." : "An administrator assigns courses to your teaching account.", action: "View my courses", to: "/admin/instructor/courses", icon: BookOpen },
+    { title: "Create student accounts", detail: "Add students to your assigned courses. Payment approval stays with the Super Admin.", action: "Manage students", to: "/admin/instructor/students", icon: GraduationCap },
+    { title: "Submit a purchase request", detail: "Choose a matching subscription offer and record payment details for Super Admin review.", action: "Open subscriptions", to: "/admin/instructor/subscriptions", icon: FileCheck2 },
     { title: "Build lessons and add files", detail: "Create chapters and lessons, upload videos or PDFs, then send them for approval.", action: courses.length ? copy.courses.openCourseAction : "View course access", to: firstCoursePath, icon: Layers3 },
     { title: "Create exams and quizzes", detail: "Add questions, set availability, and publish assessments to your course.", action: "Manage exams", to: "/admin/instructor/assessments", icon: GraduationCap },
     { title: "Publish assignments", detail: "Create coursework and publish it directly to students in your course.", action: "Manage assignments", to: "/admin/instructor/assignments", icon: FileCheck2 },
