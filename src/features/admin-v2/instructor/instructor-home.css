@@ -85,10 +85,11 @@
 
 @media (min-width: 1600px) {
   .admin-v2__workflow-page.instructor-home { gap: 16px; padding: 20px 26px 24px; }
-  .instructor-home__hero { border-radius: 20px; }
+  .instructor-home__hero { border-radius: 20px; padding: clamp(18px,1.8vw,28px) clamp(20px,1.5vw,30px); justify-content: flex-start; }
+  .instructor-home__hero-copy { width: min(68%,780px); margin: 0; text-align: left; }
   .instructor-home__eyebrow, .instructor-home__section-heading > div > span { font-size: 11px; }
   .instructor-home__hero h2 { font-size: clamp(38px,2.35vw,50px); }
-  .instructor-home__hero-copy > p { font-size: clamp(16px,.95vw,19px); }
+  .instructor-home__hero-copy > p { max-width: 620px; font-size: clamp(16px,.95vw,19px); }
   .instructor-home__hero .mantine-Button-root { min-height: 46px; padding-inline: 22px; font-size: 14px; }
   .instructor-home__next-steps, .instructor-home__teaching-flow { padding: 20px 22px; }
   .instructor-home__next-steps > header > span, .instructor-home__teaching-flow > header > span { font-size: 10px; }
@@ -119,6 +120,15 @@
   .instructor-home__skeleton-body > .mantine-Skeleton-root:nth-child(2) { height: 15px !important; }
   .instructor-home__skeleton-body > .mantine-Skeleton-root:nth-child(3) { height: 9px !important; }
   .instructor-home__skeleton-button { height: 36px !important; }
+}
+
+@media (min-width: 1600px) and (max-height: 860px) {
+  .instructor-home__hero { padding-block: 12px; }
+  .instructor-home__hero-copy { width: min(70%,760px); }
+  .instructor-home__hero h2 { margin: 5px 0; font-size: clamp(32px,1.85vw,38px); line-height: 1.02; }
+  .instructor-home__hero-copy > p { max-width: 590px; margin-bottom: 10px; font-size: 15px; line-height: 1.35; }
+  .instructor-home__hero .mantine-Button-root { min-height: 38px; }
+  .instructor-home__hero-art { width: 38%; height: 86%; }
 }
 
 @media (min-width: 761px) and (max-width: 1100px) {
