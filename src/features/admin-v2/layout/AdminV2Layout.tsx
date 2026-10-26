@@ -224,7 +224,7 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
         <main className="admin-v2__main"><div className="admin-v2__content">{children ?? <Outlet context={{ brandView: routeBrand === "all" ? "all" : routeBrand }} />}</div></main>
       </div>
     </div>
-    {isInstructor && <InstructorGuide userId={auth.user?.id ?? "instructor"} pathname={pathname} />}
+    {isInstructor && <InstructorGuide userId={auth.user?.id ?? "instructor"} pathname={pathname} courseCount={workspace.courses.length} />}
     {resetOpen && <ConfirmDialog title="Reset local Admin cache?" detail="This clears this browser's saved Admin cache. Server records are not changed." confirmLabel="Reset cache" onCancel={() => setResetOpen(false)} onConfirm={() => { resetAdminV2(); setResetOpen(false); }} />}
   </AdminV2UiProvider></AdminV2Context.Provider>;
 }

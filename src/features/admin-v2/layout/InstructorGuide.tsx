@@ -63,7 +63,7 @@ export function resetInstructorGuideSession(userId: string) {
   } catch { /* The next authenticated browser session will still initialize the guide. */ }
 }
 
-export function InstructorGuide({ userId, pathname }: { userId: string; pathname: string }) {
+export function InstructorGuide({ userId, pathname, courseCount }: { userId: string; pathname: string; courseCount: number }) {
   const guide = useMemo(() => routeGuides.find(item => item.matches(pathname)), [pathname]);
   const [enabled, setEnabled] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
@@ -85,9 +85,9 @@ export function InstructorGuide({ userId, pathname }: { userId: string; pathname
     const dismissed = safeGet(sessionStorage, `greenlearn.instructor-guide.dismissed.${userId}`) === "true";
     let done: string[] = [];
     try { done = JSON.parse(safeGet(sessionStorage, `greenlearn.instructor-guide.done.${userId}`) ?? "[]") as string[]; } catch { done = []; }
-    setEnabled(count <= 3 && !dismissed && !done.includes(guide.id));
+    setEnabled((count <= 3 || courseCount <= 2) && !dismissed && !done.includes(guide.id));
     setStepIndex(0);
-  }, [guide, userId]);
+  }, [courseCount, guide, userId]);
 
   const currentStep = guide?.steps[stepIndex];
   useEffect(() => {
