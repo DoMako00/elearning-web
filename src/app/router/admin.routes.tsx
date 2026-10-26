@@ -15,6 +15,8 @@ const AdminAssignmentReviewPage = lazy(() => import("../../features/admin-v2/ass
 const InstructorCoursesPage = lazy(() => import("../../features/admin-v2/instructor/InstructorCoursesPage").then((m) => ({ default: m.InstructorCoursesPage })));
 const InstructorOverviewPage = lazy(() => import("../../features/admin-v2/instructor/InstructorOverviewPage").then((m) => ({ default: m.InstructorOverviewPage })));
 const InstructorCourseContentPage = lazy(() => import("../../features/admin-v2/instructor/InstructorCourseContentPage").then((m) => ({ default: m.InstructorCourseContentPage })));
+const InstructorStudentsPage = lazy(() => import("../../features/admin-v2/instructor/InstructorStudentsPage").then((m) => ({ default: m.InstructorStudentsPage })));
+const InstructorSubscriptionsPage = lazy(() => import("../../features/admin-v2/instructor/InstructorSubscriptionsPage").then((m) => ({ default: m.InstructorSubscriptionsPage })));
 const AdminContentApprovalsPage = lazy(() => import("../../features/admin-v2/content/ContentApprovalsPage").then((m) => ({ default: m.ContentApprovalsPage })));
 
 function withAdminSuspense<P extends object>(Component: ComponentType<P>, props: P) {
@@ -43,6 +45,8 @@ export const adminRoutes: RouteObject[] = [{
     { path: "instructor", element: withAdminSuspense(InstructorOverviewPage, {}) },
     { path: "instructor/courses", element: withAdminSuspense(InstructorCoursesPage, {}) },
     { path: "instructor/courses/:courseId", element: withAdminSuspense(InstructorCourseContentPage, {}) },
+    { path: "instructor/students", element: withAdminSuspense(InstructorStudentsPage, {}) },
+    { path: "instructor/subscriptions", element: withAdminSuspense(InstructorSubscriptionsPage, {}) },
     { path: "instructor/content", element: <Navigate to="/admin/instructor/courses" replace /> },
     { path: "instructor/assignments", element: withAdminSuspense(AdminAssignmentReviewPage, {}) },
     { path: "instructor/assessments", element: withAdminSuspense(AdminAssessmentsPage, {}) },

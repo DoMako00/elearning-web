@@ -1251,3 +1251,7 @@
   .admin-v2__approval-history-row { grid-template-columns: minmax(0, 1fr); }
   .admin-v2__approval-history-row > div:last-of-type { justify-self: start; }
 }
+.admin-v2__instructor-student-roster { min-width: 0; }
+@media (min-width: 62em) {
+  .admin-v2__instructor-student-roster { grid-column: span 2; }
+}

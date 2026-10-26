@@ -1,4 +1,4 @@
-import { Bell, BookOpen, ChevronDown, Crown, GraduationCap, LayoutDashboard, LibraryBig, Search, ShieldCheck, CreditCard, Files, UserRound, CalendarDays, Layers3, RotateCcw, LogOut, MessageSquare, ClipboardCheck } from "lucide-react";
+import { Bell, BookOpen, ChevronDown, Crown, GraduationCap, LayoutDashboard, LibraryBig, Search, ShieldCheck, CreditCard, Files, UserRound, CalendarDays, Layers3, RotateCcw, LogOut, MessageSquare, ClipboardCheck, ReceiptText } from "lucide-react";
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type Dispatch, type PropsWithChildren, type SetStateAction } from "react";
 import { Navigate, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../app/providers/AuthProvider";
@@ -44,6 +44,8 @@ const routeIcons = [LayoutDashboard, BookOpen, LibraryBig, UserRound, Graduation
 const instructorNavigation = [
   { label: "Home", path: "/admin/instructor", icon: LayoutDashboard, description: "Your next teaching tasks and course activity." },
   { label: "My courses", path: "/admin/instructor/courses", icon: LibraryBig, description: "Build lessons and learning materials for assigned courses." },
+  { label: "Students", path: "/admin/instructor/students", icon: UserRound, description: "Create accounts for your courses and manage students you created." },
+  { label: "Subscriptions", path: "/admin/instructor/subscriptions", icon: ReceiptText, description: "Prepare student purchase requests and track Super Admin payment review." },
   { label: "Assignments & grading", path: "/admin/instructor/assignments", icon: ClipboardCheck, description: "Publish coursework and grade student submissions." },
   { label: "Exams & quizzes", path: "/admin/instructor/assessments", icon: GraduationCap, description: "Create, publish, and review course assessments." },
 ];
