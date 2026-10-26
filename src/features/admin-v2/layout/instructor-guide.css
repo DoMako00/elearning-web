@@ -20,10 +20,22 @@
 .instructor-guide__actions { justify-content: flex-end; padding-top: 13px; border-top: 1px solid rgb(219 241 255 / 11%); }
 .instructor-guide__skip { margin-right: auto; padding: 8px 0; color: #9bb2c0; background: transparent; font-size: 11px; }
 .instructor-guide__skip:hover, .instructor-guide__back:hover { color: #e5fff7; }
+.instructor-guide__permanent { display: block; margin: 9px 0 0 auto; padding: 3px 0; color: #8199aa; background: transparent; border: 0; cursor: pointer; font-size: 10px; text-decoration: underline; text-decoration-color: rgb(129 153 170 / 40%); text-underline-offset: 3px; }
+.instructor-guide__permanent:hover { color: #ffd4cb; text-decoration-color: currentColor; }
 .instructor-guide__next { display: inline-flex; align-items: center; gap: 8px; padding: 9px 15px; color: #082c30; background: linear-gradient(110deg, #75f0c8, #8de2ff); border: 1px solid rgb(220 255 248 / 58%); border-radius: 9px; box-shadow: 0 5px 16px rgb(70 226 193 / 22%); font-size: 11px; font-weight: 850; transition: transform 150ms ease, box-shadow 150ms ease; }
 .instructor-guide__next:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgb(70 226 193 / 34%); }
 .instructor-guide__back { display: inline-flex; align-items: center; gap: 5px; margin-top: 10px; padding: 4px 0; color: #9bb2c0; background: transparent; font-size: 10px; }
 .instructor-guide__panel button:focus-visible { outline: 2px solid #83f2d5; outline-offset: 3px; }
+.instructor-guide__confirm-backdrop { position: fixed; inset: 0; z-index: 10010; display: grid; place-items: center; padding: 20px; background: rgb(2 8 15 / 66%); backdrop-filter: blur(8px); animation: instructor-guide-scrim-in 180ms ease both; }
+.instructor-guide__confirm { width: min(440px, 100%); padding: 24px; color: #eaf8ff; background: radial-gradient(ellipse at 100% 0, rgb(130 70 70 / 24%), transparent 52%), linear-gradient(145deg, #172334, #172c37); border: 1px solid rgb(255 195 173 / 35%); border-radius: 18px; box-shadow: 0 28px 90px rgb(0 0 0 / 55%); animation: instructor-guide-panel-in 220ms ease both; }
+.instructor-guide__confirm-mark { width: 34px; height: 34px; display: grid; place-items: center; color: #ffcfb9; background: rgb(255 156 126 / 13%); border: 1px solid rgb(255 180 147 / 34%); border-radius: 11px; font-size: 18px; font-weight: 850; }
+.instructor-guide__confirm h2 { margin: 15px 0 8px; color: #fff4ef; font-size: 20px; }
+.instructor-guide__confirm p { margin: 0; color: #bbcad5; font-size: 12.5px; line-height: 1.65; }
+.instructor-guide__confirm > div { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 9px; margin-top: 22px; }
+.instructor-guide__confirm button { min-height: 38px; padding: 0 13px; border-radius: 9px; cursor: pointer; font-size: 11px; font-weight: 750; }
+.instructor-guide__confirm-cancel { color: #c6d6df; background: rgb(255 255 255 / 6%); border: 1px solid rgb(220 241 255 / 16%); }
+.instructor-guide__confirm-disable { color: #fff4ef; background: linear-gradient(110deg, #a84f4a, #c66d59); border: 1px solid rgb(255 211 188 / 34%); box-shadow: 0 5px 18px rgb(194 87 73 / 20%); }
+.instructor-guide__confirm button:focus-visible { outline: 2px solid #ffcfb9; outline-offset: 3px; }
 @keyframes instructor-guide-pointer-pulse { 0%, 100% { opacity: .52; transform: translate(-50%, 3px) scale(.96); } 50% { opacity: 1; transform: translate(-50%, -4px) scale(1.03); } }
 @keyframes instructor-guide-panel-in { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes instructor-guide-scrim-in { from { opacity: 0; } to { opacity: 1; } }

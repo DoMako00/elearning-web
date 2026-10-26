@@ -68,6 +68,7 @@ export function InstructorGuide({ userId, pathname, courseCount }: { userId: str
   const [enabled, setEnabled] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
+  const [confirmPermanentOptOut, setConfirmPermanentOptOut] = useState(false);
 
   useEffect(() => {
     if (!guide || !userId) { setEnabled(false); return; }
@@ -83,9 +84,10 @@ export function InstructorGuide({ userId, pathname, courseCount }: { userId: str
     }
     const count = Number(safeGet(localStorage, `greenlearn.instructor-guide.logins.${userId}`) ?? "1");
     const dismissed = safeGet(sessionStorage, `greenlearn.instructor-guide.dismissed.${userId}`) === "true";
+    const permanentlyDisabled = safeGet(localStorage, `greenlearn.instructor-guide.disabled.${userId}`) === "true";
     let done: string[] = [];
     try { done = JSON.parse(safeGet(sessionStorage, `greenlearn.instructor-guide.done.${userId}`) ?? "[]") as string[]; } catch { done = []; }
-    setEnabled((count <= 3 || courseCount <= 2) && !dismissed && !done.includes(guide.id));
+    setEnabled(!permanentlyDisabled && (count <= 3 || courseCount <= 2) && !dismissed && !done.includes(guide.id));
     setStepIndex(0);
   }, [courseCount, guide, userId]);
 
@@ -123,6 +125,11 @@ export function InstructorGuide({ userId, pathname, courseCount }: { userId: str
     safeSet(sessionStorage, `greenlearn.instructor-guide.dismissed.${userId}`, "true");
     setEnabled(false);
   };
+  const permanentlyDisable = () => {
+    safeSet(localStorage, `greenlearn.instructor-guide.disabled.${userId}`, "true");
+    setConfirmPermanentOptOut(false);
+    setEnabled(false);
+  };
   const finishRoute = () => {
     const key = `greenlearn.instructor-guide.done.${userId}`;
     let done: string[] = [];
@@ -149,7 +156,16 @@ export function InstructorGuide({ userId, pathname, courseCount }: { userId: str
         <button type="button" className="instructor-guide__skip" onClick={dismiss}>Skip guide</button>
         <button type="button" className="instructor-guide__next" onClick={next}>{stepIndex + 1 === guide.steps.length ? "Done" : "Next"}<ArrowRight size={15} /></button>
       </div>
+      <button type="button" className="instructor-guide__permanent" onClick={() => setConfirmPermanentOptOut(true)}>Don&apos;t show this guide again</button>
       {stepIndex > 0 && <button type="button" className="instructor-guide__back" onClick={() => setStepIndex(value => Math.max(0, value - 1))}><ArrowLeft size={13} /> Previous</button>}
     </section>
+    {confirmPermanentOptOut && <div className="instructor-guide__confirm-backdrop">
+      <section className="instructor-guide__confirm" role="alertdialog" aria-modal="true" aria-labelledby="instructor-guide-confirm-title" aria-describedby="instructor-guide-confirm-copy">
+        <span className="instructor-guide__confirm-mark" aria-hidden="true">!</span>
+        <h2 id="instructor-guide-confirm-title">Turn off the instructor guide?</h2>
+        <p id="instructor-guide-confirm-copy">If you continue, this guide will never appear again for your account, even if you have fewer than three courses. This can’t be undone here.</p>
+        <div><button type="button" className="instructor-guide__confirm-cancel" onClick={() => setConfirmPermanentOptOut(false)}>Keep the guide</button><button type="button" className="instructor-guide__confirm-disable" onClick={permanentlyDisable}>Yes, turn it off</button></div>
+      </section>
+    </div>}
   </>;
 }
