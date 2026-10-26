@@ -18,6 +18,7 @@ import "../styles/admin-v2-phase2.css";
 
 import { getWorkspaceCopy, INSTRUCTOR_SUPPORT_LINK } from "../copy/workspace-copy";
 import { InstructorGuide, resetInstructorGuideSession } from "./InstructorGuide";
+import { PageBreadcrumb } from "../../../components/ui/PageBreadcrumb";
 
 interface AdminV2ContextValue {
   data: AdminV2Data;
@@ -185,7 +186,7 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
   const copy = getWorkspaceCopy(workspace.workspace);
 
   return <AdminV2Context.Provider value={context}><AdminV2UiProvider>
-    <div className="admin-v2">
+    <div className={`admin-v2${isInstructor ? " admin-v2--instructor" : ""}`}>
       <aside className="admin-v2__sidebar">
         <NavLink to={copy.sidebar.brandHomeRoute} className="admin-v2__brand" aria-label={copy.sidebar.brandHomeAriaLabel}><span className="admin-v2__brand-mark"><BookOpen aria-hidden="true" /></span><span><strong>GreenLearn</strong><small>{copy.sidebar.brandConsoleSmall}</small></span></NavLink>
         <div className="admin-v2__nav-label">{copy.sidebar.workspaceLabel}</div>
@@ -208,10 +209,10 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
       </aside>
       <div className="admin-v2__workspace">
         <header className="admin-v2__topbar">
-          <div className="admin-v2__route-title"><span className="admin-v2__workspace-kicker">{copy.topbar.kicker}</span><h1>{routeLabel}</h1><p>{routeSubtitle}</p></div>
+          {isInstructor ? <div className="admin-v2__instructor-breadcrumb"><PageBreadcrumb trail={pathname === "/admin/instructor" ? [{ label: "WORKSPACE", to: "/admin/instructor" }] : pathname.startsWith("/admin/instructor/courses/") ? [{ label: "WORKSPACE", to: "/admin/instructor" }, { label: "MY COURSES", to: "/admin/instructor/courses" }] : [{ label: "WORKSPACE", to: "/admin/instructor" }]} title={routeLabel} /></div> : <div className="admin-v2__route-title"><span className="admin-v2__workspace-kicker">{copy.topbar.kicker}</span><h1>{routeLabel}</h1><p>{routeSubtitle}</p></div>}
           {!isInstructor ? (
             <label className="admin-v2__global-search"><Search aria-hidden="true" /><input ref={searchRef} value={globalSearch} onChange={(event) => setGlobalSearch(event.target.value)} placeholder={copy.topbar.searchPlaceholder} aria-label={copy.topbar.searchAriaLabel} /><kbd>Ctrl K</kbd></label>
-          ) : <div style={{ flex: 1 }} />}
+          ) : null}
           <div className="admin-v2__top-actions">
             {routeBrandChoices.length > 0 && <div className="admin-v2__brand-switch" role="group" aria-label="Brand filter">{routeBrandChoices.map((choice) => <button key={choice} type="button" aria-pressed={routeBrand === choice} title={choice === "all" ? "Show all brands across Admin" : `Filter Admin by ${brandName(choice)}`} className={choice === "all" ? "is-all" : `is-${choice}`} onClick={() => setBrand(choice)}>{choice === "all" ? <Layers3 aria-hidden="true" /> : choice === "elite" ? <Crown aria-hidden="true" /> : <ShieldCheck aria-hidden="true" />}<span>{choice === "all" ? "All brands" : brandName(choice)}</span></button>)}</div>}
             {!isInstructor && (

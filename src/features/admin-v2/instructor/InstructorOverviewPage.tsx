@@ -1,14 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-import { Alert, Badge, Button, Card, Group, SimpleGrid, Stack, Text, ThemeIcon, Title } from "@mantine/core";
-import { AlertCircle, ArrowUpRight, BookOpen, CheckCircle2, ClipboardCheck, FileCheck2, GraduationCap, Layers3 } from "lucide-react";
+import { Alert, Button, Card, Group, SimpleGrid, Stack, Text, ThemeIcon } from "@mantine/core";
+import { AlertCircle, ArrowRight, ArrowUpRight, BookOpen, CheckCircle2, ClipboardCheck, FileCheck2, GraduationCap, Layers3 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { adminAssignmentsApi } from "../api/adminAssignmentsApi";
 import { adminAssessmentApi } from "../api/adminAssessmentApi";
 import { listContentReviewRequests } from "../api/adminContentApi";
 import { useAdminV2 } from "../layout/AdminV2Layout";
-import { WorkspaceWorkflow } from "../shared/WorkspaceWorkflow";
 import { getWorkspaceCopy } from "../copy/workspace-copy";
+import "./instructor-home.css";
 
 export function InstructorOverviewPage() {
   const { workspace } = useAdminV2();
@@ -34,71 +34,49 @@ export function InstructorOverviewPage() {
     { title: "Grade student work", detail: "Review submitted answers, leave feedback, and record grades.", action: "Open submissions", to: "/admin/instructor/assignments", icon: ClipboardCheck },
   ];
 
-  return (
-    <section className="admin-v2__workflow-page" aria-label="Instructor dashboard">
-      <Card className="admin-v2__workflow-welcome" withBorder shadow="xs" p="lg">
-        <Group justify="space-between" align="center" wrap="wrap">
-          <Stack gap={5}>
-            <Badge color="green" variant="light" w="fit-content">{copy.topbar.kicker.toUpperCase()}</Badge>
-            <Title order={1}>Your teaching, one step at a time</Title>
-            <Text c="dimmed" size="sm">Build course lessons, publish assessments, and support your students from your assigned courses.</Text>
-          </Stack>
-          <ThemeIcon className="admin-v2__workflow-welcome-icon" color="green" variant="light" size={58} radius="xl"><GraduationCap size={28} /></ThemeIcon>
-        </Group>
-      </Card>
-
-      <SimpleGrid data-instructor-guide-target="home-metrics" className="admin-v2__workflow-metrics" cols={{ base: 1, xs: 2, lg: 4 }} spacing="sm">
-        <Metric label="My courses" value={courses.length.toLocaleString()} note="Assigned by your administrator" icon={BookOpen} />
-        <Metric label="Assignments to grade" value={countLabel(assignments.isLoading, assignments.isError, needsGrading)} note="Submitted student work" icon={ClipboardCheck} />
-        <Metric label="Published exams" value={countLabel(assessments.isLoading, assessments.isError, publishedAssessments)} note="Available to your students" icon={GraduationCap} />
-        <Metric label={copy.content.materialsInReview} value={countLabel(reviews.isLoading, reviews.isError, pendingMaterials)} note={reviews.isError ? "Review status unavailable" : returnedMaterials ? `${returnedMaterials} returned with notes` : copy.content.waitingForAdminApproval} icon={FileCheck2} />
-      </SimpleGrid>
-
-      {(assignments.isError || assessments.isError || reviews.isError) && <Alert color="red" variant="light" icon={<AlertCircle size={17} />} title="Some teaching records could not be loaded">
-        <Group gap="xs" mt={5}>
-          {assignments.isError && <Button size="xs" variant="subtle" onClick={() => void assignments.refetch()}>Retry assignments</Button>}
-          {assessments.isError && <Button size="xs" variant="subtle" onClick={() => void assessments.refetch()}>Retry exams</Button>}
-          {reviews.isError && <Button size="xs" variant="subtle" onClick={() => void reviews.refetch()}>Retry content status</Button>}
-        </Group>
-      </Alert>}
-
-      <WorkspaceWorkflow
-        eyebrow="YOUR TEACHING FLOW"
-        title="From course content to student feedback"
-        description="Follow the course tasks in order. Lesson files stay private until they are approved; assignments and exams can be published by you."
-        steps={workflow}
-      />
-
-      <section className="admin-v2__instructor-courses" aria-labelledby="instructor-courses-title">
-        <Group justify="space-between" align="center" mb="sm">
-          <div><Title id="instructor-courses-title" order={3}>Your assigned courses</Title><Text c="dimmed" size="xs">Open a course to build its lessons and learning materials.</Text></div>
-          <Button data-instructor-guide-target="home-all-courses" component={Link} to="/admin/instructor/courses" variant="light" color="green" rightSection={<ArrowUpRight size={14} />}>All courses</Button>
-        </Group>
-        {courses.length ? <SimpleGrid className="admin-v2__instructor-courses-grid" cols={{ base: 1, sm: 2, xl: 3 }} spacing="sm">
-          {courses.map((course, index) => <Card key={course.id} className="admin-v2__instructor-course-card" withBorder shadow="xs" p="md">
-            <Group justify="space-between" align="flex-start" wrap="nowrap">
-              <ThemeIcon color="green" variant="light" size={40} radius="md"><BookOpen size={19} /></ThemeIcon>
-              <Badge variant="light" color="green">{course.status}</Badge>
-            </Group>
-            <Stack gap={5} mt="md" mb="md">
-              <Text c="dimmed" size="xs" fw={650}>{course.brandName} · {course.code}</Text>
-              <Text fw={700} size="sm">{course.title}</Text>
-              <Text c="dimmed" size="xs">{assignmentCourseSummary(assignmentItems, course.id, assignments.isLoading, assignments.isError)}</Text>
-            </Stack>
-            <Button data-instructor-guide-target={index === 0 ? "home-course-card" : undefined} component={Link} to={`/admin/instructor/courses/${course.id}`} color="green" variant="light" fullWidth rightSection={<ArrowUpRight size={14} />}>{copy.courses.openCourseAction}</Button>
-          </Card>)}
-        </SimpleGrid> : <Card className="admin-v2__instructor-empty" withBorder shadow="xs" p="lg">
-          <ThemeIcon color="green" variant="light" size={46} radius="xl"><CheckCircle2 size={21} /></ThemeIcon>
-          <Stack gap={4}>
-            <Text fw={700}>No courses are assigned yet</Text>
-            <Text c="dimmed" size="sm">Ask your administrator to link your teaching profile to a course. Once assigned, it will appear here and in My Courses.</Text>
-          </Stack>
-        </Card>}
-      </section>
+  return <section className="admin-v2__workflow-page instructor-home" aria-label="Instructor dashboard">
+    <Card className="instructor-home__hero" withBorder shadow="xs">
+      <div className="instructor-home__hero-copy">
+        <span className="instructor-home__eyebrow">TEACHING WORKSPACE</span>
+        <h2>Your teaching,<br />one step at a time.</h2>
+        <p>Build lessons, publish assessments, and support your students.</p>
+        <Button component={Link} to="/admin/instructor/courses" color="green" rightSection={<ArrowRight size={16} />}>View my courses</Button>
+        {(assignments.isError || assessments.isError || reviews.isError) && <Alert className="instructor-home__error" color="red" variant="light" icon={<AlertCircle size={15} />} title="Some teaching records could not be loaded">
+          <Group gap="xs" mt={4}>
+            {assignments.isError && <Button size="xs" variant="subtle" onClick={() => void assignments.refetch()}>Retry assignments</Button>}
+            {assessments.isError && <Button size="xs" variant="subtle" onClick={() => void assessments.refetch()}>Retry exams</Button>}
+            {reviews.isError && <Button size="xs" variant="subtle" onClick={() => void reviews.refetch()}>Retry content status</Button>}
+          </Group>
+        </Alert>}
+      </div>
+      <div className="instructor-home__hero-art" aria-hidden="true"><div className="instructor-home__art-orbit" /><div className="instructor-home__art-glow" /><BookOpen size={132} strokeWidth={1.05} /><GraduationCap size={46} strokeWidth={1.2} /></div>
+    </Card>
+    <Card data-instructor-guide-target="home-workflow" className="instructor-home__next-steps" withBorder shadow="xs">
+      <header><span>START HERE</span><h2>Next steps</h2></header>
+      {workflow.slice(0, 3).map((step, index) => <Link className="instructor-home__next-step" key={step.title} to={step.to}><span className="instructor-home__step-number">{index + 1}</span><span className="instructor-home__step-copy"><strong>{step.title}</strong><small>{step.detail}</small></span><ArrowRight size={16} /></Link>)}
+    </Card>
+    <SimpleGrid data-instructor-guide-target="home-metrics" className="admin-v2__workflow-metrics instructor-home__metrics" cols={{ base: 1, xs: 2, lg: 4 }} spacing="sm">
+      <Metric label="My courses" value={courses.length.toLocaleString()} note="Assigned courses" icon={BookOpen} />
+      <Metric label="Assignments to grade" value={countLabel(assignments.isLoading, assignments.isError, needsGrading)} note="Student submissions" icon={ClipboardCheck} />
+      <Metric label="Published exams" value={countLabel(assessments.isLoading, assessments.isError, publishedAssessments)} note="Available to students" icon={GraduationCap} />
+      <Metric label={copy.content.materialsInReview} value={countLabel(reviews.isLoading, reviews.isError, pendingMaterials)} note={reviews.isError ? "Review status unavailable" : returnedMaterials ? `${returnedMaterials} returned with notes` : copy.content.waitingForAdminApproval} icon={FileCheck2} />
+    </SimpleGrid>
+    <section data-instructor-guide-target="home-assigned-courses" className="instructor-home__courses" aria-labelledby="instructor-courses-title">
+      <header className="instructor-home__section-heading"><div><span>YOUR TEACHING SPACE</span><h2 id="instructor-courses-title">Assigned courses</h2></div><Button data-instructor-guide-target="home-all-courses" component={Link} to="/admin/instructor/courses" variant="subtle" color="green" rightSection={<ArrowUpRight size={14} />}>View all</Button></header>
+      {courses.length ? <div className="instructor-home__course-grid" style={{ gridTemplateColumns: `repeat(${Math.min(courses.length, 3)}, minmax(0, 1fr))` }}>
+        {courses.slice(0, 3).map((course, index) => <Card key={course.id} className="instructor-home__course" withBorder shadow="xs">
+          <div className={`instructor-home__course-art is-${index % 3}`}><BookOpen size={34} strokeWidth={1.3} /><span>{course.brandName}</span></div>
+          <div className="instructor-home__course-body"><span className="instructor-home__course-code">{course.code} · {course.status}</span><h3>{course.title}</h3><p>{assignmentCourseSummary(assignmentItems, course.id, assignments.isLoading, assignments.isError)}</p><Button data-instructor-guide-target={index === 0 ? "home-course-card" : undefined} component={Link} to={`/admin/instructor/courses/${course.id}`} variant="light" color="green" fullWidth rightSection={<ArrowRight size={14} />}>{copy.courses.openCourseAction}</Button></div>
+        </Card>)}
+      </div> : <div data-instructor-guide-target="home-course-card" className="instructor-home__empty"><CheckCircle2 size={22} /><div><strong>No courses assigned yet</strong><p>Ask your administrator to assign a course. It will appear here when it is ready for teaching.</p></div></div>}
     </section>
-  );
+    <Card data-instructor-guide-target="home-teaching-flow" className="instructor-home__teaching-flow" withBorder shadow="xs">
+      <header><span>YOUR ROUTINE</span><h2>Teaching workflow</h2></header>
+      <ol>{workflow.map((step, index) => { const Icon = step.icon; return <li key={step.title}><span className="instructor-home__flow-icon"><Icon size={15} /></span><Link to={step.to}><strong>{step.title}</strong><small>{step.detail}</small></Link><span className="instructor-home__flow-index">0{index + 1}</span></li>; })}</ol>
+      <p className="instructor-home__approval-note"><FileCheck2 size={14} /> Lesson files stay private until approved.</p>
+    </Card>
+  </section>;
 }
-
 function Metric({ label, value, note, icon: Icon }: { label: string; value: string; note: string; icon: LucideIcon }) {
   return <Card className="admin-v2__workflow-metric" withBorder shadow="xs" p="md"><Group wrap="nowrap"><ThemeIcon color="green" variant="light" size={42} radius="md"><Icon size={19} /></ThemeIcon><Stack gap={2} style={{ minWidth: 0 }}><Text c="dimmed" size="xs" fw={600}>{label}</Text><Text className="admin-v2__workflow-metric-value" fw={750} size="xl">{value}</Text><Text c="dimmed" size="xs">{note}</Text></Stack></Group></Card>;
 }

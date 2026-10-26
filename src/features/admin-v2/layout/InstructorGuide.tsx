@@ -7,13 +7,14 @@ type GuideStep = { title: string; description: string; selector: string };
 const routeGuides: Array<{ matches: (path: string) => boolean; id: string; steps: GuideStep[] }> = [
   { matches: path => path === "/admin/instructor", id: "home", steps: [
     { title: "Your teaching snapshot", description: "Start here to check your assigned courses, upcoming grading, published exams, and lesson files waiting for approval.", selector: "[data-instructor-guide-target='home-metrics']" },
-    { title: "Follow the teaching flow", description: "The workflow cards show the usual order: open a course, build lessons, create assessments, publish assignments, then review student work.", selector: ".admin-v2__workflow" },
+    { title: "Choose your next action", description: "These shortcuts take you straight to a course, lesson materials, or an assessment task.", selector: "[data-instructor-guide-target='home-workflow']" },
+    { title: "Follow the teaching flow", description: "Use the checklist to move from opening a course through building lessons, creating assessments, publishing assignments, and grading work.", selector: "[data-instructor-guide-target='home-teaching-flow']" },
     { title: "Open your course list", description: "Use All courses to see every course assigned to your instructor account.", selector: "[data-instructor-guide-target='home-all-courses']" },
     { title: "Choose a course", description: "Open a course card to start creating its chapters, lessons, and learning materials. If no course is assigned, contact your administrator.", selector: "[data-instructor-guide-target='home-course-card']" },
   ] },
   { matches: path => path === "/admin/instructor/courses", id: "courses", steps: [
     { title: "Your assigned courses", description: "This page shows the teaching spaces that your administrator has assigned to you.", selector: ".admin-v2__page-header" },
-    { title: "Check course details", description: "Each card shows the course brand, code, and academic placement so you can confirm you opened the right course.", selector: "[data-instructor-guide-target='course-card']" },
+    { title: "Check course access", description: "Assigned courses appear here with their brand and academic details. If the list is empty, ask your administrator to assign a course.", selector: "[data-instructor-guide-target='course-card']" },
     { title: "Open the course workspace", description: "Select Open course to manage chapters, lessons, and files for this course.", selector: "[data-instructor-guide-target='course-open']" },
   ] },
   { matches: path => /^\/admin\/instructor\/courses\/[^/]+$/.test(path), id: "course-content", steps: [
