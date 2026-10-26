@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, BookOpen, FileText, Plus, Upload } from "lucide-react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { BookOpen, FileCheck2, FileText, Plus, Upload } from "lucide-react";
+import { Navigate, useParams } from "react-router-dom";
 import { useAdminV2 } from "../layout/AdminV2Layout";
 import { createStructureRecord, listStructure, type BrandCourse } from "../api/adminAcademicApi";
 import { createLessonResource, createMediaAsset, listContentReviewRequests, listLessonMedia, listLessonResources, submitContentReview, uploadAndVerifyMedia, type ContentReviewRequestDto } from "../api/adminContentApi";
@@ -9,6 +9,7 @@ import type { BrandAccess } from "../api/adminAcademicApi";
 import { getWorkspaceCopy } from "../copy/workspace-copy";
 import { friendlyError, type FriendlyErrorInfo } from "../utils/friendlyError";
 import { FriendlyErrorNotice } from "../shared/FriendlyErrorNotice";
+import "./instructor-course-builder.css";
 
 export function InstructorCourseContentPage() {
   const { courseId = "" } = useParams();
@@ -60,43 +61,49 @@ export function InstructorCourseContentPage() {
   },onSuccess:async()=>{setFile(null);setResourceTitle("");setVideoDuration("");setNotice("File uploaded and verified. It is now waiting for administrator review before students can access it.");setErrorInfo(null);await refresh();},onError:e=>setErrorInfo(friendlyError(e))});
 
   if(!course)return <Navigate to="/admin/instructor/courses" replace />;
-  return <section className="admin-v2__page">
-    <header className="admin-v2__page-header"><div><Link to="/admin/instructor/courses" className="admin-v2__back-link"><ArrowLeft size={13}/> My Courses</Link><h1>{course.title}</h1><p>{course.brandName} · {course.code} · chapters, lessons, and review-gated resources.</p></div><span className="admin-v2__status-chip"><BookOpen size={14}/>{course.status}</span></header>
-    {notice&&<p role="status" className="admin-v2__inline-notice">{notice}</p>}
-    <FriendlyErrorNotice error={errorInfo} />
-    <div className="admin-v2__workgrid has-inspector">
-      <section className="admin-v2__table-card">
-        <header className="admin-v2__table-toolbar"><div><strong>Course structure</strong><span>{chapters.length} chapters · {lessons.length} lessons</span></div></header>
-        {structure.isLoading?<div role="status" className="admin-v2__empty">Loading your course structure…</div>:structure.isError?<FriendlyErrorNotice error={friendlyError(structure.error)} onRetry={()=>void structure.refetch()} />:<div data-instructor-guide-target="lesson-list" className="admin-v2__table-scroll">
-          {!chapters.length&&<div className="admin-v2__empty">No chapters yet. Add a chapter to start building this course.</div>}
-          {chapters.map(chapter=><section key={chapter.id} className="admin-v2__inspector-section"><header><h3>{chapter.title}</h3><small>{chapter.status} · {lessons.filter(item=>item.courseChapterId===chapter.id).length} lessons</small></header>
-            {lessons.filter(item=>item.courseChapterId===chapter.id).map(lesson=><button key={lesson.id} type="button" className={`admin-v2__nav-link${selectedLesson?.id===lesson.id?" is-active":""}`} style={{width:"100%",justifyContent:"space-between"}} onClick={()=>setSelectedLessonId(lesson.id)}><span>{lesson.title}</span><span>{lesson.status}</span></button>)}
+  return <section className="instructor-course-builder" aria-label={`${course.title} course builder`}>
+    <div className="instructor-course-builder__grid">
+      <aside className="instructor-course-builder__outline">
+        <header><div><span>COURSE STRUCTURE</span><h2>Chapters &amp; lessons</h2></div><small>{chapters.length} chapters · {lessons.length} lessons</small></header>
+        <div data-instructor-guide-target="lesson-list" className="instructor-course-builder__tree">
+          {structure.isLoading ? <div role="status" className="instructor-course-builder__empty">Loading your course structure…</div> : structure.isError ? <FriendlyErrorNotice error={friendlyError(structure.error)} onRetry={() => void structure.refetch()} /> : !chapters.length ? <div className="instructor-course-builder__empty"><BookOpen size={20} /><strong>No chapters yet</strong><span>Add a chapter to start building this course.</span></div> : chapters.map(chapter => <section key={chapter.id} className="instructor-course-builder__chapter">
+            <header><BookOpen size={15} /><strong>{chapter.title}</strong><small>{chapter.status}</small></header>
+            {lessons.filter(item => item.courseChapterId === chapter.id).map(lesson => <button key={lesson.id} type="button" className={`instructor-course-builder__lesson${selectedLesson?.id === lesson.id ? " is-selected" : ""}`} onClick={() => setSelectedLessonId(lesson.id)}><FileText size={14} /><span>{lesson.title}</span><small>{lesson.status}</small></button>)}
           </section>)}
-        </div>}
-        <div className="admin-v2__inspector-content">
-          <form data-instructor-guide-target="chapter-form" className="admin-v2__table-tools" onSubmit={e=>{e.preventDefault();createChapter.mutate();}}><label className="admin-v2__field"><span>New chapter</span><input value={chapterTitle} onChange={e=>setChapterTitle(e.target.value)} maxLength={240} placeholder="e.g. Introduction" /></label><button className="admin-v2__button" type="submit" disabled={!chapterTitle.trim()||createChapter.isPending}><Plus size={13}/>Add chapter</button></form>
-          {selectedChapter&&<form data-instructor-guide-target="lesson-form" className="admin-v2__table-tools" onSubmit={e=>{e.preventDefault();createLesson.mutate();}}><label className="admin-v2__field"><span>Lesson in {selectedChapter.title}</span><input value={lessonTitle} onChange={e=>setLessonTitle(e.target.value)} maxLength={240} placeholder="Lesson title" /></label><label className="admin-v2__field"><span>Description</span><input value={lessonDescription} onChange={e=>setLessonDescription(e.target.value)} maxLength={2000} placeholder="Optional lesson summary" /></label><button className="admin-v2__button" type="submit" disabled={!lessonTitle.trim()||createLesson.isPending}><Plus size={13}/>Add lesson</button></form>}
         </div>
-      </section>
-      <aside className="admin-v2__inspector admin-v2__course-inspector">
-        {!selectedLesson?<div className="admin-v2__empty-inspector"><FileText size={21}/><strong>Select or create a lesson</strong><span>Lesson files stay private until an administrator approves the submitted version.</span></div>:<>
-          <header className="admin-v2__inspector-title"><div><h2>{selectedLesson.title}</h2><small>{selectedChapter?.title??"Course lesson"} · {selectedLesson.status}</small></div></header>
-          {resources.isError&&<FriendlyErrorNotice error={friendlyError(resources.error)} onRetry={()=>void resources.refetch()} />}
-          <div className="admin-v2__inspector-section"><header><h3>Lesson files</h3><span>{lessonResources.length} resources</span></header>
-            {lessonResources.map(resource=>{const review=reviewByTarget.get(resource.id);return <div key={resource.id} className="admin-v2__inspector-content"><strong>{resource.title}</strong><small>{resource.resourceKind} · {resource.status} · {review?.status??"Not submitted"}</small>{review?.status==="rejected"&&<p role="alert">{copy.content.reviewNotePrefix}{review.rejectionReason}</p>}</div>;})}
-            {!lessonResources.length&&!resources.isLoading&&<div className="admin-v2__empty-inline">No files attached to this lesson yet.</div>}
-          </div>
-          <form data-instructor-guide-target="resource-title" className="admin-v2__inspector-section" onSubmit={e=>{e.preventDefault();uploadResource.mutate();}}><header><h3>Upload video or PDF</h3><Upload size={14}/></header><div className="admin-v2__inspector-content">
-            <label className="admin-v2__field"><span>Title</span><input data-instructor-guide-target="resource-title-input" value={resourceTitle} onChange={e=>setResourceTitle(e.target.value)} maxLength={240} required /></label>
-            <label className="admin-v2__field"><span>File</span><input data-instructor-guide-target="resource-file" type="file" accept=".pdf,application/pdf,.mp4,video/mp4" onChange={e=>setFile(e.target.files?.[0]??null)} required /></label>
-            {file?.type==="video/mp4"||file?.name.toLowerCase().endsWith(".mp4")?<label className="admin-v2__field"><span>Video duration (seconds)</span><input type="number" min={1} max={86400} value={videoDuration} onChange={e=>setVideoDuration(e.target.value)} required /></label>:null}
-            <p className="admin-v2__muted">{copy.content.uploadHelperText}</p>
-            <button data-instructor-guide-target="resource-submit" className="admin-v2__button is-primary" type="submit" disabled={!file||!resourceTitle.trim()||uploadResource.isPending}>{uploadResource.isPending?"Uploading and verifying…":<><Upload size={13}/>{copy.content.uploadButtonLabel}</>}</button>
-          </div></form>
+        <div className="instructor-course-builder__create-forms">
+          <form data-instructor-guide-target="chapter-form" onSubmit={e => { e.preventDefault(); createChapter.mutate(); }}><label><span>New chapter</span><input value={chapterTitle} onChange={e => setChapterTitle(e.target.value)} maxLength={240} placeholder="e.g. Introduction" /></label><button type="submit" disabled={!chapterTitle.trim() || createChapter.isPending}><Plus size={14} /> Add chapter</button></form>
+          {selectedChapter && <form data-instructor-guide-target="lesson-form" onSubmit={e => { e.preventDefault(); createLesson.mutate(); }}><label><span>New lesson in {selectedChapter.title}</span><input value={lessonTitle} onChange={e => setLessonTitle(e.target.value)} maxLength={240} placeholder="Lesson title" /></label><label><span>Lesson summary</span><input value={lessonDescription} onChange={e => setLessonDescription(e.target.value)} maxLength={2000} placeholder="Optional summary" /></label><button type="submit" disabled={!lessonTitle.trim() || createLesson.isPending}><Plus size={14} /> Add lesson</button></form>}
+        </div>
+      </aside>
+
+      <section className="instructor-course-builder__lesson-workspace">
+        {!selectedLesson ? <div className="instructor-course-builder__empty-workspace"><FileText size={28} /><h2>Select a lesson</h2><p>Choose a lesson from the course structure or create a new one to manage its files.</p></div> : <>
+          <header className="instructor-course-builder__lesson-heading"><div><span>LESSON WORKSPACE</span><h1>{selectedLesson.title}</h1><small>{selectedChapter?.title ?? "Course lesson"} · {selectedLesson.status}</small></div><span className={`instructor-course-builder__status is-${selectedLesson.status}`}>{selectedLesson.status}</span></header>
+          {notice && <p role="status" className="instructor-course-builder__notice">{notice}</p>}
+          <FriendlyErrorNotice error={errorInfo} />
+          {resources.isError && <FriendlyErrorNotice error={friendlyError(resources.error)} onRetry={() => void resources.refetch()} />}
+          <section className="instructor-course-builder__resource-list" aria-labelledby="lesson-files-heading"><header><div><span>LESSON MATERIALS</span><h2 id="lesson-files-heading">Videos &amp; files</h2></div><small>{lessonResources.length} resources</small></header>
+            {lessonResources.map(resource => { const review = reviewByTarget.get(resource.id); return <article key={resource.id} className="instructor-course-builder__resource"><span className="instructor-course-builder__resource-icon"><FileText size={17} /></span><div><strong>{resource.title}</strong><small>{resource.resourceKind} · {resource.status}</small></div><span className={`instructor-course-builder__review-state is-${review?.status ?? "draft"}`}>{review?.status ?? "Not submitted"}</span>{review?.status === "rejected" && <p role="alert">{copy.content.reviewNotePrefix}{review.rejectionReason}</p>}</article>; })}
+            {!lessonResources.length && !resources.isLoading && <div className="instructor-course-builder__no-files"><FileCheck2 size={22} /><strong>No files attached</strong><span>Add a PDF or video from Lesson settings. Submitted files stay private until approved.</span></div>}
+          </section>
         </>}
+      </section>
+
+      <aside className="instructor-course-builder__settings">
+        <header><span>LESSON SETTINGS</span><h2>{selectedLesson?.title ?? "Course access"}</h2></header>
+        <dl className="instructor-course-builder__metadata"><div><dt>Course</dt><dd>{course.title}</dd></div><div><dt>Chapter</dt><dd>{selectedChapter?.title ?? "Select a lesson"}</dd></div><div><dt>Visibility</dt><dd><span className="instructor-course-builder__private"><FileCheck2 size={13} /> Private draft</span></dd></div></dl>
+        {selectedLesson ? <form data-instructor-guide-target="resource-title" className="instructor-course-builder__upload" onSubmit={e => { e.preventDefault(); uploadResource.mutate(); }}>
+          <header><h3>Upload video or PDF</h3><Upload size={15} /></header>
+          <label className="instructor-course-builder__field"><span>Resource title</span><input data-instructor-guide-target="resource-title-input" value={resourceTitle} onChange={e => setResourceTitle(e.target.value)} maxLength={240} required placeholder="e.g. Chapter slides" /></label>
+          <label data-instructor-guide-target="resource-file" className="instructor-course-builder__file"><Upload size={19} /><strong>{file?.name ?? "Choose a PDF or MP4"}</strong><small>PDF documents and MP4 videos</small><input type="file" accept=".pdf,application/pdf,.mp4,video/mp4" onChange={e => setFile(e.target.files?.[0] ?? null)} required /></label>
+          {file?.type === "video/mp4" || file?.name.toLowerCase().endsWith(".mp4") ? <label className="instructor-course-builder__field"><span>Video duration (seconds)</span><input type="number" min={1} max={86400} value={videoDuration} onChange={e => setVideoDuration(e.target.value)} required /></label> : null}
+          <p>{copy.content.uploadHelperText}</p>
+          <button data-instructor-guide-target="resource-submit" type="submit" disabled={!file || !resourceTitle.trim() || uploadResource.isPending}>{uploadResource.isPending ? "Uploading and verifying…" : <><Upload size={14} /> {copy.content.uploadButtonLabel}</>}</button>
+        </form> : <div className="instructor-course-builder__approval"><FileCheck2 size={18} /><strong>Choose a lesson first</strong><p>Select a lesson to upload files and track its approval status.</p></div>}
+        <div className="instructor-course-builder__approval"><FileCheck2 size={16} /><span><strong>File approval</strong><small>Lesson files remain private to students until an administrator approves them.</small></span></div>
       </aside>
     </div>
   </section>;
 }
-
 export default InstructorCourseContentPage;

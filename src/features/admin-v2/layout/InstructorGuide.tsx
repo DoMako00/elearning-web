@@ -13,7 +13,7 @@ const routeGuides: Array<{ matches: (path: string) => boolean; id: string; steps
     { title: "Choose a course", description: "Open a course card to start creating its chapters, lessons, and learning materials. If no course is assigned, contact your administrator.", selector: "[data-instructor-guide-target='home-course-card']" },
   ] },
   { matches: path => path === "/admin/instructor/courses", id: "courses", steps: [
-    { title: "Your assigned courses", description: "This page shows the teaching spaces that your administrator has assigned to you.", selector: ".admin-v2__page-header" },
+    { title: "Your assigned courses", description: "This panel lists the teaching spaces your administrator assigned. Search the list, then select a course to see its teaching tools.", selector: "[data-instructor-guide-target='course-list-header']" },
     { title: "Check course access", description: "Assigned courses appear here with their brand and academic details. If the list is empty, ask your administrator to assign a course.", selector: "[data-instructor-guide-target='course-card']" },
     { title: "Open the course workspace", description: "Select Open course to manage chapters, lessons, and files for this course.", selector: "[data-instructor-guide-target='course-open']" },
   ] },

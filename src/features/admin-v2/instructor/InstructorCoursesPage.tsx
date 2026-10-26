@@ -1,22 +1,56 @@
-import { BookOpen, ChevronRight, Layers3, LibraryBig } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ArrowUpRight, BookOpen, ClipboardCheck, FileCheck2, GraduationCap, Layers3, LibraryBig, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAdminV2 } from "../layout/AdminV2Layout";
 import { getWorkspaceCopy } from "../copy/workspace-copy";
+import "./instructor-courses.css";
 
 export function InstructorCoursesPage() {
   const { workspace } = useAdminV2();
   const copy = getWorkspaceCopy(workspace.workspace);
   const courses = workspace.courses;
-  return <section className="admin-v2__page">
-    <header className="admin-v2__page-header"><div><h1>My Courses</h1><p>Teaching spaces assigned to your Instructor account.</p></div><span className="admin-v2__status-chip"><LibraryBig size={14} />{courses.length} assigned</span></header>
-    {!courses.length ? <div data-instructor-guide-target="course-card" className="admin-v2__empty"><BookOpen size={20} /><strong>No assigned courses yet</strong><span>An administrator must link your teaching profile, Brand, and course before the course appears here.</span></div> : <div className="admin-v2__metrics" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))" }}>
-      {courses.map((course, index) => <article key={course.id} data-instructor-guide-target={index === 0 ? "course-card" : undefined} className="admin-v2__metric" style={{ minHeight: 172, alignItems: "flex-start", flexDirection: "column" }}>
-        <span className="admin-v2__metric-icon"><BookOpen size={19} /></span>
-        <div><span className="admin-v2__metric-label">{course.brandName} · {course.code}</span><strong style={{ fontSize: 16 }}>{course.title}</strong><small><Layers3 size={12} /> {course.status} · {course.academicLevelId ? copy.courses.placementConfirmed : copy.courses.placementUnavailable}</small></div>
-        <Link data-instructor-guide-target={index === 0 ? "course-open" : undefined} className="admin-v2__button is-primary" to={`/admin/instructor/courses/${course.id}`}><span>{copy.courses.openCourseAction}</span><ChevronRight size={14} /></Link>
-      </article>)}
-    </div>}
-  </section>;
+  const [selectedId, setSelectedId] = useState(courses[0]?.id ?? "");
+  const [search, setSearch] = useState("");
+  const visibleCourses = useMemo(() => courses.filter(course => `${course.title} ${course.code} ${course.brandName}`.toLowerCase().includes(search.toLowerCase())), [courses, search]);
+  const selected = visibleCourses.find(course => course.id === selectedId) ?? visibleCourses[0] ?? courses.find(course => course.id === selectedId) ?? courses[0];
+  const coursePath = selected ? `/admin/instructor/courses/${selected.id}` : "/admin/instructor/courses";
+
+  return <main className="instructor-courses-view" aria-label="My courses">
+    <aside className="instructor-courses-view__picker">
+      <header data-instructor-guide-target="course-list-header"><div><h2>Courses</h2><span>{courses.length}</span></div><LibraryBig size={17} /></header>
+      <label className="instructor-courses-view__search"><Search size={16} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search courses" aria-label="Search courses" /></label>
+      <div data-instructor-guide-target="course-card" className="instructor-courses-view__list">
+        {visibleCourses.map(course => <button key={course.id} type="button" className={`instructor-courses-view__course-option${selected?.id === course.id ? " is-selected" : ""}`} onClick={() => setSelectedId(course.id)} aria-pressed={selected?.id === course.id}>
+          <span className="instructor-courses-view__course-icon"><BookOpen size={22} /></span><span className="instructor-courses-view__course-copy"><strong>{course.title}</strong><small>{course.brandName}</small><i>{course.status}</i></span>
+        </button>)}
+        {!visibleCourses.length && <div className="instructor-courses-view__empty-list"><BookOpen size={20} /><strong>{courses.length ? "No matching courses" : "No assigned courses yet"}<small>{courses.length ? "Try another search." : "Ask your administrator to assign a course to your instructor account."}</small></strong></div>}
+      </div>
+      <footer>{courses.length} {courses.length === 1 ? "course" : "courses"}</footer>
+    </aside>
+
+    {selected ? <section className="instructor-courses-view__detail">
+      <article data-instructor-guide-target="course-open" className="instructor-courses-view__hero">
+        <div className="instructor-courses-view__hero-copy"><div className="instructor-courses-view__badges"><span>{selected.brandName}</span><span className="is-status">{selected.status}</span></div><h1>{selected.title}</h1><p>{selected.code}</p><small>{selected.academicLevelId ? copy.courses.placementConfirmed : copy.courses.placementUnavailable}</small></div>
+        <div className="instructor-courses-view__hero-art" aria-hidden="true"><BookOpen size={92} strokeWidth={1.1} /></div>
+        <Link className="instructor-courses-view__open" to={coursePath}>{copy.courses.openCourseAction}<ArrowUpRight size={15} /></Link>
+      </article>
+      <div className="instructor-courses-view__panels">
+        <section className="instructor-courses-view__panel instructor-courses-view__teaching">
+          <header><h2>Teaching content</h2></header>
+          <Link to={coursePath}><span className="instructor-courses-view__panel-icon"><Layers3 size={20} /></span><span><strong>Chapters &amp; lessons</strong><small>Organize your course content</small></span><ArrowUpRight size={15} /></Link>
+          <Link to={coursePath}><span className="instructor-courses-view__panel-icon"><FileCheck2 size={20} /></span><span><strong>Videos &amp; files</strong><small>Manage lesson videos and documents</small></span><ArrowUpRight size={15} /></Link>
+          <Link to={coursePath}><span className="instructor-courses-view__panel-icon"><LibraryBig size={20} /></span><span><strong>File approvals</strong><small>Check the review status of lesson files</small></span><ArrowUpRight size={15} /></Link>
+          <p><FileCheck2 size={14} /> Lesson files stay private until approved.</p>
+        </section>
+        <section className="instructor-courses-view__panel instructor-courses-view__assessments">
+          <header><h2>Assessments</h2></header>
+          <Link to="/admin/instructor/assignments"><span className="instructor-courses-view__panel-icon"><ClipboardCheck size={20} /></span><span><strong>Assignments &amp; grading</strong><small>Create assignments and review student submissions</small></span><span className="instructor-courses-view__manage">Manage assignments <ArrowUpRight size={13} /></span></Link>
+          <Link to="/admin/instructor/assessments"><span className="instructor-courses-view__panel-icon"><GraduationCap size={20} /></span><span><strong>Exams &amp; quizzes</strong><small>Manage assessments for your courses</small></span><span className="instructor-courses-view__manage">Manage exams <ArrowUpRight size={13} /></span></Link>
+        </section>
+      </div>
+      <footer className="instructor-courses-view__access"><span><strong>Course access</strong><small>This course is assigned to your instructor account.</small></span><Link to={coursePath}>Open teaching workspace <ArrowUpRight size={14} /></Link></footer>
+    </section> : <section className="instructor-courses-view__no-selection"><BookOpen size={32} /><h2>No course selected</h2><p>Ask your administrator to assign a course. Once it is available, you can build lessons, manage files, and support your students here.</p></section>}
+  </main>;
 }
 
 export default InstructorCoursesPage;
