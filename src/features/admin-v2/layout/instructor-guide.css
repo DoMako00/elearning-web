@@ -1,0 +1,53 @@
+.instructor-guide__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgb(11 23 18 / 42%);
+  backdrop-filter: blur(3px);
+  pointer-events: none;
+}
+
+.instructor-guide__spotlight {
+  position: fixed;
+  z-index: 10001;
+  border: 2px solid #75d8a2;
+  border-radius: 14px;
+  box-shadow: 0 0 0 9999px rgb(11 23 18 / 48%), 0 0 0 5px rgb(117 216 162 / 24%), 0 12px 36px rgb(5 20 12 / 22%);
+  pointer-events: none;
+  transition: top 180ms ease, left 180ms ease, width 180ms ease, height 180ms ease;
+}
+
+[data-instructor-guide-spotlight="true"] { position: relative; z-index: 10001; border-radius: 12px; }
+
+.instructor-guide__panel {
+  position: fixed;
+  right: 24px;
+  z-index: 10002;
+  width: min(390px, calc(100vw - 32px));
+  padding: 18px 20px 16px;
+  color: #163426;
+  background: #fff;
+  border: 1px solid #d7e8dd;
+  border-radius: 18px;
+  box-shadow: 0 18px 56px rgb(0 0 0 / 26%);
+}
+
+.instructor-guide__panel-top, .instructor-guide__actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.instructor-guide__panel-top > span { color: #438562; font-size: 10px; font-weight: 800; letter-spacing: .11em; }
+.instructor-guide__panel-top button, .instructor-guide__back, .instructor-guide__skip, .instructor-guide__next { border: 0; cursor: pointer; }
+.instructor-guide__panel-top button { display: grid; place-items: center; padding: 5px; color: #64766b; background: transparent; border-radius: 7px; }
+.instructor-guide__panel h2 { margin: 8px 0 6px; font-size: 20px; line-height: 1.25; }
+.instructor-guide__panel p { margin: 0 0 14px; color: #53675b; font-size: 13px; line-height: 1.55; }
+.instructor-guide__panel > small { display: block; margin: -6px 0 12px; color: #718278; font-size: 11px; }
+.instructor-guide__actions { justify-content: flex-end; padding-top: 12px; border-top: 1px solid #edf2ee; }
+.instructor-guide__skip { margin-right: auto; padding: 8px 0; color: #64766b; background: transparent; font-size: 12px; }
+.instructor-guide__next { display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; color: #fff; background: #28784d; border-radius: 9px; font-size: 12px; font-weight: 700; }
+.instructor-guide__back { display: inline-flex; align-items: center; gap: 5px; margin-top: 10px; padding: 4px 0; color: #64766b; background: transparent; font-size: 11px; }
+.instructor-guide__panel button:focus-visible { outline: 3px solid #86cfa4; outline-offset: 2px; }
+
+@media (max-width: 600px) {
+  .instructor-guide__panel { right: 12px; bottom: 12px !important; width: calc(100vw - 24px); }
+  .instructor-guide__spotlight { border-radius: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) { .instructor-guide__spotlight { transition: none; } }
