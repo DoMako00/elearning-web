@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Skeleton } from "@mantine/core";
 import { ArrowUpRight, BookOpen, ClipboardCheck, FileCheck2, GraduationCap, Layers3, LibraryBig, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAdminV2 } from "../layout/AdminV2Layout";
