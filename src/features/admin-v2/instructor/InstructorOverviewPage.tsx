@@ -74,7 +74,7 @@ export function InstructorOverviewPage() {
           <div><Title id="instructor-courses-title" order={3}>Your assigned courses</Title><Text c="dimmed" size="xs">Open a course to build its lessons and learning materials.</Text></div>
           <Button component={Link} to="/admin/instructor/courses" variant="light" color="green" rightSection={<ArrowUpRight size={14} />}>All courses</Button>
         </Group>
-        {courses.length ? <SimpleGrid cols={{ base: 1, sm: 2, xl: 3 }} spacing="sm">
+        {courses.length ? <SimpleGrid className="admin-v2__instructor-courses-grid" cols={{ base: 1, sm: 2, xl: 3 }} spacing="sm">
           {courses.map((course) => <Card key={course.id} className="admin-v2__instructor-course-card" withBorder shadow="xs" p="md">
             <Group justify="space-between" align="flex-start" wrap="nowrap">
               <ThemeIcon color="green" variant="light" size={40} radius="md"><BookOpen size={19} /></ThemeIcon>

@@ -1131,7 +1131,7 @@
 
 /* Role workspaces: keep the existing GreenLearn motion and shell, then make
    the first useful action obvious for administrators and instructors. */
-.admin-v2__workflow-page { display: grid; align-content: start; gap: 16px; }
+.admin-v2__workflow-page { display: grid; align-content: start; gap: 16px; height: auto; min-height: auto; padding-bottom: 24px; }
 .admin-v2__workflow-welcome { overflow: hidden; border-color: #d5e8d9; background: radial-gradient(ellipse at 88% 0, #e5f5e9 0, #f6fbf7 42%, #fff 82%); }
 .admin-v2__workflow-welcome h1 { color: #213a2b; font-size: clamp(22px, 2vw, 29px); line-height: 1.18; letter-spacing: -.025em; }
 .admin-v2__workflow-welcome .mantine-Text-root { max-width: 760px; line-height: 1.6; }
@@ -1195,23 +1195,45 @@
 .admin-v2__teaching-content-note > a { width: fit-content; min-height: 40px; display: inline-flex; align-items: center; gap: 7px; }
 .admin-v2__workflow-page .mantine-Button-root:focus-visible, .admin-v2__approvals .mantine-Button-root:focus-visible, .admin-v2__workflow-quick-link:focus-visible { outline: 2px solid #25864c; outline-offset: 2px; }
 
+/* ── iPad landscape & smaller desktops (768 – 1100px) ── */
+@media (max-width: 1100px) {
+  /* 4-col metrics → 2-col so text doesn't get squished */
+  .admin-v2__workflow-metrics.mantine-SimpleGrid-root { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  /* 3-col workflow actions → 2-col */
+  .admin-v2__workflow-actions.mantine-SimpleGrid-root { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  /* Assigned courses: 2-col is fine, but avoid 3-col */
+  .admin-v2__instructor-courses-grid.mantine-SimpleGrid-root { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  /* Stepper step descriptions can wrap freely */
+  .admin-v2__workflow-sequence .mantine-Stepper-stepDescription { max-width: none; }
+  /* Welcome heading shrinks slightly */
+  .admin-v2__workflow-welcome h1 { font-size: clamp(20px, 2.2vw, 26px); }
+  /* Workflow heading note wraps instead of overflowing */
+  .admin-v2__workflow-note { white-space: normal; }
+}
+
+/* ── Narrower desktops / portrait iPad (900px) ── */
 @media (max-width: 900px) {
   .admin-v2__workflow-page { gap: 13px; }
   .admin-v2__workflow-sequence .mantine-Stepper-stepDescription { max-width: none; }
 }
+
+/* ── Small tablets / large phones (≤ 620px) ── */
 @media (max-width: 620px) {
   .admin-v2__workflow-page { gap: 11px; padding: 12px 12px 18px; }
   .admin-v2__workflow-welcome { padding: 14px !important; }
   .admin-v2__workflow-welcome h1 { font-size: 20px; }
   .admin-v2__workflow-welcome-icon { width: 45px; height: 45px; }
+  .admin-v2__workflow-metrics.mantine-SimpleGrid-root { grid-template-columns: minmax(0, 1fr) !important; }
   .admin-v2__workflow-metric { min-height: 92px; padding: 11px !important; }
   .admin-v2__workflow-heading { align-items: flex-start; }
   .admin-v2__workflow-heading h2 { font-size: 18px; }
-  .admin-v2__workflow-note { border-radius: 8px; }
+  .admin-v2__workflow-note { border-radius: 8px; white-space: normal; }
   .admin-v2__workflow-sequence { padding: 12px !important; }
   .admin-v2__workflow-sequence .mantine-Stepper-stepDescription { font-size: 10px; }
+  .admin-v2__workflow-actions.mantine-SimpleGrid-root { grid-template-columns: minmax(0, 1fr) !important; }
   .admin-v2__workflow-action { min-height: 185px; }
   .admin-v2__workflow-quick-access { padding: 12px !important; }
+  .admin-v2__instructor-courses-grid.mantine-SimpleGrid-root { grid-template-columns: minmax(0, 1fr) !important; }
   .admin-v2__instructor-empty, .admin-v2__approvals-empty { align-items: flex-start; }
   .admin-v2__approvals-heading h2 { font-size: 20px; }
   .admin-v2__approvals-panel, .admin-v2__approvals-history { padding: 12px !important; }
