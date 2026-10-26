@@ -1,30 +1,55 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, MousePointer2, X } from "lucide-react";
 import "./instructor-guide.css";
 
 type GuideStep = { title: string; description: string; selector: string };
 
 const routeGuides: Array<{ matches: (path: string) => boolean; id: string; steps: GuideStep[] }> = [
   { matches: path => path === "/admin/instructor", id: "home", steps: [
-    { title: "Your teaching overview", description: "See your assigned courses, grading queue, published exams, and lesson materials awaiting review here.", selector: ".admin-v2__workflow-metrics" },
-    { title: "Follow your teaching flow", description: "Use these links in order: open a course, build lessons, create assessments, publish assignments, then grade student work.", selector: ".admin-v2__workflow-page" },
-    { title: "Open an assigned course", description: "Start building content from one of your course cards. If no course is assigned, ask your administrator to grant course access.", selector: ".admin-v2__instructor-courses" },
+    { title: "Your teaching snapshot", description: "Start here to check your assigned courses, upcoming grading, published exams, and lesson files waiting for approval.", selector: "[data-instructor-guide-target='home-metrics']" },
+    { title: "Follow the teaching flow", description: "The workflow cards show the usual order: open a course, build lessons, create assessments, publish assignments, then review student work.", selector: ".admin-v2__workflow" },
+    { title: "Open your course list", description: "Use All courses to see every course assigned to your instructor account.", selector: "[data-instructor-guide-target='home-all-courses']" },
+    { title: "Choose a course", description: "Open a course card to start creating its chapters, lessons, and learning materials. If no course is assigned, contact your administrator.", selector: "[data-instructor-guide-target='home-course-card']" },
   ] },
   { matches: path => path === "/admin/instructor/courses", id: "courses", steps: [
-    { title: "Your assigned courses", description: "This list contains the courses available to your instructor account.", selector: ".admin-v2__page-header" },
-    { title: "Open a course", description: "Choose Open course to add chapters, lessons, and learning files.", selector: ".admin-v2__metrics, .admin-v2__empty" },
+    { title: "Your assigned courses", description: "This page shows the teaching spaces that your administrator has assigned to you.", selector: ".admin-v2__page-header" },
+    { title: "Check course details", description: "Each card shows the course brand, code, and academic placement so you can confirm you opened the right course.", selector: "[data-instructor-guide-target='course-card']" },
+    { title: "Open the course workspace", description: "Select Open course to manage chapters, lessons, and files for this course.", selector: "[data-instructor-guide-target='course-open']" },
   ] },
   { matches: path => /^\/admin\/instructor\/courses\/[^/]+$/.test(path), id: "course-content", steps: [
-    { title: "Build the course outline", description: "Add a chapter, then add lessons under it. Select a lesson to manage its learning materials.", selector: ".admin-v2__table-card" },
-    { title: "Add lesson materials", description: "Upload a video or PDF to the selected lesson. Submitted files remain private until an administrator approves them.", selector: ".admin-v2__course-inspector" },
+    { title: "Start with a chapter", description: "Enter a short chapter name and select Add chapter. Chapters keep related lessons organized.", selector: "[data-instructor-guide-target='chapter-form']" },
+    { title: "Add a lesson", description: "After creating or selecting a chapter, name a lesson and add an optional summary. Lessons are saved as drafts.", selector: "[data-instructor-guide-target='lesson-form']" },
+    { title: "Select a lesson", description: "Choose a lesson from the course outline to see its files and add learning materials.", selector: "[data-instructor-guide-target='lesson-list']" },
+    { title: "Enter a resource title", description: "Give the file a clear title students will recognize in the lesson.", selector: "[data-instructor-guide-target='resource-title-input']" },
+    { title: "Choose a PDF or video", description: "Upload a PDF document or an MP4 video. For an MP4, enter its duration when prompted.", selector: "[data-instructor-guide-target='resource-file']" },
+    { title: "Submit for review", description: "Upload and verify the file. It stays private to students until an administrator approves it.", selector: "[data-instructor-guide-target='resource-submit']" },
   ] },
   { matches: path => path === "/admin/instructor/assignments", id: "assignments", steps: [
-    { title: "Create coursework", description: "Choose one of your mapped courses, add assignment instructions and a due date, then save a draft.", selector: ".admin-v2__workgrid" },
-    { title: "Publish and grade", description: "Publish a ready assignment for students, then select submitted work to score it or return it with feedback.", selector: ".admin-v2__workgrid" },
+    { title: "Choose a course", description: "Assignments are tied to one of your mapped courses. Choose where students should find this work.", selector: "[data-instructor-guide-target='assignment-course']" },
+    { title: "Name the assignment", description: "Use a clear title students can recognize. You can set a maximum score if the assignment is graded.", selector: "[data-instructor-guide-target='assignment-details']" },
+    { title: "Set a due date", description: "Choose when student submissions are due. Leave this empty if the work has no deadline.", selector: "[data-instructor-guide-target='assignment-due']" },
+    { title: "Write student instructions", description: "Explain what students should submit and how to complete the assignment.", selector: "[data-instructor-guide-target='assignment-instructions']" },
+    { title: "Save a draft", description: "Create draft saves the assignment for you to review. Drafts are not visible to students yet.", selector: "[data-instructor-guide-target='assignment-create-button']" },
+    { title: "Select an assignment", description: "Choose an assignment in the review queue to see its lifecycle and student submissions.", selector: ".admin-v2__workgrid .admin-v2__table-card" },
+    { title: "Publish for students", description: "When a draft is ready, use Publish to students in the assignment details panel.", selector: "[data-instructor-guide-target='assignment-publish']" },
+    { title: "Review student work", description: "Select a submitted response, enter a score and feedback, and add an audit reason before saving the review.", selector: ".admin-v2__course-inspector" },
+    { title: "Score the response", description: "Enter a score within the assignment maximum. To request a revision instead, choose Return for revision in the Decision field.", selector: "[data-instructor-guide-target='grade-score']" },
+    { title: "Give useful feedback", description: "Tell the student what went well and what they should improve. Feedback is required when returning work for revision.", selector: "[data-instructor-guide-target='grade-feedback']" },
+    { title: "Record the review reason", description: "Add a short audit reason explaining your decision, then save the review or return the work.", selector: "[data-instructor-guide-target='grade-reason']" },
+    { title: "Save the grading decision", description: "Save review records the score and feedback. Return submission sends the work back to the student with your comments.", selector: "[data-instructor-guide-target='grade-submit']" },
   ] },
   { matches: path => path === "/admin/instructor/assessments", id: "assessments", steps: [
-    { title: "Create an exam or quiz", description: "Select one of your courses, choose a quiz or exam, and add questions and availability settings.", selector: ".admin-v2__workgrid" },
-    { title: "Review results", description: "Select an assessment to inspect its questions and student attempts. Publish it when it is ready.", selector: ".admin-v2__workgrid" },
+    { title: "Choose the assessment type", description: "Start with a quiz or exam. This determines how the assessment is labeled for your course.", selector: "[data-instructor-guide-target='assessment-type']" },
+    { title: "Choose a mapped course", description: "Pick one of your assigned courses so the right students receive this assessment.", selector: "[data-instructor-guide-target='assessment-course']" },
+    { title: "Name the assessment", description: "Enter a clear title that tells students what the quiz or exam covers.", selector: "[data-instructor-guide-target='assessment-title']" },
+    { title: "Create a draft", description: "Create draft saves the assessment privately so you can configure it and add questions before publishing.", selector: "[data-instructor-guide-target='assessment-create']" },
+    { title: "Select an assessment", description: "Choose an item in the library to open its settings, question editor, and attempt summaries.", selector: ".admin-v2__workgrid .admin-v2__table-card" },
+    { title: "Set timing and attempts", description: "Configure when the assessment opens and closes, how many attempts students get, and an optional time limit. Save details to keep your settings.", selector: ".admin-v2__inspector-section:first-of-type" },
+    { title: "Write your questions", description: "Use the question editor to define prompts, answer options, answer keys, points, and order. Add question template inserts a starter question.", selector: ".admin-v2__assessment-question-editor" },
+    { title: "Add another question", description: "Use Add question template to insert a starter single-choice question, then edit its prompt, choices, answer key, points, and order in the question editor.", selector: ".admin-v2__inspector-content:has(.admin-v2__assessment-question-editor) .admin-v2__actions button:first-child" },
+    { title: "Save your questions", description: "Save questions to keep your latest draft on the server. Check the question list before publishing.", selector: ".admin-v2__inspector-content:has(.admin-v2__assessment-question-editor) .admin-v2__actions button:last-child" },
+    { title: "Publish the assessment", description: "Publish makes a complete assessment available to students. Add and save at least one question first.", selector: ".admin-v2__subscription-actions" },
+    { title: "Review attempt summaries", description: "After students complete the assessment, open Attempts to inspect their status and score summaries.", selector: ".admin-v2__inspector-section:last-of-type .admin-v2__inspector-content" },
   ] },
 ];
 
@@ -71,9 +96,11 @@ export function InstructorGuide({ userId, pathname }: { userId: string; pathname
     const findTarget = () => {
       const target = document.querySelector<HTMLElement>(currentStep.selector);
       if (target) {
-        target.dataset.instructorGuideSpotlight = "true";
         const rect = target.getBoundingClientRect();
-        setTargetRect(rect.width > 0 && rect.height > 0 ? rect : null);
+        if (rect.width > 0 && (rect.bottom < 40 || rect.top > window.innerHeight - 40)) target.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+        target.dataset.instructorGuideSpotlight = "true";
+        const visibleRect = target.getBoundingClientRect();
+        setTargetRect(visibleRect.width > 0 && visibleRect.height > 0 ? visibleRect : null);
       } else setTargetRect(null);
     };
     findTarget();
@@ -105,12 +132,16 @@ export function InstructorGuide({ userId, pathname }: { userId: string; pathname
   };
   const next = () => stepIndex + 1 >= guide.steps.length ? finishRoute() : setStepIndex(value => value + 1);
   const panelBottom = targetRect ? Math.max(24, window.innerHeight - targetRect.bottom + 16) : 24;
+  const pointerLeft = targetRect ? Math.min(window.innerWidth - 36, Math.max(36, targetRect.left + targetRect.width / 2)) : 36;
+  const pointerTop = targetRect ? targetRect.top > 82 ? targetRect.top - 48 : targetRect.bottom + 8 : 90;
 
   return <>
     <div className="instructor-guide__scrim" aria-hidden="true" />
     {targetRect && <div className="instructor-guide__spotlight" style={{ left: targetRect.left - 6, top: targetRect.top - 6, width: targetRect.width + 12, height: targetRect.height + 12 }} aria-hidden="true" />}
+    {targetRect && <div className="instructor-guide__pointer" style={{ left: pointerLeft, top: pointerTop }} aria-hidden="true"><MousePointer2 size={21} /><span>THIS WAY</span></div>}
     <section className="instructor-guide__panel" style={{ bottom: panelBottom }} role="dialog" aria-modal="false" aria-labelledby="instructor-guide-title">
-      <div className="instructor-guide__panel-top"><span>INSTRUCTOR QUICK START · {stepIndex + 1} OF {guide.steps.length}</span><button type="button" onClick={dismiss} aria-label="Close guide"><X size={17} /></button></div>
+      <div className="instructor-guide__panel-top"><span>INSTRUCTOR FIELD GUIDE</span><span className="instructor-guide__counter">{String(stepIndex + 1).padStart(2, "0")} / {String(guide.steps.length).padStart(2, "0")}</span><button type="button" onClick={dismiss} aria-label="Close guide"><X size={17} /></button></div>
+      <div className="instructor-guide__progress" aria-hidden="true"><span style={{ width: `${((stepIndex + 1) / guide.steps.length) * 100}%` }} /></div>
       <h2 id="instructor-guide-title">{currentStep.title}</h2>
       <p>{currentStep.description}</p>
       {!targetRect && <small>Loading this part of your workspace…</small>}

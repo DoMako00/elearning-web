@@ -47,7 +47,7 @@ export function InstructorOverviewPage() {
         </Group>
       </Card>
 
-      <SimpleGrid className="admin-v2__workflow-metrics" cols={{ base: 1, xs: 2, lg: 4 }} spacing="sm">
+      <SimpleGrid data-instructor-guide-target="home-metrics" className="admin-v2__workflow-metrics" cols={{ base: 1, xs: 2, lg: 4 }} spacing="sm">
         <Metric label="My courses" value={courses.length.toLocaleString()} note="Assigned by your administrator" icon={BookOpen} />
         <Metric label="Assignments to grade" value={countLabel(assignments.isLoading, assignments.isError, needsGrading)} note="Submitted student work" icon={ClipboardCheck} />
         <Metric label="Published exams" value={countLabel(assessments.isLoading, assessments.isError, publishedAssessments)} note="Available to your students" icon={GraduationCap} />
@@ -72,10 +72,10 @@ export function InstructorOverviewPage() {
       <section className="admin-v2__instructor-courses" aria-labelledby="instructor-courses-title">
         <Group justify="space-between" align="center" mb="sm">
           <div><Title id="instructor-courses-title" order={3}>Your assigned courses</Title><Text c="dimmed" size="xs">Open a course to build its lessons and learning materials.</Text></div>
-          <Button component={Link} to="/admin/instructor/courses" variant="light" color="green" rightSection={<ArrowUpRight size={14} />}>All courses</Button>
+          <Button data-instructor-guide-target="home-all-courses" component={Link} to="/admin/instructor/courses" variant="light" color="green" rightSection={<ArrowUpRight size={14} />}>All courses</Button>
         </Group>
         {courses.length ? <SimpleGrid className="admin-v2__instructor-courses-grid" cols={{ base: 1, sm: 2, xl: 3 }} spacing="sm">
-          {courses.map((course) => <Card key={course.id} className="admin-v2__instructor-course-card" withBorder shadow="xs" p="md">
+          {courses.map((course, index) => <Card key={course.id} className="admin-v2__instructor-course-card" withBorder shadow="xs" p="md">
             <Group justify="space-between" align="flex-start" wrap="nowrap">
               <ThemeIcon color="green" variant="light" size={40} radius="md"><BookOpen size={19} /></ThemeIcon>
               <Badge variant="light" color="green">{course.status}</Badge>
@@ -85,7 +85,7 @@ export function InstructorOverviewPage() {
               <Text fw={700} size="sm">{course.title}</Text>
               <Text c="dimmed" size="xs">{assignmentCourseSummary(assignmentItems, course.id, assignments.isLoading, assignments.isError)}</Text>
             </Stack>
-            <Button component={Link} to={`/admin/instructor/courses/${course.id}`} color="green" variant="light" fullWidth rightSection={<ArrowUpRight size={14} />}>{copy.courses.openCourseAction}</Button>
+            <Button data-instructor-guide-target={index === 0 ? "home-course-card" : undefined} component={Link} to={`/admin/instructor/courses/${course.id}`} color="green" variant="light" fullWidth rightSection={<ArrowUpRight size={14} />}>{copy.courses.openCourseAction}</Button>
           </Card>)}
         </SimpleGrid> : <Card className="admin-v2__instructor-empty" withBorder shadow="xs" p="lg">
           <ThemeIcon color="green" variant="light" size={46} radius="xl"><CheckCircle2 size={21} /></ThemeIcon>
