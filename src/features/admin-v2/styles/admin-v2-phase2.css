@@ -1131,7 +1131,7 @@
 
 /* Role workspaces: keep the existing GreenLearn motion and shell, then make
    the first useful action obvious for administrators and instructors. */
-.admin-v2__workflow-page { display: grid; align-content: start; gap: 16px; height: auto; min-height: auto; padding-bottom: 24px; }
+.admin-v2__workflow-page { display: grid; align-content: start; width: 100%; gap: 16px; padding: 16px 20px 32px; }
 .admin-v2__workflow-welcome { overflow: hidden; border-color: #d5e8d9; background: radial-gradient(ellipse at 88% 0, #e5f5e9 0, #f6fbf7 42%, #fff 82%); }
 .admin-v2__workflow-welcome h1 { color: #213a2b; font-size: clamp(22px, 2vw, 29px); line-height: 1.18; letter-spacing: -.025em; }
 .admin-v2__workflow-welcome .mantine-Text-root { max-width: 760px; line-height: 1.6; }

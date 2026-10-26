@@ -35,7 +35,7 @@ export function InstructorOverviewPage() {
   ];
 
   return (
-    <section className="admin-v2__page admin-v2__workflow-page" aria-label="Instructor dashboard">
+    <section className="admin-v2__workflow-page" aria-label="Instructor dashboard">
       <Card className="admin-v2__workflow-welcome" withBorder shadow="xs" p="lg">
         <Group justify="space-between" align="center" wrap="wrap">
           <Stack gap={5}>
