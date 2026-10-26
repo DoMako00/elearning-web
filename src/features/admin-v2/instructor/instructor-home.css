@@ -78,6 +78,12 @@
 .instructor-home__teaching-flow li > a small { margin-top: 2px; color: #7a887f; font-size: 8px; }
 .instructor-home__flow-index { color: #a8b5ac; font: 700 8px/1 ui-monospace, Consolas, monospace; }
 .instructor-home__approval-note { min-height: 26px; display: flex; align-items: center; gap: 7px; margin: 5px 0 0; border-radius: 7px; background: #eff8f1; color: #587360; padding: 5px 8px; font-size: 8px; }
+.instructor-home__metric-skeleton { margin-block: 2px; }
+.instructor-home__course-grid--loading { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.instructor-home__course--skeleton { gap: 0; }
+.instructor-home__skeleton-art { min-height: 52px; flex: 0 0 26%; width: 100%; }
+.instructor-home__skeleton-body { min-height: 0; flex: 1; display: flex; flex-direction: column; gap: 9px; padding: 12px; }
+.instructor-home__skeleton-button { width: 100%; margin-top: auto; }
 
 @media (max-width: 1250px) {
   .admin-v2__workflow-page.instructor-home { grid-template-columns: minmax(0, 1.65fr) minmax(260px, .9fr); gap: 10px; padding-inline: 14px; }
@@ -101,6 +107,7 @@
   .instructor-home__metrics .admin-v2__workflow-metric { min-height: 70px; }
   .instructor-home__courses { min-height: 290px; }
   .instructor-home__course-grid { grid-template-columns: repeat(auto-fit,minmax(160px,1fr)) !important; }
+  .instructor-home__course-grid--loading { grid-template-columns: repeat(auto-fit,minmax(160px,1fr)) !important; }
   .instructor-home__teaching-flow { min-height: 270px; }
   .instructor-home__course { min-height: 205px; }
 }

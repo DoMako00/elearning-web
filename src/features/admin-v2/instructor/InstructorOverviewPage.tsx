@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Alert, Button, Card, Group, SimpleGrid, Stack, Text, ThemeIcon } from "@mantine/core";
+import { Alert, Button, Card, Group, SimpleGrid, Skeleton, Stack, Text, ThemeIcon } from "@mantine/core";
 import { AlertCircle, ArrowRight, ArrowUpRight, BookOpen, CheckCircle2, ClipboardCheck, FileCheck2, GraduationCap, Layers3 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -11,7 +11,7 @@ import { getWorkspaceCopy } from "../copy/workspace-copy";
 import "./instructor-home.css";
 
 export function InstructorOverviewPage() {
-  const { workspace } = useAdminV2();
+  const { workspace, domainLoading } = useAdminV2();
   const copy = getWorkspaceCopy(workspace.workspace);
   const assignments = useQuery({ queryKey: ["instructor", "assignments"], queryFn: ({ signal }) => adminAssignmentsApi.list(signal) });
   const assessments = useQuery({ queryKey: ["instructor", "assessments"], queryFn: ({ signal }) => adminAssessmentApi.list(signal) });
@@ -58,14 +58,14 @@ export function InstructorOverviewPage() {
       {workflow.slice(0, 3).map((step, index) => <Link className="instructor-home__next-step" key={step.title} to={step.to}><span className="instructor-home__step-number">{index + 1}</span><span className="instructor-home__step-copy"><strong>{step.title}</strong><small>{step.detail}</small></span><ArrowRight size={16} /></Link>)}
     </Card>
     <SimpleGrid data-instructor-guide-target="home-metrics" className="admin-v2__workflow-metrics instructor-home__metrics" cols={{ base: 1, xs: 2, lg: 4 }} spacing="sm">
-      <Metric label="My courses" value={courses.length.toLocaleString()} note="Assigned courses" icon={BookOpen} />
-      <Metric label="Assignments to grade" value={countLabel(assignments.isLoading, assignments.isError, needsGrading)} note="Student submissions" icon={ClipboardCheck} />
-      <Metric label="Published exams" value={countLabel(assessments.isLoading, assessments.isError, publishedAssessments)} note="Available to students" icon={GraduationCap} />
-      <Metric label={copy.content.materialsInReview} value={countLabel(reviews.isLoading, reviews.isError, pendingMaterials)} note={reviews.isError ? "Review status unavailable" : returnedMaterials ? `${returnedMaterials} returned with notes` : copy.content.waitingForAdminApproval} icon={FileCheck2} />
+      <Metric label="My courses" value={courses.length.toLocaleString()} loading={domainLoading} note="Assigned courses" icon={BookOpen} />
+      <Metric label="Assignments to grade" value={countLabel(assignments.isLoading, assignments.isError, needsGrading)} loading={assignments.isLoading} note="Student submissions" icon={ClipboardCheck} />
+      <Metric label="Published exams" value={countLabel(assessments.isLoading, assessments.isError, publishedAssessments)} loading={assessments.isLoading} note="Available to students" icon={GraduationCap} />
+      <Metric label={copy.content.materialsInReview} value={countLabel(reviews.isLoading, reviews.isError, pendingMaterials)} loading={reviews.isLoading} note={reviews.isError ? "Review status unavailable" : returnedMaterials ? `${returnedMaterials} returned with notes` : copy.content.waitingForAdminApproval} icon={FileCheck2} />
     </SimpleGrid>
     <section data-instructor-guide-target="home-assigned-courses" className="instructor-home__courses" aria-labelledby="instructor-courses-title">
       <header className="instructor-home__section-heading"><div><span>YOUR TEACHING SPACE</span><h2 id="instructor-courses-title">Assigned courses</h2></div><Button data-instructor-guide-target="home-all-courses" component={Link} to="/admin/instructor/courses" variant="subtle" color="green" rightSection={<ArrowUpRight size={14} />}>View all</Button></header>
-      {courses.length ? <div className="instructor-home__course-grid" style={{ gridTemplateColumns: `repeat(${Math.min(courses.length, 3)}, minmax(0, 1fr))` }}>
+      {domainLoading ? <div className="instructor-home__course-grid instructor-home__course-grid--loading" role="status" aria-label="Loading assigned courses">{[0, 1, 2].map(index => <CourseSkeleton key={index} />)}</div> : courses.length ? <div className="instructor-home__course-grid" style={{ gridTemplateColumns: `repeat(${Math.min(courses.length, 3)}, minmax(0, 1fr))` }}>
         {courses.slice(0, 3).map((course, index) => <Card key={course.id} className="instructor-home__course" withBorder shadow="xs">
           <div className={`instructor-home__course-art is-${index % 3}`}><BookOpen size={34} strokeWidth={1.3} /><span>{course.brandName}</span></div>
           <div className="instructor-home__course-body"><span className="instructor-home__course-code">{course.code} · {course.status}</span><h3>{course.title}</h3><p>{assignmentCourseSummary(assignmentItems, course.id, assignments.isLoading, assignments.isError)}</p><Button data-instructor-guide-target={index === 0 ? "home-course-card" : undefined} component={Link} to={`/admin/instructor/courses/${course.id}`} variant="light" color="green" fullWidth rightSection={<ArrowRight size={14} />}>{copy.courses.openCourseAction}</Button></div>
@@ -79,8 +79,15 @@ export function InstructorOverviewPage() {
     </Card>
   </section>;
 }
-function Metric({ label, value, note, icon: Icon }: { label: string; value: string; note: string; icon: LucideIcon }) {
-  return <Card className="admin-v2__workflow-metric" withBorder shadow="xs" p="md"><Group wrap="nowrap"><ThemeIcon color="green" variant="light" size={42} radius="md"><Icon size={19} /></ThemeIcon><Stack gap={2} style={{ minWidth: 0 }}><Text c="dimmed" size="xs" fw={600}>{label}</Text><Text className="admin-v2__workflow-metric-value" fw={750} size="xl">{value}</Text><Text c="dimmed" size="xs">{note}</Text></Stack></Group></Card>;
+function Metric({ label, value, loading = false, note, icon: Icon }: { label: string; value: string; loading?: boolean; note: string; icon: LucideIcon }) {
+  return <Card className="admin-v2__workflow-metric" withBorder shadow="xs" p="md"><Group wrap="nowrap"><ThemeIcon color="green" variant="light" size={42} radius="md"><Icon size={19} /></ThemeIcon><Stack gap={2} style={{ minWidth: 0 }}><Text c="dimmed" size="xs" fw={600}>{label}</Text>{loading ? <Skeleton className="instructor-home__metric-skeleton" height={20} width={34} radius="sm" aria-label={`Loading ${label.toLowerCase()}`} /> : <Text className="admin-v2__workflow-metric-value" fw={750} size="xl">{value}</Text>}<Text c="dimmed" size="xs">{note}</Text></Stack></Group></Card>;
+}
+
+function CourseSkeleton() {
+  return <Card className="instructor-home__course instructor-home__course--skeleton" withBorder shadow="xs" aria-hidden="true">
+    <Skeleton className="instructor-home__skeleton-art" height={52} />
+    <div className="instructor-home__skeleton-body"><Skeleton height={8} width="48%" /><Skeleton height={13} width="82%" /><Skeleton height={8} width="66%" /><Skeleton className="instructor-home__skeleton-button" height={29} /></div>
+  </Card>;
 }
 
 function assignmentCourseSummary(items: Array<{ brandCourseId: string | null; needsReviewCount: number }>, courseId: string, loading: boolean, error: boolean) {

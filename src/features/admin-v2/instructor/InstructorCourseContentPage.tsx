@@ -64,33 +64,34 @@ export function InstructorCourseContentPage() {
   return <section className="instructor-course-builder" aria-label={`${course.title} course builder`}>
     <div className="instructor-course-builder__grid">
       <aside className="instructor-course-builder__outline">
-        <header><div><span>COURSE STRUCTURE</span><h2>Chapters &amp; lessons</h2></div><small>{chapters.length} chapters · {lessons.length} lessons</small></header>
+        <header><div><span>COURSE STRUCTURE</span><h2>Chapters &amp; lessons</h2></div>{structure.isLoading ? <BuilderSkeleton width="78px" height="9px" /> : <small>{chapters.length} chapters · {lessons.length} lessons</small>}</header>
         <div data-instructor-guide-target="lesson-list" className="instructor-course-builder__tree">
-          {structure.isLoading ? <div role="status" className="instructor-course-builder__empty">Loading your course structure…</div> : structure.isError ? <FriendlyErrorNotice error={friendlyError(structure.error)} onRetry={() => void structure.refetch()} /> : !chapters.length ? <div className="instructor-course-builder__empty"><BookOpen size={20} /><strong>No chapters yet</strong><span>Add a chapter to start building this course.</span></div> : chapters.map(chapter => <section key={chapter.id} className="instructor-course-builder__chapter">
+          {structure.isLoading ? <div className="instructor-course-builder__tree-skeleton" role="status" aria-label="Loading course structure">{[0, 1, 2].map(index => <div className="instructor-course-builder__chapter-skeleton" key={index}><BuilderSkeleton width="72%" height="9px" />{index === 0 && <><BuilderSkeleton width="84%" height="25px" /><BuilderSkeleton width="68%" height="25px" /></>}</div>)}</div> : structure.isError ? <FriendlyErrorNotice error={friendlyError(structure.error)} onRetry={() => void structure.refetch()} /> : !chapters.length ? <div className="instructor-course-builder__empty"><BookOpen size={20} /><strong>No chapters yet</strong><span>Add a chapter to start building this course.</span></div> : chapters.map(chapter => <section key={chapter.id} className="instructor-course-builder__chapter">
             <header><BookOpen size={15} /><strong>{chapter.title}</strong><small>{chapter.status}</small></header>
             {lessons.filter(item => item.courseChapterId === chapter.id).map(lesson => <button key={lesson.id} type="button" className={`instructor-course-builder__lesson${selectedLesson?.id === lesson.id ? " is-selected" : ""}`} onClick={() => setSelectedLessonId(lesson.id)}><FileText size={14} /><span>{lesson.title}</span><small>{lesson.status}</small></button>)}
           </section>)}
         </div>
-        <div className="instructor-course-builder__create-forms">
+        {structure.isLoading ? <div className="instructor-course-builder__forms-skeleton" aria-hidden="true"><BuilderSkeleton width="55%" height="8px" /><BuilderSkeleton height="31px" /><BuilderSkeleton width="60%" height="8px" /><BuilderSkeleton height="31px" /></div> : <div className="instructor-course-builder__create-forms">
           <form data-instructor-guide-target="chapter-form" onSubmit={e => { e.preventDefault(); createChapter.mutate(); }}><label><span>New chapter</span><input value={chapterTitle} onChange={e => setChapterTitle(e.target.value)} maxLength={240} placeholder="e.g. Introduction" /></label><button type="submit" disabled={!chapterTitle.trim() || createChapter.isPending}><Plus size={14} /> Add chapter</button></form>
           {selectedChapter && <form data-instructor-guide-target="lesson-form" onSubmit={e => { e.preventDefault(); createLesson.mutate(); }}><label><span>New lesson in {selectedChapter.title}</span><input value={lessonTitle} onChange={e => setLessonTitle(e.target.value)} maxLength={240} placeholder="Lesson title" /></label><label><span>Lesson summary</span><input value={lessonDescription} onChange={e => setLessonDescription(e.target.value)} maxLength={2000} placeholder="Optional summary" /></label><button type="submit" disabled={!lessonTitle.trim() || createLesson.isPending}><Plus size={14} /> Add lesson</button></form>}
-        </div>
+        </div>}
       </aside>
 
       <section className="instructor-course-builder__lesson-workspace">
-        {!selectedLesson ? <div className="instructor-course-builder__empty-workspace"><FileText size={28} /><h2>Select a lesson</h2><p>Choose a lesson from the course structure or create a new one to manage its files.</p></div> : <>
+        {structure.isLoading ? <div className="instructor-course-builder__workspace-skeleton" role="status" aria-label="Loading lesson workspace"><div className="instructor-course-builder__workspace-heading-skeleton"><span><BuilderSkeleton width="112px" height="8px" /><BuilderSkeleton width="68%" height="20px" /><BuilderSkeleton width="43%" height="8px" /></span><BuilderSkeleton width="54px" height="22px" /></div><BuilderSkeleton width="92px" height="8px" /><div className="instructor-course-builder__resource-skeletons">{[0, 1, 2].map(index => <div key={index}><BuilderSkeleton width="34px" height="34px" /><span><BuilderSkeleton width="57%" height="8px" /><BuilderSkeleton width="36%" height="7px" /></span><BuilderSkeleton width="64px" height="17px" /></div>)}</div></div> : !selectedLesson ? <div className="instructor-course-builder__empty-workspace"><FileText size={28} /><h2>Select a lesson</h2><p>Choose a lesson from the course structure or create a new one to manage its files.</p></div> : <>
           <header className="instructor-course-builder__lesson-heading"><div><span>LESSON WORKSPACE</span><h1>{selectedLesson.title}</h1><small>{selectedChapter?.title ?? "Course lesson"} · {selectedLesson.status}</small></div><span className={`instructor-course-builder__status is-${selectedLesson.status}`}>{selectedLesson.status}</span></header>
           {notice && <p role="status" className="instructor-course-builder__notice">{notice}</p>}
           <FriendlyErrorNotice error={errorInfo} />
           {resources.isError && <FriendlyErrorNotice error={friendlyError(resources.error)} onRetry={() => void resources.refetch()} />}
           <section className="instructor-course-builder__resource-list" aria-labelledby="lesson-files-heading"><header><div><span>LESSON MATERIALS</span><h2 id="lesson-files-heading">Videos &amp; files</h2></div><small>{lessonResources.length} resources</small></header>
-            {lessonResources.map(resource => { const review = reviewByTarget.get(resource.id); return <article key={resource.id} className="instructor-course-builder__resource"><span className="instructor-course-builder__resource-icon"><FileText size={17} /></span><div><strong>{resource.title}</strong><small>{resource.resourceKind} · {resource.status}</small></div><span className={`instructor-course-builder__review-state is-${review?.status ?? "draft"}`}>{review?.status ?? "Not submitted"}</span>{review?.status === "rejected" && <p role="alert">{copy.content.reviewNotePrefix}{review.rejectionReason}</p>}</article>; })}
+            {resources.isLoading ? <div className="instructor-course-builder__resource-skeletons" role="status" aria-label="Loading lesson files">{[0, 1, 2].map(index => <div key={index}><BuilderSkeleton width="34px" height="34px" /><span><BuilderSkeleton width="58%" height="8px" /><BuilderSkeleton width="36%" height="7px" /></span><BuilderSkeleton width="65px" height="17px" /></div>)}</div> : lessonResources.map(resource => { const review = reviewByTarget.get(resource.id); return <article key={resource.id} className="instructor-course-builder__resource"><span className="instructor-course-builder__resource-icon"><FileText size={17} /></span><div><strong>{resource.title}</strong><small>{resource.resourceKind} · {resource.status}</small></div>{reviews.isLoading ? <BuilderSkeleton width="66px" height="17px" /> : <span className={`instructor-course-builder__review-state is-${review?.status ?? "draft"}`}>{review?.status ?? "Not submitted"}</span>}{review?.status === "rejected" && <p role="alert">{copy.content.reviewNotePrefix}{review.rejectionReason}</p>}</article>; })}
             {!lessonResources.length && !resources.isLoading && <div className="instructor-course-builder__no-files"><FileCheck2 size={22} /><strong>No files attached</strong><span>Add a PDF or video from Lesson settings. Submitted files stay private until approved.</span></div>}
           </section>
         </>}
       </section>
 
       <aside className="instructor-course-builder__settings">
+        {structure.isLoading ? <div className="instructor-course-builder__settings-skeleton" role="status" aria-label="Loading lesson settings"><BuilderSkeleton width="112px" height="8px" /><BuilderSkeleton width="76%" height="16px" /><div>{[0, 1, 2].map(index => <span key={index}><BuilderSkeleton width="36px" height="8px" /><BuilderSkeleton width="74px" height="8px" /></span>)}</div><BuilderSkeleton width="100%" height="86px" /><BuilderSkeleton width="100%" height="36px" /><BuilderSkeleton width="100%" height="36px" /></div> : <>
         <header><span>LESSON SETTINGS</span><h2>{selectedLesson?.title ?? "Course access"}</h2></header>
         <dl className="instructor-course-builder__metadata"><div><dt>Course</dt><dd>{course.title}</dd></div><div><dt>Chapter</dt><dd>{selectedChapter?.title ?? "Select a lesson"}</dd></div><div><dt>Visibility</dt><dd><span className="instructor-course-builder__private"><FileCheck2 size={13} /> Private draft</span></dd></div></dl>
         {selectedLesson ? <form data-instructor-guide-target="resource-title" className="instructor-course-builder__upload" onSubmit={e => { e.preventDefault(); uploadResource.mutate(); }}>
@@ -102,8 +103,13 @@ export function InstructorCourseContentPage() {
           <button data-instructor-guide-target="resource-submit" type="submit" disabled={!file || !resourceTitle.trim() || uploadResource.isPending}>{uploadResource.isPending ? "Uploading and verifying…" : <><Upload size={14} /> {copy.content.uploadButtonLabel}</>}</button>
         </form> : <div className="instructor-course-builder__approval"><FileCheck2 size={18} /><strong>Choose a lesson first</strong><p>Select a lesson to upload files and track its approval status.</p></div>}
         <div className="instructor-course-builder__approval"><FileCheck2 size={16} /><span><strong>File approval</strong><small>Lesson files remain private to students until an administrator approves them.</small></span></div>
+        </>}
       </aside>
     </div>
   </section>;
 }
 export default InstructorCourseContentPage;
+
+function BuilderSkeleton({ width = "100%", height = "10px" }: { width?: string; height?: string }) {
+  return <span className="instructor-course-builder__skeleton" style={{ width, height }} aria-hidden="true" />;
+}
