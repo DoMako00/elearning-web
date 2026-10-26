@@ -79,11 +79,76 @@
 .instructor-home__flow-index { color: #a8b5ac; font: 700 8px/1 ui-monospace, Consolas, monospace; }
 .instructor-home__approval-note { min-height: 26px; display: flex; align-items: center; gap: 7px; margin: 5px 0 0; border-radius: 7px; background: #eff8f1; color: #587360; padding: 5px 8px; font-size: 8px; }
 .instructor-home__metric-skeleton { margin-block: 2px; }
-.instructor-home__course-grid--loading { grid-template-columns: repeat(3,minmax(0,1fr)); }
 .instructor-home__course--skeleton { gap: 0; }
 .instructor-home__skeleton-art { min-height: 52px; flex: 0 0 26%; width: 100%; }
 .instructor-home__skeleton-body { min-height: 0; flex: 1; display: flex; flex-direction: column; gap: 9px; padding: 12px; }
 .instructor-home__skeleton-button { width: 100%; margin-top: auto; }
+.instructor-home__empty--skeleton > span { min-width: 0; flex: 1; display: grid; gap: 8px; }
+
+@media (min-width: 1600px) {
+  .admin-v2__workflow-page.instructor-home { gap: 16px; padding: 20px 26px 24px; }
+  .instructor-home__hero { border-radius: 20px; }
+  .instructor-home__eyebrow, .instructor-home__section-heading > div > span { font-size: 11px; }
+  .instructor-home__hero h2 { font-size: clamp(38px,2.35vw,50px); }
+  .instructor-home__hero-copy > p { font-size: clamp(16px,.95vw,19px); }
+  .instructor-home__hero .mantine-Button-root { min-height: 46px; padding-inline: 22px; font-size: 14px; }
+  .instructor-home__next-steps, .instructor-home__teaching-flow { padding: 20px 22px; }
+  .instructor-home__next-steps > header > span, .instructor-home__teaching-flow > header > span { font-size: 10px; }
+  .instructor-home__next-steps h2, .instructor-home__teaching-flow h2 { font-size: 23px; }
+  .instructor-home__step-number { width: 34px; height: 34px; font-size: 14px; }
+  .instructor-home__next-step { grid-template-columns: 35px minmax(0,1fr) 18px; gap: 13px; }
+  .instructor-home__step-copy strong { font-size: 13px; }
+  .instructor-home__step-copy small { font-size: 11px; }
+  .instructor-home__metrics .admin-v2__workflow-metric { padding: 15px 19px !important; }
+  .instructor-home__metrics .mantine-ThemeIcon-root { width: 48px; height: 48px; flex-basis: 48px; }
+  .instructor-home__metrics .mantine-Text-root { font-size: 11px; }
+  .instructor-home__metrics .admin-v2__workflow-metric-value { font-size: 26px !important; }
+  .instructor-home__section-heading h2 { font-size: 21px; }
+  .instructor-home__section-heading .mantine-Button-root { min-height: 34px; font-size: 11px; }
+  .instructor-home__course-art span { font-size: 10px; }
+  .instructor-home__course-body { padding: 12px 14px 13px; }
+  .instructor-home__course-code { font-size: 10px; }
+  .instructor-home__course-body h3 { font-size: 14px; }
+  .instructor-home__course-body p { font-size: 10px; }
+  .instructor-home__course-body .mantine-Button-root { min-height: 36px; font-size: 11px; }
+  .instructor-home__teaching-flow li { grid-template-columns: 30px minmax(0,1fr) auto; gap: 11px; }
+  .instructor-home__flow-icon { width: 28px; height: 28px; }
+  .instructor-home__teaching-flow li > a strong { font-size: 11px; }
+  .instructor-home__teaching-flow li > a small, .instructor-home__flow-index { font-size: 10px; }
+  .instructor-home__approval-note { min-height: 32px; font-size: 10px; }
+  .instructor-home__skeleton-body { gap: 12px; padding: 15px; }
+  .instructor-home__skeleton-body > .mantine-Skeleton-root:nth-child(1) { height: 10px !important; }
+  .instructor-home__skeleton-body > .mantine-Skeleton-root:nth-child(2) { height: 15px !important; }
+  .instructor-home__skeleton-body > .mantine-Skeleton-root:nth-child(3) { height: 9px !important; }
+  .instructor-home__skeleton-button { height: 36px !important; }
+}
+
+@media (min-width: 761px) and (max-width: 1100px) {
+  .admin-v2--instructor:has(.instructor-home) .admin-v2__main { display: block; overflow: auto; }
+  .admin-v2--instructor:has(.instructor-home) .admin-v2__content { display: block; height: auto; }
+  .admin-v2__workflow-page.instructor-home { height: auto; max-height: none; min-height: calc(100dvh - 72px); grid-template-columns: minmax(0,1.35fr) minmax(250px,1fr); grid-template-rows: minmax(225px,auto) auto minmax(330px,auto); grid-template-areas: "hero next" "metrics metrics" "courses flow"; overflow: visible; padding: 14px; }
+  .instructor-home__metrics { height: auto; grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+  .instructor-home__metrics .admin-v2__workflow-metric { min-height: 78px; }
+  .instructor-home__courses, .instructor-home__teaching-flow { min-height: 330px; }
+  .instructor-home__course { min-height: 205px; }
+  .instructor-home__eyebrow, .instructor-home__section-heading > div > span { font-size: 10px; }
+  .instructor-home__hero h2 { font-size: clamp(27px,3vw,36px); }
+  .instructor-home__hero-copy > p { font-size: 13px; }
+  .instructor-home__hero .mantine-Button-root { min-height: 40px; font-size: 11px; }
+  .instructor-home__next-steps, .instructor-home__teaching-flow { padding: 14px; }
+  .instructor-home__next-steps h2, .instructor-home__teaching-flow h2 { font-size: 19px; }
+  .instructor-home__step-copy strong { font-size: 11px; }
+  .instructor-home__step-copy small { font-size: 10px; }
+  .instructor-home__metrics .mantine-Text-root { font-size: 10px; }
+  .instructor-home__metrics .admin-v2__workflow-metric-value { font-size: 22px !important; }
+  .instructor-home__section-heading h2 { font-size: 18px; }
+  .instructor-home__course-code { font-size: 9px; }
+  .instructor-home__course-body h3 { font-size: 12px; }
+  .instructor-home__course-body p { font-size: 9px; }
+  .instructor-home__course-body .mantine-Button-root { min-height: 34px; font-size: 10px; }
+  .instructor-home__teaching-flow li > a strong { font-size: 10px; }
+  .instructor-home__teaching-flow li > a small { font-size: 9px; }
+}
 
 @media (max-width: 1250px) {
   .admin-v2__workflow-page.instructor-home { grid-template-columns: minmax(0, 1.65fr) minmax(260px, .9fr); gap: 10px; padding-inline: 14px; }
@@ -106,8 +171,6 @@
   .instructor-home__metrics { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
   .instructor-home__metrics .admin-v2__workflow-metric { min-height: 70px; }
   .instructor-home__courses { min-height: 290px; }
-  .instructor-home__course-grid { grid-template-columns: repeat(auto-fit,minmax(160px,1fr)) !important; }
-  .instructor-home__course-grid--loading { grid-template-columns: repeat(auto-fit,minmax(160px,1fr)) !important; }
   .instructor-home__teaching-flow { min-height: 270px; }
   .instructor-home__course { min-height: 205px; }
 }
@@ -115,4 +178,9 @@
   .instructor-home__hero-art { right: -8%; width: 150px; opacity: .58; }
   .instructor-home__hero-copy { width: 83%; }
   .instructor-home__metrics { grid-template-columns: minmax(0,1fr) !important; }
+}
+@media (min-width: 761px) and (max-width: 900px) {
+  .admin-v2__workflow-page.instructor-home { grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(225px,auto) minmax(225px,auto) auto minmax(330px,auto) minmax(330px,auto); grid-template-areas: "hero" "next" "metrics" "courses" "flow"; }
+  .instructor-home__hero-copy { width: 78%; }
+  .instructor-home__hero-art { right: 0; width: 160px; opacity: .42; }
 }

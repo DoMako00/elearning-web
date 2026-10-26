@@ -94,6 +94,96 @@
 .instructor-course-builder__settings-skeleton > div > span { display: flex; justify-content: space-between; gap: 8px; }
 @keyframes instructor-builder-shimmer { to { background-position-x: -220%; } }
 
+@media (min-width: 1600px) {
+  .instructor-course-builder { padding: 20px 26px 24px; }
+  .instructor-course-builder__grid { grid-template-columns: minmax(260px,.76fr) minmax(0,1.45fr) minmax(280px,.88fr); gap: 16px; }
+  .instructor-course-builder__outline, .instructor-course-builder__lesson-workspace, .instructor-course-builder__settings { border-radius: 17px; }
+  .instructor-course-builder__outline { padding: 18px 16px 14px; }
+  .instructor-course-builder__outline > header span, .instructor-course-builder__lesson-heading > div > span, .instructor-course-builder__resource-list > header span, .instructor-course-builder__settings > header > span { font-size: 10px; }
+  .instructor-course-builder__outline > header h2, .instructor-course-builder__settings > header h2 { font-size: 19px; }
+  .instructor-course-builder__outline > header small { font-size: 10px; }
+  .instructor-course-builder__chapter { padding: 10px; }
+  .instructor-course-builder__chapter > header strong, .instructor-course-builder__lesson span { font-size: 11px; }
+  .instructor-course-builder__chapter > header small, .instructor-course-builder__lesson small { font-size: 9px; }
+  .instructor-course-builder__lesson { min-height: 40px; }
+  .instructor-course-builder__create-forms { gap: 10px; padding-top: 12px; }
+  .instructor-course-builder__create-forms label span, .instructor-course-builder__field > span { font-size: 10px; }
+  .instructor-course-builder__create-forms input, .instructor-course-builder__field input { height: 38px; padding-inline: 10px; font-size: 10px; }
+  .instructor-course-builder__create-forms form > button, .instructor-course-builder__upload > button { min-height: 38px; padding-inline: 12px; font-size: 10px; }
+  .instructor-course-builder__lesson-workspace { gap: 13px; padding: 21px; }
+  .instructor-course-builder__lesson-heading h1 { font-size: clamp(24px,1.55vw,32px); }
+  .instructor-course-builder__lesson-heading small, .instructor-course-builder__status { font-size: 10px; }
+  .instructor-course-builder__resource-list > header h2 { font-size: 18px; }
+  .instructor-course-builder__resource-list > header > small { font-size: 10px; }
+  .instructor-course-builder__resource-list > article { min-height: 64px; grid-template-columns: 40px minmax(0,1fr) auto; gap: 12px; }
+  .instructor-course-builder__resource-icon { width: 38px; height: 38px; }
+  .instructor-course-builder__resource strong { font-size: 11px; }
+  .instructor-course-builder__resource small { font-size: 9px; }
+  .instructor-course-builder__review-state { font-size: 9px; }
+  .instructor-course-builder__settings { gap: 14px; padding: 20px; }
+  .instructor-course-builder__metadata { gap: 10px; }
+  .instructor-course-builder__metadata > div { grid-template-columns: 76px minmax(0,1fr); }
+  .instructor-course-builder__metadata dt, .instructor-course-builder__metadata dd { font-size: 10px; }
+  .instructor-course-builder__upload > header h3 { font-size: 14px; }
+  .instructor-course-builder__file { min-height: 110px; }
+  .instructor-course-builder__file strong { font-size: 10px; }
+  .instructor-course-builder__file small { font-size: 9px; }
+  .instructor-course-builder__upload > p, .instructor-course-builder__approval strong { font-size: 9px; }
+  .instructor-course-builder__approval { padding: 10px; }
+  .instructor-course-builder__approval small, .instructor-course-builder__approval p { font-size: 8px; }
+}
+
+@media (min-width: 761px) and (max-width: 1100px) {
+  .admin-v2--instructor:has(.instructor-course-builder) .admin-v2__main { display: block; overflow: auto; }
+  .admin-v2--instructor:has(.instructor-course-builder) .admin-v2__content { display: block; height: auto; }
+  .instructor-course-builder { height: auto; min-height: calc(100dvh - 72px); overflow: visible; padding: 12px; }
+  .instructor-course-builder__grid { height: auto; grid-template-columns: minmax(0,1fr) minmax(0,1.3fr); grid-template-rows: minmax(390px,auto) minmax(390px,auto) auto; gap: 10px; }
+  .instructor-course-builder__outline { grid-column: 1; grid-row: 1; min-height: 390px; }
+  .instructor-course-builder__lesson-workspace { grid-column: 2; grid-row: 1; min-height: 390px; }
+  .instructor-course-builder__settings { grid-column: 1 / -1; grid-row: 2; min-height: 300px; overflow: visible; display: grid; grid-template-columns: minmax(190px,.7fr) minmax(0,1.3fr); align-content: start; gap: 12px 18px; }
+  .instructor-course-builder__settings > header { grid-column: 1 / -1; }
+  .instructor-course-builder__metadata { align-content: start; }
+  .instructor-course-builder__upload { border-top: 0; padding-top: 0; }
+  .instructor-course-builder__approval:last-child { grid-column: 1 / -1; }
+  .instructor-course-builder__workspace-skeleton { grid-row: auto; }
+  .instructor-course-builder__resource-list > article { grid-template-columns: 30px minmax(0,1fr) auto; gap: 6px; }
+  .instructor-course-builder__resource-icon { width: 28px; height: 28px; }
+  .instructor-course-builder__review-state { max-width: 72px; overflow: hidden; text-overflow: ellipsis; }
+  .instructor-course-builder__outline > header span, .instructor-course-builder__lesson-heading > div > span, .instructor-course-builder__resource-list > header span, .instructor-course-builder__settings > header > span { font-size: 9px; }
+  .instructor-course-builder__outline > header h2, .instructor-course-builder__settings > header h2 { font-size: 16px; }
+  .instructor-course-builder__outline > header small { font-size: 9px; }
+  .instructor-course-builder__chapter > header strong, .instructor-course-builder__lesson span { font-size: 10px; }
+  .instructor-course-builder__chapter > header small, .instructor-course-builder__lesson small { font-size: 8px; }
+  .instructor-course-builder__create-forms label span, .instructor-course-builder__field > span { font-size: 9px; }
+  .instructor-course-builder__create-forms input, .instructor-course-builder__field input { height: 36px; font-size: 10px; }
+  .instructor-course-builder__create-forms form > button, .instructor-course-builder__upload > button { min-height: 36px; font-size: 9px; }
+  .instructor-course-builder__lesson-heading h1 { font-size: clamp(20px,2.5vw,26px); }
+  .instructor-course-builder__lesson-heading small, .instructor-course-builder__status { font-size: 9px; }
+  .instructor-course-builder__resource-list > header h2 { font-size: 16px; }
+  .instructor-course-builder__resource-list > header > small { font-size: 9px; }
+  .instructor-course-builder__resource strong { font-size: 10px; }
+  .instructor-course-builder__resource small { font-size: 9px; }
+  .instructor-course-builder__metadata dt, .instructor-course-builder__metadata dd { font-size: 9px; }
+  .instructor-course-builder__upload > header h3 { font-size: 12px; }
+  .instructor-course-builder__file strong { font-size: 9px; }
+  .instructor-course-builder__file small, .instructor-course-builder__upload > p { font-size: 8px; }
+  .instructor-course-builder__approval strong { font-size: 9px; }
+  .instructor-course-builder__approval small, .instructor-course-builder__approval p { font-size: 8px; }
+}
+
+@media (min-width: 761px) and (max-width: 900px) {
+  .instructor-course-builder__grid { grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(390px,auto) minmax(340px,auto) auto; }
+  .instructor-course-builder__outline, .instructor-course-builder__lesson-workspace, .instructor-course-builder__settings { grid-column: 1; }
+  .instructor-course-builder__outline { grid-row: 1; }
+  .instructor-course-builder__lesson-workspace { grid-row: 2; min-height: 340px; }
+  .instructor-course-builder__settings { grid-row: 3; min-height: 360px; grid-template-columns: minmax(0,1fr); }
+  .instructor-course-builder__settings > header, .instructor-course-builder__approval:last-child { grid-column: 1; }
+  .instructor-course-builder__upload { border-top: 1px solid #edf1ee; padding-top: 10px; }
+  .instructor-course-builder__resource-list > article { grid-template-columns: 34px minmax(0,1fr) auto; gap: 9px; }
+  .instructor-course-builder__resource-icon { width: 32px; height: 32px; }
+  .instructor-course-builder__review-state { max-width: none; font-size: 8px; }
+}
+
 @media (max-height: 760px) and (min-width: 761px) {
   .instructor-course-builder { padding-block: 9px; }
   .instructor-course-builder__grid { gap: 8px; }
