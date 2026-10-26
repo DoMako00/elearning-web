@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, MousePointer2, X } from "lucide-react";
 import "./instructor-guide.css";
 
@@ -69,6 +69,8 @@ export function InstructorGuide({ userId, pathname, courseCount }: { userId: str
   const [stepIndex, setStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [confirmPermanentOptOut, setConfirmPermanentOptOut] = useState(false);
+  const panelRef = useRef<HTMLElement>(null);
+  const [panelPosition, setPanelPosition] = useState({ top: 24, left: 24 });
 
   useEffect(() => {
     if (!guide || !userId) { setEnabled(false); return; }
@@ -120,6 +122,41 @@ export function InstructorGuide({ userId, pathname, courseCount }: { userId: str
     };
   }, [enabled, currentStep]);
 
+  useLayoutEffect(() => {
+    if (!enabled || !currentStep || !panelRef.current) return;
+    const panel = panelRef.current;
+    const frame = requestAnimationFrame(() => {
+      const panelRect = panel.getBoundingClientRect();
+      const margin = 20;
+      const width = panelRect.width;
+      const height = panelRect.height;
+      const maxLeft = Math.max(margin, window.innerWidth - width - margin);
+      const maxTop = Math.max(margin, window.innerHeight - height - margin);
+      const clampLeft = (value: number) => Math.min(maxLeft, Math.max(margin, value));
+      const clampTop = (value: number) => Math.min(maxTop, Math.max(margin, value));
+      const target = targetRect ?? new DOMRect(window.innerWidth / 2, window.innerHeight / 2, 0, 0);
+      const candidates = [
+        { left: clampLeft(window.innerWidth - width - margin), top: target.bottom + margin },
+        { left: margin, top: target.bottom + margin },
+        { left: clampLeft(window.innerWidth - width - margin), top: target.top - height - margin },
+        { left: margin, top: target.top - height - margin },
+        { left: target.right + margin, top: clampTop(target.top) },
+        { left: target.left - width - margin, top: clampTop(target.top) },
+        { left: clampLeft(window.innerWidth - width - margin), top: clampTop(window.innerHeight - height - margin) },
+        { left: margin, top: margin },
+      ].map(position => ({ left: clampLeft(position.left), top: clampTop(position.top) }));
+      const overlap = (position: { left: number; top: number }) => {
+        if (!targetRect) return 0;
+        const overlapWidth = Math.max(0, Math.min(position.left + width, targetRect.right) - Math.max(position.left, targetRect.left));
+        const overlapHeight = Math.max(0, Math.min(position.top + height, targetRect.bottom) - Math.max(position.top, targetRect.top));
+        return overlapWidth * overlapHeight;
+      };
+      const best = candidates.find(position => overlap(position) === 0) ?? candidates.reduce((bestPosition, position) => overlap(position) < overlap(bestPosition) ? position : bestPosition);
+      setPanelPosition(best);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [currentStep, enabled, targetRect]);
+
   if (!enabled || !guide || !currentStep) return null;
   const dismiss = () => {
     safeSet(sessionStorage, `greenlearn.instructor-guide.dismissed.${userId}`, "true");
@@ -138,7 +175,6 @@ export function InstructorGuide({ userId, pathname, courseCount }: { userId: str
     setEnabled(false);
   };
   const next = () => stepIndex + 1 >= guide.steps.length ? finishRoute() : setStepIndex(value => value + 1);
-  const panelBottom = targetRect ? Math.max(24, window.innerHeight - targetRect.bottom + 16) : 24;
   const pointerLeft = targetRect ? Math.min(window.innerWidth - 36, Math.max(36, targetRect.left + targetRect.width / 2)) : 36;
   const pointerTop = targetRect ? targetRect.top > 82 ? targetRect.top - 48 : targetRect.bottom + 8 : 90;
 
@@ -146,7 +182,7 @@ export function InstructorGuide({ userId, pathname, courseCount }: { userId: str
     <div className="instructor-guide__scrim" aria-hidden="true" />
     {targetRect && <div className="instructor-guide__spotlight" style={{ left: targetRect.left - 6, top: targetRect.top - 6, width: targetRect.width + 12, height: targetRect.height + 12 }} aria-hidden="true" />}
     {targetRect && <div className="instructor-guide__pointer" style={{ left: pointerLeft, top: pointerTop }} aria-hidden="true"><MousePointer2 size={21} /><span>THIS WAY</span></div>}
-    <section className="instructor-guide__panel" style={{ bottom: panelBottom }} role="dialog" aria-modal="false" aria-labelledby="instructor-guide-title">
+    <section ref={panelRef} className="instructor-guide__panel" style={{ top: panelPosition.top, left: panelPosition.left, right: "auto", bottom: "auto" }} role="dialog" aria-modal="false" aria-labelledby="instructor-guide-title">
       <div className="instructor-guide__panel-top"><span>INSTRUCTOR FIELD GUIDE</span><span className="instructor-guide__counter">{String(stepIndex + 1).padStart(2, "0")} / {String(guide.steps.length).padStart(2, "0")}</span><button type="button" onClick={dismiss} aria-label="Close guide"><X size={17} /></button></div>
       <div className="instructor-guide__progress" aria-hidden="true"><span style={{ width: `${((stepIndex + 1) / guide.steps.length) * 100}%` }} /></div>
       <h2 id="instructor-guide-title">{currentStep.title}</h2>
