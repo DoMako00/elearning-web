@@ -13,7 +13,7 @@ export function InstructorCoursesPage() {
   const [search, setSearch] = useState("");
   const visibleCourses = useMemo(() => courses.filter(course => `${course.title} ${course.code} ${course.brandName}`.toLowerCase().includes(search.toLowerCase())), [courses, search]);
   const selected = visibleCourses.find(course => course.id === selectedId) ?? visibleCourses[0] ?? courses.find(course => course.id === selectedId) ?? courses[0];
-  const coursePath = selected ? `/admin/instructor/courses/${selected.id}` : "/admin/instructor/courses";
+  const coursePath = selected ? `/admin/instructor/courses/${encodeURIComponent(selected.id)}` : "/admin/instructor/courses";
 
   return <main className="instructor-courses-view" aria-label="My courses" aria-busy={domainLoading}>
     <aside className="instructor-courses-view__picker">
@@ -32,7 +32,7 @@ export function InstructorCoursesPage() {
       <article data-instructor-guide-target="course-open" className="instructor-courses-view__hero">
         <div className="instructor-courses-view__hero-copy"><div className="instructor-courses-view__badges"><span>{selected.brandName}</span><span className="is-status">{selected.status}</span></div><h1>{selected.title}</h1><p>{selected.code}</p><small>{selected.academicLevelId ? copy.courses.placementConfirmed : copy.courses.placementUnavailable}</small></div>
         <div className="instructor-courses-view__hero-art" aria-hidden="true"><BookOpen size={92} strokeWidth={1.1} /></div>
-        <Link className="instructor-courses-view__open" to={coursePath}>{copy.courses.openCourseAction}<ArrowUpRight size={15} /></Link>
+        <Link className="instructor-courses-view__open" to={coursePath} aria-label={`Open course builder for ${selected.title}`}>Open course builder<ArrowUpRight size={15} /></Link>
       </article>
       <div className="instructor-courses-view__panels">
         <section className="instructor-courses-view__panel instructor-courses-view__teaching">
