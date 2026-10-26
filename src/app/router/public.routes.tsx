@@ -318,4 +318,6 @@ export const publicRoutes: RouteObject[] = [
   // entitlement flows. Return users to the real provisioned-account sign-in.
   { path: "/auth/access-pending", element: <Navigate to="/auth/sign-in" replace /> },
   { path: "/auth/access-granted", element: <Navigate to="/auth/sign-in" replace /> },
+  { path: "/instructor", element: <Navigate to="/admin/instructor" replace /> },
+  { path: "/instructor/*", element: <Navigate to="/admin/instructor" replace /> },
 ];
