@@ -16,6 +16,8 @@ import { RouteLoadingFallback } from "../../../components/layout/RouteLoadingFal
 import "../styles/admin-v2.css";
 import "../styles/admin-v2-phase2.css";
 
+import { getWorkspaceCopy, INSTRUCTOR_SUPPORT_LINK } from "../copy/workspace-copy";
+
 interface AdminV2ContextValue {
   data: AdminV2Data;
   setData: Dispatch<SetStateAction<AdminV2Data>>;
@@ -38,7 +40,7 @@ const brandChoices: BrandFilter[] = ["all", "medway", "elite", "nexus"];
 const BRAND_FILTER_STORAGE_KEY = "greenlearn.admin-v2.brand-filter";
 const routeIcons = [LayoutDashboard, BookOpen, LibraryBig, UserRound, GraduationCap, CreditCard, CalendarDays, Files, ShieldCheck, MessageSquare, ClipboardCheck];
 const instructorNavigation = [
-  { label: "Dashboard", path: "/admin/instructor", icon: LayoutDashboard, description: "Your next teaching tasks and course activity." },
+  { label: "Home", path: "/admin/instructor", icon: LayoutDashboard, description: "Your next teaching tasks and course activity." },
   { label: "My courses", path: "/admin/instructor/courses", icon: LibraryBig, description: "Build lessons and learning materials for assigned courses." },
   { label: "Assignments & grading", path: "/admin/instructor/assignments", icon: ClipboardCheck, description: "Publish coursework and grade student submissions." },
   { label: "Exams & quizzes", path: "/admin/instructor/assessments", icon: GraduationCap, description: "Create, publish, and review course assessments." },
@@ -177,22 +179,43 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
   if (workspace.workspace === "instructor" && pathname === "/admin") return <Navigate to="/admin/instructor" replace />;
   if (workspace.workspace === "super_admin" && (pathname === "/admin/instructor" || pathname.startsWith("/admin/instructor/") || pathname.startsWith("/admin/assignments") || pathname.startsWith("/admin/assessments") || /^\/admin\/courses\/[^/]+\/builder$/.test(pathname))) return <Navigate to="/admin" replace />;
   if (workspace.workspace === "instructor" && pathname.startsWith("/admin/") && !pathname.startsWith("/admin/instructor/") && pathname !== "/admin") return <Navigate to="/admin/instructor/courses" replace />;
+  const isInstructor = workspace.workspace === "instructor";
+  const copy = getWorkspaceCopy(workspace.workspace);
+
   return <AdminV2Context.Provider value={context}><AdminV2UiProvider>
     <div className="admin-v2">
       <aside className="admin-v2__sidebar">
-        <NavLink to="/admin/courses" className="admin-v2__brand" aria-label="GreenLearn Admin home"><span className="admin-v2__brand-mark"><BookOpen aria-hidden="true" /></span><span><strong>GreenLearn</strong><small>ADMIN CONSOLE</small></span></NavLink>
-        <div className="admin-v2__nav-label">WORKSPACE</div>
+        <NavLink to={copy.sidebar.brandHomeRoute} className="admin-v2__brand" aria-label={copy.sidebar.brandHomeAriaLabel}><span className="admin-v2__brand-mark"><BookOpen aria-hidden="true" /></span><span><strong>GreenLearn</strong><small>{copy.sidebar.brandConsoleSmall}</small></span></NavLink>
+        <div className="admin-v2__nav-label">{copy.sidebar.workspaceLabel}</div>
         <nav aria-label={`${workspace.displayRole} sections`}><ul>{navigation.map((item, index) => { const Icon = "icon" in item ? item.icon : routeIcons[index] ?? Layers3; return <li key={item.path}><NavLink to={item.path} end={item.path === "/admin" || item.path === "/admin/instructor"} className={({ isActive }) => `admin-v2__nav-link${isActive ? " is-active" : ""}`}><Icon aria-hidden="true" /><span>{item.label}</span></NavLink></li>; })}</ul></nav>
-        <div className="admin-v2__sidebar-footer"><div className="admin-v2__help"><span>?</span><div><strong>Need help?</strong><small>Admin support center</small></div><ChevronDown aria-hidden="true" /></div><div className="admin-v2__copyright"><span>GreenLearn · Admin workspace</span><button type="button" title="Reset local Admin cache" aria-label="Reset local Admin cache" onClick={() => setResetOpen(true)}><RotateCcw size={12} /></button></div></div>
+        <div className="admin-v2__sidebar-footer">
+          {(!isInstructor || INSTRUCTOR_SUPPORT_LINK) && (
+            INSTRUCTOR_SUPPORT_LINK ? (
+              <a href={INSTRUCTOR_SUPPORT_LINK} target="_blank" rel="noreferrer" className="admin-v2__help" style={{ textDecoration: "none" }}><span>?</span><div><strong>Need help?</strong><small>Instructor support center</small></div><ChevronDown aria-hidden="true" /></a>
+            ) : (
+              <div className="admin-v2__help"><span>?</span><div><strong>Need help?</strong><small>Admin support center</small></div><ChevronDown aria-hidden="true" /></div>
+            )
+          )}
+          <div className="admin-v2__copyright">
+            <span>{copy.sidebar.footerCopyright}</span>
+            {!isInstructor && (
+              <button type="button" title={copy.sidebar.cacheButtonTitle} aria-label={copy.sidebar.cacheButtonTitle} onClick={() => setResetOpen(true)}><RotateCcw size={12} /></button>
+            )}
+          </div>
+        </div>
       </aside>
       <div className="admin-v2__workspace">
         <header className="admin-v2__topbar">
-          <div className="admin-v2__route-title"><span className="admin-v2__workspace-kicker">{workspace.workspace === "super_admin" ? "SUPER ADMIN WORKSPACE" : "INSTRUCTOR WORKSPACE"}</span><h1>{routeLabel}</h1><p>{routeSubtitle}</p></div>
-          <label className="admin-v2__global-search"><Search aria-hidden="true" /><input ref={searchRef} value={globalSearch} onChange={(event) => setGlobalSearch(event.target.value)} placeholder="Search students, courses, instructors..." aria-label="Global Admin search" /><kbd>Ctrl K</kbd></label>
+          <div className="admin-v2__route-title"><span className="admin-v2__workspace-kicker">{copy.topbar.kicker}</span><h1>{routeLabel}</h1><p>{routeSubtitle}</p></div>
+          {!isInstructor ? (
+            <label className="admin-v2__global-search"><Search aria-hidden="true" /><input ref={searchRef} value={globalSearch} onChange={(event) => setGlobalSearch(event.target.value)} placeholder={copy.topbar.searchPlaceholder} aria-label={copy.topbar.searchAriaLabel} /><kbd>Ctrl K</kbd></label>
+          ) : <div style={{ flex: 1 }} />}
           <div className="admin-v2__top-actions">
             {routeBrandChoices.length > 0 && <div className="admin-v2__brand-switch" role="group" aria-label="Brand filter">{routeBrandChoices.map((choice) => <button key={choice} type="button" aria-pressed={routeBrand === choice} title={choice === "all" ? "Show all brands across Admin" : `Filter Admin by ${brandName(choice)}`} className={choice === "all" ? "is-all" : `is-${choice}`} onClick={() => setBrand(choice)}>{choice === "all" ? <Layers3 aria-hidden="true" /> : choice === "elite" ? <Crown aria-hidden="true" /> : <ShieldCheck aria-hidden="true" />}<span>{choice === "all" ? "All brands" : brandName(choice)}</span></button>)}</div>}
-            <div className="admin-v2__notice-wrap"><button className="admin-v2__icon-btn" aria-label="Notifications" aria-expanded={noticeOpen} onClick={() => setNoticeOpen((value) => !value)}><Bell aria-hidden="true" /></button>{noticeOpen && <div className="admin-v2__notice-popover"><strong>Notifications</strong><span>Notifications are not available from the current Admin API.</span></div>}</div>
-            <div className="admin-v2__profile" aria-label={`Signed-in ${workspace.displayRole}`}><span className="admin-v2__avatar">{(auth.user?.name ?? "A").slice(0, 2).toUpperCase()}</span><span><strong>{auth.user?.name ?? "Authenticated Admin"}</strong><small>{workspace.displayRole}</small></span></div>
+            {!isInstructor && (
+              <div className="admin-v2__notice-wrap"><button className="admin-v2__icon-btn" aria-label="Notifications" aria-expanded={noticeOpen} onClick={() => setNoticeOpen((value) => !value)}><Bell aria-hidden="true" /></button>{noticeOpen && <div className="admin-v2__notice-popover"><strong>Notifications</strong><span>Notifications are not available from the current Admin API.</span></div>}</div>
+            )}
+            <div className="admin-v2__profile" aria-label={`Signed-in ${workspace.displayRole}`}><span className="admin-v2__avatar">{(auth.user?.name ?? "A").slice(0, 2).toUpperCase()}</span><span><strong>{auth.user?.name ?? copy.topbar.fallbackUserName}</strong><small>{workspace.displayRole}</small></span></div>
             <button type="button" className="admin-v2__logout" onClick={() => { auth.signOut(); navigate("/auth/sign-in", { replace: true }); }}><LogOut aria-hidden="true" /><span>Log out</span></button>
           </div>
         </header>

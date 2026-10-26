@@ -8,9 +8,11 @@ import { adminAssessmentApi } from "../api/adminAssessmentApi";
 import { listContentReviewRequests } from "../api/adminContentApi";
 import { useAdminV2 } from "../layout/AdminV2Layout";
 import { WorkspaceWorkflow } from "../shared/WorkspaceWorkflow";
+import { getWorkspaceCopy } from "../copy/workspace-copy";
 
 export function InstructorOverviewPage() {
   const { workspace } = useAdminV2();
+  const copy = getWorkspaceCopy(workspace.workspace);
   const assignments = useQuery({ queryKey: ["instructor", "assignments"], queryFn: ({ signal }) => adminAssignmentsApi.list(signal) });
   const assessments = useQuery({ queryKey: ["instructor", "assessments"], queryFn: ({ signal }) => adminAssessmentApi.list(signal) });
   const reviews = useQuery({ queryKey: ["instructor", "content-review-requests"], queryFn: ({ signal }) => listContentReviewRequests(signal) });
@@ -25,8 +27,8 @@ export function InstructorOverviewPage() {
   const firstCoursePath = courses[0] ? `/admin/instructor/courses/${courses[0].id}` : "/admin/instructor/courses";
   const countLabel = (loading: boolean, error: boolean, value: number) => loading ? "…" : error ? "—" : value.toLocaleString();
   const workflow = [
-    { title: "Open an assigned course", detail: courses.length ? "Choose a course you are responsible for." : "A Super Admin assigns courses to your teaching account.", action: "View my courses", to: "/admin/instructor/courses", icon: BookOpen },
-    { title: "Build lessons and add files", detail: "Create chapters and lessons, upload videos or PDFs, then send them for approval.", action: courses.length ? "Build course content" : "View course access", to: firstCoursePath, icon: Layers3 },
+    { title: "Open an assigned course", detail: courses.length ? "Choose a course you are responsible for." : "An administrator assigns courses to your teaching account.", action: "View my courses", to: "/admin/instructor/courses", icon: BookOpen },
+    { title: "Build lessons and add files", detail: "Create chapters and lessons, upload videos or PDFs, then send them for approval.", action: courses.length ? copy.courses.openCourseAction : "View course access", to: firstCoursePath, icon: Layers3 },
     { title: "Create exams and quizzes", detail: "Add questions, set availability, and publish assessments to your course.", action: "Manage exams", to: "/admin/instructor/assessments", icon: GraduationCap },
     { title: "Publish assignments", detail: "Create coursework and publish it directly to students in your course.", action: "Manage assignments", to: "/admin/instructor/assignments", icon: FileCheck2 },
     { title: "Grade student work", detail: "Review submitted answers, leave feedback, and record grades.", action: "Open submissions", to: "/admin/instructor/assignments", icon: ClipboardCheck },
@@ -37,7 +39,7 @@ export function InstructorOverviewPage() {
       <Card className="admin-v2__workflow-welcome" withBorder shadow="xs" p="lg">
         <Group justify="space-between" align="center" wrap="wrap">
           <Stack gap={5}>
-            <Badge color="green" variant="light" w="fit-content">INSTRUCTOR WORKSPACE</Badge>
+            <Badge color="green" variant="light" w="fit-content">{copy.topbar.kicker.toUpperCase()}</Badge>
             <Title order={1}>Your teaching, one step at a time</Title>
             <Text c="dimmed" size="sm">Build course lessons, publish assessments, and support your students from your assigned courses.</Text>
           </Stack>
@@ -46,10 +48,10 @@ export function InstructorOverviewPage() {
       </Card>
 
       <SimpleGrid className="admin-v2__workflow-metrics" cols={{ base: 1, xs: 2, lg: 4 }} spacing="sm">
-        <Metric label="My courses" value={courses.length.toLocaleString()} note="Assigned by your Super Admin" icon={BookOpen} />
+        <Metric label="My courses" value={courses.length.toLocaleString()} note="Assigned by your administrator" icon={BookOpen} />
         <Metric label="Assignments to grade" value={countLabel(assignments.isLoading, assignments.isError, needsGrading)} note="Submitted student work" icon={ClipboardCheck} />
         <Metric label="Published exams" value={countLabel(assessments.isLoading, assessments.isError, publishedAssessments)} note="Available to your students" icon={GraduationCap} />
-        <Metric label="Materials in review" value={countLabel(reviews.isLoading, reviews.isError, pendingMaterials)} note={reviews.isError ? "Review status unavailable" : returnedMaterials ? `${returnedMaterials} returned with notes` : "Waiting for Super Admin approval"} icon={FileCheck2} />
+        <Metric label={copy.content.materialsInReview} value={countLabel(reviews.isLoading, reviews.isError, pendingMaterials)} note={reviews.isError ? "Review status unavailable" : returnedMaterials ? `${returnedMaterials} returned with notes` : copy.content.waitingForAdminApproval} icon={FileCheck2} />
       </SimpleGrid>
 
       {(assignments.isError || assessments.isError || reviews.isError) && <Alert color="red" variant="light" icon={<AlertCircle size={17} />} title="Some teaching records could not be loaded">
@@ -83,13 +85,13 @@ export function InstructorOverviewPage() {
               <Text fw={700} size="sm">{course.title}</Text>
               <Text c="dimmed" size="xs">{assignmentCourseSummary(assignmentItems, course.id, assignments.isLoading, assignments.isError)}</Text>
             </Stack>
-            <Button component={Link} to={`/admin/instructor/courses/${course.id}`} color="green" variant="light" fullWidth rightSection={<ArrowUpRight size={14} />}>Build course content</Button>
+            <Button component={Link} to={`/admin/instructor/courses/${course.id}`} color="green" variant="light" fullWidth rightSection={<ArrowUpRight size={14} />}>{copy.courses.openCourseAction}</Button>
           </Card>)}
         </SimpleGrid> : <Card className="admin-v2__instructor-empty" withBorder shadow="xs" p="lg">
           <ThemeIcon color="green" variant="light" size={46} radius="xl"><CheckCircle2 size={21} /></ThemeIcon>
           <Stack gap={4}>
             <Text fw={700}>No courses are assigned yet</Text>
-            <Text c="dimmed" size="sm">Ask your Super Admin to link your teaching profile to a course. Once assigned, it will appear here and in My Courses.</Text>
+            <Text c="dimmed" size="sm">Ask your administrator to link your teaching profile to a course. Once assigned, it will appear here and in My Courses.</Text>
           </Stack>
         </Card>}
       </section>
