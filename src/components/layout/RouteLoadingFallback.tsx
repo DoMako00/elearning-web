@@ -25,6 +25,7 @@ import {
 } from "../ui/Skeleton";
 import { StudentShellSkeleton } from "./StudentShellSkeleton";
 import { AdminShellSkeleton } from "./AdminShellSkeleton";
+import { InstructorAssignmentSkeleton } from "../../features/admin-v2/assignments/InstructorAssignmentSkeleton";
 
 export interface RouteLoadingFallbackProps {
   message?: string;
@@ -70,7 +71,7 @@ export const RouteLoadingFallback: React.FC<RouteLoadingFallbackProps> = ({
 
       // 3. Instructor Assignments / Grading
       if (pathname.startsWith("/admin/instructor/assignments")) {
-        return <AdminTableSkeleton columns={6} rows={6} />;
+        return <InstructorAssignmentSkeleton />;
       }
 
       // 4. Instructor Exams / Quizzes

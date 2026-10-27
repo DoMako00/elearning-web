@@ -8,10 +8,11 @@ import { useAdminV2 } from "../layout/AdminV2Layout";
 import { getWorkspaceCopy } from "../copy/workspace-copy";
 import { friendlyError, type FriendlyErrorInfo } from "../utils/friendlyError";
 import { FriendlyErrorNotice } from "../shared/FriendlyErrorNotice";
+import { InstructorAssignmentWorkspace } from "./InstructorAssignmentWorkspace";
 
 const when = (value: string | null) => value ? new Date(value).toLocaleString() : "—";
 
-export function AssignmentReviewPage() {
+function SuperAdminAssignmentReviewPage() {
   const { workspace } = useAdminV2();
   const copy = getWorkspaceCopy(workspace.workspace);
   const isInstructor = workspace.workspace === "instructor";
@@ -150,6 +151,11 @@ export function AssignmentReviewPage() {
       </aside>
     </div>
   </section>;
+}
+
+export function AssignmentReviewPage() {
+  const { workspace } = useAdminV2();
+  return workspace.workspace === "instructor" ? <InstructorAssignmentWorkspace /> : <SuperAdminAssignmentReviewPage />;
 }
 
 export default AssignmentReviewPage;
