@@ -158,3 +158,64 @@
   .admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-tools .admin-v2__search { width: 100%; }
   .admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-tools .admin-v2__button { width: 100%; }
 }
+/* Shared page headings and operational workspaces. */
+.admin-v2--instructor .instructor-operations__page-heading,
+.admin-v2--instructor .admin-v2__instructor-assessments > .admin-v2__page-header {
+  min-height: 126px;
+  border-color: #d8e9de;
+  border-radius: 20px;
+  background: linear-gradient(112deg, #fff 0%, #f7fbf8 57%, #eaf6ee 100%);
+  box-shadow: 0 8px 24px rgb(21 67 37 / 4%), inset 0 1px #fff;
+}
+.admin-v2--instructor .instructor-operations__page-heading .mantine-Title-root,
+.admin-v2--instructor .admin-v2__instructor-assessments > .admin-v2__page-header h1 { color: #173a25; font-size: clamp(27px, 2.1vw, 36px); letter-spacing: -.04em; }
+.admin-v2--instructor .instructor-operations__page-heading .mantine-Text-root,
+.admin-v2--instructor .admin-v2__instructor-assessments > .admin-v2__page-header p { color: #65786b; font-size: 13px; }
+.admin-v2--instructor .instructor-operations__page-heading > .mantine-Button-root,
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__button { min-height: 44px; border-radius: 11px; }
+.admin-v2--instructor .admin-v2__instructor-students,
+.admin-v2--instructor .admin-v2__instructor-subscriptions,
+.admin-v2--instructor .admin-v2__instructor-assessments { gap: 16px; padding: 22px clamp(16px, 2vw, 30px); background: radial-gradient(ellipse at 90% 0, rgb(222 242 228 / 32%), transparent 33%), var(--iw-canvas); }
+.admin-v2--instructor .admin-v2__instructor-students .admin-v2__instructor-student-create,
+.admin-v2--instructor .admin-v2__instructor-students .admin-v2__instructor-student-roster,
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plans,
+.admin-v2--instructor .admin-v2__instructor-subscriptions .instructor-operations__request-card,
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-card,
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__inspector {
+  border-color: var(--iw-line);
+  border-radius: 17px;
+  box-shadow: 0 6px 20px rgb(21 67 37 / 4%), inset 0 1px #fff;
+}
+.admin-v2--instructor .admin-v2__instructor-students .mantine-Input-input,
+.admin-v2--instructor .admin-v2__instructor-students .mantine-Select-input,
+.admin-v2--instructor .admin-v2__instructor-students .mantine-Button-root,
+.admin-v2--instructor .admin-v2__instructor-subscriptions .mantine-Button-root { min-height: 43px; border-radius: 10px; }
+.admin-v2--instructor .admin-v2__instructor-students .mantine-Table-scrollContainer { border-color: #e4eee7; border-radius: 12px; }
+.admin-v2--instructor .admin-v2__instructor-students .mantine-Table-th { height: 46px; background: #f5faf6; }
+.admin-v2--instructor .admin-v2__instructor-students .mantine-Table-td { height: 54px; }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .mantine-Alert-root { border-radius: 13px; }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plans > header { min-height: 74px; }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plan-grid article { border-radius: 15px; box-shadow: 0 3px 12px rgb(23 51 33 / 3%); }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plan-grid article.is-featured { box-shadow: 0 8px 20px rgb(18 132 67 / 9%); }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .instructor-operations__request-item { border-radius: 13px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__workgrid.has-inspector { gap: 17px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-toolbar { gap: 12px; padding: 14px 18px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-tools select,
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-tools .admin-v2__search { min-height: 42px; border-color: #dce9e0; border-radius: 10px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table tbody tr { transition: background-color .16s ease; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table tbody tr:hover { background: #f5faf6; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__inspector-section { border-color: #e9f0eb; }
+
+
+
+@media (max-width: 760px) {
+  .admin-v2--instructor .admin-v2__instructor-students,
+  .admin-v2--instructor .admin-v2__instructor-subscriptions,
+  .admin-v2--instructor .admin-v2__instructor-assessments { padding: 13px; }
+  .admin-v2--instructor .instructor-operations__page-heading { align-items: flex-start; }
+  .admin-v2--instructor .instructor-operations__page-heading > .mantine-Button-root { width: 100%; }
+}
+@media (max-width: 420px) {
+  .admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-tools select,
+  .admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-tools .admin-v2__search { width: 100%; }
+}

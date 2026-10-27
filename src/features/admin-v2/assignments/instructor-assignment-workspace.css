@@ -255,3 +255,61 @@
   .instructor-assignments__summary, .instructor-assignments__grading-grid, .instructor-assignments__assignment-grid { grid-template-columns: minmax(0, 1fr); }
   .instructor-assignments__create-footer { flex-direction: column; align-items: stretch; }
 }
+/* Assignments & grading: work-first hierarchy and stronger editing surfaces. */
+.admin-v2.admin-v2--instructor:has(.instructor-assignments) .admin-v2__main { overflow: auto; }
+.admin-v2.admin-v2--instructor:has(.instructor-assignments) .admin-v2__content { height: auto; min-height: 100%; }
+.admin-v2--instructor .instructor-assignments {
+  height: auto;
+  min-height: calc(100dvh - 68px);
+  overflow: visible;
+  gap: 15px;
+  padding: 22px clamp(16px, 2vw, 30px);
+  background: radial-gradient(ellipse at 90% 0, rgb(222 242 228 / 30%), transparent 32%), var(--iw-canvas);
+}
+.admin-v2--instructor .instructor-assignments__tabs {
+  min-height: 58px;
+  padding: 5px 8px 0;
+  border: 1px solid var(--iw-line);
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 4px 14px rgb(21 67 37 / 3%);
+}
+.admin-v2--instructor .instructor-assignments__tablist { gap: 5px; }
+.admin-v2--instructor .instructor-assignments__tablist button { min-height: 48px; padding-inline: 18px; border-radius: 10px 10px 0 0; color: #617568; font-size: 14px; }
+.admin-v2--instructor .instructor-assignments__tablist button.is-active { color: #11683a; }
+.admin-v2--instructor .instructor-assignments__tablist button.is-active::after { height: 3px; border-radius: 3px 3px 0 0; }
+.admin-v2--instructor .instructor-assignments__secondary-button,
+.admin-v2--instructor .instructor-assignments__download-button,
+.admin-v2--instructor .instructor-assignments__outline-button { min-height: 42px; border-radius: 11px; }
+.admin-v2--instructor .instructor-assignments__panel,
+.admin-v2--instructor .instructor-assignments__summary,
+.admin-v2--instructor .instructor-assignments__list-panel,
+.admin-v2--instructor .instructor-assignments__create-panel,
+.admin-v2--instructor .instructor-assignments__settings,
+.admin-v2--instructor .instructor-assignments__grading-panel {
+  border-color: var(--iw-line);
+  border-radius: 17px;
+  box-shadow: 0 6px 20px rgb(21 67 37 / 4%), inset 0 1px #fff;
+}
+.admin-v2--instructor .instructor-assignments__assignment-card { border-color: #e3eee6; border-radius: 13px; }
+.admin-v2--instructor .instructor-assignments__assignment-card.is-selected { border-color: #80bf94; background: linear-gradient(100deg, #edf8f0, #f8fcf9); box-shadow: 0 4px 12px rgb(18 132 67 / 6%); }
+.admin-v2--instructor .instructor-assignments__create-cta { min-height: 54px; border-radius: 13px; background: #f2faf4; }
+.admin-v2--instructor .instructor-assignments__create-scroll > label > input,
+.admin-v2--instructor .instructor-assignments__create-scroll textarea,
+.admin-v2--instructor .instructor-assignments__create-scroll select,
+.admin-v2--instructor .instructor-assignments__settings-grid input { min-height: 43px; border-color: #dce9e0; border-radius: 10px; background-color: #fff; }
+.admin-v2--instructor .instructor-assignments__create-scroll textarea { min-height: 132px; }
+.admin-v2--instructor .instructor-assignments__submit { min-height: 46px; border-radius: 11px; background: #128443; }
+.admin-v2--instructor .instructor-assignments__submit:hover:not(:disabled) { background: #0d6038; }
+.admin-v2--instructor .instructor-assignments__student-row { border-radius: 11px; }
+.admin-v2--instructor .instructor-assignments__report-scroll { border: 1px solid #e2ece5; border-radius: 15px; background: #eff5f1; }
+.admin-v2--instructor .instructor-assignments__report { border: 1px solid #e3ece6; border-radius: 12px; box-shadow: 0 8px 24px rgb(23 51 33 / 6%); }
+
+
+
+@media (max-width: 760px) {
+  .admin-v2--instructor .instructor-assignments { padding: 13px; }
+  .admin-v2--instructor .instructor-assignments__tabs { align-items: stretch; flex-direction: column; padding: 8px; }
+  .admin-v2--instructor .instructor-assignments__tabs-actions { justify-content: stretch; flex-wrap: wrap; padding: 0 0 5px; }
+  .admin-v2--instructor .instructor-assignments__tabs-actions button { flex: 1 1 150px; }
+}

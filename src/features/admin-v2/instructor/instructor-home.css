@@ -183,3 +183,87 @@
 .instructor-home__skeleton-hero-title, .instructor-home__skeleton-hero-text, .instructor-home__skeleton-hero-button { display: block; }
 .instructor-home__skeleton-heading { display: block; }
 .instructor-home__skeleton-button { display: block; }
+/* Dashboard: clearer overview, calmer geometry and a guided teaching timeline. */
+.admin-v2.admin-v2--instructor:has(.instructor-home) .admin-v2__main { overflow: auto; }
+.admin-v2.admin-v2--instructor:has(.instructor-home) .admin-v2__content { height: auto; min-height: 100%; }
+.admin-v2--instructor .admin-v2__workflow-page.instructor-home {
+  height: auto;
+  max-height: none;
+  min-height: calc(100dvh - 68px);
+  grid-template-columns: minmax(0, 1.55fr) minmax(310px, .9fr);
+  grid-template-rows: minmax(220px, auto) minmax(104px, auto) minmax(310px, auto);
+  gap: 18px;
+  padding: clamp(18px, 2vw, 30px);
+  overflow: visible;
+  background: radial-gradient(ellipse at 92% 3%, rgb(217 241 224 / 42%), transparent 33%), var(--iw-canvas);
+}
+.admin-v2--instructor .instructor-home__hero {
+  min-height: 220px;
+  padding: clamp(24px, 3vw, 48px);
+  border-color: #c8e5d1;
+  border-radius: 22px;
+  background: linear-gradient(115deg, #e1f5e7 0%, #eef9f1 48%, #d5efdd 100%);
+  box-shadow: 0 14px 34px rgb(25 97 50 / 8%), inset 0 1px #fff;
+}
+.admin-v2--instructor .instructor-home__hero::before { background: radial-gradient(ellipse at 28% 0, rgb(255 255 255 / 76%), transparent 56%); }
+.admin-v2--instructor .instructor-home__hero h2 { max-width: 620px; font-size: clamp(32px, 2.7vw, 48px); letter-spacing: -.045em; }
+.admin-v2--instructor .instructor-home__hero-copy > p { color: #486a54; font-size: clamp(15px, 1vw, 18px); }
+.admin-v2--instructor .instructor-home__hero .mantine-Button-root { min-height: 46px; border-radius: 12px; background: #117642; box-shadow: 0 8px 18px rgb(13 115 58 / 16%); }
+.admin-v2--instructor .instructor-home__hero-art { right: 1.5%; width: min(43%, 620px); opacity: .96; }
+.admin-v2--instructor .instructor-home__next-steps,
+.admin-v2--instructor .instructor-home__courses,
+.admin-v2--instructor .instructor-home__teaching-flow,
+.admin-v2--instructor .instructor-home__metrics .admin-v2__workflow-metric {
+  border-color: var(--iw-line);
+  border-radius: 18px;
+  box-shadow: 0 5px 18px rgb(21 67 37 / 4%), inset 0 1px #fff;
+}
+.admin-v2--instructor .instructor-home__next-steps { padding: 20px 22px; }
+.admin-v2--instructor .instructor-home__next-steps h2,
+.admin-v2--instructor .instructor-home__teaching-flow h2,
+.admin-v2--instructor .instructor-home__section-heading h2 { color: var(--iw-ink); font-size: 19px; }
+.admin-v2--instructor .instructor-home__next-step { min-height: 54px; gap: 12px; border-top-color: #edf3ef; }
+.admin-v2--instructor .instructor-home__step-number { width: 35px; height: 35px; border: 1px solid #d6ecdd; background: #edf8f0; }
+.admin-v2--instructor .instructor-home__step-copy strong { color: #203b2a; font-size: 13px; }
+.admin-v2--instructor .instructor-home__step-copy small { color: #718176; font-size: 11.5px; }
+.admin-v2--instructor .instructor-home__metrics { gap: 14px !important; }
+.admin-v2--instructor .instructor-home__metrics .admin-v2__workflow-metric { min-height: 96px; justify-content: flex-start; padding: 14px 18px !important; }
+.admin-v2--instructor .instructor-home__metrics .mantine-ThemeIcon-root { border: 1px solid #d8ecde; background: linear-gradient(145deg, #edf9f0, #e2f3e7); }
+.admin-v2--instructor .instructor-home__metrics .admin-v2__workflow-metric-value { color: #153a25; font-size: clamp(25px, 1.6vw, 34px) !important; }
+.admin-v2--instructor .instructor-home__metrics .mantine-Text-root { color: #65796b; font-size: 12.5px; }
+.admin-v2--instructor .instructor-home__courses,
+.admin-v2--instructor .instructor-home__teaching-flow { padding: 20px; }
+.admin-v2--instructor .instructor-home__course-grid { gap: 14px; }
+.admin-v2--instructor .instructor-home__course { border-color: #dfeae3; border-radius: 15px; box-shadow: 0 4px 14px rgb(22 65 38 / 5%); }
+.admin-v2--instructor .instructor-home__course-art { min-height: 90px; border-radius: 0; }
+.admin-v2--instructor .instructor-home__course-body { padding: 14px; }
+.admin-v2--instructor .instructor-home__course-body h3 { color: #173321; font-size: 15px; line-height: 1.3; }
+.admin-v2--instructor .instructor-home__teaching-flow ol { gap: 0; }
+.admin-v2--instructor .instructor-home__teaching-flow li { position: relative; min-height: 50px; }
+.admin-v2--instructor .instructor-home__teaching-flow li:not(:last-child)::before { position: absolute; top: 16px; bottom: -18px; left: 5px; width: 1px; background: #cfe5d5; content: ""; }
+.admin-v2--instructor .instructor-home__flow-dot { z-index: 1; width: 11px; height: 11px; border: 2px solid #fff; background: #229253; box-shadow: 0 0 0 1px #b9ddc4; }
+.admin-v2--instructor .instructor-home__teaching-flow li > a strong { color: #264432; font-size: 13px; }
+.admin-v2--instructor .instructor-home__teaching-flow li > a small { color: #75847a; font-size: 11.5px; }
+.admin-v2--instructor .instructor-home__approval-note { border: 1px solid #e0eee4; border-radius: 10px; background: #f3faf5; color: #42634d; }
+
+
+
+@media (max-width: 1100px) {
+  .admin-v2--instructor .admin-v2__workflow-page.instructor-home { min-height: 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "hero" "next" "metrics" "courses" "flow"; }
+  .admin-v2--instructor .instructor-home__metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .admin-v2--instructor .instructor-home__course-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+}
+@media (max-width: 760px) {
+  .admin-v2--instructor .admin-v2__workflow-page.instructor-home { padding: 13px; }
+  .admin-v2--instructor .instructor-home__hero { min-height: 236px; padding: 22px; }
+  .admin-v2--instructor .instructor-home__hero-copy { width: min(76%, 520px); }
+  .admin-v2--instructor .instructor-home__hero h2 { font-size: clamp(29px, 8vw, 38px); }
+  .admin-v2--instructor .instructor-home__hero-art { right: -8%; width: 44%; opacity: .45; }
+  .admin-v2--instructor .instructor-home__metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .admin-v2--instructor .instructor-home__metrics .admin-v2__workflow-metric { min-height: 86px; padding-inline: 12px !important; }
+  .admin-v2--instructor .instructor-home__next-step { min-height: 58px; }
+}
+@media (max-width: 420px) {
+  .admin-v2--instructor .instructor-home__metrics { grid-template-columns: minmax(0, 1fr) !important; }
+  .admin-v2--instructor .instructor-home__hero-copy { width: 88%; }
+}

@@ -1255,3 +1255,90 @@
 @media (min-width: 62em) {
   .admin-v2__instructor-student-roster { grid-column: span 2; }
 }
+/* Shared visual language for the Instructor workspace. Scoped to Instructor so
+   Super Admin screens keep their existing layout and component behavior. */
+.admin-v2--instructor {
+  --iw-ink: #173321;
+  --iw-copy: #52675a;
+  --iw-muted: #708176;
+  --iw-green: #128443;
+  --iw-green-deep: #0d6038;
+  --iw-green-soft: #eaf7ee;
+  --iw-line: #dce9e0;
+  --iw-surface: #fff;
+  --iw-canvas: #f5f9f6;
+  background: var(--iw-canvas);
+  color: var(--iw-ink);
+}
+
+.admin-v2--instructor .admin-v2__sidebar {
+  border-right-color: #e0e9e3;
+  background: linear-gradient(180deg, #fff 0%, #fcfefc 100%);
+  padding: 20px 14px 15px;
+}
+.admin-v2--instructor .admin-v2__brand {
+  min-height: 67px;
+  gap: 12px;
+  padding-inline: 11px;
+  border-bottom-color: #e8f0ea;
+}
+.admin-v2--instructor .admin-v2__brand-mark {
+  width: 40px;
+  height: 40px;
+  border-color: #cce4d3;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #f0faf3, #e4f4e9);
+  box-shadow: 0 3px 10px rgb(19 91 48 / 7%);
+}
+.admin-v2--instructor .admin-v2__brand strong { color: #163b27; font-size: 17px; letter-spacing: -.025em; }
+.admin-v2--instructor .admin-v2__nav-label { margin: 24px 11px 10px; color: #829187; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+.admin-v2--instructor .admin-v2__sidebar li { margin: 4px 0; }
+.admin-v2--instructor .admin-v2__nav-link {
+  min-height: 46px;
+  gap: 12px;
+  padding-inline: 13px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: #52675a;
+  font-size: 13px;
+  font-weight: 590;
+}
+.admin-v2--instructor .admin-v2__nav-link svg { width: 18px; height: 18px; color: #71877a; }
+.admin-v2--instructor .admin-v2__nav-link:hover { border-color: #e3eee6; background: #f7fbf8; color: var(--iw-green-deep); }
+.admin-v2--instructor .admin-v2__nav-link.is-active {
+  border-color: #d7ebdd;
+  background: linear-gradient(100deg, #eaf7ee, #f2faf4);
+  color: #145b34;
+  box-shadow: inset 0 1px rgb(255 255 255 / 75%);
+}
+.admin-v2--instructor .admin-v2__nav-link.is-active::before { inset-block: 10px; width: 3px; border-radius: 3px; }
+.admin-v2--instructor .admin-v2__nav-link.is-active svg { color: var(--iw-green); }
+.admin-v2--instructor .admin-v2__help { border: 1px solid #e3eee6; border-radius: 12px; background: #f8fcf9; }
+
+.admin-v2--instructor .admin-v2__workspace { min-width: 0; background: var(--iw-canvas); }
+.admin-v2--instructor .admin-v2__topbar {
+  min-height: 68px;
+  border-bottom-color: #e0e9e3;
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 2px 10px rgb(23 51 33 / 3%);
+}
+.admin-v2--instructor .admin-v2__instructor-breadcrumb { min-width: 0; }
+.admin-v2--instructor .admin-v2__profile { min-height: 40px; padding: 4px 10px 4px 5px; border: 1px solid #e8efe9; border-radius: 999px; background: #fbfdfb; }
+.admin-v2--instructor .admin-v2__avatar { box-shadow: 0 0 0 3px #e9f6ed; }
+.admin-v2--instructor .admin-v2__main { background: var(--iw-canvas); }
+
+
+.admin-v2--instructor button:focus-visible,
+.admin-v2--instructor a:focus-visible,
+.admin-v2--instructor input:focus-visible,
+.admin-v2--instructor select:focus-visible,
+.admin-v2--instructor textarea:focus-visible { outline: 3px solid rgb(18 132 67 / 32%); outline-offset: 2px; }
+
+
+
+@media (max-width: 760px) {
+  .admin-v2--instructor .admin-v2__sidebar { padding: 12px 10px; }
+  .admin-v2--instructor .admin-v2__topbar { min-height: 60px; }
+  .admin-v2--instructor .admin-v2__profile { padding-right: 6px; }
+  .admin-v2--instructor .admin-v2__profile > span:last-child { display: none; }
+}

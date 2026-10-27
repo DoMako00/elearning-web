@@ -41,3 +41,44 @@
 @keyframes instructor-guide-scrim-in { from { opacity: 0; } to { opacity: 1; } }
 @media (max-width: 600px) { .instructor-guide__panel { padding: 16px 17px 13px; } .instructor-guide__panel h2 { font-size: 19px; } .instructor-guide__pointer { transform: translateX(-50%) scale(.9); } }
 @media (prefers-reduced-motion: reduce) { .instructor-guide__scrim, .instructor-guide__panel, .instructor-guide__pointer { animation: none; } .instructor-guide__spotlight, .instructor-guide__progress span, .instructor-guide__next { transition: none; } }
+
+/* Instructor walkthrough polish: align the guide with GreenLearn's existing
+   green palette while keeping its spotlight, pointer, and panel motion intact. */
+.instructor-guide__scrim { background: rgb(11 30 18 / 48%); backdrop-filter: blur(5px) saturate(.72); }
+.instructor-guide__spotlight { border-color: rgb(116 213 146 / 96%); box-shadow: 0 0 0 1px rgb(104 194 130 / 35%), 0 0 0 9999px rgb(8 28 16 / 40%), 0 0 28px rgb(55 160 84 / 30%); }
+.instructor-guide__pointer { color: #e5f7e9; filter: drop-shadow(0 2px 8px rgb(0 0 0 / 42%)); }
+.instructor-guide__pointer svg { fill: #74c98b; stroke: #174a2b; }
+.instructor-guide__pointer span { border-color: rgb(170 221 182 / 48%); background: rgb(16 57 31 / 94%); color: #e4f6e8; }
+.instructor-guide__panel {
+  width: min(430px, calc(100vw - 32px));
+  padding: 21px 23px 17px;
+  color: #f3faf4;
+  background: radial-gradient(ellipse at 100% 0, rgb(57 139 79 / 32%), transparent 48%), linear-gradient(145deg, #14281b 4%, #173b25 58%, #124b2e);
+  border-color: rgb(146 205 158 / 42%);
+  border-radius: 20px;
+  box-shadow: 0 24px 74px rgb(9 31 15 / 46%), inset 0 1px rgb(255 255 255 / 10%);
+}
+.instructor-guide__panel::before { background: linear-gradient(#7ad391, #29a35d); }
+.instructor-guide__panel-top > span:first-child { color: #a4e3b1; }
+.instructor-guide__counter { color: #c0d7c5; }
+.instructor-guide__panel-top button { min-width: 34px; min-height: 34px; border: 1px solid rgb(220 246 225 / 13%); color: #d1e5d5; }
+.instructor-guide__progress { height: 4px; background: rgb(238 249 240 / 13%); }
+.instructor-guide__progress span { background: linear-gradient(90deg, #4aba72, #9be0aa); box-shadow: 0 0 12px rgb(91 207 122 / 42%); }
+.instructor-guide__panel h2 { color: #f5fbf6; font-size: 22px; }
+.instructor-guide__panel p { color: #d0e1d3; font-size: 13px; line-height: 1.7; }
+.instructor-guide__panel > small { color: #b0cbb5; line-height: 1.5; }
+.instructor-guide__actions { border-top-color: rgb(225 246 230 / 14%); }
+.instructor-guide__skip, .instructor-guide__back { min-height: 38px; color: #c0d7c5; }
+.instructor-guide__skip:hover, .instructor-guide__back:hover { color: #fff; }
+.instructor-guide__next { min-height: 40px; padding-inline: 16px; color: #fff; background: linear-gradient(110deg, #168849, #249b55); border-color: rgb(190 235 199 / 38%); box-shadow: 0 5px 16px rgb(16 119 58 / 24%); }
+.instructor-guide__next:hover { background: linear-gradient(110deg, #117a3f, #168849); box-shadow: 0 8px 22px rgb(16 119 58 / 30%); }
+.instructor-guide__permanent { color: #b4cbb8; }
+.instructor-guide__permanent:hover { color: #f8d8ca; }
+.instructor-guide__panel button:focus-visible { outline-color: #9ce0aa; }
+.instructor-guide__confirm-backdrop { background: rgb(8 23 12 / 68%); }
+.instructor-guide__confirm { color: #f2faf3; background: radial-gradient(ellipse at 100% 0, rgb(110 75 64 / 20%), transparent 52%), linear-gradient(145deg, #192b20, #183626); border-color: rgb(255 195 173 / 32%); }
+.instructor-guide__confirm h2 { color: #f9fcf9; }
+.instructor-guide__confirm p { color: #d1dfd3; }
+.instructor-guide__confirm-cancel { color: #d3e3d5; border-color: rgb(220 241 225 / 18%); }
+.instructor-guide__confirm button:focus-visible { outline-color: #9ce0aa; }
+@media (max-width: 600px) { .instructor-guide__panel { width: min(430px, calc(100vw - 24px)); padding: 17px 18px 14px; } }
