@@ -86,6 +86,7 @@
   display: inline-flex;
   flex-direction: column;
   justify-content: center;
+  width: fit-content;
   min-width: 0;
   max-width: 100%;
 }

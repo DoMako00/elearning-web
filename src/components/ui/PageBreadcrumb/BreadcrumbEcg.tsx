@@ -107,7 +107,8 @@ export function BreadcrumbEcg({
       const parent = canvas.parentElement;
       if (!parent) return;
       const rect = parent.getBoundingClientRect();
-      W = Math.max(Math.floor(rect.width), 80);
+      // Follow the title width exactly; the floor only avoids a zero-size canvas.
+      W = Math.max(Math.floor(rect.width), 16);
       const dpr = window.devicePixelRatio || 1;
       canvas.width  = W * dpr;
       canvas.height = H * dpr;
