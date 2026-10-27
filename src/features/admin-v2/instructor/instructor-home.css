@@ -15,7 +15,7 @@
 /* Hero */
 .instructor-home__hero { position: relative; grid-area: hero; display: flex; align-items: center; overflow: hidden; padding: clamp(18px, 3vh, 40px) clamp(24px, 2.6vw, 48px); border-color: #cfead8; border-radius: 16px; background: linear-gradient(110deg, #d4f4de 0%, #e3f8e9 55%, #d5f3df 100%); }
 .instructor-home__hero::before { position: absolute; inset: 0; background: radial-gradient(ellipse at 22% 0, rgb(255 255 255 / 55%), transparent 55%); content: ""; pointer-events: none; }
-.instructor-home__hero-copy { position: relative; z-index: 1; width: min(60%, 720px); text-align: left; }
+.instructor-home__hero-copy { position: relative; z-index: 1; width: min(60%, 720px); text-align: left; align-self: start;}
 .instructor-home__hero h2 { margin: 0 0 clamp(6px, 1vh, 12px); color: #10281b; font-size: clamp(28px, 3.1vh + .9vw, 48px); font-weight: 800; letter-spacing: -.035em; line-height: 1.08; }
 .instructor-home__hero-copy > p { max-width: 580px; margin: 0 0 clamp(12px, 2vh, 22px); color: #4f6a59; font-size: clamp(14px, .9vw + .6vh, 19px); line-height: 1.45; }
 .instructor-home__hero .mantine-Button-root { height: clamp(38px, 4.4vh, 46px); padding-inline: 22px; border-radius: 8px; background: #0f7a3f; box-shadow: 0 8px 18px rgb(13 115 58 / 18%); font-size: 14px; font-weight: 700; }
