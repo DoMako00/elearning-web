@@ -1,5 +1,5 @@
-.admin-v2--instructor:has(.instructor-courses-view) .admin-v2__main { overflow: hidden; }
-.admin-v2--instructor:has(.instructor-courses-view) .admin-v2__content { height: 100%; min-height: 0; }
+.admin-v2:has(.instructor-courses-view) .admin-v2__main { overflow: hidden; }
+.admin-v2:has(.instructor-courses-view) .admin-v2__content { height: 100%; min-height: 0; }
 .instructor-courses-view { width: 100%; height: 100%; min-height: 0; box-sizing: border-box; display: grid; grid-template-columns: minmax(280px, 25%) minmax(0, 1fr); gap: clamp(12px, 1.2vw, 20px); padding: clamp(12px, 2vh, 22px) clamp(14px, 1.5vw, 26px); overflow: hidden; background: #f7faf8; }
 .instructor-courses-view h1, .instructor-courses-view h2 { font-family: inherit; }
 .instructor-courses-view__picker, .instructor-courses-view__panel, .instructor-courses-view__access { min-width: 0; min-height: 0; border: 1px solid #e3ebe6; border-radius: 16px; background: #fff; box-shadow: 0 1px 4px rgb(19 52 31 / 4%); }
@@ -105,8 +105,8 @@
 
 /* iPad portrait and below: stack, page scrolls */
 @media (max-width: 1100px) {
-  .admin-v2--instructor:has(.instructor-courses-view) .admin-v2__main { display: block; overflow: auto; }
-  .admin-v2--instructor:has(.instructor-courses-view) .admin-v2__content { display: block; height: auto; }
+  .admin-v2:has(.instructor-courses-view) .admin-v2__main { display: block; overflow: auto; }
+  .admin-v2:has(.instructor-courses-view) .admin-v2__content { display: block; height: auto; }
   .instructor-courses-view { height: auto; min-height: calc(100dvh - 72px); grid-template-columns: minmax(0, 1fr); overflow: visible; padding: 14px; }
   .instructor-courses-view__picker { max-height: 360px; }
   .instructor-courses-view__detail { grid-template-rows: auto auto auto; }
@@ -126,3 +126,10 @@
   .instructor-courses-view__panels { grid-template-columns: minmax(0, 1fr); }
   .instructor-courses-view__access { flex-direction: column; align-items: flex-start; }
 }
+
+/* Skeleton-only helpers (mirror the loaded layout) */
+.instructor-courses-view__note-skeleton { flex: 0 0 auto; display: flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 9px; background: #f1f5f2; }
+.instructor-courses-view__picker > header .mantine-Skeleton-root { flex: none; }
+.instructor-courses-view__search > .mantine-Skeleton-root { flex: none; }
+.instructor-courses-view__hero-copy > .mantine-Skeleton-root { margin-top: 6px; }
+.instructor-courses-view__access > span > .mantine-Skeleton-root + .mantine-Skeleton-root { margin-top: 6px; }

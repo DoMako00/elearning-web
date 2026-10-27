@@ -1,5 +1,5 @@
-.admin-v2--instructor:has(.instructor-home) .admin-v2__main { overflow: hidden; }
-.admin-v2--instructor:has(.instructor-home) .admin-v2__content { height: 100%; min-height: 0; }
+.admin-v2:has(.instructor-home) .admin-v2__main { overflow: hidden; }
+.admin-v2:has(.instructor-home) .admin-v2__content { height: 100%; min-height: 0; }
 
 /* Layout: hero + next steps / metrics / courses + workflow, fitted to the viewport on desktop */
 .admin-v2__workflow-page.instructor-home {
@@ -116,8 +116,8 @@
 
 /* iPad and below: page scrolls, courses and workflow get full width */
 @media (min-width: 761px) and (max-width: 1100px) {
-  .admin-v2--instructor:has(.instructor-home) .admin-v2__main { display: block; overflow: auto; }
-  .admin-v2--instructor:has(.instructor-home) .admin-v2__content { display: block; height: auto; }
+  .admin-v2:has(.instructor-home) .admin-v2__main { display: block; overflow: auto; }
+  .admin-v2:has(.instructor-home) .admin-v2__content { display: block; height: auto; }
   .admin-v2__workflow-page.instructor-home { height: auto; max-height: none; min-height: calc(100dvh - 72px); grid-template-columns: minmax(0, 1.4fr) minmax(250px, 1fr); grid-template-rows: auto auto auto auto; grid-template-areas: "hero next" "metrics metrics" "courses courses" "flow flow"; overflow: visible; padding: 16px; gap: 14px; }
   .instructor-home__hero { min-height: 230px; }
   .instructor-home__hero-copy { width: 66%; }
@@ -140,8 +140,8 @@
 }
 
 @media (max-width: 760px) {
-  .admin-v2--instructor:has(.instructor-home) .admin-v2__main { overflow: auto; }
-  .admin-v2--instructor:has(.instructor-home) .admin-v2__content { height: auto; }
+  .admin-v2:has(.instructor-home) .admin-v2__main { overflow: auto; }
+  .admin-v2:has(.instructor-home) .admin-v2__content { height: auto; }
   .admin-v2__workflow-page.instructor-home { height: auto; max-height: none; min-height: calc(100dvh - 128px); grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "hero" "next" "metrics" "courses" "flow"; overflow: visible; padding: 12px; }
   .instructor-home__hero { min-height: 210px; }
   .instructor-home__next-steps { min-height: 230px; }
@@ -159,3 +159,16 @@
   .instructor-home__hero-copy { width: 83%; }
   .instructor-home__metrics { grid-template-columns: minmax(0, 1fr) !important; }
 }
+
+/* Skeleton-only helpers (mirror the loaded layout) */
+.instructor-home__skeleton-hero-title { margin-bottom: clamp(8px, 1.2vh, 14px); }
+.instructor-home__skeleton-hero-text { margin-bottom: clamp(14px, 2.2vh, 24px); }
+.instructor-home__skeleton-hero-button { height: clamp(38px, 4.4vh, 46px) !important; }
+.instructor-home__skeleton-heading { margin-bottom: clamp(6px, 1vh, 12px); }
+.instructor-home__step-copy--skeleton { display: grid; gap: 7px; }
+.instructor-home__skeleton-metric-icon { --sk: clamp(44px, 5.6vh, 58px); width: var(--sk) !important; height: var(--sk) !important; flex: 0 0 var(--sk); }
+.instructor-home__skeleton-dot { margin-top: 1px; }
+.instructor-home__skeleton-flow-copy { display: grid; gap: 6px; padding-top: 2px; }
+.instructor-home__approval-note > .mantine-Skeleton-root { flex: none; }
+.instructor-home__section-heading { min-height: 30px; }
+@media (min-width: 1101px) and (max-height: 900px) { .instructor-home__skeleton-flow-copy > :nth-child(2) { display: none; } }

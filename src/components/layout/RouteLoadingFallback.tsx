@@ -16,7 +16,6 @@ import {
   LessonPlayerSkeleton,
   SkeletonListRow,
   AdminOverviewSkeleton,
-  InstructorOverviewSkeleton,
   AdminTableSkeleton,
   InstructorCourseContentSkeleton,
   CourseBuilderSkeleton,
@@ -25,6 +24,8 @@ import {
 } from "../ui/Skeleton";
 import { StudentShellSkeleton } from "./StudentShellSkeleton";
 import { AdminShellSkeleton } from "./AdminShellSkeleton";
+import { InstructorHomeSkeleton } from "../../features/admin-v2/instructor/InstructorHomeSkeleton";
+import { InstructorCoursesSkeleton } from "../../features/admin-v2/instructor/InstructorCoursesSkeleton";
 import { InstructorAssignmentSkeleton } from "../../features/admin-v2/assignments/InstructorAssignmentSkeleton";
 
 export interface RouteLoadingFallbackProps {
@@ -66,7 +67,7 @@ export const RouteLoadingFallback: React.FC<RouteLoadingFallbackProps> = ({
 
       // 2. Instructor Courses List
       if (pathname === "/admin/instructor/courses") {
-        return <AdminTableSkeleton columns={5} rows={6} />;
+        return <InstructorCoursesSkeleton />;
       }
 
       // 3. Instructor Assignments / Grading
@@ -80,7 +81,7 @@ export const RouteLoadingFallback: React.FC<RouteLoadingFallbackProps> = ({
       }
 
       // 5. Instructor Dashboard / Overview
-      return <InstructorOverviewSkeleton />;
+      return <InstructorHomeSkeleton />;
     }
 
     // ══════════════════════════════════════════════════════

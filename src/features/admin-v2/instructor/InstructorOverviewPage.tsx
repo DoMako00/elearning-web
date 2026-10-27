@@ -9,6 +9,7 @@ import { listContentReviewRequests } from "../api/adminContentApi";
 import { useAdminV2 } from "../layout/AdminV2Layout";
 import { getWorkspaceCopy } from "../copy/workspace-copy";
 import { instructorCourseArtwork, instructorHeroArtwork } from "./instructor-course-art";
+import { HomeCourseSkeleton } from "./InstructorHomeSkeleton";
 import "./instructor-home.css";
 
 export function InstructorOverviewPage() {
@@ -67,7 +68,7 @@ export function InstructorOverviewPage() {
     </SimpleGrid>
     <section data-instructor-guide-target="home-assigned-courses" className="instructor-home__courses" aria-labelledby="instructor-courses-title">
       <header className="instructor-home__section-heading"><h2 id="instructor-courses-title">Your assigned courses</h2><Button data-instructor-guide-target="home-all-courses" component={Link} to="/admin/instructor/courses" variant="subtle" color="green" rightSection={<ArrowRight size={14} />}>View all courses</Button></header>
-      {domainLoading ? <div className="instructor-home__course-grid" role="status" aria-label="Loading assigned courses">{Array.from({ length: Math.min(courses.length || 3, 3) }, (_, index) => <CourseSkeleton key={index} />)}</div> : courses.length ? <div className="instructor-home__course-grid">
+      {domainLoading ? <div className="instructor-home__course-grid" role="status" aria-label="Loading assigned courses">{Array.from({ length: Math.min(courses.length || 3, 3) }, (_, index) => <HomeCourseSkeleton key={index} />)}</div> : courses.length ? <div className="instructor-home__course-grid">
         {courses.slice(0, 3).map((course, index) => <Card key={course.id} className="instructor-home__course" withBorder shadow="xs">
           <div className={`instructor-home__course-art is-${index % 3}`}><img src={instructorCourseArtwork(`${course.title} ${course.code}`, index)} alt="" loading="lazy" /></div>
           <div className="instructor-home__course-body"><span className="instructor-home__course-brand">{course.brandName}</span><h3>{course.title}</h3><span className={`instructor-home__course-status is-${course.status}`}>{statusLabel(course.status)}</span>{assignments.isLoading ? <Skeleton className="instructor-home__summary-skeleton" height={12} width="55%" radius="sm" aria-label="Loading assignment activity" /> : <p>{assignmentCourseSummary(assignmentItems, course.id, false, assignments.isError)}</p>}<Button data-instructor-guide-target={index === 0 ? "home-course-card" : undefined} component={Link} to={`/admin/instructor/courses/${course.id}`} variant="light" color="green" fullWidth rightSection={<ArrowRight size={14} />}>{copy.courses.openCourseAction}</Button></div>
@@ -83,19 +84,6 @@ export function InstructorOverviewPage() {
 }
 function Metric({ label, value, loading = false, icon: Icon }: { label: string; value: string; loading?: boolean; icon: LucideIcon }) {
   return <Card className="admin-v2__workflow-metric" withBorder shadow="xs" p="md"><Group wrap="nowrap"><ThemeIcon color="green" variant="light" size={42} radius="md"><Icon size={19} /></ThemeIcon><Stack gap={2} style={{ minWidth: 0 }}>{loading ? <Skeleton className="instructor-home__metric-skeleton" height={28} width={48} radius="sm" aria-label={`Loading ${label.toLowerCase()}`} /> : <Text className="admin-v2__workflow-metric-value" fw={750} size="xl">{value}</Text>}<Text c="dimmed" size="sm" fw={500}>{label}</Text></Stack></Group></Card>;
-}
-
-function CourseSkeleton() {
-  return <Card className="instructor-home__course instructor-home__course--skeleton" withBorder shadow="xs" aria-hidden="true">
-    <Skeleton className="instructor-home__skeleton-art" radius={0} />
-    <div className="instructor-home__course-body">
-      <Skeleton className="instructor-home__skeleton-pill" height={20} width={64} radius="xl" />
-      <Skeleton className="instructor-home__skeleton-title" height={18} width="78%" radius="sm" />
-      <Skeleton className="instructor-home__skeleton-status" height={13} width={86} radius="sm" />
-      <Skeleton className="instructor-home__skeleton-summary" height={12} width="55%" radius="sm" />
-      <Skeleton className="instructor-home__skeleton-button" radius={8} />
-    </div>
-  </Card>;
 }
 
 function statusLabel(status: string) {

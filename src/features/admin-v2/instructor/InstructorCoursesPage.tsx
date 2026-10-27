@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { useAdminV2 } from "../layout/AdminV2Layout";
 import { getWorkspaceCopy } from "../copy/workspace-copy";
 import { instructorCourseArtwork } from "./instructor-course-art";
+import { CourseDetailSkeleton, CourseOptionSkeleton } from "./InstructorCoursesSkeleton";
 import "./instructor-courses.css";
 
 export function InstructorCoursesPage() {
@@ -53,18 +54,6 @@ export function InstructorCoursesPage() {
       <footer className="instructor-courses-view__access"><span><strong>Course access</strong><small>This course is assigned to your instructor account.</small></span><Link to={coursePath}>Open teaching workspace <ArrowUpRight size={14} /></Link></footer>
     </section> : <section className="instructor-courses-view__no-selection"><BookOpen size={32} /><h2>No course selected</h2><p>Ask your administrator to assign a course. Once it is available, you can build lessons, manage files, and support your students here.</p></section>}
   </main>;
-}
-
-function CourseOptionSkeleton() {
-  return <div className="instructor-courses-view__course-option instructor-courses-view__course-option--skeleton" role="status" aria-label="Loading assigned course"><Skeleton className="instructor-courses-view__skeleton-thumb" radius="md" /><span><Skeleton height={14} width="78%" radius="sm" /><Skeleton height={11} width="40%" radius="sm" /><Skeleton height={20} width={66} radius="xl" /></span></div>;
-}
-
-function CourseDetailSkeleton() {
-  return <section className="instructor-courses-view__detail instructor-courses-view__detail--skeleton" role="status" aria-label="Loading course workspace">
-    <article className="instructor-courses-view__hero"><div className="instructor-courses-view__hero-copy"><div className="instructor-courses-view__badges"><Skeleton height={30} width={70} radius="xl" /><Skeleton height={30} width={88} radius="xl" /></div><Skeleton height={34} width="58%" radius="sm" /><Skeleton height={14} width="34%" radius="sm" /><Skeleton height={14} width="22%" radius="sm" /></div><Skeleton className="instructor-courses-view__hero-action-skeleton" height={50} width={220} radius="md" /></article>
-    <div className="instructor-courses-view__panels">{[0, 1].map(panel => <section className="instructor-courses-view__panel" key={panel}><header><Skeleton height={22} width={150} radius="sm" /></header>{[0, 1, ...(panel === 0 ? [2] : [])].map(row => <div className="instructor-courses-view__panel-skeleton" key={row}><Skeleton height={56} width={56} radius="md" /><span><Skeleton height={13} width="48%" radius="sm" /><Skeleton height={11} width="72%" radius="sm" /></span><Skeleton height={panel ? 40 : 18} width={panel ? 150 : 18} radius="md" /></div>)}</section>)}</div>
-    <footer className="instructor-courses-view__access"><span><Skeleton height={15} width={110} radius="sm" /><Skeleton height={12} width={250} radius="sm" /></span><Skeleton height={14} width={160} radius="sm" /></footer>
-  </section>;
 }
 
 function statusLabel(status: string) {
