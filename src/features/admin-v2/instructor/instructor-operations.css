@@ -1,0 +1,160 @@
+/* Shared instructor route polish. Keeps the existing GreenLearn palette and
+   leaves the admin workspace shell and motion rules untouched. */
+.admin-v2--instructor .instructor-operations__page-heading {
+  position: relative;
+  isolation: isolate;
+  min-height: 116px;
+  overflow: hidden;
+  margin-bottom: 0 !important;
+  padding: clamp(18px, 2.4vw, 30px) clamp(18px, 2vw, 28px);
+  border: 1px solid #d8eae0;
+  border-radius: 18px;
+  background: linear-gradient(112deg, #fff 0%, #f5fbf7 58%, #eaf7ee 100%);
+  box-shadow: 0 5px 18px rgb(19 52 31 / 4%);
+}
+.admin-v2--instructor .instructor-operations__page-heading::after {
+  position: absolute;
+  z-index: -1;
+  top: -92px;
+  right: -30px;
+  width: 260px;
+  height: 260px;
+  border: 1px solid rgb(18 132 67 / 10%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 24px rgb(18 132 67 / 3%), 0 0 0 54px rgb(18 132 67 / 2%);
+  content: "";
+  pointer-events: none;
+}
+.admin-v2--instructor .instructor-operations__page-heading > div:first-child { position: relative; z-index: 1; max-width: 740px; }
+.admin-v2--instructor .instructor-operations__page-heading .mantine-Badge-root { letter-spacing: .09em; font-size: 10px; font-weight: 750; }
+.admin-v2--instructor .instructor-operations__page-heading .mantine-Title-root { margin: 0; color: #142b1e; font-size: clamp(25px, 2vw, 32px); font-weight: 780; letter-spacing: -.035em; line-height: 1.12; }
+.admin-v2--instructor .instructor-operations__page-heading .mantine-Text-root { max-width: 680px; color: #627469; font-size: 14px; line-height: 1.5; }
+.admin-v2--instructor .instructor-operations__page-heading > .mantine-Button-root { position: relative; z-index: 1; min-height: 42px; border-radius: 10px; font-weight: 700; }
+
+/* Student account and roster route */
+.admin-v2--instructor .admin-v2__instructor-students,
+.admin-v2--instructor .admin-v2__instructor-subscriptions,
+.admin-v2--instructor .admin-v2__instructor-assessments {
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbdcd0 transparent;
+  background: #f7faf8;
+}
+.admin-v2--instructor .admin-v2__instructor-students > .mantine-SimpleGrid-root { align-items: stretch; gap: 16px !important; }
+.admin-v2--instructor .admin-v2__instructor-students .admin-v2__instructor-student-create,
+.admin-v2--instructor .admin-v2__instructor-students .admin-v2__instructor-student-roster {
+  border-color: #e0ebe4;
+  border-radius: 16px;
+  box-shadow: 0 3px 12px rgb(19 52 31 / 4%);
+}
+.admin-v2--instructor .admin-v2__instructor-students .admin-v2__instructor-student-create { align-self: start; background: linear-gradient(180deg, #fff, #fbfdfb); }
+.admin-v2--instructor .instructor-operations__card-heading { min-height: 30px; }
+.admin-v2--instructor .instructor-operations__card-heading .mantine-Title-root,
+.admin-v2--instructor .instructor-operations__roster-heading .mantine-Title-root { color: #1b3425; font-size: 18px; font-weight: 740; letter-spacing: -.02em; }
+.admin-v2--instructor .instructor-operations__roster-heading { padding-bottom: 14px; border-bottom: 1px solid #edf2ee; }
+.admin-v2--instructor .instructor-operations__roster-heading > div:first-child { min-width: 0; }
+.admin-v2--instructor .instructor-operations__roster-heading .mantine-TextInput-root { width: min(100%, 270px); }
+.admin-v2--instructor .admin-v2__instructor-students .mantine-InputWrapper-label { margin-bottom: 5px; color: #465c4d; font-size: 12px; font-weight: 650; }
+.admin-v2--instructor .admin-v2__instructor-students .mantine-Input-input,
+.admin-v2--instructor .admin-v2__instructor-students .mantine-Select-input { min-height: 42px; border-color: #dce8e0; border-radius: 9px; color: #23382a; font-size: 13px; }
+.admin-v2--instructor .admin-v2__instructor-students .mantine-Input-input:focus,
+.admin-v2--instructor .admin-v2__instructor-students .mantine-Select-input:focus { border-color: #72b888; box-shadow: 0 0 0 3px rgb(47 158 95 / 11%); }
+.admin-v2--instructor .admin-v2__instructor-students .mantine-Button-root { min-height: 40px; border-radius: 9px; font-weight: 680; }
+.admin-v2--instructor .admin-v2__instructor-students .mantine-Table-table { font-size: 12px; }
+.admin-v2--instructor .admin-v2__instructor-students .mantine-Table-th { height: 42px; border-bottom-color: #e4ede7; background: #f7faf8; color: #64756a; font-size: 10px; font-weight: 750; letter-spacing: .045em; text-transform: uppercase; }
+.admin-v2--instructor .admin-v2__instructor-students .mantine-Table-td { border-bottom-color: #edf2ee; color: #33483a; font-size: 12px; line-height: 1.45; }
+.admin-v2--instructor .admin-v2__instructor-students .mantine-Table-tr:hover { background: #f5faf6; }
+.admin-v2--instructor .admin-v2__instructor-students .mantine-Table-scrollContainer { border: 1px solid #edf2ee; border-radius: 11px; }
+
+/* Subscription purchase workspace */
+.admin-v2--instructor .admin-v2__instructor-subscriptions .mantine-Alert-root { border-radius: 12px; }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plans,
+.admin-v2--instructor .admin-v2__instructor-subscriptions .instructor-operations__request-card {
+  border-color: #e0ebe4;
+  border-radius: 16px;
+  box-shadow: 0 3px 12px rgb(19 52 31 / 4%);
+}
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plans { min-height: 310px; background: linear-gradient(180deg, #fff, #fbfdfb); }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plans > header { min-height: 66px; padding-inline: 20px; }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plans h2 { color: #1d3526; font-size: 17px; font-weight: 740; }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plans header p { color: #718177; font-size: 12px; line-height: 1.45; }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plan-grid { gap: 14px; padding: 0 18px 18px; }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plan-grid article { padding: 16px; border-color: #e3ece6; border-radius: 13px; background: #fff; }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plan-grid article.is-featured { border-color: #a9d6b6; background: linear-gradient(160deg, #f2faf4, #fff 78%); box-shadow: 0 5px 14px rgb(18 132 67 / 7%); }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plan-icon { width: 38px; height: 38px; background: #e8f6ec; color: #128443; }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plan-title { margin-top: 12px; }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plan-title h3 { color: #1a3324; font-size: 15px; }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plan-title small { border-radius: 999px; background: #e4f5e8; color: #16753f; padding: 4px 8px; font-size: 9px; }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plan-grid article > p { margin-block: 7px 10px; color: #6c7d72; font-size: 11px; line-height: 1.45; }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plan-grid article > strong { color: #173c28; font-size: 28px; }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plan-grid article > strong small { font-size: 12px; }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plan-grid ul { gap: 8px; margin-block: 12px 15px; color: #5f7165; font-size: 10px; line-height: 1.4; }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plan-grid article > button { min-height: 37px; border-color: #a9d6b6; border-radius: 8px; color: #17683b; font-size: 11px; font-weight: 700; }
+.admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plan-grid article > button:hover { border-color: #16834a; background: #edf8f0; }
+.admin-v2--instructor .instructor-operations__request-card > .mantine-Group-root:first-child { padding-bottom: 12px; border-bottom: 1px solid #edf2ee; }
+.admin-v2--instructor .instructor-operations__request-card .mantine-Title-root { color: #1d3526; font-size: 18px; font-weight: 740; }
+.admin-v2--instructor .instructor-operations__request-item { border-color: #e5ede7; border-radius: 12px; background: #fcfdfc; }
+.admin-v2--instructor .instructor-operations__request-item .mantine-Text-root { line-height: 1.45; }
+
+/* Instructor assessment library: scoped so the Super Admin screen is unchanged. */
+.admin-v2--instructor .admin-v2__instructor-assessments > .admin-v2__page-header {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 21px 24px;
+  border: 1px solid #dcebe1;
+  border-radius: 16px;
+  background: linear-gradient(110deg, #fff 0%, #f4faf6 100%);
+}
+.admin-v2--instructor .admin-v2__instructor-assessments > .admin-v2__page-header h1 { color: #173321; font-size: clamp(24px, 1.7vw, 30px); letter-spacing: -.03em; }
+.admin-v2--instructor .admin-v2__instructor-assessments > .admin-v2__page-header p { color: #687a6e; font-size: 13px; line-height: 1.5; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__workgrid.has-inspector { min-height: 570px; grid-template-columns: minmax(0, 1.35fr) minmax(350px, .9fr); gap: 16px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-card,
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__inspector { border-color: #e0eae3; border-radius: 15px; box-shadow: 0 3px 12px rgb(19 52 31 / 4%); }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-toolbar { min-height: 66px; flex-wrap: wrap; padding-inline: 17px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-toolbar > div:first-child strong { color: #20372a; font-size: 15px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-toolbar > div:first-child span { color: #718177; font-size: 11px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-tools { flex-wrap: wrap; gap: 8px; padding-block: 9px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-tools select { width: auto; min-width: 132px; border-radius: 8px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-tools .admin-v2__search { width: min(230px, 100%); border-radius: 8px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-tools .admin-v2__button { min-height: 36px; border-radius: 8px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table { min-width: 600px; font-size: 12px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table th { height: 45px; background: #f7faf8; color: #64756a; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table td { height: 58px; color: #34483a; font-size: 12px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table td strong { color: #1e3426; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__inspector-title { min-height: 68px; padding-inline: 18px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__inspector-title h2 { color: #1d3526; font-size: 17px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__inspector-title small { color: #6d7d73; font-size: 11px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__inspector-section > header h3 { color: #243a2c; font-size: 13px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__inspector-content { padding-inline: 16px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__field { color: #4b5f51; font-size: 11px; }
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__field input,
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__field textarea,
+.admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__assessment-question-editor { border-radius: 8px; font-size: 12px; }
+
+@media (max-width: 980px) {
+  .admin-v2--instructor .instructor-operations__page-heading { min-height: 104px; padding: 17px; }
+  .admin-v2--instructor .admin-v2__instructor-students > .mantine-SimpleGrid-root { grid-template-columns: minmax(0, 1fr) !important; }
+  .admin-v2--instructor .admin-v2__instructor-students .admin-v2__instructor-student-roster { grid-column: auto; }
+  .admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plan-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__workgrid.has-inspector { min-height: 0; grid-template-columns: minmax(0, 1fr); }
+  .admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-card { min-height: 460px; }
+  .admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__inspector { min-height: 480px; }
+}
+@media (min-width: 62em) and (max-width: 74.99em) {
+  .admin-v2--instructor .admin-v2__instructor-students .admin-v2__instructor-student-roster { grid-column: auto; }
+}
+@media (max-width: 680px) {
+  .admin-v2--instructor .instructor-operations__page-heading { align-items: flex-start; flex-direction: column; gap: 14px; }
+  .admin-v2--instructor .instructor-operations__page-heading > .mantine-Button-root { width: 100%; }
+  .admin-v2--instructor .instructor-operations__roster-heading { align-items: stretch; flex-direction: column; }
+  .admin-v2--instructor .instructor-operations__roster-heading .mantine-TextInput-root { width: 100%; }
+  .admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plans { min-height: 0; }
+  .admin-v2--instructor .admin-v2__instructor-subscriptions .admin-v2__plan-grid { grid-template-columns: minmax(0, 1fr); }
+  .admin-v2--instructor .admin-v2__instructor-assessments > .admin-v2__page-header { padding: 16px; }
+  .admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-toolbar { align-items: stretch; }
+  .admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-tools { width: 100%; }
+  .admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-tools select,
+  .admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-tools .admin-v2__search { width: 100%; }
+  .admin-v2--instructor .admin-v2__instructor-assessments .admin-v2__table-tools .admin-v2__button { width: 100%; }
+}

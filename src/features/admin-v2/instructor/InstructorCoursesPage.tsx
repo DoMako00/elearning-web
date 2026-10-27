@@ -23,9 +23,12 @@ export function InstructorCoursesPage() {
       <header data-instructor-guide-target="course-list-header"><div><h2>Courses</h2>{domainLoading ? <Skeleton className="instructor-courses-view__count-skeleton" height={24} width={24} circle /> : <span>{courses.length}</span>}</div><ListFilter size={18} aria-hidden="true" /></header>
       <label className="instructor-courses-view__search"><Search size={16} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search courses" aria-label="Search courses" /></label>
       <div data-instructor-guide-target="course-card" className="instructor-courses-view__list">
-        {domainLoading ? <div className="instructor-courses-view__course-skeletons" role="status" aria-label="Loading assigned courses">{Array.from({ length: Math.min(courses.length || 1, 6) }, (_, index) => <CourseOptionSkeleton key={index} />)}</div> : visibleCourses.map((course, index) => <button key={course.id} type="button" className={`instructor-courses-view__course-option${selected?.id === course.id ? " is-selected" : ""}`} onClick={() => setSelectedId(course.id)} aria-pressed={selected?.id === course.id}>
-          <span className="instructor-courses-view__course-icon"><img src={instructorCourseArtwork(`${course.title} ${course.code}`, index)} alt="" loading="lazy" /></span><span className="instructor-courses-view__course-copy"><strong>{course.title}</strong><small>{course.brandName}</small><i className={`is-${course.status}`}>{statusLabel(course.status)}</i></span>
-        </button>)}
+        {domainLoading ? <div className="instructor-courses-view__course-skeletons" role="status" aria-label="Loading assigned courses">{Array.from({ length: Math.min(courses.length || 1, 6) }, (_, index) => <CourseOptionSkeleton key={index} />)}</div> : visibleCourses.map((course) => {
+          const displayIndex = courses.indexOf(course);
+          return <button key={course.id} type="button" className={`instructor-courses-view__course-option${selected?.id === course.id ? " is-selected" : ""}`} onClick={() => setSelectedId(course.id)} aria-pressed={selected?.id === course.id}>
+          <span className={`instructor-courses-view__course-icon is-variant-${displayIndex % 3}`} aria-hidden="true"><img src="/assets/instructor/course-book-leaves.png" alt="" width="56" height="56" loading="lazy" decoding="async" /></span><span className="instructor-courses-view__course-copy"><strong>{course.title}</strong><small>{course.brandName}</small><i className={`is-${course.status}`}>{statusLabel(course.status)}</i></span>
+          </button>;
+        })}
         {!domainLoading && !visibleCourses.length && <div className="instructor-courses-view__empty-list"><BookOpen size={20} /><strong>{courses.length ? "No matching courses" : "No assigned courses yet"}<small>{courses.length ? "Try another search." : "Ask your administrator to assign a course to your instructor account."}</small></strong></div>}
       </div>
       <footer>{domainLoading ? <Skeleton height={9} width={48} /> : <>{courses.length} {courses.length === 1 ? "course" : "courses"}</>}</footer>

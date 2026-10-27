@@ -7,6 +7,7 @@ import { useAdminV2 } from "../layout/AdminV2Layout";
 import { getWorkspaceCopy } from "../copy/workspace-copy";
 import { friendlyError, type FriendlyErrorInfo } from "../utils/friendlyError";
 import { FriendlyErrorNotice } from "../shared/FriendlyErrorNotice";
+import "../instructor/instructor-operations.css";
 
 type QuestionDraft = Omit<AdminAssessmentQuestionDto, "version">;
 const errorText = (error: unknown) => error instanceof Error ? error.message : "The assessment request failed.";
@@ -100,8 +101,8 @@ export function AssessmentsPage() {
     return adminAssessmentApi.update(selected.id, { expectedVersion: detail.data.assessment.version, title: editTitle.trim(), availableFrom: from, availableUntil: until, attemptsAllowed, timeLimitSeconds: timeLimitMinutes ? Number(timeLimitMinutes) * 60 : null });
   }, onSuccess: async () => { setMessage("Assessment details saved."); setErrorInfo(null); await refresh(); }, onError: error => { setErrorInfo(friendlyError(error)); setMessage(""); } });
 
-  return <section className="admin-v2__page">
-    <header className="admin-v2__page-header"><div><h1>Assessments</h1><p>Manage persisted quizzes and exams, schedules, questions, and attempt results.</p></div></header>
+  return <section className={`admin-v2__page${isInstructor ? " admin-v2__instructor-assessments" : ""}`}>
+    <header className="admin-v2__page-header"><div><h1>{isInstructor ? "Exams & quizzes" : "Assessments"}</h1><p>{isInstructor ? "Create quizzes and exams for your courses, set availability and attempt rules, then review student attempts." : "Manage persisted quizzes and exams, schedules, questions, and attempt results."}</p></div></header>
     {message && <p role="status" className="admin-v2__inline-notice">{message}</p>}
     {errorInfo && <FriendlyErrorNotice error={errorInfo} onDismiss={() => setErrorInfo(null)} />}
     {list.isError && <FriendlyErrorNotice error={friendlyError(list.error)} onRetry={() => void list.refetch()} />}
