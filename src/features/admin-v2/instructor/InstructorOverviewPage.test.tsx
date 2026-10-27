@@ -94,7 +94,7 @@ describe("InstructorOverviewPage", () => {
     );
 
     // Welcome banner
-    expect(screen.getByText("Your teaching, one step at a time")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: /Your teaching,\s*one step at a time/ })).toBeTruthy();
 
     // Metric cards
     expect(screen.getByText("My courses")).toBeTruthy();
@@ -104,6 +104,9 @@ describe("InstructorOverviewPage", () => {
     // Assigned courses section
     expect(screen.getByText("Your assigned courses")).toBeTruthy();
     expect(screen.getByText("Basic of Health and Life 2")).toBeTruthy();
-    expect(screen.getByText(/Nexus · CRS-101/)).toBeTruthy();
+    expect(screen.getByText("Nexus")).toBeTruthy();
+    expect(screen.getByText("Published")).toBeTruthy();
+    expect(screen.getByText("Files awaiting approval")).toBeTruthy();
+    expect(screen.queryByText("Instructor portal")).toBeNull();
   });
 });
