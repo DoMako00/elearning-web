@@ -44,11 +44,11 @@ export function InstructorStudentsPage() {
   return <section className="admin-v2__page admin-v2__instructor-students" aria-label="Instructor student management">
     <Group justify="space-between" align="flex-end" wrap="wrap" mb="md">
       <div><Badge color="green" variant="light" mb={6}>COURSE STUDENTS</Badge><Title order={1}>Students</Title><Text c="dimmed" size="sm" mt={4}>Create student accounts for your assigned courses and manage accounts you created.</Text></div>
-      <Button component={Link} to="/admin/instructor/subscriptions" leftSection={<BookOpen size={16} />} variant="light" color="green">View purchase requests</Button>
+      <Button data-instructor-guide-target="students-purchases" component={Link} to="/admin/instructor/subscriptions" leftSection={<BookOpen size={16} />} variant="light" color="green">View purchase requests</Button>
     </Group>
 
     <SimpleGrid cols={{ base: 1, lg: 3 }} spacing="md">
-      <Card withBorder shadow="xs" radius="md" p="md" className="admin-v2__instructor-student-create">
+      <Card data-instructor-guide-target="students-create" withBorder shadow="xs" radius="md" p="md" className="admin-v2__instructor-student-create">
         <Group gap="xs" mb="sm"><UserRound size={18} color="var(--mantine-color-green-7)" /><Title order={3}>Create student account</Title></Group>
         <Text size="xs" c="dimmed" mb="md">The course determines the student's Brand and academic placement. Account access remains pending until the Super Admin approves payment.</Text>
         <Stack gap="sm">
@@ -61,8 +61,8 @@ export function InstructorStudentsPage() {
         </Stack>
       </Card>
 
-      <Card withBorder shadow="xs" radius="md" p="md" className="admin-v2__instructor-student-roster">
-        <Group justify="space-between" align="center" mb="md" wrap="wrap"><div><Title order={3}>Your course students</Title><Text size="xs" c="dimmed" mt={3}>Only students connected to your assigned courses or created by you are listed.</Text></div><TextInput leftSection={<Search size={15} />} placeholder="Search students" value={search} onChange={(event) => setSearch(event.currentTarget.value)} /></Group>
+      <Card data-instructor-guide-target="students-roster" withBorder shadow="xs" radius="md" p="md" className="admin-v2__instructor-student-roster">
+        <Group justify="space-between" align="center" mb="md" wrap="wrap"><div><Title order={3}>Your course students</Title><Text size="xs" c="dimmed" mt={3}>Only students connected to your assigned courses or created by you are listed.</Text></div><TextInput data-instructor-guide-target="students-search" leftSection={<Search size={15} />} placeholder="Search students" value={search} onChange={(event) => setSearch(event.currentTarget.value)} /></Group>
         {students.isError && <Alert color="red" icon={<AlertCircle size={16} />} title="Students could not be loaded" mb="sm"><Button size="xs" variant="light" onClick={() => void students.refetch()}>Try again</Button></Alert>}
         {students.isLoading ? <Text c="dimmed" py="xl" ta="center">Loading course students…</Text> : !rows.length ? <Stack align="center" gap="xs" py="xl"><UserRound size={25} color="var(--mantine-color-green-7)" /><Text fw={650}>No students in your course workspace yet</Text><Text size="sm" c="dimmed" ta="center">Create the first account here. It will stay pending until payment review is complete.</Text></Stack> : <Table.ScrollContainer minWidth={660}><Table verticalSpacing="sm" highlightOnHover><Table.Thead><Table.Tr><Table.Th>Student</Table.Th><Table.Th>Academic placement</Table.Th><Table.Th>Course access</Table.Th><Table.Th>Status</Table.Th><Table.Th /></Table.Tr></Table.Thead><Table.Tbody>{rows.map((student) => <Table.Tr key={student.id}><Table.Td><Text fw={650} size="sm">{student.displayName ?? "Student"}</Text><Text size="xs" c="dimmed">{student.createdByInstructor ? "Created by you" : "Assigned course student"}</Text></Table.Td><Table.Td><Text size="xs">{student.academicInstitution ?? "—"} · {student.academicLevel ?? "—"} · {student.academicSemester ?? "—"}</Text></Table.Td><Table.Td><Text size="xs" lineClamp={2}>{student.courseTitles.join(", ") || "No active course link yet"}</Text></Table.Td><Table.Td><Badge color={statusColor(student.status)} variant="light">{student.status.replace("_", " ")}</Badge></Table.Td><Table.Td>{student.createdByInstructor && student.status !== "disabled" && <Button size="xs" variant="subtle" color="red" leftSection={<UserX size={14} />} onClick={() => { setCancelStudent(student); setCancelReason(""); cancel.reset(); }}>Cancel</Button>}</Table.Td></Table.Tr>)}</Table.Tbody></Table></Table.ScrollContainer>}
       </Card>
