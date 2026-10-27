@@ -1,15 +1,10 @@
-import { Skeleton } from "@mantine/core";
 import "./instructor-assignment-workspace.css";
 
-const bar = (width: string, height = 12) => <Skeleton width={width} height={height} radius="sm" />;
+const bar = (width: string, height = 12) => <span className="instructor-assignments__skeleton-block" style={{ width, height }} aria-hidden="true" />;
 
 export function InstructorAssignmentSkeleton() {
   return <main className="instructor-assignments instructor-assignments--loading" aria-busy="true" aria-label="Loading assignments and grading">
-    <header className="instructor-assignments__heading">
-      <div>{bar("150px", 9)}{bar("260px", 23)}{bar("300px", 12)}</div>
-      <div className="instructor-assignments__heading-actions">{bar("92px", 36)}{bar("125px", 36)}</div>
-    </header>
-    <div className="instructor-assignments__tabs">{bar("110px", 34)}{bar("170px", 34)}</div>
+    <div className="instructor-assignments__tabs instructor-assignments__tabs--loading">{bar("110px", 34)}{bar("170px", 34)}<div className="instructor-assignments__tabs-actions">{bar("92px", 32)}{bar("125px", 32)}</div></div>
     <div className="instructor-assignments__summary instructor-assignments__summary--skeleton">
       {bar("100%", 42)}{bar("100%", 42)}{bar("88%", 28)}{bar("80%", 28)}{bar("100%", 28)}
     </div>

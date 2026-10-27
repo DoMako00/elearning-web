@@ -166,14 +166,10 @@ export function InstructorAssignmentWorkspace() {
   const toGradePosition = submissionItems.filter(item => item.status === "submitted").findIndex(item => item.id === submission?.id) + 1;
 
   return <main className="instructor-assignments" aria-label="Assignments and grading" aria-busy={assignmentQuery.isLoading || rosterQuery.isLoading}>
-    <header className="instructor-assignments__heading">
-      <div><span>INSTRUCTOR WORKSPACE</span><h1>Assignments &amp; grading</h1><p>Manage student submissions and return feedback.</p></div>
-      <div className="instructor-assignments__heading-actions"><button type="button" className="instructor-assignments__secondary-button" onClick={() => void refresh()} disabled={assignmentsQuery.isFetching || assignmentQuery.isFetching}><RefreshCw size={15} /> Refresh</button><button type="button" className="instructor-assignments__secondary-button" onClick={exportGrades} disabled={!selected || !assignmentQuery.data}><ArrowDownToLine size={15} /> Export grades</button></div>
-    </header>
-
     <nav className="instructor-assignments__tabs" aria-label="Assignment workspace tabs">
       <button type="button" role="tab" data-instructor-guide-target="assignment-list-tab" className={tab === "assignments" ? "is-active" : ""} aria-selected={tab === "assignments"} onClick={() => setTab("assignments")}>Assignments</button>
       <button type="button" role="tab" data-instructor-guide-target="assignment-grading-tab" className={tab === "grading" ? "is-active" : ""} aria-selected={tab === "grading"} onClick={() => setTab("grading")}><ClipboardCheck size={15} /> Submissions &amp; grading</button>
+      <div className="instructor-assignments__tabs-actions"><button type="button" className="instructor-assignments__secondary-button" onClick={() => void refresh()} disabled={assignmentsQuery.isFetching || assignmentQuery.isFetching}><RefreshCw size={14} /> Refresh</button><button type="button" className="instructor-assignments__secondary-button" onClick={exportGrades} disabled={!selected || !assignmentQuery.data}><ArrowDownToLine size={14} /> Export grades</button></div>
     </nav>
 
     <section className="instructor-assignments__summary" aria-label="Selected course assignment">
