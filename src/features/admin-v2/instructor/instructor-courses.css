@@ -129,7 +129,11 @@
 
 /* Skeleton-only helpers (mirror the loaded layout) */
 .instructor-courses-view__note-skeleton { flex: 0 0 auto; display: flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 9px; background: #f1f5f2; }
-.instructor-courses-view__picker > header .mantine-Skeleton-root { flex: none; }
-.instructor-courses-view__search > .mantine-Skeleton-root { flex: none; }
-.instructor-courses-view__hero-copy > .mantine-Skeleton-root { margin-top: 6px; }
-.instructor-courses-view__access > span > .mantine-Skeleton-root + .mantine-Skeleton-root { margin-top: 6px; }
+.instructor-courses-view__picker > header .skeleton-shimmer { flex: none; }
+.instructor-courses-view__search > .skeleton-shimmer { flex: none; }
+.instructor-courses-view__hero-copy > .skeleton-shimmer { margin-top: 6px; }
+.instructor-courses-view__access > span > .skeleton-shimmer + .skeleton-shimmer { margin-top: 6px; }
+.instructor-courses-view__skeleton-thumb { display: block; }
+.instructor-courses-view__hero-copy > .skeleton-shimmer, .instructor-courses-view__badges > .skeleton-shimmer { flex: none; }
+.instructor-courses-view__panel-skeleton > .skeleton-shimmer { flex: none; }
+.instructor-courses-view__access > span { display: grid; }

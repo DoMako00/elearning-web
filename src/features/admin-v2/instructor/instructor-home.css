@@ -169,6 +169,17 @@
 .instructor-home__skeleton-metric-icon { --sk: clamp(44px, 5.6vh, 58px); width: var(--sk) !important; height: var(--sk) !important; flex: 0 0 var(--sk); }
 .instructor-home__skeleton-dot { margin-top: 1px; }
 .instructor-home__skeleton-flow-copy { display: grid; gap: 6px; padding-top: 2px; }
-.instructor-home__approval-note > .mantine-Skeleton-root { flex: none; }
+.instructor-home__approval-note > .skeleton-shimmer { flex: none; }
 .instructor-home__section-heading { min-height: 30px; }
 @media (min-width: 1101px) and (max-height: 900px) { .instructor-home__skeleton-flow-copy > :nth-child(2) { display: none; } }
+.instructor-skeleton-card { box-sizing: border-box; border-style: solid; border-width: 1px; }
+.instructor-home__metrics--skeleton { display: grid; gap: 12px; }
+.instructor-home__skeleton-metric-row { width: 100%; display: flex; align-items: center; gap: clamp(12px, 1.2vw, 20px); }
+.instructor-home__skeleton-metric-copy { min-width: 0; display: grid; gap: 4px; }
+.instructor-home__skeleton-metric-icon { border-radius: 50% !important; }
+.instructor-home__skeleton-art { width: 100%; }
+.instructor-home__course--skeleton .instructor-home__skeleton-pill, .instructor-home__course--skeleton .instructor-home__skeleton-status { align-self: flex-start; }
+.instructor-home__course--skeleton { background: #fff; }
+.instructor-home__skeleton-hero-title, .instructor-home__skeleton-hero-text, .instructor-home__skeleton-hero-button { display: block; }
+.instructor-home__skeleton-heading { display: block; }
+.instructor-home__skeleton-button { display: block; }
