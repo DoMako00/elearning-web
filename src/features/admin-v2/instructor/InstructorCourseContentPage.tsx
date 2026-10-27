@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BookOpen, FileCheck2, FileText, Plus, Upload } from "lucide-react";
+import { BookOpen, ChevronDown, FileCheck2, FileText, Folder, Lock, Plus, Search, Upload, UploadCloud, Video } from "lucide-react";
 import { Navigate, useParams } from "react-router-dom";
 import { useAdminV2 } from "../layout/AdminV2Layout";
 import { createStructureRecord, listStructure, type BrandCourse } from "../api/adminAcademicApi";
@@ -30,6 +30,9 @@ export function InstructorCourseContentPage() {
   const [file,setFile]=useState<File|null>(null);
   const [videoDuration,setVideoDuration]=useState("");
   const [notice,setNotice]=useState("");
+  const [treeSearch,setTreeSearch]=useState("");
+  const [creating,setCreating]=useState<"chapter"|"lesson"|null>(null);
+  const [collapsed,setCollapsed]=useState<Set<string>>(()=>new Set());
   const [errorInfo,setErrorInfo]=useState<FriendlyErrorInfo|null>(null);
   const chapters=structure.data?.chapters.filter(item=>item.status!=="archived")??[];
   const lessons=structure.data?.lessons.filter(item=>item.status!=="archived")??[];
@@ -61,54 +64,78 @@ export function InstructorCourseContentPage() {
   },onSuccess:async()=>{setFile(null);setResourceTitle("");setVideoDuration("");setNotice("File uploaded and verified. It is now waiting for administrator review before students can access it.");setErrorInfo(null);await refresh();},onError:e=>setErrorInfo(friendlyError(e))});
 
   if(!course)return <Navigate to="/admin/instructor/courses" replace />;
+  const q=treeSearch.trim().toLowerCase();
+  const matchesLesson=(item:{title:string})=>!q||item.title.toLowerCase().includes(q);
+  const visibleChapters=chapters.filter(chapter=>!q||chapter.title.toLowerCase().includes(q)||lessons.some(item=>item.courseChapterId===chapter.id&&matchesLesson(item)));
+  const isVideoFile=Boolean(file&&(file.type==="video/mp4"||file.name.toLowerCase().endsWith(".mp4")));
+  const approvedCount=lessonResources.filter(item=>reviewByTarget.get(item.id)?.status==="approved").length;
+  const waitingCount=lessonResources.filter(item=>reviewByTarget.get(item.id)?.status==="submitted").length;
+  const returnedCount=lessonResources.filter(item=>reviewByTarget.get(item.id)?.status==="rejected").length;
+  const toggleChapter=(id:string)=>setCollapsed(current=>{const next=new Set(current);if(next.has(id))next.delete(id);else next.add(id);return next;});
+  const openCreate=(mode:"chapter"|"lesson")=>setCreating(current=>current===mode?null:mode);
   return <section className="instructor-course-builder" aria-label={`${course.title} course builder`}>
     <div className="instructor-course-builder__grid">
       <aside className="instructor-course-builder__outline">
-        <header><div><span>COURSE STRUCTURE</span><h2>Chapters &amp; lessons</h2></div>{structure.isLoading ? <BuilderSkeleton width="78px" height="9px" /> : <small>{chapters.length} chapters · {lessons.length} lessons</small>}</header>
-        <div data-instructor-guide-target="lesson-list" className="instructor-course-builder__tree">
-          {structure.isLoading ? <div className="instructor-course-builder__tree-skeleton" role="status" aria-label="Loading course structure">{[0, 1, 2].map(index => <div className="instructor-course-builder__chapter-skeleton" key={index}><BuilderSkeleton width="72%" height="9px" />{index === 0 && <><BuilderSkeleton width="84%" height="25px" /><BuilderSkeleton width="68%" height="25px" /></>}</div>)}</div> : structure.isError ? <FriendlyErrorNotice error={friendlyError(structure.error)} onRetry={() => void structure.refetch()} /> : !chapters.length ? <div className="instructor-course-builder__empty"><BookOpen size={20} /><strong>No chapters yet</strong><span>Add a chapter to start building this course.</span></div> : chapters.map(chapter => <section key={chapter.id} className="instructor-course-builder__chapter">
-            <header><BookOpen size={15} /><strong>{chapter.title}</strong><small>{chapter.status}</small></header>
-            {lessons.filter(item => item.courseChapterId === chapter.id).map(lesson => <button key={lesson.id} type="button" className={`instructor-course-builder__lesson${selectedLesson?.id === lesson.id ? " is-selected" : ""}`} onClick={() => setSelectedLessonId(lesson.id)}><FileText size={14} /><span>{lesson.title}</span><small>{lesson.status}</small></button>)}
-          </section>)}
+        <h2>Course structure</h2>
+        <label className="instructor-course-builder__search"><Search size={16} /><input value={treeSearch} onChange={e=>setTreeSearch(e.target.value)} placeholder="Find chapter or lesson" aria-label="Find chapter or lesson" /></label>
+        <div className="instructor-course-builder__add-row">
+          <button data-instructor-guide-target="chapter-form" type="button" className="is-primary" aria-expanded={creating==="chapter"} onClick={()=>openCreate("chapter")}><Plus size={15} /> Chapter</button>
+          <button data-instructor-guide-target="lesson-form" type="button" aria-expanded={creating==="lesson"} disabled={!selectedChapter} title={selectedChapter?undefined:"Create a chapter first"} onClick={()=>openCreate("lesson")}><Plus size={15} /> Lesson</button>
         </div>
-        {structure.isLoading ? <div className="instructor-course-builder__forms-skeleton" aria-hidden="true"><BuilderSkeleton width="55%" height="8px" /><BuilderSkeleton height="31px" /><BuilderSkeleton width="60%" height="8px" /><BuilderSkeleton height="31px" /></div> : <div className="instructor-course-builder__create-forms">
-          <form data-instructor-guide-target="chapter-form" onSubmit={e => { e.preventDefault(); createChapter.mutate(); }}><label><span>New chapter</span><input value={chapterTitle} onChange={e => setChapterTitle(e.target.value)} maxLength={240} placeholder="e.g. Introduction" /></label><button type="submit" disabled={!chapterTitle.trim() || createChapter.isPending}><Plus size={14} /> Add chapter</button></form>
-          {selectedChapter && <form data-instructor-guide-target="lesson-form" onSubmit={e => { e.preventDefault(); createLesson.mutate(); }}><label><span>New lesson in {selectedChapter.title}</span><input value={lessonTitle} onChange={e => setLessonTitle(e.target.value)} maxLength={240} placeholder="Lesson title" /></label><label><span>Lesson summary</span><input value={lessonDescription} onChange={e => setLessonDescription(e.target.value)} maxLength={2000} placeholder="Optional summary" /></label><button type="submit" disabled={!lessonTitle.trim() || createLesson.isPending}><Plus size={14} /> Add lesson</button></form>}
-        </div>}
+        {creating==="chapter"&&<form className="instructor-course-builder__create" onSubmit={e=>{e.preventDefault();createChapter.mutate(undefined,{onSuccess:()=>setCreating(null)});}}><label><span>New chapter</span><input autoFocus value={chapterTitle} onChange={e=>setChapterTitle(e.target.value)} maxLength={240} placeholder="e.g. Introduction" /></label><div><button type="button" onClick={()=>setCreating(null)}>Cancel</button><button type="submit" className="is-primary" disabled={!chapterTitle.trim()||createChapter.isPending}>Add chapter</button></div></form>}
+        {creating==="lesson"&&selectedChapter&&<form className="instructor-course-builder__create" onSubmit={e=>{e.preventDefault();createLesson.mutate(undefined,{onSuccess:()=>setCreating(null)});}}><label><span>New lesson in {selectedChapter.title}</span><input autoFocus value={lessonTitle} onChange={e=>setLessonTitle(e.target.value)} maxLength={240} placeholder="Lesson title" /></label><label><span>Lesson summary</span><input value={lessonDescription} onChange={e=>setLessonDescription(e.target.value)} maxLength={2000} placeholder="Optional summary" /></label><div><button type="button" onClick={()=>setCreating(null)}>Cancel</button><button type="submit" className="is-primary" disabled={!lessonTitle.trim()||createLesson.isPending}>Add lesson</button></div></form>}
+        <div data-instructor-guide-target="lesson-list" className="instructor-course-builder__tree">
+          {structure.isLoading ? <div className="instructor-course-builder__tree-skeleton" role="status" aria-label="Loading course structure">{[0, 1].map(index => <div className="instructor-course-builder__chapter-skeleton" key={index}><BuilderSkeleton width="58%" height="16px" />{index === 0 && <BuilderSkeleton width="82%" height="34px" />}</div>)}</div> : structure.isError ? <FriendlyErrorNotice error={friendlyError(structure.error)} onRetry={() => void structure.refetch()} /> : !chapters.length ? <div className="instructor-course-builder__empty"><BookOpen size={20} /><strong>No chapters yet</strong><span>Add a chapter to start building this course.</span></div> : !visibleChapters.length ? <div className="instructor-course-builder__empty"><Search size={20} /><strong>No matches</strong><span>Try another chapter or lesson name.</span></div> : visibleChapters.map(chapter => { const isOpen=Boolean(q)||!collapsed.has(chapter.id); return <section key={chapter.id} className="instructor-course-builder__chapter">
+            <header><button type="button" className="instructor-course-builder__chapter-toggle" onClick={()=>toggleChapter(chapter.id)} aria-expanded={isOpen} aria-label={`${isOpen?"Collapse":"Expand"} ${chapter.title}`}><ChevronDown size={15} className={isOpen?"":"is-closed"} /></button><Folder size={16} /><strong>{chapter.title}</strong>{chapter.status!=="published"&&<small>{chapter.status}</small>}</header>
+            {isOpen&&lessons.filter(item => item.courseChapterId === chapter.id&&matchesLesson(item)).map(lesson => <button key={lesson.id} type="button" className={`instructor-course-builder__lesson${selectedLesson?.id === lesson.id ? " is-selected" : ""}`} onClick={() => setSelectedLessonId(lesson.id)} aria-current={selectedLesson?.id === lesson.id}><FileText size={15} /><span>{lesson.title}</span><small>{lesson.status}</small></button>)}
+          </section>; })}
+        </div>
+        {!structure.isLoading&&<footer>{chapters.length} {chapters.length===1?"chapter":"chapters"} · {lessons.length} {lessons.length===1?"lesson":"lessons"}</footer>}
       </aside>
 
       <section className="instructor-course-builder__lesson-workspace">
-        {structure.isLoading ? <div className="instructor-course-builder__workspace-skeleton" role="status" aria-label="Loading lesson workspace"><div className="instructor-course-builder__workspace-heading-skeleton"><span><BuilderSkeleton width="112px" height="8px" /><BuilderSkeleton width="68%" height="20px" /><BuilderSkeleton width="43%" height="8px" /></span><BuilderSkeleton width="54px" height="22px" /></div><BuilderSkeleton width="92px" height="8px" /><div className="instructor-course-builder__resource-skeletons">{[0, 1, 2].map(index => <div key={index}><BuilderSkeleton width="34px" height="34px" /><span><BuilderSkeleton width="57%" height="8px" /><BuilderSkeleton width="36%" height="7px" /></span><BuilderSkeleton width="64px" height="17px" /></div>)}</div></div> : !selectedLesson ? <div className="instructor-course-builder__empty-workspace"><FileText size={28} /><h2>Select a lesson</h2><p>Choose a lesson from the course structure or create a new one to manage its files.</p></div> : <>
-          <header className="instructor-course-builder__lesson-heading"><div><span>LESSON WORKSPACE</span><h1>{selectedLesson.title}</h1><small>{selectedChapter?.title ?? "Course lesson"} · {selectedLesson.status}</small></div><span className={`instructor-course-builder__status is-${selectedLesson.status}`}>{selectedLesson.status}</span></header>
-          {notice && <p role="status" className="instructor-course-builder__notice">{notice}</p>}
-          <FriendlyErrorNotice error={errorInfo} />
-          {resources.isError && <FriendlyErrorNotice error={friendlyError(resources.error)} onRetry={() => void resources.refetch()} />}
-          <section className="instructor-course-builder__resource-list" aria-labelledby="lesson-files-heading"><header><div><span>LESSON MATERIALS</span><h2 id="lesson-files-heading">Videos &amp; files</h2></div><small>{lessonResources.length} resources</small></header>
-            {resources.isLoading ? <div className="instructor-course-builder__resource-skeletons" role="status" aria-label="Loading lesson files">{[0, 1, 2].map(index => <div key={index}><BuilderSkeleton width="34px" height="34px" /><span><BuilderSkeleton width="58%" height="8px" /><BuilderSkeleton width="36%" height="7px" /></span><BuilderSkeleton width="65px" height="17px" /></div>)}</div> : lessonResources.map(resource => { const review = reviewByTarget.get(resource.id); return <article key={resource.id} className="instructor-course-builder__resource"><span className="instructor-course-builder__resource-icon"><FileText size={17} /></span><div><strong>{resource.title}</strong><small>{resource.resourceKind} · {resource.status}</small></div>{reviews.isLoading ? <BuilderSkeleton width="66px" height="17px" /> : <span className={`instructor-course-builder__review-state is-${review?.status ?? "draft"}`}>{review?.status ?? "Not submitted"}</span>}{review?.status === "rejected" && <p role="alert">{copy.content.reviewNotePrefix}{review.rejectionReason}</p>}</article>; })}
-            {!lessonResources.length && !resources.isLoading && <div className="instructor-course-builder__no-files"><FileCheck2 size={22} /><strong>No files attached</strong><span>Add a PDF or video from Lesson settings. Submitted files stay private until approved.</span></div>}
-          </section>
+        {structure.isLoading ? <div className="instructor-course-builder__workspace-skeleton" role="status" aria-label="Loading lesson workspace"><div className="instructor-course-builder__workspace-heading-skeleton"><BuilderSkeleton width="38%" height="24px" /><BuilderSkeleton width="56px" height="24px" /></div><BuilderSkeleton width="22%" height="12px" /><BuilderSkeleton width="100%" height="48px" /><BuilderSkeleton width="22%" height="12px" /><div className="instructor-course-builder__resource-skeletons">{[0, 1].map(index => <div key={index}><BuilderSkeleton width="38px" height="38px" /><span><BuilderSkeleton width="50%" height="11px" /><BuilderSkeleton width="30%" height="9px" /></span><BuilderSkeleton width="72px" height="22px" /></div>)}</div><BuilderSkeleton width="100%" height="130px" /></div> : !selectedLesson ? <div className="instructor-course-builder__empty-workspace"><FileText size={28} /><h2>Select a lesson</h2><p>Choose a lesson from the course structure or create a new one to manage its files.</p></div> : <>
+          <header className="instructor-course-builder__lesson-heading"><h2>{selectedLesson.title}</h2><span className={`instructor-course-builder__status is-${selectedLesson.status}`}>{statusText(selectedLesson.status)}</span>{selectedChapter&&<small>{selectedChapter.title}</small>}</header>
+          <div className="instructor-course-builder__scroll">
+            {notice && <p role="status" className="instructor-course-builder__notice">{notice}</p>}
+            <FriendlyErrorNotice error={errorInfo} />
+            {resources.isError && <FriendlyErrorNotice error={friendlyError(resources.error)} onRetry={() => void resources.refetch()} />}
+            <section className="instructor-course-builder__block"><h3>Description</h3><p className={selectedLesson.description?"instructor-course-builder__description":"instructor-course-builder__description is-empty"}>{selectedLesson.description||"No description added for this lesson."}</p></section>
+            <section className="instructor-course-builder__block instructor-course-builder__resource-list" aria-labelledby="lesson-files-heading"><header><h3 id="lesson-files-heading">Videos &amp; files</h3><small>{lessonResources.length} {lessonResources.length===1?"resource":"resources"}</small></header>
+              {resources.isLoading ? <div className="instructor-course-builder__resource-skeletons" role="status" aria-label="Loading lesson files">{[0, 1].map(index => <div key={index}><BuilderSkeleton width="38px" height="38px" /><span><BuilderSkeleton width="50%" height="11px" /><BuilderSkeleton width="30%" height="9px" /></span><BuilderSkeleton width="72px" height="22px" /></div>)}</div> : lessonResources.map(resource => { const review = reviewByTarget.get(resource.id); return <article key={resource.id} className="instructor-course-builder__resource"><span className="instructor-course-builder__resource-icon">{resource.resourceKind==="video"?<Video size={18} />:<FileText size={18} />}</span><div><strong>{resource.title}</strong><small>{resource.resourceKind} · {resource.status}</small></div>{reviews.isLoading ? <BuilderSkeleton width="72px" height="22px" /> : <span className={`instructor-course-builder__review-state is-${review?.status ?? "draft"}`}>{review?.status ?? "Not submitted"}</span>}{review?.status === "rejected" && <p role="alert">{copy.content.reviewNotePrefix}{review.rejectionReason}</p>}</article>; })}
+              {!lessonResources.length && !resources.isLoading && <div className="instructor-course-builder__no-files"><FileCheck2 size={20} /><strong>No files attached</strong><span>Upload a PDF or MP4 below. Submitted files stay private until approved.</span></div>}
+            </section>
+            <form data-instructor-guide-target="resource-title" className="instructor-course-builder__block instructor-course-builder__upload" onSubmit={e => { e.preventDefault(); uploadResource.mutate(); }}>
+              <h3>Upload video or PDF</h3>
+              <label className="instructor-course-builder__field"><span>Resource title</span><input data-instructor-guide-target="resource-title-input" value={resourceTitle} onChange={e => setResourceTitle(e.target.value)} maxLength={240} required placeholder="e.g. Chapter slides" /></label>
+              <label data-instructor-guide-target="resource-file" className={`instructor-course-builder__file${file?" has-file":""}`}><UploadCloud size={26} /><strong>{file?.name ?? "Drop a video or PDF here, or browse files"}</strong><small>PDF documents and MP4 videos</small><span className="instructor-course-builder__browse">{file?"Change file":"Browse files"}</span><input type="file" accept=".pdf,application/pdf,.mp4,video/mp4" onChange={e => setFile(e.target.files?.[0] ?? null)} required /></label>
+              {isVideoFile ? <label className="instructor-course-builder__field instructor-course-builder__field--narrow"><span>Video duration (seconds)</span><input type="number" min={1} max={86400} value={videoDuration} onChange={e => setVideoDuration(e.target.value)} required /></label> : null}
+              <p className="instructor-course-builder__private-note"><Lock size={14} /> {copy.content.uploadHelperText}</p>
+              <div className="instructor-course-builder__actions"><button type="button" onClick={()=>{setFile(null);setResourceTitle("");setVideoDuration("");}} disabled={!file&&!resourceTitle&&!videoDuration}>Clear</button><button data-instructor-guide-target="resource-submit" type="submit" className="is-primary" disabled={!file || !resourceTitle.trim() || uploadResource.isPending}>{uploadResource.isPending ? "Uploading and verifying…" : <><Upload size={15} /> {copy.content.uploadButtonLabel}</>}</button></div>
+            </form>
+          </div>
         </>}
       </section>
 
       <aside className="instructor-course-builder__settings">
-        {structure.isLoading ? <div className="instructor-course-builder__settings-skeleton" role="status" aria-label="Loading lesson settings"><BuilderSkeleton width="112px" height="8px" /><BuilderSkeleton width="76%" height="16px" /><div>{[0, 1, 2].map(index => <span key={index}><BuilderSkeleton width="36px" height="8px" /><BuilderSkeleton width="74px" height="8px" /></span>)}</div><BuilderSkeleton width="100%" height="86px" /><BuilderSkeleton width="100%" height="36px" /><BuilderSkeleton width="100%" height="36px" /></div> : <>
-        <header><span>LESSON SETTINGS</span><h2>{selectedLesson?.title ?? "Course access"}</h2></header>
-        <dl className="instructor-course-builder__metadata"><div><dt>Course</dt><dd>{course.title}</dd></div><div><dt>Chapter</dt><dd>{selectedChapter?.title ?? "Select a lesson"}</dd></div><div><dt>Visibility</dt><dd><span className="instructor-course-builder__private"><FileCheck2 size={13} /> Private draft</span></dd></div></dl>
-        {selectedLesson ? <form data-instructor-guide-target="resource-title" className="instructor-course-builder__upload" onSubmit={e => { e.preventDefault(); uploadResource.mutate(); }}>
-          <header><h3>Upload video or PDF</h3><Upload size={15} /></header>
-          <label className="instructor-course-builder__field"><span>Resource title</span><input data-instructor-guide-target="resource-title-input" value={resourceTitle} onChange={e => setResourceTitle(e.target.value)} maxLength={240} required placeholder="e.g. Chapter slides" /></label>
-          <label data-instructor-guide-target="resource-file" className="instructor-course-builder__file"><Upload size={19} /><strong>{file?.name ?? "Choose a PDF or MP4"}</strong><small>PDF documents and MP4 videos</small><input type="file" accept=".pdf,application/pdf,.mp4,video/mp4" onChange={e => setFile(e.target.files?.[0] ?? null)} required /></label>
-          {file?.type === "video/mp4" || file?.name.toLowerCase().endsWith(".mp4") ? <label className="instructor-course-builder__field"><span>Video duration (seconds)</span><input type="number" min={1} max={86400} value={videoDuration} onChange={e => setVideoDuration(e.target.value)} required /></label> : null}
-          <p>{copy.content.uploadHelperText}</p>
-          <button data-instructor-guide-target="resource-submit" type="submit" disabled={!file || !resourceTitle.trim() || uploadResource.isPending}>{uploadResource.isPending ? "Uploading and verifying…" : <><Upload size={14} /> {copy.content.uploadButtonLabel}</>}</button>
-        </form> : <div className="instructor-course-builder__approval"><FileCheck2 size={18} /><strong>Choose a lesson first</strong><p>Select a lesson to upload files and track its approval status.</p></div>}
-        <div className="instructor-course-builder__approval"><FileCheck2 size={16} /><span><strong>File approval</strong><small>Lesson files remain private to students until an administrator approves them.</small></span></div>
+        {structure.isLoading ? <div className="instructor-course-builder__settings-skeleton" role="status" aria-label="Loading lesson settings"><BuilderSkeleton width="52%" height="20px" /><div>{[0, 1, 2].map(index => <span key={index}><BuilderSkeleton width="64px" height="11px" /><BuilderSkeleton width="90px" height="11px" /></span>)}</div><BuilderSkeleton width="40%" height="16px" /><BuilderSkeleton width="100%" height="110px" /><BuilderSkeleton width="40%" height="16px" /><BuilderSkeleton width="100%" height="46px" /></div> : <>
+        <h2>Lesson settings</h2>
+        <dl className="instructor-course-builder__metadata"><div><dt>Content type</dt><dd><Video size={15} /> {lessonResources.some(item=>item.resourceKind==="video")?"Video lesson":lessonResources.length?"Document lesson":"Not set"}</dd></div><div><dt>Chapter</dt><dd><Folder size={15} /> <span>{selectedChapter?.title ?? "Select a lesson"}</span></dd></div><div><dt>Visibility</dt><dd><Lock size={15} /> Private draft</dd></div></dl>
+        <section className="instructor-course-builder__side-section"><h3>Learning materials</h3>
+          {selectedLesson&&lessonResources.length?<ul className="instructor-course-builder__material-list">{lessonResources.map(resource=><li key={resource.id}><FileText size={15} /><span>{resource.title}</span></li>)}</ul>:<div className="instructor-course-builder__materials-empty"><FileText size={20} /><span><strong>No files attached</strong><small>{selectedLesson?"Add PDFs, slides or other resources for this lesson.":"Select a lesson to add resources."}</small></span></div>}
+        </section>
+        <section className="instructor-course-builder__side-section"><h3>File approval</h3>
+          <div className="instructor-course-builder__approval"><FileCheck2 size={17} /><span>{!selectedLesson||!lessonResources.length?"No files to submit":`${approvedCount} approved · ${waitingCount} waiting${returnedCount?` · ${returnedCount} returned`:""}`}</span></div>
+          <small>Lesson files stay private until approved by an administrator.</small>
+        </section>
         </>}
       </aside>
     </div>
   </section>;
 }
 export default InstructorCourseContentPage;
+
+function statusText(status:string){return status?status.charAt(0).toUpperCase()+status.slice(1):"";}
 
 function BuilderSkeleton({ width = "100%", height = "10px" }: { width?: string; height?: string }) {
   return <span className="instructor-course-builder__skeleton" style={{ width, height }} aria-hidden="true" />;
