@@ -1,0 +1,45 @@
+/* Skeleton helpers for Students, Subscriptions and Exams & quizzes. The pages themselves use Mantine layout primitives,
+   so the flex/grid they provide is reproduced here with plain classes. */
+.instructor-ops-skel__heading { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; }
+.instructor-ops-skel__heading-copy, .instructor-ops-skel__stack { min-width: 0; display: grid; gap: 7px; }
+.instructor-ops-skel__heading-copy { gap: 10px; }
+.instructor-ops-skel__split { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.instructor-ops-skel__row { display: flex; align-items: center; gap: 10px; }
+.instructor-ops-skel__field { display: grid; gap: 6px; }
+.instructor-ops-skel__card { min-width: 0; box-sizing: border-box; display: grid; align-content: start; gap: 12px; padding: 16px; border: 1px solid var(--iw-line, #e3ebe6); border-radius: 17px; background: #fff; box-shadow: 0 6px 20px rgb(21 67 37 / 4%); }
+.admin-v2--instructor .instructor-ops-skel__heading { flex-wrap: wrap; }
+
+/* Students */
+.instructor-ops-skel__students-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.instructor-ops-skel__students-grid > .admin-v2__instructor-student-create { align-self: start; }
+.instructor-ops-skel__students-grid > .admin-v2__instructor-student-roster { grid-column: span 2; }
+.instructor-ops-skel__roster-head { padding-bottom: 14px; border-bottom: 1px solid #edf2ee; }
+.instructor-ops-skel__table { display: grid; border: 1px solid #e4eee7; border-radius: 12px; overflow: hidden; }
+.instructor-ops-skel__table-head, .instructor-ops-skel__table-row { display: grid; grid-template-columns: 1.3fr 1.5fr 1.2fr .6fr; align-items: center; gap: 12px; padding: 0 14px; }
+.instructor-ops-skel__table-head { height: 46px; background: #f5faf6; }
+.instructor-ops-skel__table-row { height: 54px; border-top: 1px solid #edf2ee; }
+.instructor-ops-skel__table-row > span { min-width: 0; }
+
+/* Subscriptions */
+.instructor-ops-skel__notice { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border: 1px solid #d6e6f6; border-radius: 13px; background: #f1f7fd; }
+.admin-v2__instructor-subscriptions .admin-v2__plan-grid article > .instructor-ops-skel__plan-title { margin-top: 12px; }
+.admin-v2__instructor-subscriptions .instructor-ops-skel__plan-copy { margin-block: 8px 12px; }
+.admin-v2__instructor-subscriptions .instructor-ops-skel__plan-list { margin-block: 12px 15px; gap: 9px; }
+.instructor-ops-skel__request-head { padding-bottom: 12px; border-bottom: 1px solid #edf2ee; }
+.instructor-ops-skel__requests { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 10px; }
+.instructor-ops-skel__requests > .instructor-operations__request-item { padding: 12px; border-radius: 13px; box-shadow: none; background: #fcfdfc; }
+
+/* Exams & quizzes */
+.instructor-ops-skel__tools { align-items: center; }
+.instructor-ops-skel__inspector-body { display: grid; align-content: start; gap: 14px; padding: 16px; }
+
+@media (max-width: 980px) {
+  .instructor-ops-skel__students-grid { grid-template-columns: minmax(0, 1fr); }
+  .instructor-ops-skel__students-grid > .admin-v2__instructor-student-roster { grid-column: auto; }
+}
+@media (max-width: 680px) {
+  .instructor-ops-skel__heading { align-items: flex-start; flex-direction: column; }
+  .instructor-ops-skel__roster-head { align-items: stretch; flex-direction: column; }
+  .instructor-ops-skel__table-head, .instructor-ops-skel__table-row { grid-template-columns: 1.4fr 1fr; }
+  .instructor-ops-skel__table-head > :nth-child(n+3), .instructor-ops-skel__table-row > :nth-child(n+3) { display: none; }
+}

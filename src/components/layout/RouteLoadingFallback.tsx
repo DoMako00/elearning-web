@@ -26,6 +26,7 @@ import { StudentShellSkeleton } from "./StudentShellSkeleton";
 import { AdminShellSkeleton } from "./AdminShellSkeleton";
 import { InstructorHomeSkeleton } from "../../features/admin-v2/instructor/InstructorHomeSkeleton";
 import { InstructorCoursesSkeleton } from "../../features/admin-v2/instructor/InstructorCoursesSkeleton";
+import { InstructorAssessmentsSkeleton, InstructorStudentsSkeleton, InstructorSubscriptionsSkeleton } from "../../features/admin-v2/instructor/InstructorOperationsSkeleton";
 import { InstructorAssignmentSkeleton } from "../../features/admin-v2/assignments/InstructorAssignmentSkeleton";
 
 export interface RouteLoadingFallbackProps {
@@ -77,7 +78,15 @@ export const RouteLoadingFallback: React.FC<RouteLoadingFallbackProps> = ({
 
       // 4. Instructor Exams / Quizzes
       if (pathname.startsWith("/admin/instructor/assessments")) {
-        return <AdminTableSkeleton columns={5} rows={6} />;
+        return <InstructorAssessmentsSkeleton />;
+      }
+
+      // 4b. Instructor Students and Subscriptions
+      if (pathname.startsWith("/admin/instructor/students")) {
+        return <InstructorStudentsSkeleton />;
+      }
+      if (pathname.startsWith("/admin/instructor/subscriptions")) {
+        return <InstructorSubscriptionsSkeleton />;
       }
 
       // 5. Instructor Dashboard / Overview

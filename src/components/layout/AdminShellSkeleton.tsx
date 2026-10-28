@@ -87,8 +87,10 @@ export const AdminShellSkeleton: React.FC<AdminShellSkeletonProps> = ({
   ];
 
   const instructorNav = [
-    { label: "Dashboard", active: pathname === "/admin/instructor", width: 65 },
+    { label: "Home", active: pathname === "/admin/instructor", width: 40 },
     { label: "My courses", active: pathname.startsWith("/admin/instructor/courses"), width: 72 },
+    { label: "Students", active: pathname === "/admin/instructor/students", width: 58 },
+    { label: "Subscriptions", active: pathname === "/admin/instructor/subscriptions", width: 84 },
     { label: "Assignments & grading", active: pathname === "/admin/instructor/assignments", width: 125 },
     { label: "Exams & quizzes", active: pathname === "/admin/instructor/assessments", width: 95 },
   ];
@@ -97,7 +99,7 @@ export const AdminShellSkeleton: React.FC<AdminShellSkeletonProps> = ({
 
   return (
     <div
-      className="admin-v2"
+      className={`admin-v2${isInstructor ? " admin-v2--instructor" : ""}`}
       aria-busy="true"
       aria-label="Loading admin workspace"
     >
