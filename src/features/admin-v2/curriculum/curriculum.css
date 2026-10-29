@@ -1,0 +1,107 @@
+/* Curriculum: minimal three-panel workspace. Scoped to this page; the shared v2-phase classes are used by other screens. */
+.admin-v2__curriculum { gap: clamp(10px, 1.6vh, 16px); padding: clamp(12px, 2vh, 24px) clamp(16px, 1.8vw, 28px); background: #f7faf8; }
+.admin-v2__curriculum > * { min-width: 0; }
+
+/* Toolbar */
+.admin-v2__curriculum .v2-phase-toolbar { min-height: 0; flex: 0 0 auto; align-items: center; }
+.v2-curriculum-summary { min-width: 0; display: grid; gap: 2px; }
+.v2-curriculum-summary strong { color: #12281b; font-size: 18px; font-weight: 750; letter-spacing: -.015em; }
+.v2-curriculum-summary span { color: #6b7c72; font-size: 13px; }
+.admin-v2__curriculum .v2-phase-toolbar__actions { align-items: center; gap: 10px; }
+.admin-v2__curriculum .v2-phase-toolbar__actions > label { min-width: 220px; display: flex; align-items: center; gap: 10px; color: #5a6d61; font-size: 13px; font-weight: 600; }
+.admin-v2__curriculum .v2-phase-toolbar__actions > label > span { white-space: nowrap; }
+.admin-v2__curriculum .v2-phase-toolbar__actions select { height: 40px; border: 1px solid #dce7e0; border-radius: 10px; background-color: #fff; color: #1f3528; padding: 0 12px; font-size: 14px; font-weight: 600; }
+.admin-v2__curriculum .v2-phase-toolbar__actions select:focus-visible { border-color: #72b888; outline: 0; box-shadow: 0 0 0 3px rgb(47 158 95 / 12%); }
+.admin-v2__curriculum .v2-phase-toolbar__actions .admin-v2__button { height: 40px; border-radius: 10px; font-size: 14px; font-weight: 650; }
+
+/* Grid and panels */
+.admin-v2__curriculum .v2-curriculum-grid { min-height: 0; flex: 1; grid-template-columns: minmax(240px, .8fr) minmax(0, 1.5fr) minmax(340px, 1.1fr); gap: clamp(10px, 1.1vw, 16px); }
+.admin-v2__curriculum .v2-phase-panel { border: 1px solid #e3ebe6; border-radius: 14px; background: #fff; box-shadow: 0 1px 3px rgb(19 52 31 / 4%); }
+.admin-v2__curriculum .v2-phase-panel > header { min-height: 64px; padding: 0 18px; border-bottom: 1px solid #edf2ee; }
+.admin-v2__curriculum .v2-phase-panel > header h2 { margin: 3px 0 0; color: #12281b; font-size: 18px; font-weight: 750; letter-spacing: -.015em; }
+.admin-v2__curriculum .v2-overline { color: #7a8c80; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.admin-v2__curriculum .v2-phase-panel > header .admin-v2__button { height: 36px; border-radius: 9px; font-size: 13px; }
+
+/* Academic years */
+.admin-v2__curriculum .v2-curriculum-year-list { padding: 12px; }
+.admin-v2__curriculum .v2-year-item { min-height: 66px; margin-bottom: 8px; padding: 10px 12px; border: 1px solid #e3ebe6; border-radius: 12px; background: #fff; transition: border-color .15s, background-color .15s; }
+.admin-v2__curriculum .v2-year-item:hover { border-color: #b9d8c2; background: #fbfdfb; }
+.admin-v2__curriculum .v2-year-item.is-selected { border: 1px solid #8cc7a0; background: #eef8f1; box-shadow: inset 3px 0 #16793f; padding-left: 12px; }
+.admin-v2__curriculum .v2-year-item__select strong { color: #16281d; font-size: 15px; font-weight: 720; }
+.admin-v2__curriculum .v2-year-item__select small { display: flex; align-items: center; color: #66786d; font-size: 12.5px; }
+.admin-v2__curriculum .v2-year-item__actions > i { display: none; }
+.admin-v2__curriculum .v2-year-item__actions button { width: 32px; height: 32px; border: 1px solid #dde8e0; border-radius: 9px; }
+.admin-v2__curriculum .v2-outline-action { min-height: 42px; margin: 0 12px 12px; border: 1px dashed #b8d6c1; border-radius: 12px; background: #fafdfb; color: #14793f; font-size: 13.5px; font-weight: 680; }
+.admin-v2__curriculum .v2-outline-action:hover { border-style: solid; background: #f0f8f2; }
+
+/* Semesters and units */
+.admin-v2__curriculum .v2-semester-list { padding: 12px; }
+.admin-v2__curriculum .v2-semester { margin-bottom: 10px; border: 1px solid #e3ebe6; border-radius: 12px; background: #fff; overflow: hidden; }
+.admin-v2__curriculum .v2-semester.is-open { border-color: #cfe3d6; box-shadow: none; }
+.admin-v2__curriculum .v2-semester > header { min-height: 56px; padding: 0 10px 0 0; border: 0; }
+.admin-v2__curriculum .v2-semester__toggle { min-height: 56px; flex: 1; padding: 0 14px; border-radius: 12px; }
+.admin-v2__curriculum .v2-semester__toggle:hover { background: #f6faf7; }
+.admin-v2__curriculum .v2-semester__toggle:focus-visible { outline: 2px solid #2b8950; outline-offset: -2px; }
+.admin-v2__curriculum .v2-semester__toggle strong { color: #16281d; font-size: 15px; font-weight: 720; }
+.admin-v2__curriculum .v2-semester__toggle small { color: #6b7c72; font-size: 12.5px; }
+.admin-v2__curriculum .v2-semester__units { padding: 0 8px 8px; border-top: 1px solid #edf2ee; }
+.admin-v2__curriculum .v2-unit-row { min-height: 58px; grid-template-columns: 74px minmax(0, 1fr) auto 16px; gap: 10px; margin-top: 4px; padding: 6px 10px; border: 0; border-radius: 10px; background: transparent; }
+.admin-v2__curriculum .v2-unit-row:hover { background: #f6faf7; }
+.admin-v2__curriculum .v2-unit-row.is-selected { background: #eaf6ee; box-shadow: inset 3px 0 #16793f; padding-left: 10px; }
+.admin-v2__curriculum .v2-unit-row__code { color: #4f6657; font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.admin-v2__curriculum .v2-unit-row__title strong { color: #1b3324; font-size: 14px; font-weight: 700; }
+.admin-v2__curriculum .v2-unit-row.is-selected .v2-unit-row__title strong { color: #12633a; }
+.admin-v2__curriculum .v2-unit-row__title small { margin-top: 2px; color: #6b7c72; font-size: 12px; }
+.admin-v2__curriculum .v2-semester__add { min-height: 38px; margin: 6px 0 0 4px; padding: 0 12px; border-radius: 9px; color: #14793f; font-size: 13px; font-weight: 680; }
+.admin-v2__curriculum .v2-semester__add:hover { background: #f0f8f2; }
+.admin-v2__curriculum .v2-empty-inline { margin: 14px 8px 8px; color: #6b7c72; font-size: 13px; }
+
+/* Unit inspector */
+.admin-v2__curriculum .v2-unit-inspector__code h2 { font-size: 18px !important; }
+.admin-v2__curriculum .v2-unit-inspector__code > span { padding: 3px 10px; border-radius: 999px; font-size: 12px; }
+.admin-v2__curriculum .v2-unit-inspector__body { padding: 20px 18px; }
+.admin-v2__curriculum .v2-unit-inspector__body h3 { margin: 0 0 8px; color: #12281b; font-size: 22px; font-weight: 760; letter-spacing: -.02em; line-height: 1.25; }
+.admin-v2__curriculum .v2-unit-inspector__body > p { color: #5d7064; font-size: 14px; line-height: 1.55; }
+.admin-v2__curriculum .v2-detail-grid { margin-top: 20px; border: 1px solid #e6eee9; border-radius: 12px; background: #e9f0eb; }
+.admin-v2__curriculum .v2-detail-grid > div { min-height: 44px; padding: 8px 14px; }
+.admin-v2__curriculum .v2-detail-grid dt { color: #66786d; font-size: 13px; font-weight: 600; }
+.admin-v2__curriculum .v2-detail-grid dd { color: #1b3324; font-size: 14px; font-weight: 680; }
+.admin-v2__curriculum .v2-inspector-actions { gap: 8px; padding: 12px 14px; border-top: 1px solid #edf2ee; }
+.admin-v2__curriculum .v2-inspector-actions .admin-v2__button { min-height: 38px; border-radius: 9px; font-size: 13px; font-weight: 650; }
+.admin-v2__curriculum .v2-inspector-actions .admin-v2__button.is-danger { margin-left: auto; border-color: #f1d0d0; background: #fff7f7; color: #b4332e; }
+.admin-v2__curriculum .v2-inspector-actions .admin-v2__button.is-danger:hover:not(:disabled) { background: #fdecec; }
+.admin-v2__curriculum .v2-inspector-actions .admin-v2__button:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Empty states */
+.admin-v2__curriculum .v2-empty { min-height: 0; flex: 1; gap: 10px; padding: 24px; }
+.admin-v2__curriculum .v2-empty > svg { color: #3b9a5f; }
+.admin-v2__curriculum .v2-empty > strong { color: #1f3528; font-size: 16px; }
+.admin-v2__curriculum .v2-empty > span { max-width: 300px; color: #6b7c72; font-size: 13.5px; line-height: 1.5; }
+.admin-v2__curriculum .v2-empty .admin-v2__button { height: 40px; border-radius: 10px; font-size: 14px; }
+
+/* Skeleton rows reuse the loaded classes */
+.v2-curriculum-skeleton-row { width: 100%; min-width: 0; display: flex; align-items: center; gap: 12px; }
+.v2-curriculum-skeleton-row > .v2-year-item__select, .v2-curriculum-skeleton-row > .v2-unit-row__title { flex: 1; }
+
+/* Short desktops (1920 x 820) */
+@media (min-width: 1101px) and (max-height: 900px) {
+  .admin-v2__curriculum .v2-phase-panel > header { min-height: 56px; }
+  .admin-v2__curriculum .v2-year-item { min-height: 60px; }
+  .admin-v2__curriculum .v2-unit-row { min-height: 52px; }
+}
+
+/* iPad and below: stack panels, page scrolls */
+@media (max-width: 1100px) {
+  .admin-v2__curriculum { overflow-y: auto; }
+  .admin-v2__curriculum .v2-curriculum-grid { flex: none; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); grid-auto-rows: minmax(420px, auto); }
+  .admin-v2__curriculum .v2-curriculum-inspector { grid-column: 1 / -1; min-height: 340px; }
+}
+@media (max-width: 760px) {
+  .admin-v2__curriculum { padding: 12px; }
+  .admin-v2__curriculum .v2-phase-toolbar { align-items: stretch; flex-direction: column; }
+  .admin-v2__curriculum .v2-phase-toolbar__actions { flex-wrap: wrap; }
+  .admin-v2__curriculum .v2-phase-toolbar__actions > label { flex: 1 1 100%; flex-direction: column; align-items: stretch; gap: 5px; }
+  .admin-v2__curriculum .v2-curriculum-grid { grid-template-columns: minmax(0, 1fr); }
+  .admin-v2__curriculum .v2-phase-panel { min-height: 300px; }
+  .admin-v2__curriculum .v2-inspector-actions .admin-v2__button.is-danger { margin-left: 0; }
+}

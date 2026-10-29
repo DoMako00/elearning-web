@@ -4,17 +4,18 @@ import { AdminV2DomainStatus, useAdminV2 } from "../layout/AdminV2Layout";
 import { ConfirmDialog, Drawer, FormActions, FormField, StatusBadge } from "../shared/AdminV2Primitives";
 import { getAcademicRecord, writeAcademicRecord, type AcademicRecordEntity } from "../api/adminAcademicApi";
 import { canonicalAcademicUnitType } from "../api/adminV2Mappers";
+import "./curriculum.css";
 import { institutionCodeForBrand, institutionForBrand } from "../data/adminV2.selectors";
 
 type EditorState = { kind: "institution" | "year" | "semester" | "unit"; id?: string } | null;
 
 export function CurriculumPage() {
   const { data, brand, refreshServerDomains, domainLoading } = useAdminV2();
-  const [institutionId, setInstitutionId] = useState("inst-buc");
-  const [yearId, setYearId] = useState("year-buc-1");
-  const [selectedUnitId, setSelectedUnitId] = useState("unit-buc-anatomy");
-  const [unitSemesterId, setUnitSemesterId] = useState("sem-buc-y1-1");
-  const [expanded, setExpanded] = useState<string[]>(["sem-buc-y1-1"]);
+  const [institutionId, setInstitutionId] = useState("");
+  const [yearId, setYearId] = useState("");
+  const [selectedUnitId, setSelectedUnitId] = useState("");
+  const [unitSemesterId, setUnitSemesterId] = useState("");
+  const [collapsed, setCollapsed] = useState<string[]>([]);
   const [editor, setEditor] = useState<EditorState>(null);
   const [archiveId, setArchiveId] = useState("");
   const [mutationPending, setMutationPending] = useState(false);
@@ -27,6 +28,8 @@ export function CurriculumPage() {
   const semesters = data.semesters.filter((item) => item.academicYearId === selectedYear?.id && item.status === "Active").sort((a, b) => a.order - b.order);
   const units = data.curriculumUnits.filter((item) => item.institutionId === activeInstitution?.id && item.academicYearId === selectedYear?.id && item.status !== "Archived");
   const selectedUnit = units.find((item) => item.id === selectedUnitId) ?? units[0];
+  const unitGroup = selectedUnit ? data.curriculumUnits.filter(item => item.semesterId === selectedUnit.semesterId && item.status !== "Archived").sort((a, b) => a.order - b.order) : [];
+  const unitPosition = selectedUnit ? unitGroup.findIndex(item => item.id === selectedUnit.id) : -1;
   const currentEditorUnit = editor?.kind === "unit" ? data.curriculumUnits.find((item) => item.id === editor.id) : undefined;
   const currentEditorYear = editor?.kind === "year" ? data.academicYears.find((item) => item.id === editor.id) : undefined;
   const currentEditorSemester = editor?.kind === "semester" ? data.semesters.find((item) => item.id === editor.id) : undefined;
@@ -46,7 +49,6 @@ export function CurriculumPage() {
     setYearId(nextYear?.id ?? "");
     setSelectedUnitId(nextUnit?.id ?? "");
     setUnitSemesterId(nextSemester?.id ?? "");
-    if (nextSemester) setExpanded((current) => current.includes(nextSemester.id) ? current : [...current, nextSemester.id]);
   }, [brand, data.institutions, data.curricula, data.academicYears, data.semesters, data.curriculumUnits, institutionId]);
 
   const createAcademic = (entity:AcademicRecordEntity,fields:Record<string,unknown>)=>writeAcademicRecord(entity,undefined,{...fields,reason:"Admin V2 curriculum record creation"});
@@ -88,7 +90,7 @@ export function CurriculumPage() {
           const parsed=title.match(/\d+/)?.[0];
           const semesterNumber=parsed?Number(parsed):Math.max(0,...currentSemesters.map(item=>item.semesterNumber??item.order))+1;
           const saved=await createAcademic("semesters",{academicLevelId:selectedYear.id,semesterNumber,displayTitle:title,sortOrder:Math.max(0,...currentSemesters.map(item=>item.order))+1,status:"active"});
-          if(typeof saved.id==="string"){setUnitSemesterId(saved.id);setExpanded(current=>current.includes(saved.id as string)?current:[...current,saved.id as string]);}
+          if(typeof saved.id==="string"){setUnitSemesterId(saved.id);setCollapsed(current=>current.filter(id=>id!==saved.id));}
         }
       }else if(editor.kind==="unit"&&selectedYear&&activeInstitution){
         const semesterId=String(form.get("semesterId")??"");
@@ -110,7 +112,7 @@ export function CurriculumPage() {
         };
         const saved=editor.id?await updateAcademic("modules",editor.id,fields):await createAcademic("modules",{academicInstitutionId:activeInstitution.id,academicSemesterId:semesterId,code:String(form.get("code")??"").trim(),sourceDisplayLabel:title,sourceType:"admin",...fields});
         if(typeof saved.id==="string")setSelectedUnitId(saved.id);
-        setUnitSemesterId(semesterId);setExpanded(current=>current.includes(semesterId)?current:[...current,semesterId]);
+        setUnitSemesterId(semesterId);setCollapsed(current=>current.filter(id=>id!==semesterId));
       }
       setEditor(null);refreshServerDomains();
     }catch(error){setMutationError(error instanceof Error?error.message:"The academic change could not be saved.");}
@@ -142,15 +144,15 @@ export function CurriculumPage() {
   return <section className="admin-v2__page admin-v2__curriculum">
     <AdminV2DomainStatus />
     {mutationError&&<div className="admin-v2__inline-notice" role="alert">{mutationError}</div>}
-    <div className="v2-phase-toolbar">
-      <div className="v2-phase-tabs"><span className="is-active" aria-current="page"><BookOpen size={15} /> Structure</span></div>
+    <div className="v2-phase-toolbar" data-admin-guide-target="curriculum-toolbar">
+      <div className="v2-curriculum-summary"><strong>{activeInstitution?.shortName ?? "No institution"}</strong><span>{years.length} {years.length === 1 ? "year" : "years"} · {units.length} {units.length === 1 ? "unit" : "units"}</span></div>
       <div className="v2-phase-toolbar__actions">
         <label><span>Institution / University</span><select value={activeInstitution?.id ?? ""} onChange={(event) => { const next = event.target.value; setInstitutionId(next); const nextCurriculum = data.curricula.find((item) => item.institutionId === next); const nextYear = data.academicYears.find((item) => item.curriculumId === nextCurriculum?.id && item.status === "Active"); const nextUnit = data.curriculumUnits.find((item) => item.institutionId === next && item.status !== "Archived"); setYearId(nextYear?.id ?? ""); setSelectedUnitId(nextUnit?.id ?? ""); setUnitSemesterId(data.semesters.find((item) => item.academicYearId === nextYear?.id && item.status === "Active")?.id ?? ""); }}><option value="">Select institution</option>{data.institutions.filter((item) => item.status === "Active" && (!expectedInstitutionCode || item.shortName.trim().toLowerCase() === expectedInstitutionCode)).map((item) => <option key={item.id} value={item.id}>{item.shortName}</option>)}</select></label>
         <button className="admin-v2__button" type="button" disabled={mutationPending||domainLoading} onClick={() => setEditor({ kind: "institution" })}><Plus size={14} /> Add institution</button>
       </div>
     </div>
     <div className="v2-curriculum-grid">
-      <section className="v2-phase-panel v2-curriculum-years">
+      <section data-admin-guide-target="curriculum-years" className="v2-phase-panel v2-curriculum-years">
         <header><div><span className="v2-overline">ACADEMIC STRUCTURE</span><h2>Academic years</h2></div></header>
         <div className="v2-curriculum-year-list">
           {years.map((year) => {
@@ -167,28 +169,28 @@ export function CurriculumPage() {
         </div>
         {!!years.length && <button type="button" className="v2-outline-action" disabled={mutationPending||domainLoading} onClick={() => setEditor({ kind: "year" })}><Plus size={14} /> Add academic year</button>}
       </section>
-      <section className="v2-phase-panel v2-curriculum-structure">
+      <section data-admin-guide-target="curriculum-structure" className="v2-phase-panel v2-curriculum-structure">
         <header><div><span className="v2-overline">{activeInstitution?.shortName ?? "Institution"}</span><h2>{selectedYear?.title ?? "Academic structure"}</h2></div>{selectedYear && <button className="admin-v2__button" disabled={mutationPending||domainLoading} onClick={() => setEditor({ kind: "semester" })}><Plus size={14} /> Add semester</button>}</header>
         <div className="v2-semester-list">
           {semesters.map((semester) => {
             const semesterUnits = units.filter((item) => item.semesterId === semester.id).sort((a, b) => a.order - b.order);
-            const isOpen = expanded.includes(semester.id);
+            const isOpen = !collapsed.includes(semester.id);
             return <section className={`v2-semester${isOpen ? " is-open" : ""}`} key={semester.id}>
-              <header><button className="v2-semester__toggle" aria-expanded={isOpen} title={`${isOpen ? "Collapse" : "Expand"} ${semester.title}`} onClick={() => setExpanded((current) => isOpen ? current.filter((id) => id !== semester.id) : [...current, semester.id])}><ChevronDown size={15} /><span><strong>{semester.title}</strong><small>{semesterUnits.length} approved units</small></span></button><button className="admin-v2__icon-btn" disabled={mutationPending||domainLoading} title={`Edit ${semester.title}`} aria-label={`Edit ${semester.title}`} onClick={() => setEditor({ kind: "semester", id: semester.id })}><Pencil size={13} /></button></header>
-              {isOpen && <div className="v2-semester__units">{semesterUnits.map((unit) => <button type="button" key={unit.id} className={`v2-unit-row${selectedUnit?.id === unit.id ? " is-selected" : ""}`} onClick={() => setSelectedUnitId(unit.id)}><span className="v2-unit-row__code">{unit.code}</span><span className="v2-unit-row__title"><strong>{unit.title}</strong><small>{unit.type} Â· {unit.credits ?? "â€”"} credits</small></span><StatusBadge status={unit.status} /><ChevronRight size={14} /></button>)}{!semesterUnits.length && <div className="v2-empty-inline">No approved units in this semester.</div>}<button className="v2-semester__add" disabled={mutationPending||domainLoading} onClick={() => { setUnitSemesterId(semester.id); setSelectedUnitId(""); setEditor({ kind: "unit" }); }}><Plus size={13} /> Add academic unit</button></div>}
+              <header><button className="v2-semester__toggle" aria-expanded={isOpen} title={`${isOpen ? "Collapse" : "Expand"} ${semester.title}`} onClick={() => setCollapsed((current) => isOpen ? [...current, semester.id] : current.filter((id) => id !== semester.id))}><ChevronDown size={15} /><span><strong>{semester.title}</strong><small>{semesterUnits.length} {semesterUnits.length === 1 ? "unit" : "units"}</small></span></button><button className="admin-v2__icon-btn" disabled={mutationPending||domainLoading} title={`Edit ${semester.title}`} aria-label={`Edit ${semester.title}`} onClick={() => setEditor({ kind: "semester", id: semester.id })}><Pencil size={13} /></button></header>
+              {isOpen && <div className="v2-semester__units">{semesterUnits.map((unit) => <button type="button" key={unit.id} className={`v2-unit-row${selectedUnit?.id === unit.id ? " is-selected" : ""}`} onClick={() => setSelectedUnitId(unit.id)}><span className="v2-unit-row__code">{unit.code}</span><span className="v2-unit-row__title"><strong>{unit.title}</strong><small>{unit.type} · {unit.credits ?? "—"} credits</small></span><StatusBadge status={unit.status} /><ChevronRight size={14} /></button>)}{!semesterUnits.length && <div className="v2-empty-inline">No units in this semester yet.</div>}<button className="v2-semester__add" disabled={mutationPending||domainLoading} onClick={() => { setUnitSemesterId(semester.id); setSelectedUnitId(""); setEditor({ kind: "unit" }); }}><Plus size={13} /> Add academic unit</button></div>}
             </section>;
           })}
           {!semesters.length && <div className="v2-empty"><strong>No semesters yet</strong><span>There are no semesters in this academic year.</span></div>}
         </div>
       </section>
-      <aside className="v2-phase-panel v2-curriculum-inspector">
+      <aside data-admin-guide-target="curriculum-inspector" className="v2-phase-panel v2-curriculum-inspector">
         {selectedUnit ? <>
           <header><div><span className="v2-overline">CURRICULUM UNIT</span><div className="v2-unit-inspector__code"><h2>{selectedUnit.code}</h2><span>{selectedUnit.type}</span></div></div></header>
           <div className="v2-unit-inspector__body">
             <h3>{selectedUnit.title}</h3><p>{selectedUnit.description || "No description provided."}</p>
             <dl className="v2-detail-grid"><div><dt>Institution</dt><dd>{activeInstitution?.shortName}</dd></div><div><dt>Academic year</dt><dd>{selectedYear?.title}</dd></div><div><dt>Semester</dt><dd>{data.semesters.find((item) => item.id === selectedUnit.semesterId)?.title}</dd></div><div><dt>Credits</dt><dd>{selectedUnit.credits ?? "Not set"}</dd></div><div><dt>Status</dt><dd><StatusBadge status={selectedUnit.status} /></dd></div></dl>
           </div>
-          <footer className="v2-inspector-actions"><button className="admin-v2__button" disabled={mutationPending||domainLoading} onClick={() => void reorderUnit(-1)} title="Move unit up"><ChevronUp size={14} /> Move up</button><button className="admin-v2__button" disabled={mutationPending||domainLoading} onClick={() => void reorderUnit(1)} title="Move unit down"><ChevronDown size={14} /> Move down</button><button className="admin-v2__button" disabled={mutationPending||domainLoading} onClick={() => setEditor({ kind: "unit", id: selectedUnit.id })}><Pencil size={14} /> Edit unit</button><button className="admin-v2__button is-danger" disabled={mutationPending||domainLoading} onClick={() => setArchiveId(selectedUnit.id)}><X size={14} /> Archive unit</button></footer>
+          <footer data-admin-guide-target="curriculum-actions" className="v2-inspector-actions"><button className="admin-v2__button" disabled={mutationPending||domainLoading||unitPosition<=0} onClick={() => void reorderUnit(-1)} title="Move unit up"><ChevronUp size={14} /> Move up</button><button className="admin-v2__button" disabled={mutationPending||domainLoading||unitPosition<0||unitPosition>=unitGroup.length-1} onClick={() => void reorderUnit(1)} title="Move unit down"><ChevronDown size={14} /> Move down</button><button className="admin-v2__button" disabled={mutationPending||domainLoading} onClick={() => setEditor({ kind: "unit", id: selectedUnit.id })}><Pencil size={14} /> Edit unit</button><button className="admin-v2__button is-danger" disabled={mutationPending||domainLoading} onClick={() => setArchiveId(selectedUnit.id)}><X size={14} /> Archive unit</button></footer>
         </> : <div className="v2-empty"><BookOpen size={22} /><strong>No unit selected</strong><span>Choose a unit or add one to this curriculum.</span>{selectedYear && semesters.length > 0 && <button className="admin-v2__button is-primary" disabled={mutationPending||domainLoading} onClick={() => { setUnitSemesterId(semesters[0].id); setEditor({ kind: "unit" }); }}><Plus size={14} /> Add academic unit</button>}</div>}
       </aside>
     </div>

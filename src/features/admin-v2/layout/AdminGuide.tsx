@@ -11,6 +11,14 @@ const adminRouteGuides: RouteGuide[] = [
     { title: "Switch brands", description: "Choose All brands, or one brand, to focus every screen on that brand's courses, students and payments.", selector: ".admin-v2__brand-switch", options: "button" },
     { title: "Search the platform", description: "Search students, courses and instructors from anywhere. Press Ctrl K to jump to it.", selector: ".admin-v2__global-search" },
   ] },
+  { matches: path => path === "/admin/curriculum", id: "curriculum", steps: [
+    { title: "Choose the institution", description: "The curriculum belongs to one university. Pick it here, or add a new institution if it is not listed yet.", selector: "[data-admin-guide-target='curriculum-toolbar']", options: "select, button" },
+    { title: "Pick an academic year", description: "Years come first. Select one to see its semesters, or use Add academic year. The pencil renames a year.", selector: "[data-admin-guide-target='curriculum-years']", options: ".v2-year-item" },
+    { title: "Open a semester", description: "Each semester lists its units. Expand or collapse a semester, add a new unit with Add academic unit, or rename the semester with the pencil.", selector: "[data-admin-guide-target='curriculum-structure']", options: ".v2-semester > header" },
+    { title: "Select a unit", description: "Select a unit to see its details. Courses are mapped to these approved subjects later, so keep titles and codes accurate.", selector: "[data-admin-guide-target='curriculum-structure']", options: ".v2-unit-row", hint: "Add a unit to a semester first, then select it." },
+    { title: "Review the unit", description: "The right panel shows the unit's code, type, semester, credits and status. A Draft unit is not final until it is approved.", selector: "[data-admin-guide-target='curriculum-inspector']" },
+    { title: "Reorder, edit or archive", description: "Move a unit up or down inside its semester, edit its details, or archive it. Archiving keeps the record and any course mappings.", selector: "[data-admin-guide-target='curriculum-actions']", options: "button", hint: "Select a unit to see its actions." },
+  ] },
 ];
 
 const STORAGE_PREFIX = "admin";
