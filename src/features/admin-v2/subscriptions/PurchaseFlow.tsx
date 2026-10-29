@@ -69,7 +69,7 @@ function unavailableReason(offering: SemesterOffering, now = Date.now()) {
   return "Unavailable for purchase.";
 }
 
-export function PurchaseFlow({ brand, mode = "admin", onInstructorOrderCreated }: { brand: BrandFilter; mode?: "admin" | "instructor"; onInstructorOrderCreated?: (order: { orderId: string }) => void }) {
+export function PurchaseFlow({ brand, mode = "admin", compact = false, onInstructorOrderCreated }: { brand: BrandFilter; mode?: "admin" | "instructor"; compact?: boolean; onInstructorOrderCreated?: (order: { orderId: string }) => void }) {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const autoOpenHandled = useRef(false);
@@ -235,9 +235,12 @@ export function PurchaseFlow({ brand, mode = "admin", onInstructorOrderCreated }
   };
 
   return <>
-    <section className="admin-v2__table-card admin-v2__plans" aria-labelledby="admin-v2-plans-title">
+    {compact ? <section className="admin-v2__plan-strip" aria-labelledby="admin-v2-plans-title">
+      <div><h2 id="admin-v2-plans-title">New purchase</h2><p>Each purchase is tied to one Semester Offering.</p></div>
+      <div className="admin-v2__plan-pills">{plans.map((plan) => { const Icon = plan.icon; return <button key={plan.capacity} type="button" className={plan.capacity === 1 ? "is-featured" : ""} title={plan.description} onClick={() => void startPurchase(plan.capacity)}><span><Icon size={17} aria-hidden="true" /></span><b>{plan.name}<small>{plan.capacity} seat{plan.capacity === 1 ? "" : "s"}</small></b></button>; })}</div>
+    </section> : <section className="admin-v2__table-card admin-v2__plans" aria-labelledby="admin-v2-plans-title">
       <header>
-        <div><h2 id="admin-v2-plans-title">{mode === "instructor" ? "Student purchase options" : "Plans &amp; Packages"}</h2><p>{mode === "instructor" ? "Submit the selected plan for Super Admin payment review." : "Each purchase is tied to one real Semester Offering."}</p></div>
+        <div><h2 id="admin-v2-plans-title">{mode === "instructor" ? "Student purchase options" : "Plans & Packages"}</h2><p>{mode === "instructor" ? "Submit the selected plan for Super Admin payment review." : "Each purchase is tied to one real Semester Offering."}</p></div>
       </header>
       <div className="admin-v2__plan-grid">
         {plans.map((plan) => {
@@ -257,7 +260,7 @@ export function PurchaseFlow({ brand, mode = "admin", onInstructorOrderCreated }
           </article>;
         })}
       </div>
-    </section>
+    </section>}
 
     {open && <Drawer
       title={mode === "instructor" ? "Prepare student purchase" : "Create manual-payment Order"}

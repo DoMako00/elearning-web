@@ -56,6 +56,14 @@ const adminRouteGuides: RouteGuide[] = [
     { title: "Check the details", description: "Compare the offering, amount, payment method and reference with the payment you received before deciding.", selector: "[data-admin-guide-target='payments-inspector']", hint: "Select an order to open the review panel." },
     { title: "Approve or reject", description: "Approving opens the student's access once the server confirms it. Rejecting keeps the order as history. Both ask for a review note first.", selector: "[data-admin-guide-target='payments-actions']", options: "button", hint: "Select a pending order to see these actions." },
   ] },
+  { matches: path => path === "/admin/subscriptions", id: "subscriptions", steps: [
+    { title: "Subscription totals", description: "Total and active subscriptions, how many seats are assigned or still free, and how many access grants are active.", selector: "[data-admin-guide-target='subscriptions-metrics']", options: ".admin-v2__metric" },
+    { title: "Start a purchase", description: "Choose Individual, Team or Group to start a manual purchase for students. Manage Semester Offerings sets up the offerings those purchases are tied to.", selector: "[data-admin-guide-target='subscriptions-purchase']", options: "button" },
+    { title: "Find a subscription", description: "Filter by status or search by owner, subscription or course.", selector: "[data-admin-guide-target='subscriptions-tools']", options: "select, input" },
+    { title: "Browse subscriptions", description: "Each row is one subscription with its offering, seats used, term and access grants. Select a row to open it.", selector: "[data-admin-guide-target='subscriptions-table']", options: "tbody tr" },
+    { title: "Review the details", description: "The panel shows the offering, seat usage, term and the courses this subscription unlocks.", selector: "[data-admin-guide-target='subscriptions-inspector']", hint: "Select a subscription to open its details." },
+    { title: "Manage seats or cancel", description: "Assign, release, replace or revoke seats, open the owner's student profile, or cancel the subscription. Cancelling revokes access but keeps the history.", selector: "[data-admin-guide-target='subscriptions-actions']", options: "button", hint: "Select a subscription to see these actions." },
+  ] },
 ];
 
 const STORAGE_PREFIX = "admin";
