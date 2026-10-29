@@ -42,7 +42,7 @@ export function OverviewPage() {
     <section className={`admin-v2__page admin-overview-v2${domainError ? " has-status" : ""}`} aria-label="Super Admin overview">
       {domainError && <AdminV2DomainStatus />}
 
-      <div className="admin-overview-v2__metrics">
+      <div className="admin-overview-v2__metrics" data-admin-guide-target="overview-metrics">
         {metrics.map(({ label, value, note, to, icon: Icon }) => <Link key={label} to={to} className="admin-overview-v2__metric">
           <span className="admin-overview-v2__metric-icon"><Icon size={20} aria-hidden="true" /></span>
           <span className="admin-overview-v2__metric-copy"><small>{label}</small><strong>{value}</strong><em>{note}</em></span>
@@ -51,7 +51,7 @@ export function OverviewPage() {
       </div>
 
       <div className="admin-overview-v2__main">
-        <section className="admin-overview-v2__card admin-overview-v2__flow" aria-labelledby="admin-overview-flow">
+        <section data-admin-guide-target="overview-flow" className="admin-overview-v2__card admin-overview-v2__flow" aria-labelledby="admin-overview-flow">
           <header><h2 id="admin-overview-flow">Run a course, setup to release</h2><p>Day-to-day teaching stays with the instructor. You configure access and approve materials.</p></header>
           <ol>
             {steps.map((step, index) => {
@@ -68,13 +68,13 @@ export function OverviewPage() {
         </section>
 
         <div className="admin-overview-v2__side">
-          <section className="admin-overview-v2__card admin-overview-v2__attention" aria-labelledby="admin-overview-attention">
+          <section data-admin-guide-target="overview-attention" className="admin-overview-v2__card admin-overview-v2__attention" aria-labelledby="admin-overview-attention">
             <header><h2 id="admin-overview-attention">Needs your attention</h2></header>
             {attention.length ? <ul>{attention.map(({ label, to, icon: Icon }) => <li key={to}><Link to={to}><Icon size={17} aria-hidden="true" /><span>{label}</span><ArrowRight size={15} aria-hidden="true" /></Link></li>)}</ul>
               : <p className="admin-overview-v2__clear"><CheckCircle2 size={18} aria-hidden="true" />{counts ? "Nothing is waiting on you." : domainLoading ? "Checking for pending work…" : "Pending work is unavailable right now."}</p>}
           </section>
 
-          <section className="admin-overview-v2__card admin-overview-v2__shortcuts" aria-labelledby="admin-overview-shortcuts">
+          <section data-admin-guide-target="overview-shortcuts" className="admin-overview-v2__card admin-overview-v2__shortcuts" aria-labelledby="admin-overview-shortcuts">
             <header><h2 id="admin-overview-shortcuts">Platform operations</h2></header>
             <ul>{shortcuts.map(({ title, to, icon: Icon }) => <li key={to}><Link to={to}><Icon size={17} aria-hidden="true" /><span>{title}</span><ArrowUpRight size={15} aria-hidden="true" /></Link></li>)}</ul>
           </section>

@@ -18,6 +18,7 @@ import "../styles/admin-v2-phase2.css";
 
 import { getWorkspaceCopy, INSTRUCTOR_SUPPORT_LINK } from "../copy/workspace-copy";
 import { InstructorGuide, resetInstructorGuideSession } from "./InstructorGuide";
+import { AdminGuide, resetAdminGuideSession } from "./AdminGuide";
 import { PageBreadcrumb } from "../../../components/ui/PageBreadcrumb";
 
 interface AdminV2ContextValue {
@@ -221,13 +222,13 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
               <div className="admin-v2__notice-wrap"><button className="admin-v2__icon-btn" aria-label="Notifications" aria-expanded={noticeOpen} onClick={() => setNoticeOpen((value) => !value)}><Bell aria-hidden="true" /></button>{noticeOpen && <div className="admin-v2__notice-popover"><strong>Notifications</strong><span>Notifications are not available from the current Admin API.</span></div>}</div>
             )}
             <div className="admin-v2__profile" aria-label={`Signed-in ${workspace.displayRole}`}><span className="admin-v2__avatar">{(auth.user?.name ?? "A").slice(0, 2).toUpperCase()}</span><span><strong>{auth.user?.name ?? copy.topbar.fallbackUserName}</strong><small>{workspace.displayRole}</small></span></div>
-            <button type="button" className="admin-v2__logout" onClick={() => { if (isInstructor && auth.user?.id) resetInstructorGuideSession(auth.user.id); auth.signOut(); navigate("/auth/sign-in", { replace: true }); }}><LogOut aria-hidden="true" /><span>Log out</span></button>
+            <button type="button" className="admin-v2__logout" onClick={() => { if (auth.user?.id) { if (isInstructor) resetInstructorGuideSession(auth.user.id); else resetAdminGuideSession(auth.user.id); } auth.signOut(); navigate("/auth/sign-in", { replace: true }); }}><LogOut aria-hidden="true" /><span>Log out</span></button>
           </div>
         </header>
         <main className="admin-v2__main"><div className="admin-v2__content">{children ?? <Outlet context={{ brandView: routeBrand === "all" ? "all" : routeBrand }} />}</div></main>
       </div>
     </div>
-    {isInstructor && <InstructorGuide userId={auth.user?.id ?? "instructor"} pathname={pathname} courseCount={workspace.courses.length} />}
+    {isInstructor ? <InstructorGuide userId={auth.user?.id ?? "instructor"} pathname={pathname} courseCount={workspace.courses.length} /> : <AdminGuide userId={auth.user?.id ?? "admin"} pathname={pathname} />}
     {resetOpen && <ConfirmDialog title="Reset local Admin cache?" detail="This clears this browser's saved Admin cache. Server records are not changed." confirmLabel="Reset cache" onCancel={() => setResetOpen(false)} onConfirm={() => { resetAdminV2(); setResetOpen(false); }} />}
   </AdminV2UiProvider></AdminV2Context.Provider>;
 }
