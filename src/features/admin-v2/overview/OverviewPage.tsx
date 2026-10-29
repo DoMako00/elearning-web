@@ -14,7 +14,7 @@ export function OverviewPage() {
     { label: "Student accounts", value: show(counts?.totalStudents), note: counts ? `${counts.activeStudents.toLocaleString()} active` : "Records unavailable", to: "/admin/students", icon: UsersRound },
     { label: "Published courses", value: show(counts?.publishedCourses), note: "In the course catalogue", to: "/admin/courses", icon: BookOpen },
     { label: "Content to review", value: show(counts?.contentAwaitingRelease), note: "Instructor submissions", to: "/admin/content", icon: FileCheck2 },
-    { label: "Payments to review", value: show(counts?.pendingPaymentReviews), note: "Pending decisions", to: "/admin/payments", icon: CreditCard },
+    { label: "Payments to review", value: show(counts?.pendingPaymentReviews), note: "Pending decisions", to: "/admin/payments?status=pending_review", icon: CreditCard },
   ];
 
   const awaitingContent = counts?.contentAwaitingRelease ?? 0;
@@ -28,7 +28,7 @@ export function OverviewPage() {
 
   const attention = [
     awaitingContent > 0 && { label: `${awaitingContent.toLocaleString()} lesson ${awaitingContent === 1 ? "file" : "files"} awaiting approval`, to: "/admin/content", icon: FileCheck2 },
-    awaitingPayments > 0 && { label: `${awaitingPayments.toLocaleString()} ${awaitingPayments === 1 ? "payment" : "payments"} to review`, to: "/admin/payments", icon: CreditCard },
+    awaitingPayments > 0 && { label: `${awaitingPayments.toLocaleString()} ${awaitingPayments === 1 ? "payment" : "payments"} to review`, to: "/admin/payments?status=pending_review", icon: CreditCard },
   ].filter((item): item is { label: string; to: string; icon: LucideIcon } => Boolean(item));
 
   const shortcuts: Array<{ title: string; to: string; icon: LucideIcon }> = [

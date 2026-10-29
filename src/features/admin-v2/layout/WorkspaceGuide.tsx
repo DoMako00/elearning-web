@@ -2,9 +2,10 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, MousePointer2, X } from "lucide-react";
 import "./instructor-guide.css";
 
-/* `reveal` is clicked once (when the target is missing) to bring the target on screen, e.g. a tab or the first list row.
+/* `options` selects the repeated controls inside the target (tiles, rows, links); the pointer cycles through them.
+   `reveal` is clicked once (when the target is missing) to bring the target on screen, e.g. a tab or the first list row.
    `hint` is shown when the target still isn't there, so the step explains what to do instead of an endless loading note. */
-export type GuideStep = { title: string; description: string; selector: string; reveal?: string | string[]; hint?: string };
+export type GuideStep = { title: string; description: string; selector: string; reveal?: string | string[]; hint?: string; options?: string };
 export type RouteGuide = { matches: (path: string) => boolean; id: string; steps: GuideStep[] };
 
 const safeGet = (storage: Storage, key: string) => { try { return storage.getItem(key); } catch { return null; } };
@@ -22,6 +23,8 @@ export function WorkspaceGuide({ userId, pathname, courseCount, guides, storageP
   const [enabled, setEnabled] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
+  const [optionRects, setOptionRects] = useState<DOMRect[]>([]);
+  const [optionIndex, setOptionIndex] = useState(0);
   const [confirmPermanentOptOut, setConfirmPermanentOptOut] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
   const revealed = useRef(new Set<string>());
@@ -54,6 +57,7 @@ export function WorkspaceGuide({ userId, pathname, courseCount, guides, storageP
     if (!enabled || !currentStep) { setTargetRect(null); return; }
     let frame = 0;
     revealed.current.clear();
+    setOptionIndex(0);
     const findTarget = () => {
       const target = document.querySelector<HTMLElement>(currentStep.selector);
       if (target) {
@@ -62,8 +66,11 @@ export function WorkspaceGuide({ userId, pathname, courseCount, guides, storageP
         target.dataset.instructorGuideSpotlight = "true";
         const visibleRect = target.getBoundingClientRect();
         setTargetRect(visibleRect.width > 0 && visibleRect.height > 0 ? visibleRect : null);
+        const choices = currentStep.options ? [...target.querySelectorAll<HTMLElement>(currentStep.options)].map(item => item.getBoundingClientRect()).filter(rect => rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.top < window.innerHeight).slice(0, 8) : [];
+        setOptionRects(choices.length > 1 ? choices : []);
       } else {
         setTargetRect(null);
+        setOptionRects([]);
         // Bring hidden targets on screen (switch a tab, open the first lesson) once per reveal selector.
         for (const selector of [currentStep.reveal ?? []].flat()) {
           const key = `${currentStep.selector}|${selector}`;
@@ -90,6 +97,14 @@ export function WorkspaceGuide({ userId, pathname, courseCount, guides, storageP
       document.querySelectorAll('[data-instructor-guide-spotlight="true"]').forEach(element => { delete (element as HTMLElement).dataset.instructorGuideSpotlight; });
     };
   }, [enabled, currentStep]);
+
+  const optionCount = optionRects.length;
+  useEffect(() => {
+    if (optionCount < 2) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const timer = window.setInterval(() => setOptionIndex(value => (value + 1) % optionCount), 1700);
+    return () => window.clearInterval(timer);
+  }, [optionCount]);
 
   useLayoutEffect(() => {
     if (!enabled || !currentStep || !panelRef.current) return;
@@ -144,13 +159,15 @@ export function WorkspaceGuide({ userId, pathname, courseCount, guides, storageP
     setEnabled(false);
   };
   const next = () => stepIndex + 1 >= guide.steps.length ? finishRoute() : setStepIndex(value => value + 1);
-  const pointerLeft = targetRect ? Math.min(window.innerWidth - 36, Math.max(36, targetRect.left + targetRect.width / 2)) : 36;
-  const pointerTop = targetRect ? targetRect.top > 82 ? targetRect.top - 48 : targetRect.bottom + 8 : 90;
+  // The cursor tip lands just inside the top edge of the focused element, or of the option it is cycling through.
+  const anchor = optionRects.length > 1 ? optionRects[optionIndex % optionRects.length] : targetRect;
+  const pointerLeft = anchor ? Math.min(window.innerWidth - 120, Math.max(8, anchor.left + anchor.width / 2 - 3)) : 36;
+  const pointerTop = anchor ? Math.max(4, anchor.top + Math.min(anchor.height * 0.3, 14) - 2) : 90;
 
   return <>
     <div className="instructor-guide__scrim" aria-hidden="true" />
     {targetRect && <div className="instructor-guide__spotlight" style={{ left: targetRect.left - 6, top: targetRect.top - 6, width: targetRect.width + 12, height: targetRect.height + 12 }} aria-hidden="true" />}
-    {targetRect && <div className="instructor-guide__pointer" style={{ left: pointerLeft, top: pointerTop }} aria-hidden="true"><MousePointer2 size={21} /><span>THIS WAY</span></div>}
+    {targetRect && <div className="instructor-guide__pointer" style={{ left: pointerLeft, top: pointerTop }} aria-hidden="true"><MousePointer2 size={21} /><span>{optionRects.length > 1 ? "PICK ONE" : "THIS WAY"}</span></div>}
     <section ref={panelRef} className="instructor-guide__panel" style={{ top: panelPosition.top, left: panelPosition.left, right: "auto", bottom: "auto" }} role="dialog" aria-modal="false" aria-labelledby="instructor-guide-title">
       <div className="instructor-guide__panel-top"><span>{label}</span><span className="instructor-guide__counter">{String(stepIndex + 1).padStart(2, "0")} / {String(guide.steps.length).padStart(2, "0")}</span><button type="button" onClick={dismiss} aria-label="Close guide"><X size={17} /></button></div>
       <div className="instructor-guide__progress" aria-hidden="true"><span style={{ width: `${((stepIndex + 1) / guide.steps.length) * 100}%` }} /></div>

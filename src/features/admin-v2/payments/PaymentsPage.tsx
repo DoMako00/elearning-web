@@ -13,7 +13,7 @@ const money = (value: number, currency: string) => new Intl.NumberFormat("en", {
 
 export function PaymentsPage() {
   const { brand, globalSearch } = useAdminV2(); const [params] = useSearchParams(); const navigate = useNavigate();
-  const [items, setItems] = useState<SemesterOfferingOrder[]>([]); const [search, setSearch] = useState(""); const [status, setStatus] = useState<"all" | ManualPaymentStatus>("all"); const [page, setPage] = useState(1);
+  const [items, setItems] = useState<SemesterOfferingOrder[]>([]); const [search, setSearch] = useState(""); const [status, setStatus] = useState<"all" | ManualPaymentStatus>(() => { const requested = params.get("status"); return requested === "pending_review" || requested === "approved" || requested === "rejected" || requested === "cancelled" ? requested : "all"; }); const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState(params.get("payment") ?? ""); const [detail, setDetail] = useState<SemesterOfferingOrder | null>(null); const [confirm, setConfirm] = useState<"approve" | "reject" | null>(null); const [reason, setReason] = useState(""); const [loading, setLoading] = useState(true); const [mutating, setMutating] = useState(false); const [error, setError] = useState("");
   const load = async () => { setLoading(true); setError(""); try { const result = await listSemesterOfferingOrders({ brand: brand === "all" ? "all" : brand, ...(status === "all" ? {} : { status }) }); setItems(result.items); } catch (cause) { setError(extractApiErrorMessage(cause, "Payment orders could not be loaded.")); } finally { setLoading(false); } };
   useEffect(() => { void load(); }, [brand, status]);

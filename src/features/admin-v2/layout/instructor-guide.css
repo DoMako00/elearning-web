@@ -82,3 +82,11 @@
 .instructor-guide__confirm-cancel { color: #d3e3d5; border-color: rgb(220 241 225 / 18%); }
 .instructor-guide__confirm button:focus-visible { outline-color: #9ce0aa; }
 @media (max-width: 600px) { .instructor-guide__panel { width: min(430px, calc(100vw - 24px)); padding: 17px 18px 14px; } }
+
+/* Pointer: the cursor tip sits on the focused element and glides between options when a step has several. */
+.instructor-guide__pointer { transform: none; align-items: flex-start; transition: left 520ms cubic-bezier(.2,.8,.2,1), top 520ms cubic-bezier(.2,.8,.2,1); animation: none; }
+.instructor-guide__pointer svg { transform-origin: 3px 2px; animation: instructor-guide-pointer-tap 1.7s ease-in-out infinite; }
+.instructor-guide__pointer span { margin: 12px 0 0 2px; }
+@keyframes instructor-guide-pointer-tap { 0%, 55%, 100% { transform: scale(1); } 68% { transform: scale(.82) translate(1px, 1px); } 82% { transform: scale(1); } }
+@media (max-width: 600px) { .instructor-guide__pointer { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .instructor-guide__pointer, .instructor-guide__pointer svg { transition: none; animation: none; } }
