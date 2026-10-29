@@ -105,3 +105,8 @@
   .admin-v2__curriculum .v2-phase-panel { min-height: 300px; }
   .admin-v2__curriculum .v2-inspector-actions .admin-v2__button.is-danger { margin-left: 0; }
 }
+
+/* Inspector actions: an even 2 x 2 grid so the buttons never wrap unevenly */
+.admin-v2__curriculum .v2-inspector-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); flex-wrap: nowrap; }
+.admin-v2__curriculum .v2-inspector-actions .admin-v2__button { width: 100%; justify-content: center; white-space: nowrap; }
+.admin-v2__curriculum .v2-inspector-actions .admin-v2__button.is-danger { margin-left: 0; }
