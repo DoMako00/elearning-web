@@ -63,7 +63,7 @@ export const RouteLoadingFallback: React.FC<RouteLoadingFallbackProps> = ({
     // ══════════════════════════════════════════════════════
     // A. INSTRUCTOR ROUTES (/admin/instructor/...)
     // ══════════════════════════════════════════════════════
-    if (pathname.startsWith("/admin/instructor")) {
+    if (pathname === "/admin/instructor" || pathname.startsWith("/admin/instructor/")) {
       // 1. Instructor Course Content (chapters & lessons)
       if (/^\/admin\/instructor\/courses\/[^/]+$/.test(pathname)) {
         return <InstructorCourseContentSkeleton />;

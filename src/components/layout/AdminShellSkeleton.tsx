@@ -12,7 +12,8 @@ export const AdminShellSkeleton: React.FC<AdminShellSkeletonProps> = ({
   pathname = "/admin",
   children,
 }) => {
-  const isInstructor = pathname.startsWith("/admin/instructor");
+  // "/admin/instructors" (Super Admin directory) must not match the instructor portal
+  const isInstructor = pathname === "/admin/instructor" || pathname.startsWith("/admin/instructor/");
 
   // Determine active route label and subtitle
   let routeLabel = "Super Admin overview";
