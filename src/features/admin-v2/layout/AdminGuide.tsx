@@ -26,6 +26,14 @@ const adminRouteGuides: RouteGuide[] = [
     { title: "Review a course", description: "The right panel shows the selected course: where it sits in the curriculum, who teaches it and when it last changed. Manage instructors opens the editor.", selector: "[data-admin-guide-target='courses-inspector']", hint: "Select a course in the table to open its details." },
     { title: "Duplicate or archive", description: "Duplicate creates a draft copy with the same teaching assignments. Archive hides the course but keeps student access and all records.", selector: "[data-admin-guide-target='courses-actions']", options: "button", hint: "Select a course in the table to see its actions." },
   ] },
+  { matches: path => path === "/admin/instructors", id: "instructors", steps: [
+    { title: "The instructor directory", description: "Every teaching profile lives here, separate from course records. Add Instructor creates a new profile; you can assign brands and courses afterwards.", selector: "[data-admin-guide-target='instructors-add']" },
+    { title: "Find an instructor", description: "Search by name, email or specialty, or filter by brand and status. Clear appears once a filter is active.", selector: "[data-admin-guide-target='instructors-filters']", options: "input, select" },
+    { title: "Browse the directory", description: "Each row shows an instructor's brands, how many courses they teach and whether they are active. Select a row to open the profile, or use the pencil to edit it.", selector: "[data-admin-guide-target='instructors-table']", options: "tbody tr" },
+    { title: "Review a profile", description: "The right panel holds the selected instructor's brand affiliations, course assignments and profile details.", selector: "[data-admin-guide-target='instructors-inspector']", hint: "Select an instructor in the directory to open the profile." },
+    { title: "Switch views", description: "Overview shows assignments and details, Schedule lists the courses they teach, and Activity shows recorded changes to this profile.", selector: "[data-admin-guide-target='instructors-tabs']", options: "button", hint: "Select an instructor to see these views." },
+    { title: "Give them a sign-in", description: "Create Instructor login emails the instructor an invitation. They sign in with an email code, and no password is created. The instructor must be active and assigned to a brand first.", selector: "[data-admin-guide-target='instructors-login']", hint: "Open the Overview view of an instructor to see this action." },
+  ] },
 ];
 
 const STORAGE_PREFIX = "admin";

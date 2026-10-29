@@ -1,0 +1,88 @@
+/* Instructors: roomier type and calmer chrome. Scoped to this page; tables and inspectors are shared elsewhere. */
+.admin-v2__instructors-page { min-height: 0; gap: clamp(10px, 1.6vh, 16px); padding: clamp(12px, 2vh, 24px) clamp(16px, 1.8vw, 28px); background: #f7faf8; }
+.admin-v2__instructors-page .admin-v2__instructor-layout { min-height: 0; flex: 1; gap: clamp(10px, 1.1vw, 16px); overflow: hidden; }
+.admin-v2__instructors-page .admin-v2__table-card, .admin-v2__instructors-page .admin-v2__inspector { border: 1px solid #e3ebe6; border-radius: 14px; box-shadow: 0 1px 3px rgb(19 52 31 / 4%); }
+
+/* Directory */
+.admin-v2__instructors-page .admin-v2__table-toolbar { min-height: 68px; padding: 12px 18px; }
+.admin-v2__instructors-page .admin-v2__table-toolbar > div:first-child strong { color: #12281b; font-size: 18px; font-weight: 750; letter-spacing: -.015em; }
+.admin-v2__instructors-page .admin-v2__table-toolbar > div:first-child span { color: #6b7c72; font-size: 13px; }
+.admin-v2__instructors-page .admin-v2__instructor-directory-toolbar .admin-v2__button { height: 40px; border-radius: 10px; font-size: 14px; }
+.admin-v2__instructors-page .admin-v2__instructor-filters { min-height: 0; gap: 10px; padding: 12px 18px; }
+.admin-v2__instructors-page .admin-v2__instructor-filters select, .admin-v2__instructors-page .admin-v2__instructor-filters .admin-v2__search { height: 40px; border: 1px solid #dce7e0; border-radius: 10px; color: #1f3528; font-size: 14px; }
+.admin-v2__instructors-page .admin-v2__instructor-filters select { padding: 0 12px; font-weight: 600; }
+.admin-v2__instructors-page .admin-v2__instructor-filters .admin-v2__search input { font-size: 14px; }
+.admin-v2__instructors-page .admin-v2__instructor-filters > .admin-v2__button { height: 40px; border-radius: 10px; font-size: 13.5px; }
+.admin-v2__instructors-page .admin-v2__table th { height: 46px; background: #f7faf8; color: #64756a; font-size: 12px; font-weight: 700; letter-spacing: .03em; }
+.admin-v2__instructors-page .admin-v2__table td { height: 62px; color: #34483a; font-size: 14px; }
+.admin-v2__instructors-page .admin-v2__table tbody tr { transition: background-color .15s; }
+.admin-v2__instructors-page .admin-v2__table tbody tr:hover { background: #f6faf7; }
+.admin-v2__instructors-page .admin-v2__table tbody tr.is-selected { background: #eaf6ee; box-shadow: inset 3px 0 #16793f; }
+.admin-v2__instructors-page .admin-v2__instructor-identity { gap: 12px; }
+.admin-v2__instructors-page .admin-v2__instructor-identity > i { width: 38px; height: 38px; border-color: #d4e8d9; background: #e9f6ed; color: #1c7a43; font-size: 13px; font-style: normal; font-weight: 750; }
+.admin-v2__instructors-page .admin-v2__instructor-identity strong { color: #16281d; font-size: 14.5px; font-weight: 700; }
+.admin-v2__instructors-page .admin-v2__instructor-identity small { margin-top: 2px; color: #6b7c72; font-size: 12.5px; }
+.admin-v2__instructors-page .admin-v2__specialty-cell { color: #4d6256; font-size: 13.5px; }
+.admin-v2__instructors-page .admin-v2__specialty-cell small { padding: 2px 7px; border-radius: 999px; font-size: 11.5px; }
+.admin-v2__instructors-page .admin-v2__muted { color: #8a998f; font-size: 13px; }
+.admin-v2__instructors-page .admin-v2__course-count { color: #16281d; font-size: 15px; font-variant-numeric: tabular-nums; }
+.admin-v2__instructors-page .admin-v2__row-menu { width: 34px; height: 34px; border-radius: 9px; }
+.admin-v2__instructors-page .admin-v2__table-card > footer { font-size: 13px; }
+
+/* Inspector */
+.admin-v2__instructors-page .admin-v2__instructor-inspector-head { min-height: 0; padding: 18px 18px 16px; }
+.admin-v2__instructors-page .admin-v2__instructor-profile { gap: 14px; }
+.admin-v2__instructors-page .admin-v2__instructor-large-avatar { width: 60px; height: 60px; background: #e9f6ed; color: #1c7a43; font-size: 18px; font-weight: 750; }
+.admin-v2__instructors-page .admin-v2__instructor-profile h2 { margin: 0 0 8px; color: #12281b; font-size: 20px; font-weight: 760; letter-spacing: -.02em; }
+.admin-v2__instructors-page .admin-v2__instructor-profile p { margin: 8px 0 4px; color: #5d7064; font-size: 13.5px; }
+.admin-v2__instructors-page .admin-v2__instructor-profile small { gap: 6px; margin-top: 6px; color: #66786d; font-size: 13px; }
+.admin-v2__instructors-page .admin-v2__instructor-tabs { min-height: 48px; grid-template-columns: repeat(3, 1fr); padding-inline: 12px; }
+.admin-v2__instructors-page .admin-v2__instructor-tabs button { color: #5d7064; font-size: 14px; font-weight: 600; }
+.admin-v2__instructors-page .admin-v2__instructor-tabs button.is-active { color: #14793f; font-weight: 720; }
+.admin-v2__instructors-page .admin-v2__instructor-inspector-actions { padding: 14px 16px 6px; }
+.admin-v2__instructors-page .admin-v2__instructor-inspector-actions .admin-v2__button { min-height: 42px; width: 100%; border-radius: 10px; font-size: 14px; font-weight: 650; }
+.admin-v2__instructors-page .admin-v2__instructor-tab-body { min-height: 0; flex: 1; overflow-y: auto; scrollbar-width: thin; }
+.admin-v2__instructors-page .admin-v2__inspector-section > header h3 { color: #1b3324; font-size: 14.5px; font-weight: 720; }
+.admin-v2__instructors-page .admin-v2__text-button { color: #167542; font-size: 13px; font-weight: 600; }
+.admin-v2__instructors-page .admin-v2__text-button:disabled { color: #a3b1a8; cursor: not-allowed; }
+.admin-v2__instructors-page .admin-v2__instructor-brand-grid { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 14px; }
+.admin-v2__instructors-page .admin-v2__instructor-brand-card { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 999px; background: #fbfdfb; }
+.admin-v2__instructors-page .admin-v2__instructor-brand-card > span { color: #66786d; font-size: 12px; }
+.admin-v2__instructors-page .admin-v2__instructor-brand-card > svg { position: static; width: 14px; height: 14px; }
+.admin-v2__instructors-page .admin-v2__instructor-course-row { gap: 10px; padding: 10px 12px; border-radius: 10px; }
+.admin-v2__instructors-page .admin-v2__instructor-course-row strong { color: #16281d; font-size: 14px; font-weight: 700; }
+.admin-v2__instructors-page .admin-v2__instructor-course-row small { margin-top: 2px; color: #66786d; font-size: 12.5px; }
+.admin-v2__instructors-page .admin-v2__instructor-course-row > button { width: 30px; height: 30px; border-radius: 8px; }
+.admin-v2__instructors-page .admin-v2__fields dt { color: #66786d; font-size: 13px; }
+.admin-v2__instructors-page .admin-v2__fields dd { color: #1b3324; font-size: 14px; font-weight: 650; }
+.admin-v2__instructors-page .admin-v2__fields > div { min-height: 36px; }
+.admin-v2__instructors-page .admin-v2__empty-inline, .admin-v2__instructors-page .admin-v2__muted { color: #6b7c72; font-size: 13px; }
+.admin-v2__instructors-page .admin-v2__schedule-list article, .admin-v2__instructors-page .admin-v2__activity-list article { padding: 10px 12px; border-radius: 10px; }
+.admin-v2__instructors-page .admin-v2__schedule-list strong, .admin-v2__instructors-page .admin-v2__activity-list strong { color: #16281d; font-size: 14px; }
+.admin-v2__instructors-page .admin-v2__schedule-list small, .admin-v2__instructors-page .admin-v2__activity-list small { color: #66786d; font-size: 12.5px; }
+.admin-v2__instructors-page .admin-v2__empty-inspector { gap: 8px; color: #6b7c72; font-size: 13.5px; }
+.admin-v2__instructors-page .admin-v2__empty-inspector > strong { color: #1f3528; font-size: 16px; }
+
+/* Add / edit instructor drawer */
+.admin-v2__drawer .admin-v2__instructor-form-intro { gap: 12px; padding: 14px; border-radius: 12px; }
+.admin-v2__drawer .admin-v2__instructor-form-intro strong { font-size: 14.5px; }
+.admin-v2__drawer .admin-v2__instructor-form-intro small { font-size: 13px; }
+.admin-v2__drawer .admin-v2__instructor-brand-field > span { color: #3b5043; font-size: 13.5px; font-weight: 650; }
+.admin-v2__drawer .admin-v2__instructor-brand-field label { min-height: 42px; border-radius: 10px; }
+.admin-v2__drawer .admin-v2__assignment-picker { font-size: 14px; }
+.admin-v2__drawer .admin-v2__assignment-picker p { color: #5d7064; font-size: 13.5px; line-height: 1.5; }
+.admin-v2__drawer .admin-v2__assignment-picker label { border-radius: 10px; }
+.admin-v2__drawer .admin-v2__assignment-picker strong { color: #16281d; font-size: 14px; }
+.admin-v2__drawer .admin-v2__assignment-picker small { color: #66786d; font-size: 12.5px; }
+
+@media (max-width: 1100px) {
+  .admin-v2__instructors-page { overflow-y: auto; }
+  .admin-v2__instructors-page .admin-v2__instructor-layout { flex: none; overflow: visible; grid-template-columns: minmax(0, 1fr); }
+  .admin-v2__instructors-page .admin-v2__instructor-inspector { min-height: 420px; }
+  .admin-v2__instructors-page .admin-v2__instructor-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .admin-v2__instructors-page .admin-v2__instructor-filters .admin-v2__search { grid-column: 1 / -1; }
+}
+@media (max-width: 700px) {
+  .admin-v2__instructors-page { padding: 12px; }
+  .admin-v2__instructors-page .admin-v2__instructor-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
