@@ -23,6 +23,7 @@ import {
 } from "../ui/Skeleton";
 import { StudentShellSkeleton } from "./StudentShellSkeleton";
 import { AdminShellSkeleton } from "./AdminShellSkeleton";
+import { SecuritySkeleton } from "../../features/admin-v2/security/SecuritySkeleton";
 import { SubscriptionsSkeleton } from "../../features/admin-v2/subscriptions/SubscriptionsSkeleton";
 import { PaymentsSkeleton, StudentsSkeleton } from "../../features/admin-v2/shared/SplitViewSkeletons";
 import { RolesSkeleton } from "../../features/admin-v2/roles/RolesSkeleton";
@@ -144,6 +145,11 @@ export const RouteLoadingFallback: React.FC<RouteLoadingFallbackProps> = ({
       // 2g. Subscriptions
       if (pathname === "/admin/subscriptions") {
         return <SubscriptionsSkeleton />;
+      }
+
+      // 2h. Security
+      if (pathname === "/admin/security") {
+        return <SecuritySkeleton />;
       }
 
       // 3. Admin Data Tables (Courses, Instructors, Students, Content Approvals, Payments, Curriculum, Subscriptions, Roles, Security, Support)

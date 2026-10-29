@@ -64,6 +64,12 @@ const adminRouteGuides: RouteGuide[] = [
     { title: "Review the details", description: "The panel shows the offering, seat usage, term and the courses this subscription unlocks.", selector: "[data-admin-guide-target='subscriptions-inspector']", hint: "Select a subscription to open its details." },
     { title: "Manage seats or cancel", description: "Assign, release, replace or revoke seats, open the owner's student profile, or cancel the subscription. Cancelling revokes access but keeps the history.", selector: "[data-admin-guide-target='subscriptions-actions']", options: "button", hint: "Select a subscription to see these actions." },
   ] },
+  { matches: path => path === "/admin/security", id: "security", steps: [
+    { title: "Security at a glance", description: "Active sessions, flagged events, device resets and suspended accounts for the brand you have selected.", selector: "[data-admin-guide-target='security-kpis']", options: ".sec-v2__kpi" },
+    { title: "Three views", description: "Devices lists every registered student device, Audit log records admin and system activity, and Flagged shows only warnings and critical events.", selector: "[data-admin-guide-target='security-tabs']", options: "button" },
+    { title: "Pick a device", description: "Select a device row to choose the student and device you want to act on. The panel on the right updates to match.", selector: "[data-admin-guide-target='security-main']", options: "tbody tr", hint: "Open the Devices view and select a row." },
+    { title: "Act on the selection", description: "Revoke all of a student's sessions, revoke one device, allow a one-use device replacement, or restore a suspended account. Each action asks you to confirm and is recorded in the audit log.", selector: "[data-admin-guide-target='security-actions']", options: "button" },
+  ] },
 ];
 
 const STORAGE_PREFIX = "admin";
