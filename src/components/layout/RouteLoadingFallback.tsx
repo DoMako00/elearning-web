@@ -15,7 +15,6 @@ import {
   CourseOverviewSkeleton,
   LessonPlayerSkeleton,
   SkeletonListRow,
-  AdminOverviewSkeleton,
   AdminTableSkeleton,
   InstructorCourseContentSkeleton,
   CourseBuilderSkeleton,
@@ -24,6 +23,7 @@ import {
 } from "../ui/Skeleton";
 import { StudentShellSkeleton } from "./StudentShellSkeleton";
 import { AdminShellSkeleton } from "./AdminShellSkeleton";
+import { OverviewSkeleton } from "../../features/admin-v2/overview/OverviewSkeleton";
 import { InstructorHomeSkeleton } from "../../features/admin-v2/instructor/InstructorHomeSkeleton";
 import { InstructorCoursesSkeleton } from "../../features/admin-v2/instructor/InstructorCoursesSkeleton";
 import { InstructorAssessmentsSkeleton, InstructorStudentsSkeleton, InstructorSubscriptionsSkeleton } from "../../features/admin-v2/instructor/InstructorOperationsSkeleton";
@@ -104,7 +104,7 @@ export const RouteLoadingFallback: React.FC<RouteLoadingFallbackProps> = ({
 
       // 2. Super Admin Overview
       if (pathname === "/admin" || pathname === "/admin/overview") {
-        return <AdminOverviewSkeleton />;
+        return <OverviewSkeleton />;
       }
 
       // 3. Admin Data Tables (Courses, Instructors, Students, Content Approvals, Payments, Curriculum, Subscriptions, Roles, Security, Support)
