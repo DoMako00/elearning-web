@@ -1,0 +1,82 @@
+/* Students and Payments share one layout: four metric cards, a table card and a detail panel.
+   Scoped to those two pages; the same tables and inspectors are used elsewhere. */
+:is(.admin-v2__students, .admin-v2__payments) { gap: clamp(10px, 1.6vh, 16px); padding: clamp(12px, 2vh, 24px) clamp(16px, 1.8vw, 28px); background: #f7faf8; }
+
+/* Metrics */
+:is(.admin-v2__student-metrics, .admin-v2__payment-metrics) { gap: clamp(10px, 1.1vw, 16px); }
+:is(.admin-v2__student-stat, .admin-v2__payment-metrics .admin-v2__metric) { min-width: 0; border: 1px solid #e3ebe6; border-radius: 14px; background: #fff; box-shadow: 0 1px 3px rgb(19 52 31 / 4%); }
+.admin-v2__student-stat { padding: 16px 18px; }
+.admin-v2__student-stat > span, .admin-v2__payment-metrics .admin-v2__metric-icon { width: 46px; height: 46px; display: grid; flex: 0 0 auto; place-items: center; border-radius: 12px; background: #e9f6ed; color: #16793f; }
+.admin-v2__student-stat > div, .admin-v2__payment-metrics .admin-v2__metric > div { min-width: 0; }
+.admin-v2__student-stat small, .admin-v2__payment-metrics .admin-v2__metric small { display: block; color: #66786d; font-size: 13px; font-weight: 600; }
+.admin-v2__student-stat strong, .admin-v2__payment-metrics .admin-v2__metric strong { display: block; color: #12281b; font-size: clamp(24px, 1.2vw + 1.6vh, 30px); font-variant-numeric: tabular-nums; font-weight: 780; letter-spacing: -.02em; line-height: 1.15; }
+.admin-v2__student-stat em { display: block; overflow: hidden; color: #7a8c80; font-size: 12.5px; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }
+.admin-v2__student-stat-track { display: block; height: 4px; margin-top: 8px; overflow: hidden; border-radius: 999px; background: #e8efe9; }
+.admin-v2__student-stat-track > i { display: block; height: 100%; border-radius: inherit; background: #1f9150; }
+
+/* Table card and detail panel */
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__table-card, :is(.admin-v2__students, .admin-v2__payments) .admin-v2__inspector { border: 1px solid #e3ebe6; border-radius: 14px; box-shadow: 0 1px 3px rgb(19 52 31 / 4%); }
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__table-toolbar { min-height: 68px; padding: 12px 18px; }
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__table-toolbar > div:first-child strong { color: #12281b; font-size: 18px; font-weight: 750; letter-spacing: -.015em; }
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__table-toolbar > div:first-child span { color: #6b7c72; font-size: 13px; }
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__table-tools { gap: 10px; }
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__table-tools :is(.admin-v2__button, select, .admin-v2__search) { height: 40px; min-height: 40px; border-radius: 10px; font-size: 14px; }
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__table-tools select { padding: 0 12px; border-color: #dce7e0; color: #1f3528; font-weight: 600; }
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__table-tools .admin-v2__search input { font-size: 14px; }
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__table th { height: 46px; background: #f7faf8; color: #64756a; font-size: 12px; font-weight: 700; letter-spacing: .03em; }
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__table td { height: 56px; color: #34483a; font-size: 14px; }
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__table td strong { color: #16281d; font-size: 14.5px; font-weight: 700; }
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__table tbody tr { transition: background-color .15s; }
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__table tbody tr:hover { background: #f6faf7; }
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__table tbody tr.is-selected { background: #eaf6ee; box-shadow: inset 3px 0 #16793f; }
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__table-card > footer { font-size: 13px; }
+.admin-v2__more-filters { gap: 10px; padding: 10px 18px; }
+.admin-v2__more-filters select { height: 38px; border: 1px solid #dce7e0; border-radius: 10px; font-size: 14px; }
+
+/* Student rows */
+.admin-v2__student-cell { min-width: 0; display: inline-flex; align-items: center; gap: 12px; }
+.admin-v2__student-cell > i { width: 36px; height: 36px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 50%; background: #e7f4eb; color: #1c7a43; font-size: 12.5px; font-style: normal; font-weight: 750; }
+.admin-v2__student-cell > b { min-width: 0; overflow: hidden; color: #16281d; font-size: 14.5px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.admin-v2__student-cell > b > small { display: block; margin-top: 2px; color: #6b7c72; font-size: 12.5px; font-weight: 400; }
+.admin-v2__device-count { display: inline-flex; align-items: center; gap: 6px; color: #34483a; font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.admin-v2__view-student { min-height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 1px solid #dce7e0; border-radius: 9px; background: #fff; color: #17603a; font-size: 13px; font-weight: 650; cursor: pointer; }
+.admin-v2__view-student:hover { border-color: #9bc8a7; background: #f3faf5; }
+
+/* Detail panel */
+.admin-v2__student-head { padding: 18px; }
+.admin-v2__student-avatar { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; background: #e7f4eb; color: #1c7a43; font-size: 16px; font-weight: 750; }
+.admin-v2__student-head h2 { color: #12281b; font-size: 20px; font-weight: 760; letter-spacing: -.02em; }
+.admin-v2__student-head p { color: #66786d; font-size: 13.5px; }
+.admin-v2__student-inspector .admin-v2__tabs { min-height: 48px; }
+.admin-v2__student-inspector .admin-v2__tabs button { color: #5d7064; font-size: 14px; font-weight: 600; }
+.admin-v2__student-inspector .admin-v2__tabs button.is-active { color: #14793f; font-weight: 720; }
+:is(.admin-v2__students, .admin-v2__payments) :is(.admin-v2__inspector-section > header h3, .admin-v2__inspector-title h2) { color: #1b3324; font-size: 14.5px; font-weight: 720; }
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__text-button { color: #167542; font-size: 13px; font-weight: 600; }
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__fields > div { min-height: 36px; }
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__fields dt { color: #66786d; font-size: 13px; }
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__fields dd { color: #1b3324; font-size: 14px; font-weight: 650; }
+.admin-v2__quick-actions { gap: 8px; }
+.admin-v2__quick-actions > button { min-height: 40px; border-radius: 10px; font-size: 13.5px; font-weight: 650; }
+.admin-v2__source-note, .admin-v2__session-note, .admin-v2__payment-closed { color: #6b7c72; font-size: 12.5px; line-height: 1.45; }
+:is(.admin-v2__students, .admin-v2__payments) .admin-v2__empty-inline { color: #6b7c72; font-size: 13px; }
+.admin-v2__device-list article, .admin-v2__session-list article { padding: 12px; border-radius: 10px; }
+.admin-v2__device-copy strong, .admin-v2__session-list strong { color: #16281d; font-size: 14px; }
+.admin-v2__device-copy small, .admin-v2__session-list small { color: #66786d; font-size: 12.5px; }
+
+/* Payment review */
+.admin-v2__payment-inspector .admin-v2__inspector-title { min-height: 70px; padding: 0 18px; }
+.admin-v2__payment-inspector .admin-v2__inspector-title small { color: #7a8c80; font-size: 12px; }
+.admin-v2__member-list > div { min-height: 46px; border-radius: 10px; }
+.admin-v2__member-list b { color: #16281d; font-size: 14px; }
+.admin-v2__payment-actions { gap: 8px; padding: 14px 18px; }
+.admin-v2__payment-actions > button { min-height: 44px; border-radius: 10px; font-size: 14.5px; font-weight: 650; }
+.admin-v2__payment-actions > p { margin: 4px 0 0; color: #6b7c72; font-size: 12.5px; line-height: 1.45; }
+
+@media (max-width: 1100px) {
+  .admin-v2__student-metrics, .admin-v2__payment-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  :is(.admin-v2__students, .admin-v2__payments) { padding: 12px; }
+  .admin-v2__student-metrics, .admin-v2__payment-metrics { grid-template-columns: minmax(0, 1fr); }
+  :is(.admin-v2__students, .admin-v2__payments) .admin-v2__table-toolbar { align-items: stretch; flex-wrap: wrap; }
+}

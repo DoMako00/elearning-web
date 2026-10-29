@@ -41,6 +41,21 @@ const adminRouteGuides: RouteGuide[] = [
     { title: "Who does what", description: "Super Admins manage the whole platform. Instructors work only inside the courses assigned to them.", selector: "[data-admin-guide-target='roles-roles']", options: "li" },
     { title: "Change a team role", description: "Open this only when an account needs a different main role. Every change is recorded with your reason, and removing a Super Admin's access needs an extra confirmation.", selector: "[data-admin-guide-target='roles-advanced']", hint: "This section is available to Super Admins only." },
   ] },
+  { matches: path => path === "/admin/students", id: "students", steps: [
+    { title: "Student counts", description: "Total, active and pending students for the brand you have selected.", selector: "[data-admin-guide-target='students-metrics']", options: ".admin-v2__student-stat" },
+    { title: "Find and add students", description: "Search, filter by brand, level and status, open More filters for institution and semester, or add a student. A new student gets a one-time setup code.", selector: "[data-admin-guide-target='students-tools']", options: "input, select, button" },
+    { title: "Browse the students", description: "Each row shows brand, academic placement, status and registered devices. Select a row, or View, to open the student's panel.", selector: "[data-admin-guide-target='students-table']", options: "tbody tr" },
+    { title: "Review a student", description: "The panel on the right holds the student's profile, access, devices and sessions.", selector: "[data-admin-guide-target='students-inspector']", hint: "Select a student to open the panel." },
+    { title: "Switch views", description: "Profile has identity and placement, Access shows subscriptions and grants, Devices lists registered hardware, and Sessions lists sign-ins.", selector: "[data-admin-guide-target='students-tabs']", options: "button", hint: "Select a student to see these views." },
+    { title: "Suspend or reset", description: "Suspend or restore the account, or issue a new setup code when the student has not finished setup. Changes are recorded.", selector: "[data-admin-guide-target='students-actions']", options: "button", hint: "Open the Profile view of a student to see these actions." },
+  ] },
+  { matches: path => path === "/admin/payments", id: "payments", steps: [
+    { title: "Payment totals", description: "How many orders are pending, approved or rejected, and the total amount still waiting for a decision.", selector: "[data-admin-guide-target='payments-metrics']", options: ".admin-v2__metric" },
+    { title: "Filter the orders", description: "Show only pending, approved, rejected or cancelled orders, or search by order, offering or student.", selector: "[data-admin-guide-target='payments-tools']", options: "select, input" },
+    { title: "Pick an order", description: "Each row is a manual payment order. Select one to review its details.", selector: "[data-admin-guide-target='payments-table']", options: "tbody tr" },
+    { title: "Check the details", description: "Compare the offering, amount, payment method and reference with the payment you received before deciding.", selector: "[data-admin-guide-target='payments-inspector']", hint: "Select an order to open the review panel." },
+    { title: "Approve or reject", description: "Approving opens the student's access once the server confirms it. Rejecting keeps the order as history. Both ask for a review note first.", selector: "[data-admin-guide-target='payments-actions']", options: "button", hint: "Select a pending order to see these actions." },
+  ] },
 ];
 
 const STORAGE_PREFIX = "admin";

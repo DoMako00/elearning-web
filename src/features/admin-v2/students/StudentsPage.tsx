@@ -19,10 +19,8 @@ import {
 import { useAdminV2 } from "../layout/AdminV2Layout";
 import {
   BrandBadge,
-  ConfirmDialog,
   Drawer,
   FormActions,
-  FormField,
   StatusBadge,
 } from "../shared/AdminV2Primitives";
 import {
@@ -36,13 +34,8 @@ import type {
   StudentDraft,
   StudentRecord,
 } from "../types/adminV2.types";
-import { enrollmentFor } from "../data/adminV2.store";
 import { StudentForm } from "./StudentForm";
-import {
-  courseLevel,
-  courseMatchesStudentPlacement,
-  courseUnitLabel,
-} from "../data/adminV2.selectors";
+import "../shared/admin-split-view.css";
 import { listBrandAccess, listInstitutions, type AcademicInstitution, type BrandAccess } from "../api/adminAcademicApi";
 import {
   bootstrapAdminStudentClaim,
@@ -75,15 +68,8 @@ export function StudentsPage() {
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState(searchParams.get("student") ?? "");
   const [drawer, setDrawer] = useState<
-    "add" | "edit" | "grant" | "device" | null
+    "add" | "edit" | null
   >(null);
-  const [confirm, setConfirm] = useState<{
-    title: string;
-    detail: string;
-    confirmLabel?: string;
-    action: () => void;
-  } | null>(null);
-  const [targetDevice, setTargetDevice] = useState("");
   const [notice, setNotice] = useState("");
   const [studentFormError, setStudentFormError] = useState("");
   const [showMore, setShowMore] = useState(false);
@@ -92,7 +78,6 @@ export function StudentsPage() {
     setupCode: string;
     setupExpiresAt: string;
   } | null>(null);
-  const [grantCourseIds, setGrantCourseIds] = useState<string[]>([]);
   const [remoteRows, setRemoteRows] = useState<StudentRecord[]>([]);
   const [remoteDetail, setRemoteDetail] = useState<AdminStudentDetail | null>(
     null,
@@ -421,11 +406,8 @@ export function StudentsPage() {
   const activeStudents = data.students.filter(
     (student) => student.status === "Active",
   ).length;
-  const medwayStudents = data.students.filter(
-    (student) => student.brand === "medway",
-  ).length;
-  const eliteStudents = data.students.filter(
-    (student) => student.brand === "elite",
+  const pendingStudents = data.students.filter(
+    (student) => student.status === "Pending" || student.status === "Pending Payment",
   ).length;
   const monthStart = new Date();
   monthStart.setDate(1);
@@ -439,29 +421,13 @@ export function StudentsPage() {
   const activeShare = data.students.length
     ? Math.round((activeStudents / data.students.length) * 100)
     : 0;
-  const medwayShare = data.students.length
-    ? Math.round((medwayStudents / data.students.length) * 100)
-    : 0;
-  const eliteShare = data.students.length
-    ? Math.round((eliteStudents / data.students.length) * 100)
+  const pendingShare = data.students.length
+    ? Math.round((pendingStudents / data.students.length) * 100)
     : 0;
   const newStudentShare = data.students.length
     ? Math.round((thisMonth / data.students.length) * 100)
     : 0;
 
-  const slotCategory = targetDevice
-    ? selectedDevices.find((device) => device.id === targetDevice)?.category
-    : activeDevices.some((device) => device.category === "Mobile")
-      ? "Additional device"
-      : "Mobile";
-  const saveDevice = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setNotice("Device registration and replacement are not available through a safe profile-scoped Admin command.");
-  };
-  const saveCourseGrants = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setNotice("Direct course grants are not supported. Assign the Student to a Subscription Seat instead.");
-  };
   return (
     <section className="admin-v2__page admin-v2__students">
       {(loading || loadError) && (
@@ -477,27 +443,27 @@ export function StudentsPage() {
           Brand and academic placement options could not be loaded: {studentPlacementOptionsError}
         </div>
       )}
-      <div className="admin-v2__metrics admin-v2__student-metrics">
+      <div className="admin-v2__metrics admin-v2__student-metrics" data-admin-guide-target="students-metrics">
         <Stat
           icon={Users}
-          label="Active Students"
+          label="Total students"
+          value={String(data.students.length)}
+          note={brand === "all" ? "All brands" : brandLabel(brand)}
+          progress={100}
+        />
+        <Stat
+          icon={UserRound}
+          label="Active"
           value={String(activeStudents)}
-          note={`${activeShare}% of records`}
+          note={`${activeShare}% of students`}
           progress={activeShare}
         />
         <Stat
           icon={BookOpen}
-          label="Medway Students"
-          value={String(medwayStudents)}
-          note={`${medwayShare}% of records`}
-          progress={medwayShare}
-        />
-        <Stat
-          icon={UserRound}
-          label="Elite Students"
-          value={String(eliteStudents)}
-          note={`${eliteShare}% of records`}
-          progress={eliteShare}
+          label="Pending"
+          value={String(pendingStudents)}
+          note="Awaiting payment or setup"
+          progress={pendingShare}
         />
         <Stat
           icon={Activity}
@@ -512,7 +478,7 @@ export function StudentsPage() {
           title="Students"
           count={`${rows.length} students`}
           toolbar={
-            <div className="admin-v2__table-tools admin-v2__student-tools">
+            <div className="admin-v2__table-tools admin-v2__student-tools" data-admin-guide-target="students-tools">
               <label className="admin-v2__search">
                 <Search size={15} />
                 <input
@@ -637,11 +603,10 @@ export function StudentsPage() {
               </button>
             </div>
           )}
-          <table className="admin-v2__table admin-v2__student-table">
+          <table data-admin-guide-target="students-table" className="admin-v2__table admin-v2__student-table">
             <thead>
               <tr>
                 <th>Student</th>
-                <th>Account identifier</th>
                 <th>Brand</th>
                 <th>Academic level</th>
                 <th>Semester</th>
@@ -669,17 +634,15 @@ export function StudentsPage() {
                           {student.fullName
                             .split(" ")
                             .map((part) => part[0])
-                            .join("")}
+                            .join("")
+                            .slice(0, 2)}
                         </i>
                         <b>
                           {student.fullName}
-                          <small>
-                            {student.email || "Email not connected"}
-                          </small>
+                          {student.email && <small>{student.email}</small>}
                         </b>
                       </span>
                     </td>
-                    <td>{student.accountIdentifier}</td>
                     <td>
                       <BrandBadge brand={student.brand} />
                     </td>
@@ -722,24 +685,22 @@ export function StudentsPage() {
           )}
         </TableFrame>
         {selected && (
-          <aside className="admin-v2__inspector admin-v2__student-inspector">
+          <aside data-admin-guide-target="students-inspector" className="admin-v2__inspector admin-v2__student-inspector">
             <header className="admin-v2__student-head">
               <div className="admin-v2__student-avatar">
                 {selected.fullName
                   .split(" ")
                   .map((part) => part[0])
-                  .join("")}
+                  .join("")
+                  .slice(0, 2)}
               </div>
               <div>
                 <h2>{selected.fullName}</h2>
-                <p>
-                  {selected.accountIdentifier} <span>·</span>{" "}
-                  {selected.email || "No email on record"}
-                </p>
+                <p>{selected.email || "No email on record"}</p>
               </div>
               <StudentStatus status={selected.status} />
             </header>
-            <nav className="admin-v2__tabs" aria-label="Student details">
+            <nav data-admin-guide-target="students-tabs" className="admin-v2__tabs" aria-label="Student details">
               {tabs.map((item) => (
                 <button
                   type="button"
@@ -772,7 +733,7 @@ export function StudentsPage() {
                     <InspectorFields
                       fields={[
                         ["Full name", selected.fullName],
-                        ["Account identifier", selected.accountIdentifier],
+                        ...(selected.accountIdentifier && selected.accountIdentifier !== "—" ? [["Account identifier", selected.accountIdentifier] as [string, string]] : []),
                         ["Gmail / email", selected.email || "Not connected"],
                         ["Brand", <BrandBadge brand={selected.brand} />],
                         ["Institution", selected.institution],
@@ -787,7 +748,7 @@ export function StudentsPage() {
                     />
                   </InspectorSection>
                   <InspectorSection title="Quick actions">
-                    <div className="admin-v2__quick-actions">
+                    <div className="admin-v2__quick-actions" data-admin-guide-target="students-actions">
                       <button
                         disabled={mutationPending}
                         className={
@@ -887,20 +848,7 @@ export function StudentsPage() {
                   </InspectorSection>
                   <InspectorSection
                     title="Accessible courses"
-                    action={
-                      <button
-                        className="admin-v2__text-button"
-                        disabled
-                        title="Course access is managed through the Subscription Seat workflow."
-                        onClick={() => {
-                          setGrantCourseIds([]);
-                          setDrawer("grant");
-                        }}
-                      >
-                        <Plus size={13} /> Assign course
-                      </button>
-                    }
-                  >
+                    >
                     <div className="admin-v2__access-list">
                       {detailLoading ? (
                         <p className="admin-v2__empty-inline" role="status">Loading access summary…</p>
@@ -1113,143 +1061,6 @@ export function StudentsPage() {
           />
         </Drawer>
       )}
-      {drawer === "grant" && selected && (
-        <Drawer
-          title="Assign course access"
-          subtitle={`Choose eligible courses for ${selected.fullName}`}
-          onClose={() => setDrawer(null)}
-          footer={
-            <FormActions>
-              <button
-                className="admin-v2__button"
-                onClick={() => setDrawer(null)}
-              >
-                Cancel
-              </button>
-              <button
-                className="admin-v2__button is-primary"
-                form="course-grant-form"
-                type="submit"
-                disabled={!grantCourseIds.length}
-              >
-                Assign selected
-              </button>
-            </FormActions>
-          }
-        >
-          <form
-            id="course-grant-form"
-            className="admin-v2__picker-list"
-            onSubmit={saveCourseGrants}
-          >
-            {data.courses
-              .filter(
-                (course) =>
-                  course.brand === selected.brand &&
-                  course.status !== "Archived" &&
-                  !enrollmentFor(data, selected.id, course.id) &&
-                  (course.scope === "Standalone" ||
-                    courseLevel(data, course) === selected.academicLevel) &&
-                  courseMatchesStudentPlacement(data, course, selected),
-              )
-              .map((course) => (
-                <label key={course.id}>
-                  <input
-                    type="checkbox"
-                    name="courses"
-                    value={course.id}
-                    checked={grantCourseIds.includes(course.id)}
-                    onChange={() =>
-                      setGrantCourseIds((current) =>
-                        current.includes(course.id)
-                          ? current.filter((id) => id !== course.id)
-                          : [...current, course.id],
-                      )
-                    }
-                  />
-                  <span>
-                    <strong>{course.title}</strong>
-                    <small>
-                      {brandLabel(course.brand)} ·{" "}
-                      {courseUnitLabel(data, course)} ·{" "}
-                      {courseLevel(data, course)}
-                    </small>
-                  </span>
-                </label>
-              ))}
-            {!data.courses.some(
-              (course) =>
-                course.brand === selected.brand &&
-                course.status !== "Archived" &&
-                !enrollmentFor(data, selected.id, course.id) &&
-                (course.scope === "Standalone" ||
-                  courseLevel(data, course) === selected.academicLevel) &&
-                courseMatchesStudentPlacement(data, course, selected),
-            ) && (
-              <p className="admin-v2__empty-inline">
-                No eligible courses match this Student's brand, institution, and
-                academic level.
-              </p>
-            )}
-          </form>
-        </Drawer>
-      )}
-      {drawer === "device" && selected && slotCategory && (
-        <Drawer
-          title={targetDevice ? "Replace device" : "Register device"}
-          subtitle="One mobile device and one additional device are permitted."
-          onClose={() => {
-            setDrawer(null);
-            setTargetDevice("");
-          }}
-          footer={
-            <FormActions>
-              <button
-                className="admin-v2__button"
-                onClick={() => setDrawer(null)}
-              >
-                Cancel
-              </button>
-              <button
-                className="admin-v2__button is-primary"
-                form="device-form"
-                type="submit"
-              >
-                {targetDevice ? "Replace device" : "Register device"}
-              </button>
-            </FormActions>
-          }
-        >
-          <form
-            id="device-form"
-            className="admin-v2__form"
-            onSubmit={saveDevice}
-          >
-            <FormField label="Device name" wide>
-              <input name="name" required placeholder="e.g. iPhone 15" />
-            </FormField>
-            <FormField label="Device type">
-              <select name="type">
-                {(slotCategory === "Mobile"
-                  ? ["Phone"]
-                  : ["PC / laptop", "Tablet"]
-                ).map((type) => (
-                  <option key={type}>{type}</option>
-                ))}
-              </select>
-            </FormField>
-            <FormField label="Slot">
-              <input readOnly value={slotCategory} />
-            </FormField>
-            <FormField label="Platform / OS">
-              <input name="platform" placeholder="e.g. iOS 18" />
-            </FormField>
-            <FormField label="Browser">
-              <input name="browser" placeholder="e.g. Safari" />
-            </FormField>
-          </form>
-        </Drawer>
-      )}
       {createdStudent && (
         <Drawer
           title="Student created"
@@ -1302,15 +1113,6 @@ export function StudentsPage() {
             />
           </div>
         </Drawer>
-      )}
-      {confirm && (
-        <ConfirmDialog
-          title={confirm.title}
-          detail={confirm.detail}
-          confirmLabel={confirm.confirmLabel}
-          onCancel={() => setConfirm(null)}
-          onConfirm={confirm.action}
-        />
       )}
     </section>
   );
