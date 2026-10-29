@@ -23,6 +23,7 @@ import {
 } from "../ui/Skeleton";
 import { StudentShellSkeleton } from "./StudentShellSkeleton";
 import { AdminShellSkeleton } from "./AdminShellSkeleton";
+import { CoursesSkeleton } from "../../features/admin-v2/courses/CoursesSkeleton";
 import { CurriculumSkeleton } from "../../features/admin-v2/curriculum/CurriculumSkeleton";
 import { OverviewSkeleton } from "../../features/admin-v2/overview/OverviewSkeleton";
 import { InstructorHomeSkeleton } from "../../features/admin-v2/instructor/InstructorHomeSkeleton";
@@ -111,6 +112,11 @@ export const RouteLoadingFallback: React.FC<RouteLoadingFallbackProps> = ({
       // 2b. Curriculum
       if (pathname === "/admin/curriculum") {
         return <CurriculumSkeleton />;
+      }
+
+      // 2c. Course setup
+      if (pathname === "/admin/courses") {
+        return <CoursesSkeleton />;
       }
 
       // 3. Admin Data Tables (Courses, Instructors, Students, Content Approvals, Payments, Curriculum, Subscriptions, Roles, Security, Support)

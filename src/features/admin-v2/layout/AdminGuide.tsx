@@ -19,6 +19,13 @@ const adminRouteGuides: RouteGuide[] = [
     { title: "Review the unit", description: "The right panel shows the unit's code, type, semester, credits and status. A Draft unit is not final until it is approved.", selector: "[data-admin-guide-target='curriculum-inspector']" },
     { title: "Reorder, edit or archive", description: "Move a unit up or down inside its semester, edit its details, or archive it. Archiving keeps the record and any course mappings.", selector: "[data-admin-guide-target='curriculum-actions']", options: "button", hint: "Select a unit to see its actions." },
   ] },
+  { matches: path => path === "/admin/courses", id: "courses", steps: [
+    { title: "Narrow the list", description: "Filter courses by brand, scope, academic level, semester or instructor. Clear filters appears once any filter is active.", selector: "[data-admin-guide-target='courses-filters']", options: "select" },
+    { title: "Search, filter and create", description: "Search by title, subject or instructor, show only published courses, or start a new course with New Course.", selector: "[data-admin-guide-target='courses-tools']", options: "input, button" },
+    { title: "Browse your courses", description: "Each row is a brand course with its linked subject, instructor and status. Select a row to see its details, or use the pencil to edit it.", selector: "[data-admin-guide-target='courses-table']", options: "tbody tr" },
+    { title: "Review a course", description: "The right panel shows the selected course: where it sits in the curriculum, who teaches it and when it last changed. Manage instructors opens the editor.", selector: "[data-admin-guide-target='courses-inspector']", hint: "Select a course in the table to open its details." },
+    { title: "Duplicate or archive", description: "Duplicate creates a draft copy with the same teaching assignments. Archive hides the course but keeps student access and all records.", selector: "[data-admin-guide-target='courses-actions']", options: "button", hint: "Select a course in the table to see its actions." },
+  ] },
 ];
 
 const STORAGE_PREFIX = "admin";
