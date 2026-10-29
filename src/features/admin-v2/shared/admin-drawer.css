@@ -1,0 +1,19 @@
+/* Shared side drawer (create/edit forms): readable type, roomier fields. Page-specific form rules
+   (student form, roles form, builder) are more specific and keep their own sizing. */
+.admin-v2__drawer { width: min(540px, 100vw); }
+.admin-v2__drawer > header { padding: 22px 24px 18px; }
+.admin-v2__drawer h2 { color: #12281b; font-size: 20px; font-weight: 720; letter-spacing: -.015em; line-height: 1.25; }
+.admin-v2__drawer > header p { margin-top: 5px; color: #66786d; font-size: 13.5px; line-height: 1.45; }
+.admin-v2__drawer-body { padding: 22px 24px; }
+.admin-v2__drawer .admin-v2__form { gap: 18px 16px; }
+.admin-v2__drawer .admin-v2__field { gap: 7px; color: #3b5043; font-size: 13.5px; font-weight: 650; }
+.admin-v2__drawer .admin-v2__field input:not([type="checkbox"]):not([type="radio"]),
+.admin-v2__drawer .admin-v2__field select { min-height: 44px; border: 1px solid #d9e5dd; border-radius: 10px; background-color: #fff; color: #16281d; padding: 0 14px; font-size: 14.5px; font-weight: 500; transition: border-color .15s, box-shadow .15s; }
+.admin-v2__drawer .admin-v2__field textarea { min-height: 112px; border: 1px solid #d9e5dd; border-radius: 10px; background: #fff; color: #16281d; padding: 12px 14px; font-size: 14.5px; font-weight: 500; line-height: 1.5; resize: vertical; }
+.admin-v2__drawer .admin-v2__field input::placeholder, .admin-v2__drawer .admin-v2__field textarea::placeholder { color: #93a399; font-weight: 400; }
+.admin-v2__drawer .admin-v2__field input:focus, .admin-v2__drawer .admin-v2__field select:focus, .admin-v2__drawer .admin-v2__field textarea:focus { border-color: #72b888; outline: 0; box-shadow: 0 0 0 3px rgb(47 158 95 / 13%); }
+.admin-v2__drawer .admin-v2__field select:disabled, .admin-v2__drawer .admin-v2__field input:disabled { background-color: #f3f7f4; color: #5d7064; cursor: not-allowed; }
+.admin-v2__drawer .admin-v2__form-note, .admin-v2__drawer .admin-v2__field > small { margin-top: 1px; color: #6b7c72; font-size: 12.5px; font-weight: 400; line-height: 1.4; }
+.admin-v2__drawer > footer { padding: 16px 24px; }
+.admin-v2__drawer > footer .admin-v2__button { min-height: 42px; padding-inline: 18px; border-radius: 10px; font-size: 14px; font-weight: 650; }
+@media (max-width: 560px) { .admin-v2__drawer > header, .admin-v2__drawer-body, .admin-v2__drawer > footer { padding-inline: 16px; } }

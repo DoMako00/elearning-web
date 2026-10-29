@@ -2,6 +2,7 @@ import { Crown, X } from "lucide-react";
 import { useEffect, type FormEvent, type PropsWithChildren, type ReactNode } from "react";
 import type { BrandCode, RecordStatus } from "../types/adminV2.types";
 import { brandName } from "../data/adminV2.defaults";
+import "./admin-drawer.css";
 
 const toneByStatus: Record<RecordStatus, string> = {
   Active: "success", Published: "success", Approved: "success", Draft: "warning", Archived: "muted", Closed: "muted", Suspended: "danger", Inactive: "muted", Pending: "warning", "Pending Payment": "warning", "Pending Review": "warning", "Pending Verification": "warning", "Payment Rejected": "danger", Rejected: "danger", "Expiring Soon": "warning", Expired: "muted", Cancelled: "danger", "Past Due": "danger", Revoked: "muted", "Replacement Pending": "warning", Withdrawn: "muted", Submitted: "warning", Reviewed: "success", Returned: "warning",
