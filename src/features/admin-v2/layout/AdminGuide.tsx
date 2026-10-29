@@ -34,6 +34,13 @@ const adminRouteGuides: RouteGuide[] = [
     { title: "Switch views", description: "Overview shows assignments and details, Schedule lists the courses they teach, and Activity shows recorded changes to this profile.", selector: "[data-admin-guide-target='instructors-tabs']", options: "button", hint: "Select an instructor to see these views." },
     { title: "Give them a sign-in", description: "Create Instructor login emails the instructor an invitation. They sign in with an email code, and no password is created. The instructor must be active and assigned to a brand first.", selector: "[data-admin-guide-target='instructors-login']", hint: "Open the Overview view of an instructor to see this action." },
   ] },
+  { matches: path => path === "/admin/roles", id: "roles", steps: [
+    { title: "Prepare an Instructor", description: "An instructor needs three things before they can teach: a sign-in, a doctor profile in the directory, and a course. Use the links to set up the profile and the course.", selector: "[data-admin-guide-target='roles-setup']", options: "li, a" },
+    { title: "Connect a sign-in to a doctor", description: "Choose the Instructor account, the matching doctor profile, and say why you are connecting them. This links existing accounts; it does not create a login.", selector: "[data-admin-guide-target='roles-connect']", options: "select, textarea, button", hint: "This section is available to Super Admins only." },
+    { title: "Check your own access", description: "This shows the role you are signed in with. Technical access details lists the exact permissions your account holds.", selector: "[data-admin-guide-target='roles-account']", options: "a, button" },
+    { title: "Who does what", description: "Super Admins manage the whole platform. Instructors work only inside the courses assigned to them.", selector: "[data-admin-guide-target='roles-roles']", options: "li" },
+    { title: "Change a team role", description: "Open this only when an account needs a different main role. Every change is recorded with your reason, and removing a Super Admin's access needs an extra confirmation.", selector: "[data-admin-guide-target='roles-advanced']", hint: "This section is available to Super Admins only." },
+  ] },
 ];
 
 const STORAGE_PREFIX = "admin";
