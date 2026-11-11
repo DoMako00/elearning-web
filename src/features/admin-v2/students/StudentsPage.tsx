@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   Activity,
@@ -23,6 +24,7 @@ import {
   FormActions,
   StatusBadge,
 } from "../shared/AdminV2Primitives";
+import { AccountDeletionDialog, DeleteAccountButton, PendingAccountDeletions } from "../shared/AccountDeletion";
 import {
   InspectorFields,
   InspectorSection,
@@ -49,6 +51,7 @@ import {
 } from "../api/adminStudentsApi";
 import { listAllAdminStudents } from "../api/adminOperationsApi";
 import { toEnglishStudentName } from "../api/studentDisplay";
+import { getAdminEffectiveRole } from "../api/adminRolesApi";
 
 const PAGE_SIZE = 8;
 type InspectorTab = "Profile" | "Access" | "Devices" | "Sessions";
@@ -56,6 +59,8 @@ const tabs: InspectorTab[] = ["Profile", "Access", "Devices", "Sessions"];
 
 export function StudentsPage() {
   const { data: storeData, brand, globalSearch } = useAdminV2();
+  const effectiveRole = useQuery({ queryKey: ["admin", "effective-role"], queryFn: ({ signal }) => getAdminEffectiveRole(signal) });
+  const canDeleteAccounts = effectiveRole.data?.roleCodes.includes("platform_owner") === true;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [tab, setTab] = useState<InspectorTab>("Profile");
@@ -91,6 +96,8 @@ export function StudentsPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState("");
   const [mutationPending, setMutationPending] = useState(false);
+  const [deletionTarget, setDeletionTarget] = useState<string | null>(null);
+  const [deletionRefresh, setDeletionRefresh] = useState(0);
   const mapStudent = (item: AdminStudentListItem): StudentRecord => ({
     id: item.id,
     accountIdentifier: "—",
@@ -443,6 +450,7 @@ export function StudentsPage() {
           Brand and academic placement options could not be loaded: {studentPlacementOptionsError}
         </div>
       )}
+      {canDeleteAccounts && <PendingAccountDeletions refreshKey={deletionRefresh} />}
       <div className="admin-v2__metrics admin-v2__student-metrics" data-admin-guide-target="students-metrics">
         <Stat
           icon={Users}
@@ -768,6 +776,9 @@ export function StudentsPage() {
                           ? "Restore account"
                           : "Suspend account"}
                       </button>
+                      {canDeleteAccounts && <DeleteAccountButton onClick={() => setDeletionTarget(selected.id)} disabled={mutationPending}>
+                        Delete permanently
+                      </DeleteAccountButton>}
                       {(selected.claimBootstrapRequired || selected.claimStatus === "unclaimed" || selected.claimStatus === "setup_expired" || selected.claimStatus === "locked") && (
                         <button
                           disabled={mutationPending}
@@ -1114,6 +1125,7 @@ export function StudentsPage() {
           </div>
         </Drawer>
       )}
+      {deletionTarget && <AccountDeletionDialog kind="student" profileId={deletionTarget} onCancel={() => setDeletionTarget(null)} onFinished={(_kind, status) => { setDeletionTarget(null); setDeletionRefresh(value => value + 1); setNotice(status === "completed" ? "Student identity deleted. Historical records remain anonymized." : "Student access is disabled. Identity cleanup is pending."); void reload(); }} />}
     </section>
   );
 }

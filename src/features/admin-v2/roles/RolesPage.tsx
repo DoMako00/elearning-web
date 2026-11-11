@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { assignAdminRole, getAdminEffectiveRole, linkInstructorAccount, listAdminRoleAssignments } from "../api/adminRolesApi";
 import { useAdminV2 } from "../layout/AdminV2Layout";
 import "./roles.css";
+import { AccountDeletionDialog, DeleteAccountButton, PendingAccountDeletions } from "../shared/AccountDeletion";
 
 const roleTitle = (code: string, name?: string) => code === "platform_owner" ? "Super Admin" : code === "instructor" ? "Instructor" : name ?? code.replaceAll("_", " ");
 
@@ -13,6 +14,7 @@ export function RolesPage() {
   const client = useQueryClient();
   const query = useQuery({ queryKey: ["admin", "effective-role"], queryFn: ({ signal }) => getAdminEffectiveRole(signal) });
   const canManage = query.data?.permissionCodes.includes("admin.roles.manage") === true;
+  const isSuperAdmin = query.data?.roleCodes.includes("platform_owner") === true;
   const assignments = useQuery({ queryKey: ["admin", "role-assignments"], queryFn: ({ signal }) => listAdminRoleAssignments(signal), enabled: canManage });
   const [targetId, setTargetId] = useState("");
   const [roleCode, setRoleCode] = useState("");
@@ -21,6 +23,10 @@ export function RolesPage() {
   const [linkAdminProfileId, setLinkAdminProfileId] = useState("");
   const [linkInstructorId, setLinkInstructorId] = useState("");
   const [linkReason, setLinkReason] = useState("");
+  const [deleteAdminId, setDeleteAdminId] = useState("");
+  const [deletionTargetId, setDeletionTargetId] = useState("");
+  const [deletionRefresh, setDeletionRefresh] = useState(0);
+  const [deletionNotice, setDeletionNotice] = useState("");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [permissionsOpen, setPermissionsOpen] = useState(false);
   const target = useMemo(() => assignments.data?.items.find(item => item.adminProfileId === targetId) ?? null, [assignments.data, targetId]);
@@ -30,6 +36,7 @@ export function RolesPage() {
     return assignAdminRole(target.adminProfileId, { roleCode: selectedRole.code, expectedVersion: target.version, reason: reason.trim(), allowOwnerRoleChange });
   }, onSuccess: async () => { setReason(""); setAllowOwnerRoleChange(false); await Promise.all([client.invalidateQueries({ queryKey: ["admin", "role-assignments"] }), client.invalidateQueries({ queryKey: ["admin", "effective-role"] })]); } });
   const instructorAccounts = assignments.data?.items.filter(item => item.roleCodes.includes("instructor")) ?? [];
+  const managementAccounts = assignments.data?.items.filter(item => !item.roleCodes.includes("instructor")) ?? [];
   const activeInstructorProfiles = data.instructors.filter(item => item.status === "Active");
   const currentRole = query.data?.roleCodes.includes("platform_owner") ? "Super Admin" : query.data?.roleCodes.includes("instructor") ? "Instructor" : query.data?.roleCodes.map(code => roleTitle(code)).join(", ") || "Role unavailable";
   const link = useMutation({ mutationFn: () => {
@@ -41,6 +48,9 @@ export function RolesPage() {
   const ownerRoleLoss = Boolean(target?.roleCodes.includes("platform_owner") && roleCode !== "platform_owner");
 
   return <section className="admin-v2__page roles-v2" aria-label="Roles and permissions">
+    {isSuperAdmin && <PendingAccountDeletions refreshKey={deletionRefresh} />}
+    {deletionNotice && <p role="status" className="admin-v2__roles-feedback">{deletionNotice}</p>}
+    {isSuperAdmin && assignments.data && <section className="admin-v2__roles-card admin-v2__account-delete-admin"><header><span><ShieldCheck size={18} /></span><div><h2>Delete a management account</h2><p>Instructor sign-ins are excluded. Your account and the last Super Admin are protected.</p></div></header><label className="admin-v2__field">Management account<select value={deleteAdminId} onChange={event => setDeleteAdminId(event.target.value)}><option value="">Choose an account</option>{managementAccounts.map(item => <option key={item.adminProfileId} value={item.adminProfileId}>{item.displayName}</option>)}</select></label><DeleteAccountButton onClick={() => setDeletionTargetId(deleteAdminId)} disabled={!deleteAdminId || !managementAccounts.some(item => item.adminProfileId === deleteAdminId)}>Continue to deletion confirmation</DeleteAccountButton></section>}
     {query.isLoading && <p role="status" className="roles-v2__notice">Checking your account access…</p>}
     {query.isError && <p role="alert" className="roles-v2__notice is-error">{query.error instanceof Error ? query.error.message : "Your account access could not be loaded."} <button type="button" onClick={() => void query.refetch()}>Retry</button></p>}
 
@@ -109,6 +119,7 @@ export function RolesPage() {
         </section>}
       </div>
     </div>}
+    {deletionTargetId && <AccountDeletionDialog kind="admin" profileId={deletionTargetId} onCancel={() => setDeletionTargetId("")} onFinished={(_kind, status) => { setDeletionTargetId(""); setDeleteAdminId(""); setDeletionRefresh(value => value + 1); setDeletionNotice(status === "completed" ? "Management account identity deleted." : "Account disabled; identity cleanup is pending."); void client.invalidateQueries({ queryKey: ["admin", "role-assignments"] }); }} />}
   </section>;
 }
 

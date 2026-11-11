@@ -31,7 +31,7 @@ export interface StructureCommandResult {
   replayed?: boolean;
 }
 export interface AdminApiError extends Error { status?:number; code?:string; correlationId?:string; }
-export interface InstructorLoginInvite { adminProfileId:string; instructorId:string; brandId:string; brandCode:BrandCode; brandName:string; loginMethod:"email_otp"; invitationSent:boolean; }
+export interface InstructorLoginInvite { adminProfileId:string; instructorId:string; brandId:string; brandCode:BrandCode; brandName:string; loginMethod:"email_otp"; invitationSent:boolean; loginStatus:"created"|"resent"|"already_active"; brandAccessChanged:boolean; }
 
 const idempotencyKey=()=>crypto.randomUUID();
 function unwrap<T>(result:{data?:unknown;error?:unknown;response?:Response}):T {
