@@ -1,0 +1,24 @@
+/* Sidebar help card (now a real button) and its panel. */
+button.admin-v2__help { width: 100%; font: inherit; text-align: left; cursor: pointer; transition: border-color .15s, background-color .15s; }
+button.admin-v2__help:hover { border-color: #9bc8a7; background: #f1f9f4; }
+button.admin-v2__help:focus-visible { outline: 2px solid #2b8950; outline-offset: 2px; }
+
+.admin-help { display: grid; gap: 22px; }
+.admin-help h3 { margin: 0; color: #12281b; font-size: 15px; font-weight: 740; }
+.admin-help section > header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.admin-help__summary { margin: 0; padding: 14px 16px; border-radius: 12px; background: #eef7f1; color: #2f5a41; font-size: 14.5px; line-height: 1.55; }
+.admin-help__muted { margin: 8px 0 0; color: #6b7c72; font-size: 13.5px; line-height: 1.5; }
+.admin-help__replay { min-height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 1px solid #d7e5db; border-radius: 9px; background: #fff; color: #17603a; font-size: 13px; font-weight: 650; cursor: pointer; }
+.admin-help__replay:hover { border-color: #9bc8a7; background: #f3faf5; }
+.admin-help ol { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; counter-reset: help; }
+.admin-help ol li { position: relative; display: grid; gap: 3px; padding-left: 36px; counter-increment: help; }
+.admin-help ol li::before { position: absolute; top: 1px; left: 0; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: #e1f3e7; color: #17703d; font-size: 12.5px; font-weight: 750; content: counter(help); }
+.admin-help ol strong { color: #16281d; font-size: 14px; font-weight: 700; }
+.admin-help ol span { color: #5d7064; font-size: 13.5px; line-height: 1.5; }
+.admin-help__tasks { display: grid; gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; }
+.admin-help__tasks a { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 14px; border: 1px solid #e3ebe6; border-radius: 11px; background: #fff; color: #17603a; text-decoration: none; transition: border-color .15s, background-color .15s; }
+.admin-help__tasks a:hover { border-color: #9bc8a7; background: #f3faf5; }
+.admin-help__tasks b { display: block; color: #16281d; font-size: 14px; font-weight: 700; }
+.admin-help__tasks small { display: block; margin-top: 1px; color: #66786d; font-size: 12.5px; }
+.admin-help__contact { margin-top: 8px; display: inline-flex; align-items: center; gap: 8px; color: #167542; font-size: 14px; font-weight: 650; text-decoration: none; }
+.admin-help__contact:hover { text-decoration: underline; }

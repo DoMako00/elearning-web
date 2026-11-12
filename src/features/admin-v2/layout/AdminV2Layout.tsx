@@ -20,6 +20,7 @@ import "../styles/admin-v2-phase2.css";
 import { getWorkspaceCopy, INSTRUCTOR_SUPPORT_LINK } from "../copy/workspace-copy";
 import { InstructorGuide, resetInstructorGuideSession } from "./InstructorGuide";
 import { AdminGuide, resetAdminGuideSession } from "./AdminGuide";
+import { AdminHelpButton } from "./AdminHelp";
 import { PageBreadcrumb } from "../../../components/ui/PageBreadcrumb";
 
 interface AdminV2ContextValue {
@@ -215,7 +216,7 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
             INSTRUCTOR_SUPPORT_LINK ? (
               <a href={INSTRUCTOR_SUPPORT_LINK} target="_blank" rel="noreferrer" className="admin-v2__help" style={{ textDecoration: "none" }}><span>?</span><div><strong>Need help?</strong><small>Instructor support center</small></div><ChevronDown aria-hidden="true" /></a>
             ) : (
-              <div className="admin-v2__help"><span>?</span><div><strong>Need help?</strong><small>Admin support center</small></div><ChevronDown aria-hidden="true" /></div>
+              <AdminHelpButton pathname={pathname} />
             )
           )}
           <div className="admin-v2__copyright">

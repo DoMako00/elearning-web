@@ -73,6 +73,8 @@ const adminRouteGuides: RouteGuide[] = [
 ];
 
 const STORAGE_PREFIX = "admin";
+export const adminGuideFor = (pathname: string) => adminRouteGuides.find(item => item.matches(pathname));
+export const replayAdminGuide = () => window.dispatchEvent(new Event(`${STORAGE_PREFIX}-guide:replay`));
 export const resetAdminGuideSession = (userId: string) => resetWorkspaceGuideSession(STORAGE_PREFIX, userId);
 export function AdminGuide({ userId, pathname }: { userId: string; pathname: string }) {
   // Super Admins have no course count to relax the first-sessions rule, so pass a high count.

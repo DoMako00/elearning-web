@@ -141,6 +141,23 @@ export function WorkspaceGuide({ userId, pathname, courseCount, guides, storageP
     return () => cancelAnimationFrame(frame);
   }, [currentStep, enabled, targetRect]);
 
+  useEffect(() => {
+    if (!guide) return;
+    const replay = () => {
+      const base = `greenlearn.${storagePrefix}-guide`;
+      try {
+        const done = JSON.parse(safeGet(sessionStorage, `${base}.done.${userId}`) ?? "[]") as string[];
+        safeSet(sessionStorage, `${base}.done.${userId}`, JSON.stringify(done.filter(id => id !== guide.id)));
+        safeSet(sessionStorage, `${base}.dismissed.${userId}`, "");
+      } catch { /* the guide still restarts for this page */ }
+      setStepIndex(0);
+      setEnabled(true);
+    };
+    const eventName = `${storagePrefix}-guide:replay`;
+    window.addEventListener(eventName, replay);
+    return () => window.removeEventListener(eventName, replay);
+  }, [guide, storagePrefix, userId]);
+
   if (!enabled || !guide || !currentStep) return null;
   const dismiss = () => {
     safeSet(sessionStorage, `greenlearn.${storagePrefix}-guide.dismissed.${userId}`, "true");
