@@ -70,6 +70,17 @@ const adminRouteGuides: RouteGuide[] = [
     { title: "Pick a device", description: "Select a device row to choose the student and device you want to act on. The panel on the right updates to match.", selector: "[data-admin-guide-target='security-main']", options: "tbody tr", hint: "Open the Devices view and select a row." },
     { title: "Act on the selection", description: "Revoke all of a student's sessions, revoke one device, allow a one-use device replacement, or restore a suspended account. Each action asks you to confirm and is recorded in the audit log.", selector: "[data-admin-guide-target='security-actions']", options: "button" },
   ] },
+  { matches: path => path === "/admin/content", id: "content", steps: [
+    { title: "Materials waiting for you", description: "Videos and PDFs that instructors submitted for approval appear here. Nothing reaches students until you approve it.", selector: "[data-admin-guide-target='content-queue']", options: ".admin-v2__approval-card" },
+    { title: "Leave a decision note", description: "Write a short note first. It is required, it is recorded for the audit trail, and the instructor sees it if you send the material back.", selector: "[data-admin-guide-target='content-decision']", hint: "This appears when a material is waiting for review." },
+    { title: "Approve or return", description: "Approve and publish makes the material available to students in its course. Return to instructor sends it back with your note so they can fix it.", selector: "[data-admin-guide-target='content-queue']", options: "button", hint: "This appears when a material is waiting for review." },
+    { title: "Check what was decided", description: "Earlier approvals and returns are listed here with their dates and notes.", selector: "[data-admin-guide-target='content-history']", hint: "Decisions appear here once you have reviewed something." },
+  ] },
+  { matches: path => path === "/admin/support", id: "support", steps: [
+    { title: "Student conversations", description: "Every support request from a student appears here. A green number shows unread messages, and the list refreshes by itself every 30 seconds.", selector: "[data-admin-guide-target='support-list']", options: "tbody tr" },
+    { title: "Read the thread", description: "Select a conversation to read it. Opening it marks its messages as read.", selector: "[data-admin-guide-target='support-thread']", hint: "Select a conversation to open it." },
+    { title: "Reply", description: "Write your answer and send it. Closed conversations cannot be replied to.", selector: "[data-admin-guide-target='support-reply']", hint: "Select a conversation to reply." },
+  ] },
 ];
 
 const STORAGE_PREFIX = "admin";

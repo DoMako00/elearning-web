@@ -20,6 +20,8 @@ const summaries: Record<string, string> = {
   payments: "Review manual payment orders and approve or reject them.",
   subscriptions: "Start purchases, manage seats and cancel subscriptions.",
   security: "Monitor devices, sessions and audit events, and act on a student's access.",
+  content: "Review lesson videos and PDFs that instructors submitted, then approve them for students or return them with a note.",
+  support: "Read student support requests and reply to them.",
 };
 
 const tasks: Array<{ label: string; detail: string; to: string }> = [

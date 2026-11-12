@@ -21,6 +21,12 @@ const InstructorStudentsPage = lazy(() => import("../../features/admin-v2/instru
 const InstructorSubscriptionsPage = lazy(() => import("../../features/admin-v2/instructor/InstructorSubscriptionsPage").then((m) => ({ default: m.InstructorSubscriptionsPage })));
 const AdminContentApprovalsPage = lazy(() => import("../../features/admin-v2/content/ContentApprovalsPage").then((m) => ({ default: m.ContentApprovalsPage })));
 
+const AdminV2CurriculumPage = lazy(() => import("../../features/admin-v2/curriculum/CurriculumPage").then((m) => ({ default: m.CurriculumPage })));
+const AdminV2CoursesPage = lazy(() => import("../../features/admin-v2/courses/CoursesPage").then((m) => ({ default: m.CoursesPage })));
+const AdminV2CourseBuilderPage = lazy(() => import("../../features/admin-v2/builder/CourseBuilderPage").then((m) => ({ default: m.CourseBuilderPage })));
+const AdminV2SubscriptionsPage = lazy(() => import("../../features/admin-v2/subscriptions/SubscriptionsPage").then((m) => ({ default: m.SubscriptionsPage })));
+const AdminV2StudentsPage = lazy(() => import("../../features/admin-v2/students/StudentsPage").then((m) => ({ default: m.StudentsPage })));
+
 function withAdminSuspense<P extends object>(Component: ComponentType<P>, props: P) {
   return (
     <RouteErrorBoundary>
@@ -31,78 +37,49 @@ function withAdminSuspense<P extends object>(Component: ComponentType<P>, props:
   );
 }
 
-export const adminRoutes: RouteObject[] = [{
-  path: "/admin",
-  element: <AdminLayout />,
-  children: [
-    { index: true, element: withAdminSuspense(AdminV2OverviewPage, {}) },
-    { path: "security", element: withAdminSuspense(AdminV2SecurityPage, {}) },
-    { path: "support", element: withAdminSuspense(AdminSupportInboxPage, {}) },
-    { path: "instructors", element: withAdminSuspense(AdminV2InstructorsPage, {}) },
-    { path: "commercial", element: <Navigate to="/admin/payments" replace /> },
-    { path: "access", element: <Navigate to="/admin/subscriptions" replace /> },
-    { path: "media", element: <Navigate to="/admin/content" replace /> },
-    { path: "assessments", element: withAdminSuspense(AdminAssessmentsPage, {}) },
-    { path: "assignments", element: withAdminSuspense(AdminAssignmentReviewPage, {}) },
-    { path: "instructor", element: withAdminSuspense(InstructorOverviewPage, {}) },
-    { path: "instructor/courses", element: withAdminSuspense(InstructorCoursesPage, {}) },
-    { path: "instructor/courses/:courseId", element: withAdminSuspense(InstructorCourseContentPage, {}) },
-    { path: "instructor/students", element: withAdminSuspense(InstructorStudentsPage, {}) },
-    { path: "instructor/subscriptions", element: withAdminSuspense(InstructorSubscriptionsPage, {}) },
-    { path: "instructor/content", element: <Navigate to="/admin/instructor/courses" replace /> },
-    { path: "instructor/assignments", element: withAdminSuspense(AdminAssignmentReviewPage, {}) },
-    { path: "instructor/assessments", element: withAdminSuspense(AdminAssessmentsPage, {}) },
-    { path: "audit", element: <Navigate to="/admin/security" replace /> },
-    { path: "roles", element: withAdminSuspense(AdminRolesPage, {}) },
-  ],
-},
-{
-  path: "/admin/overview",
-  element: <AdminLayout />,
-  children: [{ index: true, element: withAdminSuspense(AdminV2OverviewPage, {}) }],
-},
-{
-  path: "/admin/curriculum",
-  element: <AdminLayout />,
-  children: [{ index: true, element: withAdminSuspense(lazy(() => import("../../features/admin-v2/curriculum/CurriculumPage").then((m) => ({ default: m.CurriculumPage }))), {}) }],
-},
-{
-  path: "/admin/courses",
-  element: <AdminLayout />,
-  children: [{ index: true, element: withAdminSuspense(lazy(() => import("../../features/admin-v2/courses/CoursesPage").then((m) => ({ default: m.CoursesPage }))), {}) }],
-},
-{
-  path: "/admin/courses/:courseId/builder",
-  element: <AdminLayout />,
-  children: [{ index: true, element: withAdminSuspense(lazy(() => import("../../features/admin-v2/builder/CourseBuilderPage").then((m) => ({ default: m.CourseBuilderPage }))), {}) }],
-},
-{
-  path: "/admin/subscriptions",
-  element: <AdminLayout />,
-  children: [{ index: true, element: withAdminSuspense(lazy(() => import("../../features/admin-v2/subscriptions/SubscriptionsPage").then((m) => ({ default: m.SubscriptionsPage }))), {}) }],
-},
-{
-  path: "/admin/students",
-  element: <AdminLayout />,
-  children: [{ index: true, element: withAdminSuspense(lazy(() => import("../../features/admin-v2/students/StudentsPage").then((m) => ({ default: m.StudentsPage }))), {}) }],
-},
-{
-  path: "/admin/content",
-  element: <AdminLayout />,
-  children: [{ index: true, element: withAdminSuspense(AdminContentApprovalsPage, {}) }],
-},
-{
-  path: "/admin/payments",
-  element: <AdminLayout />,
-  children: [{ index: true, element: withAdminSuspense(AdminV2PaymentsPage, {}) }],
-},
-...(import.meta.env.DEV
-  ? [{
-      path: "/student-preview",
-      element: withAdminSuspense(
-        lazy(() => import("../../features/admin-v2/students/LocalStudentPreviewPage").then((m) => ({ default: m.LocalStudentPreviewPage }))),
-        {},
-      ),
-    }]
-  : []),
+// One parent route keeps AdminV2Layout mounted while moving between admin screens, so its loaded data survives navigation.
+export const adminRoutes: RouteObject[] = [
+  {
+    path: "/admin",
+    element: <AdminLayout />,
+    children: [
+      { index: true, element: withAdminSuspense(AdminV2OverviewPage, {}) },
+      { path: "overview", element: withAdminSuspense(AdminV2OverviewPage, {}) },
+      { path: "curriculum", element: withAdminSuspense(AdminV2CurriculumPage, {}) },
+      { path: "courses", element: withAdminSuspense(AdminV2CoursesPage, {}) },
+      { path: "courses/:courseId/builder", element: withAdminSuspense(AdminV2CourseBuilderPage, {}) },
+      { path: "instructors", element: withAdminSuspense(AdminV2InstructorsPage, {}) },
+      { path: "roles", element: withAdminSuspense(AdminRolesPage, {}) },
+      { path: "students", element: withAdminSuspense(AdminV2StudentsPage, {}) },
+      { path: "payments", element: withAdminSuspense(AdminV2PaymentsPage, {}) },
+      { path: "subscriptions", element: withAdminSuspense(AdminV2SubscriptionsPage, {}) },
+      { path: "content", element: withAdminSuspense(AdminContentApprovalsPage, {}) },
+      { path: "security", element: withAdminSuspense(AdminV2SecurityPage, {}) },
+      { path: "support", element: withAdminSuspense(AdminSupportInboxPage, {}) },
+      { path: "assessments", element: withAdminSuspense(AdminAssessmentsPage, {}) },
+      { path: "assignments", element: withAdminSuspense(AdminAssignmentReviewPage, {}) },
+      { path: "instructor", element: withAdminSuspense(InstructorOverviewPage, {}) },
+      { path: "instructor/courses", element: withAdminSuspense(InstructorCoursesPage, {}) },
+      { path: "instructor/courses/:courseId", element: withAdminSuspense(InstructorCourseContentPage, {}) },
+      { path: "instructor/students", element: withAdminSuspense(InstructorStudentsPage, {}) },
+      { path: "instructor/subscriptions", element: withAdminSuspense(InstructorSubscriptionsPage, {}) },
+      { path: "instructor/assignments", element: withAdminSuspense(AdminAssignmentReviewPage, {}) },
+      { path: "instructor/assessments", element: withAdminSuspense(AdminAssessmentsPage, {}) },
+      // Old URLs that now live elsewhere
+      { path: "commercial", element: <Navigate to="/admin/payments" replace /> },
+      { path: "access", element: <Navigate to="/admin/subscriptions" replace /> },
+      { path: "media", element: <Navigate to="/admin/content" replace /> },
+      { path: "audit", element: <Navigate to="/admin/security" replace /> },
+      { path: "instructor/content", element: <Navigate to="/admin/instructor/courses" replace /> },
+    ],
+  },
+  ...(import.meta.env.DEV
+    ? [{
+        path: "/student-preview",
+        element: withAdminSuspense(
+          lazy(() => import("../../features/admin-v2/students/LocalStudentPreviewPage").then((m) => ({ default: m.LocalStudentPreviewPage }))),
+          {},
+        ),
+      }]
+    : []),
 ];

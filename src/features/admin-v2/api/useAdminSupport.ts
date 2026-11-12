@@ -9,11 +9,11 @@ export const adminSupportKeys = {
 
 export function useAdminSupportConversations() {
   const auth = useAuth();
-  return useQuery({ queryKey: adminSupportKeys.conversations, queryFn: async () => (await adminSupportApi.list()).items, enabled: auth.status === "authenticated" });
+  return useQuery({ queryKey: adminSupportKeys.conversations, queryFn: async () => (await adminSupportApi.list()).items, enabled: auth.status === "authenticated", refetchInterval: 30_000 });
 }
 export function useAdminSupportMessages(id: string | null) {
   const auth = useAuth();
-  return useQuery({ queryKey: adminSupportKeys.messages(id ?? ""), queryFn: () => adminSupportApi.detail(id!), enabled: auth.status === "authenticated" && Boolean(id) });
+  return useQuery({ queryKey: adminSupportKeys.messages(id ?? ""), queryFn: () => adminSupportApi.detail(id!), enabled: auth.status === "authenticated" && Boolean(id), refetchInterval: 15_000 });
 }
 export function useAdminSupportActions() {
   const client = useQueryClient();

@@ -60,9 +60,10 @@ export function useAdminV2() {
 }
 
 export function AdminV2DomainStatus() {
-  const { domainLoading, domainError } = useAdminV2();
-  if (!domainLoading && !domainError) return null;
-  return <div className="admin-v2__inline-notice" role={domainError ? "alert" : "status"}>{domainError || "Loading current Admin data…"}</div>;
+  const { domainError } = useAdminV2();
+  // Loading is shown by the first-load skeleton and the top progress bar; this banner is only for errors.
+  if (!domainError) return null;
+  return <div className="admin-v2__inline-notice" role="alert">{domainError}</div>;
 }
 
 export function AdminV2Layout({ children }: PropsWithChildren) {

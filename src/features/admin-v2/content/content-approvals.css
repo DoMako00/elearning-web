@@ -1,0 +1,33 @@
+/* Content approvals: calmer header, roomier type. Scoped to this page. */
+.admin-v2__approvals-page { padding: clamp(12px, 2vh, 24px) clamp(16px, 1.8vw, 28px); background: #f7faf8; overflow-y: auto; scrollbar-width: thin; }
+.admin-v2__approvals { gap: clamp(10px, 1.6vh, 16px); }
+.admin-v2__approvals .is-sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.admin-v2__approvals-heading { padding: 14px 18px; border: 1px solid #e3ebe6; border-radius: 14px; background: #fff; box-shadow: 0 1px 3px rgb(19 52 31 / 4%); }
+.admin-v2__approvals-heading .mantine-Text-root { max-width: 760px; color: #5d7064; font-size: 14px; line-height: 1.5; }
+.admin-v2__approvals-heading .mantine-Button-root { min-height: 40px; border-radius: 10px; font-size: 14px; font-weight: 650; }
+
+.admin-v2__approvals-panel, .admin-v2__approvals-history { border: 1px solid #e3ebe6; border-radius: 14px; box-shadow: 0 1px 3px rgb(19 52 31 / 4%); }
+.admin-v2__approvals-panel h3, .admin-v2__approvals-history h3 { color: #12281b; font-size: 17px; font-weight: 750; letter-spacing: -.015em; }
+.admin-v2__approvals-panel .mantine-Text-root[data-size="xs"], .admin-v2__approvals-history .mantine-Text-root[data-size="xs"] { font-size: 13px; }
+.admin-v2__approval-card { border: 1px solid #e3ebe6; border-radius: 12px; background: #fff; box-shadow: none; }
+.admin-v2__approval-card .mantine-Text-root[data-size="sm"] { color: #16281d; font-size: 15px; }
+.admin-v2__approval-card .mantine-Text-root[data-size="xs"] { font-size: 13px; }
+.admin-v2__approval-meta > span { padding: 8px 12px; border-radius: 10px; font-size: 13.5px; }
+.admin-v2__approval-meta strong { font-size: 11px; }
+.admin-v2__approval-reason { font-size: 13px !important; }
+.admin-v2__approval-card .mantine-InputWrapper-label { color: #3b5043; font-size: 13.5px; font-weight: 650; }
+.admin-v2__approval-card .mantine-InputWrapper-description { font-size: 12.5px; }
+.admin-v2__approval-card .mantine-Textarea-input { min-height: 84px; border-color: #d9e5dd; border-radius: 10px; font-size: 14px; }
+.admin-v2__approval-card .mantine-Button-root { min-height: 42px; border-radius: 10px; font-size: 14px; font-weight: 650; }
+.admin-v2__approvals-empty { min-height: 140px; border-radius: 12px; }
+.admin-v2__approvals-empty .mantine-Text-root[data-size="sm"] { font-size: 14px; }
+.admin-v2__approval-history-row { padding: 12px 14px; border-radius: 10px; }
+.admin-v2__approval-history-row .mantine-Text-root[data-size="sm"] { font-size: 14.5px; }
+.admin-v2__approval-history-row .mantine-Text-root[data-size="xs"] { font-size: 13px; }
+
+/* Skeleton */
+.admin-v2__approvals-skeleton-card { display: grid; gap: 12px; padding: 16px; border: 1px solid #e3ebe6; border-radius: 12px; background: #fff; }
+.admin-v2__approvals-skeleton-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+
+@media (max-width: 1100px) { .admin-v2__approvals-skeleton-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 700px) { .admin-v2__approvals-page { padding: 12px; } }

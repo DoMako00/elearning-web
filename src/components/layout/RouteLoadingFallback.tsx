@@ -23,6 +23,8 @@ import {
 } from "../ui/Skeleton";
 import { StudentShellSkeleton } from "./StudentShellSkeleton";
 import { AdminShellSkeleton } from "./AdminShellSkeleton";
+import { ContentApprovalsSkeleton } from "../../features/admin-v2/content/ContentApprovalsSkeleton";
+import { SupportSkeleton } from "../../features/admin-v2/SupportSkeleton";
 import { SecuritySkeleton } from "../../features/admin-v2/security/SecuritySkeleton";
 import { SubscriptionsSkeleton } from "../../features/admin-v2/subscriptions/SubscriptionsSkeleton";
 import { PaymentsSkeleton, StudentsSkeleton } from "../../features/admin-v2/shared/SplitViewSkeletons";
@@ -145,6 +147,14 @@ export const RouteLoadingFallback: React.FC<RouteLoadingFallbackProps> = ({
       // 2g. Subscriptions
       if (pathname === "/admin/subscriptions") {
         return <SubscriptionsSkeleton />;
+      }
+
+      // 2i. Content approvals and Support Inbox
+      if (pathname === "/admin/content") {
+        return <ContentApprovalsSkeleton />;
+      }
+      if (pathname === "/admin/support") {
+        return <SupportSkeleton />;
       }
 
       // 2h. Security

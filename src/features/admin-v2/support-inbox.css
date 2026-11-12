@@ -1,0 +1,42 @@
+/* Support Inbox: conversation list and thread fill the viewport. Scoped to this page. */
+.admin-v2__support-page { gap: clamp(10px, 1.6vh, 16px); padding: clamp(12px, 2vh, 24px) clamp(16px, 1.8vw, 28px); background: #f7faf8; }
+.admin-v2__support-page .admin-v2__support-layout { gap: clamp(10px, 1.1vw, 16px); }
+.admin-v2__support-page .admin-v2__table-card, .admin-v2__support-page .admin-v2__inspector { border: 1px solid #e3ebe6; border-radius: 14px; box-shadow: 0 1px 3px rgb(19 52 31 / 4%); }
+.admin-v2__support-page .admin-v2__table-toolbar { min-height: 68px; padding: 12px 18px; }
+.admin-v2__support-page .admin-v2__table-toolbar > div:first-child strong { color: #12281b; font-size: 18px; font-weight: 750; letter-spacing: -.015em; }
+.admin-v2__support-page .admin-v2__table-toolbar > div:first-child span { color: #6b7c72; font-size: 13px; }
+.admin-v2__support-page .admin-v2__table-tools .admin-v2__button { height: 40px; border-radius: 10px; font-size: 14px; }
+.admin-v2__support-page .admin-v2__table th { height: 46px; background: #f7faf8; color: #64756a; font-size: 12px; font-weight: 700; letter-spacing: .03em; }
+.admin-v2__support-page .admin-v2__table td { height: 60px; color: #34483a; font-size: 14px; }
+.admin-v2__support-page .admin-v2__table td strong { color: #16281d; font-size: 14.5px; font-weight: 700; }
+.admin-v2__support-page .admin-v2__table tbody tr { transition: background-color .15s; }
+.admin-v2__support-page .admin-v2__table tbody tr:hover { background: #f6faf7; }
+.admin-v2__support-page .admin-v2__table tbody tr.is-selected { background: #eaf6ee; box-shadow: inset 3px 0 #16793f; }
+.admin-v2__support-page .admin-v2__support-preview { max-width: 320px; color: #5d7064; }
+.admin-v2__support-page .admin-v2__support-unread { min-width: 24px; display: inline-grid; place-items: center; padding: 2px 8px; border-radius: 999px; background: #16793f; color: #fff; font-size: 12px; font-weight: 700; }
+.admin-v2__support-page .admin-v2__empty { gap: 8px; padding: 48px 24px; color: #6b7c72; font-size: 14px; }
+.admin-v2__support-page .admin-v2__empty > strong { color: #1f3528; font-size: 16px; }
+
+.admin-v2__support-page .admin-v2__inspector-title { min-height: 70px; padding: 0 18px; }
+.admin-v2__support-page .admin-v2__inspector-title h2 { color: #12281b; font-size: 17px; font-weight: 750; }
+.admin-v2__support-page .admin-v2__inspector-title small { color: #66786d; font-size: 13px; }
+.admin-v2__support-page .admin-v2__support-messages { display: grid; align-content: start; gap: 12px; padding: 16px 18px; }
+.admin-v2__support-page .admin-v2__support-message { max-width: 88%; padding: 10px 14px; border: 1px solid #e3ebe6; border-radius: 12px 12px 12px 4px; background: #fff; }
+.admin-v2__support-page .admin-v2__support-message.is-admin { justify-self: end; border-color: #bfe0c9; border-radius: 12px 12px 4px 12px; background: #eef8f1; }
+.admin-v2__support-page .admin-v2__support-message > div { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+.admin-v2__support-page .admin-v2__support-message strong { color: #16281d; font-size: 13.5px; font-weight: 700; }
+.admin-v2__support-page .admin-v2__support-message time { color: #7a8c80; font-size: 12px; }
+.admin-v2__support-page .admin-v2__support-message p { margin: 0; color: #2d4a38; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-wrap; }
+.admin-v2__support-page .admin-v2__support-reply { gap: 10px; padding: 14px 18px 18px; border-top: 1px solid #edf2ee; }
+.admin-v2__support-page .admin-v2__support-reply .admin-v2__field { gap: 6px; color: #3b5043; font-size: 13.5px; font-weight: 650; }
+.admin-v2__support-page .admin-v2__support-reply textarea { min-height: 92px; padding: 10px 12px; border: 1px solid #d9e5dd; border-radius: 10px; color: #16281d; font-size: 14px; line-height: 1.5; }
+.admin-v2__support-page .admin-v2__support-reply textarea:focus { border-color: #72b888; outline: 0; box-shadow: 0 0 0 3px rgb(47 158 95 / 13%); }
+.admin-v2__support-page .admin-v2__support-reply .admin-v2__button { height: 42px; border-radius: 10px; font-size: 14px; font-weight: 650; }
+.admin-v2__support-page .admin-v2__empty-inline, .admin-v2__support-page .admin-v2__empty-inspector { color: #6b7c72; font-size: 14px; }
+
+@media (max-width: 1100px) {
+  .admin-v2__support-page { overflow-y: auto; }
+  .admin-v2__support-page .admin-v2__support-layout { flex: none; grid-template-columns: minmax(0, 1fr); }
+  .admin-v2__support-page .admin-v2__support-inspector { min-height: 460px; }
+}
+@media (max-width: 700px) { .admin-v2__support-page { padding: 12px; } }
