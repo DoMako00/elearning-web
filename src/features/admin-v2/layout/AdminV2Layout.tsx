@@ -73,6 +73,8 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
   const [serverDomains, setServerDomains] = useState<ServerDomainData>(() => emptyAdminV2ServerDomainData());
   const [overview, setOverview] = useState<AdminOverviewView | null>(null);
   const [domainLoading, setDomainLoading] = useState(true);
+  // Loads that have completed at least once. A screen is "ready" once its key is in here; until then the page is replaced by its skeleton.
+  const [readyKeys, setReadyKeys] = useState<ReadonlySet<string>>(() => new Set());
   const [domainError, setDomainError] = useState("");
   const [refreshSequence, setRefreshSequence] = useState(0);
   const refreshWaiters = useRef<Array<(result: AdminV2RefreshResult) => void>>([]);
@@ -115,6 +117,10 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
   }, [navigation, pathname, workspace?.displayRole, workspace?.workspace]);
   const routeSubtitle = navigation.find((route) => route.path === pathname)?.description ?? (routeLabel === "Super Admin overview" ? "Run platform operations, configure courses, and review instructor submissions." : routeLabel === "Instructor dashboard" || routeLabel === "Home" ? "Follow your teaching workflow from course setup to grading." : routeLabel === "Course builder" || routeLabel === "Course content" ? "Build chapters and lessons, then send videos or PDFs for approval." : routeLabel === "Dashboard" ? "Your next teaching tasks and course activity." : routeLabel === "My courses" ? "Build lessons and learning materials for assigned courses." : routeLabel === "Assignments & grading" ? "Publish coursework and review submitted student work." : routeLabel === "Exams & quizzes" ? "Create questions, set availability, and publish assessments." : routeLabel === "Course setup" ? "Create course offerings, map curriculum, and assign instructors." : routeLabel === "Instructors" ? "Manage teaching profiles, account access, and course assignments." : routeLabel === "Content approvals" ? "Review videos and documents sent by instructors before student release." : routeLabel === "Roles & Permissions" ? "Choose who can teach and manage the learning platform." : routeLabel === "Security" ? "Monitor persisted devices, sessions, and security events." : routeLabel === "Students" ? "Manage student identity, access, devices, and sessions." : routeLabel === "Payments" ? "Review manual payment submissions and approve or reject pending reviews." : routeLabel === "Curriculum" ? "Manage approved academic structures by institution." : routeLabel === "Support Inbox" ? "Read and reply to persisted student support conversations." : "Manage subscription plans, seats, and student lifecycle.");
   const reportDomainError = (message: string) => setDomainError(message);
+  // Overview, Security and Instructors load extra data for their own route, so they are ready per route and brand; every other screen is ready per brand.
+  const loadsOwnData = workspace?.workspace === "super_admin" && (pathname === "/admin" || pathname === "/admin/overview" || pathname === "/admin/security" || pathname === "/admin/instructors");
+  const readyKey = loadsOwnData ? `${brand}|${pathname}` : brand;
+  const showFirstLoad = domainLoading && !readyKeys.has(readyKey);
   const context = useMemo(() => workspace ? ({ data, setData, brand: routeBrand, setBrand, globalSearch, setGlobalSearch, domainLoading, domainError, refreshServerDomains, reportDomainError, overview, workspace }) : null, [data, routeBrand, globalSearch, domainLoading, domainError, overview, workspace]);
   useEffect(() => {
     if (auth.status === "loading") return;
@@ -136,7 +142,6 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
     if (adminAccess !== "allowed") return;
     const controller = new AbortController();
     setDomainLoading(true);
-    setOverview(null);
     (async () => {
       let refreshResult: AdminV2RefreshResult;
       try {
@@ -156,6 +161,7 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
         if (!controller.signal.aborted) { refreshResult = { ok: false, message }; setServerDomains(emptyAdminV2ServerDomainData()); setOverview(null); setDomainError(message); }
       } finally {
         if (!controller.signal.aborted) {
+          setReadyKeys((current) => { const next = new Set(current); next.add(brand); next.add(`${brand}|${pathname}`); return next; });
           setDomainLoading(false);
           const result = refreshResult!;
           for (const resolve of refreshWaiters.current.splice(0)) resolve(result);
@@ -224,8 +230,9 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
             <div className="admin-v2__profile" aria-label={`Signed-in ${workspace.displayRole}`}><span className="admin-v2__avatar">{(auth.user?.name ?? "A").slice(0, 2).toUpperCase()}</span><span><strong>{auth.user?.name ?? copy.topbar.fallbackUserName}</strong><small>{workspace.displayRole}</small></span></div>
             <button type="button" className="admin-v2__logout" onClick={() => { if (auth.user?.id) { if (isInstructor) resetInstructorGuideSession(auth.user.id); else resetAdminGuideSession(auth.user.id); } auth.signOut(); navigate("/auth/sign-in", { replace: true }); }}><LogOut aria-hidden="true" /><span>Log out</span></button>
           </div>
+          {domainLoading && !showFirstLoad && <div className="admin-v2__loadbar" role="progressbar" aria-label="Refreshing data"><i /></div>}
         </header>
-        <main className="admin-v2__main"><div className="admin-v2__content">{children ?? <Outlet context={{ brandView: routeBrand === "all" ? "all" : routeBrand }} />}</div></main>
+        <main className="admin-v2__main" aria-busy={domainLoading}><div className="admin-v2__content">{showFirstLoad ? <RouteLoadingFallback withShell={false} isMobile={false} /> : (children ?? <Outlet context={{ brandView: routeBrand === "all" ? "all" : routeBrand }} />)}</div></main>
       </div>
     </div>
     {isInstructor ? <InstructorGuide userId={auth.user?.id ?? "instructor"} pathname={pathname} courseCount={workspace.courses.length} /> : <AdminGuide userId={auth.user?.id ?? "admin"} pathname={pathname} />}

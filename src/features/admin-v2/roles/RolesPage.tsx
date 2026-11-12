@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { assignAdminRole, getAdminEffectiveRole, linkInstructorAccount, listAdminRoleAssignments } from "../api/adminRolesApi";
 import { useAdminV2 } from "../layout/AdminV2Layout";
 import "./roles.css";
+import { RolesSkeleton } from "./RolesSkeleton";
 import { AccountDeletionDialog, DeleteAccountButton, PendingAccountDeletions } from "../shared/AccountDeletion";
 
 const roleTitle = (code: string, name?: string) => code === "platform_owner" ? "Super Admin" : code === "instructor" ? "Instructor" : name ?? code.replaceAll("_", " ");
@@ -47,6 +48,7 @@ export function RolesPage() {
   const signInStatus = assignments.isLoading ? "Checking…" : canManage ? `${instructorAccounts.length} connected` : "Super Admin only";
   const ownerRoleLoss = Boolean(target?.roleCodes.includes("platform_owner") && roleCode !== "platform_owner");
 
+  if (query.isLoading) return <RolesSkeleton />;
   return <section className="admin-v2__page roles-v2" aria-label="Roles and permissions">
     {isSuperAdmin && <PendingAccountDeletions refreshKey={deletionRefresh} />}
     {deletionNotice && <p role="status" className="admin-v2__roles-feedback">{deletionNotice}</p>}

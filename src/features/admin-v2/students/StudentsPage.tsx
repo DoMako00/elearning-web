@@ -38,6 +38,7 @@ import type {
 } from "../types/adminV2.types";
 import { StudentForm } from "./StudentForm";
 import "../shared/admin-split-view.css";
+import { StudentsSkeleton } from "../shared/SplitViewSkeletons";
 import { listBrandAccess, listInstitutions, type AcademicInstitution, type BrandAccess } from "../api/adminAcademicApi";
 import {
   bootstrapAdminStudentClaim,
@@ -435,6 +436,7 @@ export function StudentsPage() {
     ? Math.round((thisMonth / data.students.length) * 100)
     : 0;
 
+  if (loading && !remoteRows.length) return <StudentsSkeleton />;
   return (
     <section className="admin-v2__page admin-v2__students">
       {(loading || loadError) && (

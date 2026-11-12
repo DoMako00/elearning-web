@@ -7,6 +7,7 @@ import { InspectorFields, InspectorSection, Pagination, TableFrame } from "../sh
 import { getSemesterOfferingOrder, listSemesterOfferingOrders, reviewSemesterOfferingOrder, type ManualPaymentStatus, type SemesterOfferingOrder } from "../api/adminCommercialApi";
 import { extractApiErrorMessage } from "../../../app/api/client";
 import "../shared/admin-split-view.css";
+import { PaymentsSkeleton } from "../shared/SplitViewSkeletons";
 
 const PAGE_SIZE = 8;
 const label = (status: ManualPaymentStatus) => status === "pending_review" ? "Pending Review" : status === "approved" ? "Approved" : status === "rejected" ? "Rejected" : "Cancelled";
@@ -23,6 +24,7 @@ export function PaymentsPage() {
   useEffect(() => { const order = rows.find((item) => item.orderId === selectedId) ?? rows[0]; if (!order) { setDetail(null); return; } setSelectedId(order.orderId); void getSemesterOfferingOrder(order.orderId).then(setDetail).catch((cause) => setError(extractApiErrorMessage(cause, "Payment detail could not be loaded."))); }, [selectedId, rows]);
   const review = async () => { if (!selected || !confirm || !reason.trim()) return; setMutating(true); setError(""); try { const reviewed = await reviewSemesterOfferingOrder(selected.orderId, confirm, selected.version, reason.trim()); setConfirm(null); setReason(""); setDetail(null); await load(); if (confirm === "approve" && reviewed.subscriptionId) navigate(`/admin/subscriptions?subscription=${encodeURIComponent(reviewed.subscriptionId)}`); } catch (cause) { setError(extractApiErrorMessage(cause, "The manual payment review could not be completed.")); } finally { setMutating(false); } };
   const count = (value: ManualPaymentStatus) => items.filter((item) => item.status === value).length;
+  if (loading && !items.length) return <PaymentsSkeleton />;
   return <section className="admin-v2__page admin-v2__payments">
     <div className="admin-v2__metrics admin-v2__payment-metrics" data-admin-guide-target="payments-metrics"><Metric label="Pending review" value={String(count("pending_review"))} /><Metric label="Approved" value={String(count("approved"))} /><Metric label="Rejected" value={String(count("rejected"))} /><Metric label="Pending amount" value={loading ? "…" : money(items.filter((item) => item.status === "pending_review").reduce((sum, item) => sum + item.priceTotalMinor, 0), items[0]?.currency ?? "EGP")} /></div>
     {error && <div className="admin-v2__inline-notice" role="alert">{error}</div>}

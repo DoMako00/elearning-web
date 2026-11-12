@@ -13,6 +13,7 @@ import { SemesterOfferingsPanel } from "./SemesterOfferingsPanel";
 import { extractApiErrorMessage } from "../../../app/api/client";
 import "../shared/admin-split-view.css";
 import "./subscriptions.css";
+import { SubscriptionsSkeleton } from "./SubscriptionsSkeleton";
 
 const PAGE_SIZE = 8;
 const toStatus = (value: Subscription["status"]) => value === "active" ? "Active" : value === "cancelled" ? "Cancelled" : "Expired";
@@ -35,6 +36,7 @@ export function SubscriptionsPage() {
   const selectedSeats = selected ? seats : []; const active = metricItems.filter((item) => item.status === "active"); const sum = (pick: (item: Subscription) => unknown) => active.reduce((total, item) => total + (Number(pick(item)) || 0), 0);
   const runSeatAction = async () => { if (!selected || !seatAction) return; const { seat, action } = seatAction; if ((action === "assign" || action === "replace") && !candidateId) return; if ((action === "release" || action === "replace" || action === "revoke") && !reason.trim()) return; setMutating(true); setError(""); try { await mutateSeat(selected.id, seat.seatId, action, { expectedVersion: seat.version, ...(action === "assign" ? { studentProfileId: candidateId } : {}), ...(action === "replace" ? { newStudentProfileId: candidateId } : {}), ...((action === "release" || action === "replace" || action === "revoke") ? { reason: reason.trim() } : {}) }); setSeatAction(null); setCandidateId(""); setReason(""); await Promise.all([load(), loadDetail(selected.id)]); } catch (cause) { setError(extractApiErrorMessage(cause, "The seat operation could not be completed.")); } finally { setMutating(false); } };
   const cancel = async () => { if (!selected || !reason.trim()) return; setMutating(true); setError(""); try { await cancelSubscription(selected.id, reason.trim()); setConfirmCancel(false); setReason(""); await Promise.all([load(), loadDetail(selected.id)]); } catch (cause) { setError(extractApiErrorMessage(cause, "The subscription could not be cancelled.")); } finally { setMutating(false); } };
+  if (loading && !items.length && !metricItems.length) return <SubscriptionsSkeleton />;
   return <section className="admin-v2__page admin-v2__subscriptions">
     <div className="admin-v2__metrics admin-v2__subscription-metrics" data-admin-guide-target="subscriptions-metrics"><Metric icon={Users} label="Total subscriptions" value={loading ? "—" : String(metricItems.length)} note="All records" /><Metric icon={CheckCircle2} label="Active subscriptions" value={loading ? "—" : String(active.length)} note="Currently active" /><Metric icon={Laptop} label="Seats utilized" value={loading ? "—" : String(sum((item) => item.assignedSeatCount))} note="Assigned to students" /><Metric icon={Clock3} label="Available seats" value={loading ? "—" : String(sum((item) => item.availableSeatCount))} note="Still unassigned" /><Metric icon={CircleDollarSign} label="Active grants" value={loading ? "—" : String(sum((item) => item.activeGrantCount))} note="Granting course access" /></div>
     {error && <div className="admin-v2__inline-notice" role="alert">{error}</div>}
