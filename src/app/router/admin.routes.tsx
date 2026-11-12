@@ -2,7 +2,9 @@ import { lazy, Suspense, type ComponentType } from "react";
 import { Navigate, type RouteObject } from "react-router-dom";
 import { RouteErrorBoundary } from "../../components/layout/RouteErrorBoundary";
 import { RouteLoadingFallback } from "../../components/layout/RouteLoadingFallback";
-import { AdminV2Layout } from "../../features/admin-v2/layout/AdminV2Layout";
+
+const AdminV2Layout = lazy(() => import("../../features/admin-v2/layout/AdminV2Layout").then((m) => ({ default: m.AdminV2Layout })));
+const AdminLayout = () => <Suspense fallback={<RouteLoadingFallback withShell />}><AdminV2Layout /></Suspense>;
 
 const AdminV2InstructorsPage = lazy(() => import("../../features/admin-v2/instructors/InstructorsPage").then((m) => ({ default: m.InstructorsPage })));
 const AdminV2OverviewPage = lazy(() => import("../../features/admin-v2/overview/OverviewPage").then((m) => ({ default: m.OverviewPage })));
@@ -31,7 +33,7 @@ function withAdminSuspense<P extends object>(Component: ComponentType<P>, props:
 
 export const adminRoutes: RouteObject[] = [{
   path: "/admin",
-  element: <AdminV2Layout />,
+  element: <AdminLayout />,
   children: [
     { index: true, element: withAdminSuspense(AdminV2OverviewPage, {}) },
     { path: "security", element: withAdminSuspense(AdminV2SecurityPage, {}) },
@@ -56,42 +58,42 @@ export const adminRoutes: RouteObject[] = [{
 },
 {
   path: "/admin/overview",
-  element: <AdminV2Layout />,
+  element: <AdminLayout />,
   children: [{ index: true, element: withAdminSuspense(AdminV2OverviewPage, {}) }],
 },
 {
   path: "/admin/curriculum",
-  element: <AdminV2Layout />,
+  element: <AdminLayout />,
   children: [{ index: true, element: withAdminSuspense(lazy(() => import("../../features/admin-v2/curriculum/CurriculumPage").then((m) => ({ default: m.CurriculumPage }))), {}) }],
 },
 {
   path: "/admin/courses",
-  element: <AdminV2Layout />,
+  element: <AdminLayout />,
   children: [{ index: true, element: withAdminSuspense(lazy(() => import("../../features/admin-v2/courses/CoursesPage").then((m) => ({ default: m.CoursesPage }))), {}) }],
 },
 {
   path: "/admin/courses/:courseId/builder",
-  element: <AdminV2Layout />,
+  element: <AdminLayout />,
   children: [{ index: true, element: withAdminSuspense(lazy(() => import("../../features/admin-v2/builder/CourseBuilderPage").then((m) => ({ default: m.CourseBuilderPage }))), {}) }],
 },
 {
   path: "/admin/subscriptions",
-  element: <AdminV2Layout />,
+  element: <AdminLayout />,
   children: [{ index: true, element: withAdminSuspense(lazy(() => import("../../features/admin-v2/subscriptions/SubscriptionsPage").then((m) => ({ default: m.SubscriptionsPage }))), {}) }],
 },
 {
   path: "/admin/students",
-  element: <AdminV2Layout />,
+  element: <AdminLayout />,
   children: [{ index: true, element: withAdminSuspense(lazy(() => import("../../features/admin-v2/students/StudentsPage").then((m) => ({ default: m.StudentsPage }))), {}) }],
 },
 {
   path: "/admin/content",
-  element: <AdminV2Layout />,
+  element: <AdminLayout />,
   children: [{ index: true, element: withAdminSuspense(AdminContentApprovalsPage, {}) }],
 },
 {
   path: "/admin/payments",
-  element: <AdminV2Layout />,
+  element: <AdminLayout />,
   children: [{ index: true, element: withAdminSuspense(AdminV2PaymentsPage, {}) }],
 },
 ...(import.meta.env.DEV

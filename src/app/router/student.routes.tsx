@@ -1,13 +1,10 @@
 import { lazy, Suspense } from "react";
 import { Navigate, type RouteObject } from "react-router-dom";
-import { StudentLayout } from "../../features/student/pages/StudentLayout";
 import { RouteErrorBoundary } from "../../components/layout/RouteErrorBoundary";
 import { RouteLoadingFallback } from "../../components/layout/RouteLoadingFallback";
-import { StudentRouteProviders } from "../providers/StudentRouteProviders";
 import { RequireStudentAuth } from "./RequireStudentAuth";
-import { StudentScopeProvider } from "../../features/student/scope/StudentScopeProvider";
-import "./student-dashboard.css";
-import "./student-shell.css";
+
+const StudentShell = lazy(() => import("./StudentShell"));
 
 // Lazy-loaded student pages — all sourced from the canonical feature location
 const HomePage = lazy(() => import("../../features/student/pages/HomePage").then((m) => ({ default: m.HomePage })));
@@ -56,7 +53,7 @@ if (import.meta.env.DEV) {
 export const studentRoutes: RouteObject[] = [
   {
     path: "/",
-    element: <RequireStudentAuth><StudentScopeProvider><StudentRouteProviders><StudentLayout /></StudentRouteProviders></StudentScopeProvider></RequireStudentAuth>,
+    element: <RequireStudentAuth><Suspense fallback={<RouteLoadingFallback withShell />}><StudentShell /></Suspense></RequireStudentAuth>,
     children: [
       { index: true, element: withSuspense(HomePage) },
       { path: "profile", element: withSuspense(ProfilePage) },

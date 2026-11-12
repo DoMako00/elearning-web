@@ -1,9 +1,9 @@
-// import { useState } from "react";
+import { lazy, Suspense } from "react";
 import type { RouteObject } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 import { SignInPage } from "../../features/auth/pages/SignInPage";
-import { MyProgressEmpty } from "../../features/student/components/MyProgress";
-import { WeeklyGoalCard } from "../../features/student/components/WeeklyGoalCard";
+const MyProgressEmpty = lazy(() => import("../../features/student/components/MyProgress").then((m) => ({ default: m.MyProgressEmpty })));
+const WeeklyGoalCard = lazy(() => import("../../features/student/components/WeeklyGoalCard").then((m) => ({ default: m.WeeklyGoalCard })));
 // import { AssignmentsWorkspace } from "../../components/ui/Assignments";
 
 // function DevAssignmentsPreview() {
@@ -260,6 +260,7 @@ export const publicRoutes: RouteObject[] = [
         {
           path: "/test-empty-progress",
           element: (
+            <Suspense fallback={null}>
             <div style={{ padding: "40px", background: "#f4f6f8", minHeight: "100vh", display: "flex", flexDirection: "column", gap: "32px", alignItems: "flex-start" }}>
               <div>
                 <h1 style={{ fontSize: "20px", fontWeight: "700", color: "#101a2d", marginBottom: "4px" }}>Card Empty State Previews</h1>
@@ -299,6 +300,7 @@ export const publicRoutes: RouteObject[] = [
                 </div>
               </div>
             </div>
+            </Suspense>
           ),
         },
         // {

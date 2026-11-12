@@ -1,0 +1,13 @@
+{
+  "name": "GreenLearn",
+  "short_name": "GreenLearn",
+  "description": "A private learning platform for students and instructors.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16793f",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
