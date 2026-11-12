@@ -37,7 +37,23 @@ export async function listAdminSecurityEvents(brand: BrandFilter, page = 1, page
   return request<AdminSecurityEventPage>((api) => api.GET("/v1/admin/security/events" as never, { params: { query: { brand, page, pageSize } } }));
 }
 
-export async function listAllAdminStudents(brand: BrandFilter): Promise<AdminStudentListItem[]> {
+/* Short-lived cache with in-flight de-duplication. Overview, Security, Students and the purchase wizard all ask for the same
+   student lists; this lets them share one request. Cleared after any save (see clearAdminOperationsCache). */
+const operationsCache = new Map<string, { at: number; value: Promise<unknown> }>();
+function cached<T>(key: string, ttlMs: number, load: () => Promise<T>): Promise<T> {
+  const hit = operationsCache.get(key);
+  if (hit && Date.now() - hit.at < ttlMs) return hit.value as Promise<T>;
+  const value = load();
+  operationsCache.set(key, { at: Date.now(), value });
+  value.catch(() => { if (operationsCache.get(key)?.value === value) operationsCache.delete(key); });
+  return value;
+}
+export function clearAdminOperationsCache() { operationsCache.clear(); }
+
+export function listAllAdminStudents(brand: BrandFilter): Promise<AdminStudentListItem[]> {
+  return cached(`students|${brand}`, 30_000, () => fetchAllAdminStudents(brand));
+}
+async function fetchAllAdminStudents(brand: BrandFilter): Promise<AdminStudentListItem[]> {
   // `all` is a UI filter, not a persisted Brand code. Sending it to the API
   // incorrectly scopes the purchase wizard to a non-existent Brand.
   const filters = brand === "all" ? {} : { brand };
@@ -51,7 +67,7 @@ export async function loadAdminStudentDetails(students: readonly AdminStudentLis
   const details: AdminStudentDetail[] = [];
   for (let start = 0; start < students.length; start += 8) {
     const chunk = students.slice(start, start + 8);
-    details.push(...await Promise.all(chunk.map((student) => getAdminStudent(student.id, brand === "all" ? student.platform?.platformCode : brand))));
+    details.push(...await Promise.all(chunk.map((student) => { const scope = brand === "all" ? student.platform?.platformCode : brand; return cached(`student|${student.id}|${scope}`, 60_000, () => getAdminStudent(student.id, scope)); })));
   }
   return details;
 }

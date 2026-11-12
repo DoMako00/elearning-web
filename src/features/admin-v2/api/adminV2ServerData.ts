@@ -13,9 +13,12 @@ export async function loadAdminV2ServerData(builderCourseId?:string):Promise<Ser
   const [institutions,brands,instructorDtos]=await Promise.all([listInstitutions(),listBrandAccess(),listInstructors()]);
   const availableBrands=brands.filter((item)=>active(item.status));
   const instructors= instructorDtos.map(mapInstructorDto);
-  const brandAssignments=await Promise.all(instructorDtos.map((item)=>listInstructorBrands(item.id)));
+  // instructor brand assignments and the course lists do not depend on each other, so fetch them together
+  const [brandAssignments,courseGroups]=await Promise.all([
+    Promise.all(instructorDtos.map((item)=>listInstructorBrands(item.id))),
+    Promise.all(availableBrands.map(async(brand)=>({brand,courses:await listCourses(brand.id)}))),
+  ]);
   const instructorBrandAssignments=mapBrandAssignments(brandAssignments.flat() as (InstructorBrand&{createdAt?:string})[],availableBrands);
-  const courseGroups=await Promise.all(availableBrands.map(async(brand)=>({brand,courses:await listCourses(brand.id)})));
   const brandCourseRows=courseGroups.flatMap(({brand,courses})=>courses.map((course)=>({brand,course})));
   const courseAssignments=await Promise.all(brandCourseRows.map(async({brand,course})=>({courseId:course.id,items:course.instructorAssignments??await listCourseInstructors(brand.id,course.id)})));
   const byCourse=new Map<string,Array<{instructorId:string;displayName:string;status:string}>>(courseAssignments.map((row)=>[row.courseId,row.items.map((item)=>({instructorId:item.instructorId,displayName:item.displayName??"",status:item.status}))]));

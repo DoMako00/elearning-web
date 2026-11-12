@@ -50,7 +50,7 @@ import {
   type AdminStudentDetail,
   type AdminStudentListItem,
 } from "../api/adminStudentsApi";
-import { listAllAdminStudents } from "../api/adminOperationsApi";
+import { clearAdminOperationsCache, listAllAdminStudents } from "../api/adminOperationsApi";
 import { toEnglishStudentName } from "../api/studentDisplay";
 import { getAdminEffectiveRole } from "../api/adminRolesApi";
 
@@ -296,7 +296,7 @@ export function StudentsPage() {
           ? "Suspended by an authorized Admin."
           : "Restored by an authorized Admin.",
       );
-      await reload();
+      clearAdminOperationsCache(); await reload();
       setNotice(
         next === "Suspended" ? "Student suspended." : "Student restored.",
       );
@@ -327,7 +327,7 @@ export function StudentsPage() {
         });
         setRemoteDetail(result);
         setDrawer(null);
-        await reload();
+        clearAdminOperationsCache(); await reload();
         return;
       }
       const result = await createAdminStudent({
@@ -363,7 +363,7 @@ export function StudentsPage() {
         setupCode: result.setupCode,
         setupExpiresAt: result.setupExpiresAt,
       });
-      await reload();
+      clearAdminOperationsCache(); await reload();
     } catch (error) {
       setStudentFormError(
         error instanceof Error ? error.message : "Unable to save Student.",
@@ -389,7 +389,7 @@ export function StudentsPage() {
         setupExpiresAt: result.setupExpiresAt,
       });
       setNotice("A new setup credential has been issued.");
-      await reload();
+      clearAdminOperationsCache(); await reload();
     } catch (error) {
       setNotice(
         error instanceof Error

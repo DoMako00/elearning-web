@@ -11,6 +11,7 @@ import type { AdminV2Data, BrandFilter } from "../types/adminV2.types";
 import { emptyAdminV2ServerDomainData } from "../api/adminV2Mappers";
 import { adminV2ServerDomainsChanged, loadAdminV2ServerData, persistAdminV2ServerChanges, type ServerDomainData } from "../api/adminV2ServerData";
 import { loadAdminOverviewData, loadAdminSecurityData, loadAdminSecurityEvents, type AdminOverviewView } from "../api/adminV2OperationalData";
+import { clearAdminOperationsCache } from "../api/adminOperationsApi";
 import { AdminV2UiProvider } from "../shared/adminV2Theme";
 import { RouteLoadingFallback } from "../../../components/layout/RouteLoadingFallback";
 import "../styles/admin-v2.css";
@@ -74,6 +75,9 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
   const [overview, setOverview] = useState<AdminOverviewView | null>(null);
   const [domainLoading, setDomainLoading] = useState(true);
   // Loads that have completed at least once. A screen is "ready" once its key is in here; until then the page is replaced by its skeleton.
+  // brand/save the shared data was last loaded for; navigating between screens that need nothing extra reuses it
+  const sharedLoadedFor = useRef("");
+  const clearedForSave = useRef(0);
   const [readyKeys, setReadyKeys] = useState<ReadonlySet<string>>(() => new Set());
   const [domainError, setDomainError] = useState("");
   const [refreshSequence, setRefreshSequence] = useState(0);
@@ -82,7 +86,8 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
     refreshWaiters.current.push(resolve);
     setRefreshSequence((value) => value + 1);
   });
-  const data: AdminV2Data = { ...localData, ...serverDomains };
+  // memoized so the context value (and every screen below it) only changes when the data does
+  const data: AdminV2Data = useMemo(() => ({ ...localData, ...serverDomains }), [localData, serverDomains]);
   const mutationQueue = useRef<Promise<void>>(Promise.resolve());
   const setData: Dispatch<SetStateAction<AdminV2Data>> = (next) => {
     const previous = data;
@@ -120,7 +125,7 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
   // Overview, Security and Instructors load extra data for their own route, so they are ready per route and brand; every other screen is ready per brand.
   const loadsOwnData = workspace?.workspace === "super_admin" && (pathname === "/admin" || pathname === "/admin/overview" || pathname === "/admin/security" || pathname === "/admin/instructors");
   const readyKey = loadsOwnData ? `${brand}|${pathname}` : brand;
-  const showFirstLoad = domainLoading && !readyKeys.has(readyKey);
+  const showFirstLoad = !readyKeys.has(readyKey);
   const context = useMemo(() => workspace ? ({ data, setData, brand: routeBrand, setBrand, globalSearch, setGlobalSearch, domainLoading, domainError, refreshServerDomains, reportDomainError, overview, workspace }) : null, [data, routeBrand, globalSearch, domainLoading, domainError, overview, workspace]);
   useEffect(() => {
     if (auth.status === "loading") return;
@@ -140,6 +145,10 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
   }, [auth.status, auth.user?.id]);
   useEffect(() => {
     if (adminAccess !== "allowed") return;
+    const sharedKey = `${workspace?.workspace ?? ""}|${brand}|${refreshSequence}`;
+    // The shared data is already current for this brand and no save happened since: a screen that loads nothing of its own needs no reload.
+    if (!loadsOwnData && sharedLoadedFor.current === sharedKey) return;
+    if (refreshSequence > clearedForSave.current) { clearedForSave.current = refreshSequence; clearAdminOperationsCache(); }
     const controller = new AbortController();
     setDomainLoading(true);
     (async () => {
@@ -161,6 +170,7 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
         if (!controller.signal.aborted) { refreshResult = { ok: false, message }; setServerDomains(emptyAdminV2ServerDomainData()); setOverview(null); setDomainError(message); }
       } finally {
         if (!controller.signal.aborted) {
+          if (refreshResult!.ok) sharedLoadedFor.current = sharedKey; // a failed load is retried on the next navigation
           setReadyKeys((current) => { const next = new Set(current); next.add(brand); next.add(`${brand}|${pathname}`); return next; });
           setDomainLoading(false);
           const result = refreshResult!;
@@ -169,7 +179,7 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
       }
     })();
     return () => controller.abort();
-  }, [adminAccess, pathname, brand, refreshSequence, workspace]);
+  }, [adminAccess, pathname, brand, refreshSequence, workspace, loadsOwnData]);
   useEffect(() => {
     const focusSearch = (event: KeyboardEvent) => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); searchRef.current?.focus(); } };
     window.addEventListener("keydown", focusSearch);
