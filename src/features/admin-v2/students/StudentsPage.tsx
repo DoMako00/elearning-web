@@ -12,6 +12,7 @@ import {
   Plus,
   Search,
   Smartphone,
+  Trash2,
   UserRound,
   Users,
   X,
@@ -682,6 +683,17 @@ export function StudentsPage() {
                         <Eye size={13} />
                         View
                       </button>
+                      {canDeleteAccounts && <button
+                        type="button"
+                        className="admin-v2__row-menu"
+                        title={`Delete ${student.fullName}`}
+                        aria-label={`Delete student ${student.fullName}`}
+                        disabled={mutationPending}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setDeletionTarget(student.id);
+                        }}
+                      ><Trash2 size={14} /></button>}
                     </td>
                   </tr>
                 );
