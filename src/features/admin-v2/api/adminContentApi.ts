@@ -1,5 +1,6 @@
 import { extractApiErrorMessage, requireApiClient } from "../../../app/api/client";
 import type { BrandAccess, BrandCourse, StructureItem } from "./adminAcademicApi";
+import { lessonFileType } from "./uploadFileMetadata";
 
 type Envelope<T> = { ok: true; correlationId: string; data: T };
 export interface LessonResourceDto extends StructureItem {
@@ -86,9 +87,9 @@ export async function updateLessonResource(scope: ContentScope, resource: Lesson
 }
 
 export async function createMediaAsset(scope: ContentScope, resourceId: string, title: string, file: File, videoDurationSeconds?: number, maxCompletedViews = 3) {
-  const assetType = file.type === "application/pdf" ? "document" : "video";
+  const assetType = lessonFileType(file);
+  if (!assetType) throw new Error("The media API accepts MP4 video and PDF files only.");
   const contentType = assetType === "document" ? "application/pdf" : "video/mp4";
-  if ((assetType === "video" && file.type !== "video/mp4") || (assetType === "document" && file.type !== "application/pdf")) throw new Error("The media API accepts MP4 video and PDF files only.");
   const result = await request<{ asset: MediaAssetDto }>((api) => api.POST("/v1/admin/brands/{brandId}/courses/{courseId}/lessons/{lessonId}/media" as never, {
     ...mediaPath(scope), ...writeHeaders(),
     body: { assetType, title, contentType, expectedSize: file.size, resourceId, ...(assetType === "video" ? { videoDurationSeconds, maxCompletedViews } : {}) },

@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BookOpen, ChevronDown, FileCheck2, FileText, Folder, Lock, Plus, Search, Upload, UploadCloud, Video } from "lucide-react";
 import { Navigate, useParams } from "react-router-dom";
 import { useAdminV2 } from "../layout/AdminV2Layout";
 import { createStructureRecord, listStructure, type BrandCourse } from "../api/adminAcademicApi";
 import { createLessonResource, createMediaAsset, listContentReviewRequests, listLessonMedia, listLessonResources, submitContentReview, uploadAndVerifyMedia, type ContentReviewRequestDto } from "../api/adminContentApi";
+import { lessonFileType, readVideoDuration } from "../api/uploadFileMetadata";
 import type { BrandAccess } from "../api/adminAcademicApi";
 import { getWorkspaceCopy } from "../copy/workspace-copy";
 import { friendlyError, type FriendlyErrorInfo } from "../utils/friendlyError";
@@ -28,7 +29,7 @@ export function InstructorCourseContentPage() {
   const [lessonDescription,setLessonDescription]=useState("");
   const [resourceTitle,setResourceTitle]=useState("");
   const [file,setFile]=useState<File|null>(null);
-  const [videoDuration,setVideoDuration]=useState("");
+  const fileInputRef=useRef<HTMLInputElement>(null);
   const [notice,setNotice]=useState("");
   const [treeSearch,setTreeSearch]=useState("");
   const [creating,setCreating]=useState<"chapter"|"lesson"|null>(null);
@@ -49,25 +50,24 @@ export function InstructorCourseContentPage() {
   const uploadResource=useMutation({mutationFn:async()=>{
     if(!course||!apiBrand||!apiCourse||!selectedLesson||!selectedChapter)throw new Error("Select an active lesson first.");
     if(!file||!resourceTitle.trim())throw new Error("Choose a video or PDF and enter its title.");
-    const isPdf=file.type==="application/pdf"||file.name.toLowerCase().endsWith(".pdf");
-    const isMp4=file.type==="video/mp4"||file.name.toLowerCase().endsWith(".mp4");
-    if(!isPdf&&!isMp4)throw new Error("Only PDF and MP4 files are accepted.");
-    const seconds=isMp4?Number(videoDuration):undefined;
-    if(isMp4&&(!Number.isSafeInteger(seconds)||seconds!<1||seconds!>86400))throw new Error("Enter the video's duration in seconds.");
+    const fileType=lessonFileType(file);
+    if(!fileType)throw new Error("Only PDF and MP4 files are accepted.");
+    if(file.size===0)throw new Error("This file is empty. Choose a file with content.");
+    const seconds=fileType==="video"?await readVideoDuration(file):undefined;
     const scope={brand:apiBrand,course:apiCourse,chapter:selectedChapter,lesson:selectedLesson} as const;
-    const resourceId=await createLessonResource(scope,resourceTitle.trim(),Math.max(0,...lessonResources.map(item=>item.sortOrder))+1,isPdf?"document":"video");
-    const asset=await createMediaAsset(scope,resourceId,resourceTitle.trim(),file,seconds);
     const media=await listLessonMedia({brand:apiBrand,course:apiCourse,lesson:selectedLesson});
+    if(media.uploadPolicy.maxUploadBytes!==null&&file.size>media.uploadPolicy.maxUploadBytes)throw new Error("This file exceeds the server's upload size limit.");
+    const resourceId=await createLessonResource(scope,resourceTitle.trim(),Math.max(0,...lessonResources.map(item=>item.sortOrder))+1,fileType);
+    const asset=await createMediaAsset(scope,resourceId,resourceTitle.trim(),file,seconds);
     await uploadAndVerifyMedia({brand:apiBrand,course:apiCourse,chapter:selectedChapter,lesson:selectedLesson},asset,file,media.uploadPolicy);
     await submitContentReview(course.brandId,course.id,{targetType:"resource",targetId:resourceId,reason:"Instructor submitted lesson resource for Super Admin review."});
     return resourceId;
-  },onSuccess:async()=>{setFile(null);setResourceTitle("");setVideoDuration("");setNotice("File uploaded and verified. It is now waiting for administrator review before students can access it.");setErrorInfo(null);await refresh();},onError:e=>setErrorInfo(friendlyError(e))});
+  },onSuccess:async()=>{setFile(null);if(fileInputRef.current)fileInputRef.current.value="";setResourceTitle("");setNotice("File uploaded and verified. It is now waiting for administrator review before students can access it.");setErrorInfo(null);await refresh();},onError:e=>setErrorInfo(friendlyError(e))});
 
   if(!course)return <Navigate to="/admin/instructor/courses" replace />;
   const q=treeSearch.trim().toLowerCase();
   const matchesLesson=(item:{title:string})=>!q||item.title.toLowerCase().includes(q);
   const visibleChapters=chapters.filter(chapter=>!q||chapter.title.toLowerCase().includes(q)||lessons.some(item=>item.courseChapterId===chapter.id&&matchesLesson(item)));
-  const isVideoFile=Boolean(file&&(file.type==="video/mp4"||file.name.toLowerCase().endsWith(".mp4")));
   const approvedCount=lessonResources.filter(item=>reviewByTarget.get(item.id)?.status==="approved").length;
   const waitingCount=lessonResources.filter(item=>reviewByTarget.get(item.id)?.status==="submitted").length;
   const returnedCount=lessonResources.filter(item=>reviewByTarget.get(item.id)?.status==="rejected").length;
@@ -108,10 +108,9 @@ export function InstructorCourseContentPage() {
             <form data-instructor-guide-target="resource-title" className="instructor-course-builder__block instructor-course-builder__upload" onSubmit={e => { e.preventDefault(); uploadResource.mutate(); }}>
               <h3>Upload video or PDF</h3>
               <label className="instructor-course-builder__field"><span>Resource title</span><input data-instructor-guide-target="resource-title-input" value={resourceTitle} onChange={e => setResourceTitle(e.target.value)} maxLength={240} required placeholder="e.g. Chapter slides" /></label>
-              <label data-instructor-guide-target="resource-file" className={`instructor-course-builder__file${file?" has-file":""}`}><UploadCloud size={26} /><strong>{file?.name ?? "Drop a video or PDF here, or browse files"}</strong><small>PDF documents and MP4 videos</small><span className="instructor-course-builder__browse">{file?"Change file":"Browse files"}</span><input type="file" accept=".pdf,application/pdf,.mp4,video/mp4" onChange={e => setFile(e.target.files?.[0] ?? null)} required /></label>
-              {isVideoFile ? <label className="instructor-course-builder__field instructor-course-builder__field--narrow"><span>Video duration (seconds)</span><input type="number" min={1} max={86400} value={videoDuration} onChange={e => setVideoDuration(e.target.value)} required /></label> : null}
+              <label data-instructor-guide-target="resource-file" className={`instructor-course-builder__file${file?" has-file":""}`}><UploadCloud size={26} /><strong>{file?.name ?? "Drop a video or PDF here, or browse files"}</strong><small>PDF documents and MP4 videos</small><span className="instructor-course-builder__browse">{file?"Change file":"Browse files"}</span><input ref={fileInputRef} type="file" accept=".pdf,application/pdf,.mp4,video/mp4" onChange={e => { const selected=e.target.files?.[0] ?? null; setFile(selected); setErrorInfo(null); if(selected&&!resourceTitle.trim())setResourceTitle(selected.name.replace(/\.[^.]+$/, "").slice(0,240) || selected.name.slice(0,240)); }} required /></label>
               <p className="instructor-course-builder__private-note"><Lock size={14} /> {copy.content.uploadHelperText}</p>
-              <div className="instructor-course-builder__actions"><button type="button" onClick={()=>{setFile(null);setResourceTitle("");setVideoDuration("");}} disabled={!file&&!resourceTitle&&!videoDuration}>Clear</button><button data-instructor-guide-target="resource-submit" type="submit" className="is-primary" disabled={!file || !resourceTitle.trim() || uploadResource.isPending}>{uploadResource.isPending ? "Uploading and verifying…" : <><Upload size={15} /> {copy.content.uploadButtonLabel}</>}</button></div>
+              <div className="instructor-course-builder__actions"><button type="button" onClick={()=>{setFile(null);if(fileInputRef.current)fileInputRef.current.value="";setResourceTitle("");setErrorInfo(null);}} disabled={!file&&!resourceTitle}>Clear</button><button data-instructor-guide-target="resource-submit" type="submit" className="is-primary" disabled={!file || !resourceTitle.trim() || uploadResource.isPending}>{uploadResource.isPending ? "Uploading and verifying…" : <><Upload size={15} /> {copy.content.uploadButtonLabel}</>}</button></div>
             </form>
           </div>
         </>}
