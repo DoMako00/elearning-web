@@ -19,8 +19,18 @@ export function readVideoDuration(file: File): Promise<number> {
       window.clearTimeout(timeout);
       video.onloadedmetadata = null;
       video.onerror = null;
+      video.pause();
+      let released = false;
+      const release = () => {
+        if (released) return;
+        released = true;
+        URL.revokeObjectURL(objectUrl);
+      };
+      video.addEventListener("emptied", release, { once: true });
       video.removeAttribute("src");
-      URL.revokeObjectURL(objectUrl);
+      video.load();
+      // Release after the browser has stopped reading; provide a bounded fallback.
+      window.setTimeout(release, 5000);
       if (duration !== undefined && Number.isFinite(duration) && duration > 0 && duration <= 86400) {
         resolve(Math.ceil(duration));
       } else {

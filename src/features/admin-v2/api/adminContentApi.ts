@@ -110,28 +110,50 @@ async function postMedia(scope: LessonMediaScope, assetId: string, operation: st
   }));
 }
 
-export async function uploadAndVerifyMedia(scope: ContentScope, asset: MediaAssetDto, file: File, policy: LessonMediaInventory["uploadPolicy"]) {
+export async function uploadAndVerifyMedia(scope: ContentScope, asset: MediaAssetDto, file: File, policy: LessonMediaInventory["uploadPolicy"], onProgress?: (uploadedBytes: number, totalBytes: number) => void) {
   if (file.size < policy.multipartThresholdBytes) {
     const { upload, requiredHeaders } = await postMedia(scope, asset.id, "upload");
     const signed = upload as { url?: string; expiresAt?: string };
     if (!signed.url) throw new Error("The backend did not provide a temporary upload URL.");
     const response = await fetch(signed.url, { method: "PUT", headers: requiredHeaders as Record<string, string>, body: file });
     if (!response.ok) throw new Error("The temporary upload failed. Retry the upload from the resource record.");
+    onProgress?.(file.size, file.size);
   } else {
     const started = await postMedia(scope, asset.id, "multipart");
     const multipart = started.upload as { id?: string } | undefined;
     if (!multipart?.id) throw new Error("The backend did not start the multipart upload.");
-    const chunkSize = Math.max(5 * 1024 * 1024, Math.ceil(file.size / 10_000));
+    const chunkSize = Math.max(32 * 1024 * 1024, Math.ceil(file.size / 10_000));
     const parts: Array<{ partNumber: number; etag: string }> = [];
-    for (let offset = 0, partNumber = 1; offset < file.size; offset += chunkSize, partNumber++) {
-      const part = await postMedia(scope, asset.id, `multipart/${multipart.id}/part/${partNumber}`);
-      const signed = part.signed as { url?: string } | undefined;
-      if (!signed?.url) throw new Error("The backend did not provide a temporary multipart URL.");
-      const response = await fetch(signed.url, { method: "PUT", body: file.slice(offset, Math.min(file.size, offset + chunkSize)) });
-      const etag = response.headers.get("etag");
-      if (!response.ok || !etag) throw new Error("A multipart upload part failed verification.");
-      parts.push({ partNumber, etag });
+    const totalParts = Math.ceil(file.size / chunkSize);
+    let nextPart = 1;
+    let uploadedBytes = 0;
+    let failure: unknown;
+    const worker = async () => {
+      while (!failure && nextPart <= totalParts) {
+        const partNumber = nextPart++;
+        const offset = (partNumber - 1) * chunkSize;
+        const chunk = file.slice(offset, Math.min(file.size, offset + chunkSize));
+        try {
+          const part = await postMedia(scope, asset.id, `multipart/${multipart.id}/part/${partNumber}`);
+          const signed = part.signed as { url?: string } | undefined;
+          if (!signed?.url) throw new Error("The backend did not provide a temporary multipart URL.");
+          const response = await fetch(signed.url, { method: "PUT", body: chunk });
+          const etag = response.headers.get("etag");
+          if (!response.ok || !etag) throw new Error("A multipart upload part failed verification.");
+          parts.push({ partNumber, etag });
+          uploadedBytes += chunk.size;
+          onProgress?.(uploadedBytes, file.size);
+        } catch (error) {
+          failure ??= error instanceof Error ? error : new Error("A multipart upload part failed.");
+        }
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(3, totalParts) }, () => worker()));
+    if (failure) {
+      await postMedia(scope, asset.id, `multipart/${multipart.id}/abort`).catch(() => undefined);
+      throw failure;
     }
+    parts.sort((a, b) => a.partNumber - b.partNumber);
     await postMedia(scope, asset.id, `multipart/${multipart.id}/complete`, { parts });
   }
   await postMedia(scope, asset.id, "verify");

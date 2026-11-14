@@ -29,6 +29,7 @@ export function InstructorCourseContentPage() {
   const [lessonDescription,setLessonDescription]=useState("");
   const [resourceTitle,setResourceTitle]=useState("");
   const [file,setFile]=useState<File|null>(null);
+  const [uploadProgress,setUploadProgress]=useState<number|null>(null);
   const fileInputRef=useRef<HTMLInputElement>(null);
   const [notice,setNotice]=useState("");
   const [treeSearch,setTreeSearch]=useState("");
@@ -48,6 +49,7 @@ export function InstructorCourseContentPage() {
   const createChapter=useMutation({mutationFn:()=>{if(!course||!chapterTitle.trim())throw new Error("Enter a chapter title.");return createStructureRecord(course.brandId,course.id,"chapters",{title:chapterTitle.trim(),sortOrder:Math.max(0,...chapters.map(item=>item.sortOrder))+1,status:"draft",reason:"Instructor created a course chapter draft"});},onSuccess:async()=>{setChapterTitle("");setNotice("Chapter draft created.");setErrorInfo(null);await refresh();},onError:e=>setErrorInfo(friendlyError(e))});
   const createLesson=useMutation({mutationFn:()=>{if(!course||!selectedChapter||!lessonTitle.trim())throw new Error("Select a chapter and enter a lesson title.");return createStructureRecord(course.brandId,course.id,"lessons",{title:lessonTitle.trim(),description:lessonDescription.trim()||null,courseChapterId:selectedChapter.id,sortOrder:Math.max(0,...lessons.filter(item=>item.courseChapterId===selectedChapter.id).map(item=>item.sortOrder))+1,status:"draft",reason:"Instructor created a course lesson draft"});},onSuccess:async()=>{setLessonTitle("");setLessonDescription("");setNotice("Lesson draft created.");setErrorInfo(null);await refresh();},onError:e=>setErrorInfo(friendlyError(e))});
   const uploadResource=useMutation({mutationFn:async()=>{
+    setUploadProgress(null);
     if(!course||!apiBrand||!apiCourse||!selectedLesson||!selectedChapter)throw new Error("Select an active lesson first.");
     if(!file||!resourceTitle.trim())throw new Error("Choose a video or PDF and enter its title.");
     const fileType=lessonFileType(file);
@@ -59,10 +61,10 @@ export function InstructorCourseContentPage() {
     if(media.uploadPolicy.maxUploadBytes!==null&&file.size>media.uploadPolicy.maxUploadBytes)throw new Error("This file exceeds the server's upload size limit.");
     const resourceId=await createLessonResource(scope,resourceTitle.trim(),Math.max(0,...lessonResources.map(item=>item.sortOrder))+1,fileType);
     const asset=await createMediaAsset(scope,resourceId,resourceTitle.trim(),file,seconds);
-    await uploadAndVerifyMedia({brand:apiBrand,course:apiCourse,chapter:selectedChapter,lesson:selectedLesson},asset,file,media.uploadPolicy);
+    await uploadAndVerifyMedia({brand:apiBrand,course:apiCourse,chapter:selectedChapter,lesson:selectedLesson},asset,file,media.uploadPolicy,(uploaded,total)=>setUploadProgress(Math.floor(uploaded/total*100)));
     await submitContentReview(course.brandId,course.id,{targetType:"resource",targetId:resourceId,reason:"Instructor submitted lesson resource for Super Admin review."});
     return resourceId;
-  },onSuccess:async()=>{setFile(null);if(fileInputRef.current)fileInputRef.current.value="";setResourceTitle("");setNotice("File uploaded and verified. It is now waiting for administrator review before students can access it.");setErrorInfo(null);await refresh();},onError:e=>setErrorInfo(friendlyError(e))});
+  },onSuccess:async()=>{setFile(null);setUploadProgress(null);if(fileInputRef.current)fileInputRef.current.value="";setResourceTitle("");setNotice("File uploaded and verified. It is now waiting for administrator review before students can access it.");setErrorInfo(null);await refresh();},onError:e=>{setUploadProgress(null);setErrorInfo(friendlyError(e));}});
 
   if(!course)return <Navigate to="/admin/instructor/courses" replace />;
   const q=treeSearch.trim().toLowerCase();
@@ -110,6 +112,7 @@ export function InstructorCourseContentPage() {
               <label className="instructor-course-builder__field"><span>Resource title</span><input data-instructor-guide-target="resource-title-input" value={resourceTitle} onChange={e => setResourceTitle(e.target.value)} maxLength={240} required placeholder="e.g. Chapter slides" /></label>
               <label data-instructor-guide-target="resource-file" className={`instructor-course-builder__file${file?" has-file":""}`}><UploadCloud size={26} /><strong>{file?.name ?? "Drop a video or PDF here, or browse files"}</strong><small>PDF documents and MP4 videos</small><span className="instructor-course-builder__browse">{file?"Change file":"Browse files"}</span><input ref={fileInputRef} type="file" accept=".pdf,application/pdf,.mp4,video/mp4" onChange={e => { const selected=e.target.files?.[0] ?? null; setFile(selected); setErrorInfo(null); if(selected&&!resourceTitle.trim())setResourceTitle(selected.name.replace(/\.[^.]+$/, "").slice(0,240) || selected.name.slice(0,240)); }} required /></label>
               <p className="instructor-course-builder__private-note"><Lock size={14} /> {copy.content.uploadHelperText}</p>
+              {uploadResource.isPending && <p role="status">{uploadProgress===null?"Preparing upload…":uploadProgress<100?`Uploading… ${uploadProgress}%`:"Upload complete. Verifying file…"}</p>}
               <div className="instructor-course-builder__actions"><button type="button" onClick={()=>{setFile(null);if(fileInputRef.current)fileInputRef.current.value="";setResourceTitle("");setErrorInfo(null);}} disabled={!file&&!resourceTitle}>Clear</button><button data-instructor-guide-target="resource-submit" type="submit" className="is-primary" disabled={!file || !resourceTitle.trim() || uploadResource.isPending}>{uploadResource.isPending ? "Uploading and verifying…" : <><Upload size={15} /> {copy.content.uploadButtonLabel}</>}</button></div>
             </form>
           </div>
