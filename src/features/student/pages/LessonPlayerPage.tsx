@@ -65,7 +65,7 @@ interface CourseModule {
 interface LessonMaterial {
   id: string;
   title: string;
-  extension: "pdf" | "video";
+  extension: "pdf" | "exam" | "quiz";
 }
 
 function formatTime(seconds: number) {
@@ -366,7 +366,7 @@ function LessonVideoPlayer({ title, mediaUrl, mediaType, onStarted, onHeartbeat,
   );
 }
 
-function MaterialsGrid({ materials = [], onOpen }: { materials?: LessonMaterial[]; onOpen: () => void }) {
+function MaterialsGrid({ materials = [], onOpen }: { materials?: LessonMaterial[]; onOpen: (material: LessonMaterial) => void }) {
   if (!materials || materials.length === 0) {
     return (
       <div className="course-overview-materials__empty">
@@ -379,17 +379,16 @@ function MaterialsGrid({ materials = [], onOpen }: { materials?: LessonMaterial[
   return (
     <div className="course-overview-materials__grid lesson-player-materials__grid">
       {materials.map((material) => {
-        const MaterialIcon = material.extension === "video" ? Play : FileText;
         return (
           <button
             type="button"
             className={`course-overview-material course-overview-material--${material.extension}`}
             key={material.id}
             aria-label={`Open ${material.title}`}
-            onClick={onOpen}
+            onClick={() => onOpen(material)}
           >
             <span className="course-overview-material__icon">
-              <MaterialIcon aria-hidden="true" />
+              <FileText aria-hidden="true" />
               <small>{material.extension}</small>
             </span>
             <span className="course-overview-material__copy">
@@ -408,7 +407,7 @@ interface MaterialsCardProps {
   className?: string;
   hidden?: boolean;
   materials?: LessonMaterial[];
-  onOpen?: () => void;
+  onOpen?: (material?: LessonMaterial) => void;
 }
 
 function MaterialsCard({ className = "", hidden = false, materials = [], onOpen = () => undefined }: MaterialsCardProps) {
@@ -419,7 +418,7 @@ function MaterialsCard({ className = "", hidden = false, materials = [], onOpen 
     >
       <header>
         <h2>Lesson materials</h2>
-        <button type="button" onClick={onOpen}>View all materials <ArrowRight aria-hidden="true" /></button>
+        <button type="button" onClick={() => onOpen()}>View all materials <ArrowRight aria-hidden="true" /></button>
       </header>
       <MaterialsGrid materials={materials} onOpen={onOpen} />
     </article>
@@ -460,8 +459,12 @@ function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, 
   const percent = courseProgress?.completionPercent;
   const isAlreadyCompleted = progressStatus === "completed";
   const isComplete = isAlreadyCompleted;
-  const materials: LessonMaterial[] = learningSpaceResources.filter(resource => resource.lessonId === lessonId)
-    .map(resource => ({ id: resource.id, title: resource.title, extension: resource.extension }));
+  const materials: LessonMaterial[] = [
+    ...learningSpaceResources.filter(resource => resource.lessonId === lessonId && resource.extension === "pdf")
+      .map(resource => ({ id: resource.id, title: resource.title, extension: "pdf" as const })),
+    ...(current?.learningItems ?? []).filter(item => item.available && (item.kind === "exam" || item.kind === "quiz"))
+      .map(item => ({ id: item.id, title: item.title, extension: item.kind as "exam" | "quiz" })),
+  ];
 
   useEffect(() => {
     setProgressStatus(current?.progressStatus ?? "not_started");
@@ -575,7 +578,7 @@ function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, 
                 <button type="button" className={`lesson-player-nav__complete inline-flex min-h-10.5 items-center justify-center gap-2 rounded-[10px] px-4 text-[13px] font-bold cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 [&_svg]:size-4 ${isAlreadyCompleted ? "is-done" : ""}`} onClick={handleMarkComplete} disabled={isAlreadyCompleted || progressMutation.isPending}><CheckCircle2 aria-hidden="true" />{isAlreadyCompleted ? "Completed" : progressMutation.isPending ? "Saving…" : "Mark as complete"}</button>
               </article>
             </div>
-            <MaterialsCard className="course-overview-materials--primary" materials={materials} onOpen={() => setActiveTab("resources")} />
+            <MaterialsCard className="course-overview-materials--primary" materials={materials} onOpen={(material) => material && (material.extension === "exam" || material.extension === "quiz") ? navigate(`/assessments/${encodeURIComponent(material.id)}`) : setActiveTab("resources")} />
           </div>
 
           <div className="course-overview-panel course-overview-panel--notes" role="tabpanel" id="lesson-player-panel-notes" aria-labelledby="lesson-player-tab-notes" hidden={activeTab !== "notes"}>
