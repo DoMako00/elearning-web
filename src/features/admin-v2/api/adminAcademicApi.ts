@@ -64,6 +64,25 @@ export const getCourse=(brandId:string,courseId:string)=>call<BrandCourse>((api)
 export const writeCourse=(brandId:string,courseId:string|undefined,body:Record<string,unknown>)=>call<unknown>((api)=>courseId?api.PATCH("/v1/admin/brands/{brandId}/courses/{courseId}" as never,{...path(brandId,courseId),...writeHeaders(),body}):api.POST("/v1/admin/brands/{brandId}/courses" as never,{...path(brandId),...writeHeaders(),body}));
 export async function createBrandCourse(brandId:string,body:Record<string,unknown>){const title=String(body.title??"Course"),code=String(body.code??`CRS-${title.normalize("NFKD").replace(/[^a-zA-Z0-9]+/g,"-").replace(/^-|-$/g,"").toUpperCase().slice(0,20)}-${crypto.randomUUID().slice(0,6).toUpperCase()}`);const result=await writeCourse(brandId,undefined,{...body,code}) as {courseId?:string};if(!result.courseId)throw new Error("The server did not return the created Course ID.");return result.courseId;}
 export const setCourseStatus=(brandId:string,courseId:string,body:Record<string,unknown>)=>call<unknown>((api)=>api.PATCH("/v1/admin/brands/{brandId}/courses/{courseId}/status" as never,{...path(brandId,courseId),...writeHeaders(),body}));
+export async function makeApprovedLessonAvailable(brandId:string,courseId:string,lessonId:string) {
+  const structure=await listStructure(brandId,courseId);
+  const lesson=structure.lessons.find(item=>item.id===lessonId);
+  const chapter=structure.chapters.find(item=>item.id===lesson?.courseChapterId);
+  if(!lesson||lesson.status!=="published"||!chapter||chapter.status==="archived")throw new Error("The approved lesson and its active chapter could not be verified.");
+  const course=await getCourse(brandId,courseId);
+  if(course.status==="archived")throw new Error("This course is archived. Restore it before making content available.");
+  if(course.status==="draft")await setCourseStatus(brandId,courseId,{status:"published",expectedVersion:course.version,reason:"Make approved lesson available to enrolled students"});
+  if(chapter.status==="draft")await updateStructureRecord(brandId,courseId,"chapters",chapter.id,{status:"published",expectedVersion:chapter.version,reason:"Make approved lesson available to enrolled students"});
+  type Release = {status:string;availableFrom:string;availableUntil:string|null};
+  let page=1; let available=false; let total=0;
+  do {
+    const result=await call<{items:Release[];pagination:{totalItems:number}}>((api)=>api.GET("/v1/admin/brands/{brandId}/courses/{courseId}/releases" as never,{...path(brandId,courseId),params:{...path(brandId,courseId).params,query:{page,pageSize:100}}}));
+    total=result.pagination.totalItems;
+    available ||= result.items.some(item=>item.status==="published"&&Date.parse(item.availableFrom)<=Date.now()&&(!item.availableUntil||Date.parse(item.availableUntil)>Date.now()));
+    page++;
+  } while(!available&&(page-1)*100<total);
+  if(!available)await call<unknown>((api)=>api.POST("/v1/admin/brands/{brandId}/courses/{courseId}/releases" as never,{...path(brandId,courseId),...writeHeaders(),body:{status:"published",availableFrom:new Date().toISOString(),reason:"Make approved lesson available to enrolled students"}}));
+}
 export const listCourseInstructors=(brandId:string,courseId:string)=>call<CourseInstructor[]>((api)=>api.GET("/v1/admin/brands/{brandId}/courses/{courseId}/instructors" as never,path(brandId,courseId)));
 export const assignInstructor= (brandId:string,courseId:string,instructorId:string,reason="Course teaching assignment")=>call<unknown>((api)=>api.POST("/v1/admin/brands/{brandId}/courses/{courseId}/instructors" as never,{...path(brandId,courseId),...writeHeaders(),body:{instructorId,reason}}));
 export const setCourseInstructorStatus=(brandId:string,courseId:string,instructorId:string,status:"active"|"inactive",expectedVersion:number,reason="Course teaching assignment update")=>call<unknown>((api)=>api.PATCH("/v1/admin/brands/{brandId}/courses/{courseId}/instructors/{instructorId}/status" as never,{params:{path:{brandId,courseId,instructorId}},...writeHeaders(),body:{status,expectedVersion,reason}}));

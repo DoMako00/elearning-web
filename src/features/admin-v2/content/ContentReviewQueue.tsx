@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Alert, Badge, Button, Card, Group, SimpleGrid, Skeleton, Stack, Text, Textarea, ThemeIcon, Title } from "@mantine/core";
 import { AlertCircle, BookOpen, Check, FileCheck2, FileText, RefreshCw, X } from "lucide-react";
 import { decideContentReview, listContentReviewRequests, type ContentReviewRequestDto } from "../api/adminContentApi";
+import { makeApprovedLessonAvailable } from "../api/adminAcademicApi";
 import { useAdminV2 } from "../layout/AdminV2Layout";
 import "./content-approvals.css";
 import { ContentApprovalsSkeleton } from "./ContentApprovalsSkeleton";
@@ -18,6 +19,7 @@ export function ContentReviewQueue() {
   const queue = useQuery({ queryKey: ["admin", "content-review-requests"], queryFn: ({ signal }) => listContentReviewRequests(signal) });
   const [reasons, setReasons] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
+  const availability=useMutation({mutationFn:(item:ContentReviewRequestDto)=>makeApprovedLessonAvailable(item.brandId,item.courseId,item.targetId),onSuccess:()=>setMessage("The approved lesson's course and chapter are published and the course is released. Student subscription access still applies."),onError:(error)=>setMessage(error instanceof Error?`Availability could not be completed: ${error.message} Refresh and retry.`:"Availability could not be completed. Refresh and retry.")});
   const decision = useMutation({
     mutationFn: ({ id, action }: { id: string; action: "approve" | "reject" }) => {
       const reason = reasons[id]?.trim();
@@ -51,7 +53,7 @@ export function ContentReviewQueue() {
       <Button data-admin-guide-target="content-refresh" leftSection={<RefreshCw size={15} />} variant="light" color="green" loading={queue.isFetching} onClick={() => void queue.refetch()}>Refresh</Button>
     </Group>
 
-    {message && <Alert color={decision.isError ? "red" : "green"} variant="light" icon={decision.isError ? <AlertCircle size={16} /> : <Check size={16} />} role="status">{message}</Alert>}
+    {message && <Alert color={decision.isError || availability.isError ? "red" : "green"} variant="light" icon={decision.isError || availability.isError ? <AlertCircle size={16} /> : <Check size={16} />} role="status">{message}</Alert>}
     {queue.isError && <Alert color="red" variant="light" icon={<AlertCircle size={16} />} title="The approval queue is unavailable">
       <Group justify="space-between" mt="xs"><Text size="sm">{queue.error instanceof Error ? queue.error.message : "Review records could not be loaded."}</Text><Button size="xs" variant="light" onClick={() => void queue.refetch()}>Try again</Button></Group>
     </Alert>}
@@ -66,7 +68,7 @@ export function ContentReviewQueue() {
 
     {reviewed.length > 0 && <Card data-admin-guide-target="content-history" className="admin-v2__approvals-history" withBorder shadow="xs" p="md">
       <Group justify="space-between" mb="md"><div><Title order={3}>Previous decisions</Title><Text c="dimmed" size="xs">Review history for the selected brand scope.</Text></div><Badge variant="light" color="gray">{reviewed.length} records</Badge></Group>
-      <Stack gap="xs">{reviewed.slice(0, 8).map((item) => <HistoryRow key={item.id} item={item} />)}</Stack>
+      <Stack gap="xs">{reviewed.slice(0, 8).map((item) => <HistoryRow key={item.id} item={item} onMakeAvailable={()=>availability.mutate(item)} busy={availability.isPending} />)}</Stack>
     </Card>}
   </section>;
 }
@@ -97,12 +99,13 @@ function ReviewCard({ item, reason, pending, onReason, onDecision }: { item: Con
   </Card>;
 }
 
-function HistoryRow({ item }: { item: ContentReviewRequestDto }) {
+function HistoryRow({ item, onMakeAvailable, busy }: { item: ContentReviewRequestDto; onMakeAvailable:()=>void; busy:boolean }) {
   const status = item.status === "approved" ? "Approved" : item.status === "rejected" ? "Returned" : "Cancelled";
   return <div className="admin-v2__approval-history-row">
     <div><Text size="sm" fw={650}>{item.targetTitle || (item.targetType === "lesson" ? "Lesson update" : "Learning resource")}</Text><Text c="dimmed" size="xs">{item.courseTitle} · {item.brandCode.toUpperCase()}</Text></div>
     <div><Badge variant="light" color={item.status === "approved" ? "green" : item.status === "rejected" ? "orange" : "gray"}>{status}</Badge>{item.reviewedAt && <Text c="dimmed" size="xs" mt={3}>{formatDate(item.reviewedAt)}</Text>}</div>
     {item.rejectionReason && <Text className="admin-v2__approval-history-reason" c="dimmed" size="xs">{item.rejectionReason}</Text>}
+    {item.targetType==="lesson"&&item.status==="approved"&&<Button size="xs" variant="light" color="green" disabled={busy} onClick={onMakeAvailable}>Make available to enrolled students</Button>}
   </div>;
 }
 
