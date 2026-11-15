@@ -76,4 +76,12 @@ describe("Instructor lesson uploads", () => {
     await waitFor(() => expect(api.submitContentReview).toHaveBeenCalledWith("brand", "course", expect.objectContaining({ targetType: "lesson", targetId: "lesson" })));
     expect(await screen.findByText(/Lesson submitted for administrator review/)).toBeTruthy();
   });
+
+  it("shows an existing review when its version is returned as a string", async () => {
+    api.listStructure.mockResolvedValue({ chapters: [{ id: "chapter", title: "Chapter", status: "draft", sortOrder: 1 }], lessons: [{ id: "lesson", title: "Lesson", status: "draft", version: 2, sortOrder: 1, courseChapterId: "chapter" }] });
+    api.listContentReviewRequests.mockResolvedValue({ items: [{ id: "review", courseId: "course", targetType: "lesson", targetId: "lesson", submittedVersion: "2", status: "submitted" }] });
+    renderBuilder();
+    expect(await screen.findByText("Waiting for administrator approval.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Submit lesson for review" })).toBeNull();
+  });
 });

@@ -91,7 +91,7 @@ export function InstructorCourseContentPage() {
   const approvedCount=lessonResources.filter(item=>reviewByTarget.get(item.id)?.status==="approved").length;
   const waitingCount=lessonResources.filter(item=>reviewByTarget.get(item.id)?.status==="submitted").length;
   const returnedCount=lessonResources.filter(item=>reviewByTarget.get(item.id)?.status==="rejected").length;
-  const lessonReview=courseReviews.find(item=>item.targetType==="lesson"&&item.targetId===selectedLesson?.id&&item.submittedVersion===selectedLesson?.version);
+  const lessonReview=courseReviews.find(item=>item.targetType==="lesson"&&item.targetId===selectedLesson?.id&&String(item.submittedVersion)===String(selectedLesson?.version));
   const toggleChapter=(id:string)=>setCollapsed(current=>{const next=new Set(current);if(next.has(id))next.delete(id);else next.add(id);return next;});
   const openCreate=(mode:"chapter"|"lesson")=>setCreating(current=>current===mode?null:mode);
   return <section className="instructor-course-builder" aria-label={`${course.title} course builder`}>
