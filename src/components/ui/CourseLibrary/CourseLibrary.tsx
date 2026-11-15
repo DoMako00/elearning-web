@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { canViewCourseDetails } from "../../../features/student/api/studentCoursesApi";
 import { COURSE_CATEGORY_TABS, type StudentCourse } from "./courses.data";
 import "./CourseLibrary.css";
 
@@ -56,7 +57,7 @@ export function CourseLibrary({
   const lockedIds = useMemo(() => new Set(lockedCourseIds), [lockedCourseIds]);
 
   const openCourse = (course: StudentCourse) => {
-    if (lockedIds.has(course.id) || course.access?.isEnrolled !== true || course.access.canOpen !== true) return;
+    if (lockedIds.has(course.id) || !course.access || !canViewCourseDetails({ access: course.access })) return;
     navigate(`/my-courses/${course.slug}`, { state: { courseTitle: course.title, courseId: course.id } });
   };
 

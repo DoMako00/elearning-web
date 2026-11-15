@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useToast } from "../../../hooks/useToast";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   FileText,
   Lock,
@@ -26,7 +26,11 @@ export const CourseOverviewScreen: React.FC = () => {
   const { slug: courseId = "" } = useParams<{ slug?: string }>();
   const courseQuery = useStudentCourseDetail(courseId);
   const progressQuery = useStudentProgress();
-  const course = courseQuery.data;
+  const [searchParams] = useSearchParams();
+  const selectedSubjectId = searchParams.get("subject");
+  const fullCourse = courseQuery.data;
+  const selectedSubject = fullCourse?.cataloguePresentation === "module_based" && selectedSubjectId ? fullCourse.chapters.find(chapter => chapter.chapterId === selectedSubjectId) : undefined;
+  const course = useMemo(() => fullCourse && selectedSubject ? { ...fullCourse, chapters: [selectedSubject], title: selectedSubject.title, lessonCount: selectedSubject.lessons.length } : fullCourse, [fullCourse, selectedSubject]);
   const progress = progressQuery.data?.courses.find((item) => item.courseId === courseId);
   const modules = useMemo(() => course?.chapters.map((chapter, chapterIndex) => ({
     id: chapter.chapterId,
@@ -70,7 +74,7 @@ export const CourseOverviewScreen: React.FC = () => {
       </div>
     );
   }
-  if (courseQuery.isError || !course) {
+  if (courseQuery.isError || !course || (fullCourse?.cataloguePresentation === "module_based" && selectedSubjectId && !selectedSubject)) {
     return (
       <div className="min-h-screen w-full bg-slate-50 flex flex-col text-slate-900 antialiased">
         <TopAppBar variant="detail" title="Course" backLabel="My Courses" onBack={() => navigate("/my-courses")} />
@@ -87,8 +91,8 @@ export const CourseOverviewScreen: React.FC = () => {
       <TopAppBar
         variant="detail"
         title={course.title}
-        backLabel={isEnrolled ? "My Courses" : "Explore"}
-        onBack={() => navigate(isEnrolled ? "/my-courses" : "/explore")}
+        backLabel={selectedSubject ? "All subjects" : isEnrolled ? "My Courses" : "Explore"}
+        onBack={() => navigate(selectedSubject ? `/my-courses/${courseId}` : isEnrolled ? "/my-courses" : "/explore")}
         rightSlot={
           <button
             type="button"

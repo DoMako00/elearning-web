@@ -41,12 +41,15 @@ export function MyCoursesPage() {
     return activity(b.courseId).localeCompare(activity(a.courseId));
   }).map(course => toReferenceCourse(course, progressQuery.data)), [mine.data, progressQuery.data]);
   const recommendedCourses = useMemo(() => (explore.data ?? []).filter(course => !mine.data?.some(item => item.courseId === course.courseId)).map(course => toReferenceCourse(course, progressQuery.data)), [explore.data, mine.data, progressQuery.data]);
-  const recommendedCourseIds = recommendedCourses.map(course => course.id);
   const activeFocusCourse = enrolledCourses.find(course => course.id === selectedCourseId) ?? enrolledCourses[0] ?? null;
+  const isModuleBased = activeFocusCourse?.categoryId === "module";
+  const otherSubjects = recommendedCourses.filter(course => course.categoryId === "subject");
+  const libraryRecommendations = isModuleBased ? otherSubjects : recommendedCourses;
+  const recommendedCourseIds = libraryRecommendations.map(course => course.id);
   const canViewFocusCourse = Boolean(activeFocusCourse?.access && canViewCourseDetails({access: activeFocusCourse.access}));
   const inProgressCount = enrolledCourses.filter(course => course.status === "in-progress").length;
   const completedCount = enrolledCourses.filter(course => course.status === "completed").length;
-  const savedCount = [...enrolledCourses, ...recommendedCourses].filter(course => bookmarked[course.id]).length;
+  const savedCount = [...enrolledCourses, ...libraryRecommendations].filter(course => bookmarked[course.id]).length;
   const isCoursesLoading = mine.isPending;
   const coursesError = mine.isError ? classifyStudentApiError(mine.error).message : null;
   const canRetry = !mine.isError || ["unavailable", "unknown"].includes(classifyStudentApiError(mine.error).kind);
@@ -268,7 +271,7 @@ export function MyCoursesPage() {
                   disabled={!canViewFocusCourse}
                   onClick={() => { if (canViewFocusCourse) navigate(`/my-courses/${activeFocusCourse.slug}`, { state: courseRouteState(activeFocusCourse) }); }}
                 >
-                  {canViewFocusCourse ? (activeFocusCourse.status === "completed" ? "Review Subject" : "Open Subject") : "Details unavailable"} <ArrowRight aria-hidden="true" />
+                  {canViewFocusCourse ? (activeFocusCourse.status === "completed" ? `Review ${activeFocusCourse.category}` : `Open ${activeFocusCourse.category}`) : "Details unavailable"} <ArrowRight aria-hidden="true" />
                 </button>
               </div>
             </footer>
@@ -361,11 +364,12 @@ export function MyCoursesPage() {
         )}
 
         {!isCoursesLoading && !coursesError && enrolledCourses.length > 0 ? (
-          <CourseLibrary courses={[...enrolledCourses, ...recommendedCourses]} unitLabel="course" statusFilter={statusFilter} searchQuery={searchQuery} sortBy={sortBy}
+          <CourseLibrary courses={[...enrolledCourses, ...libraryRecommendations]} unitLabel="course" statusFilter={statusFilter} searchQuery={searchQuery} sortBy={sortBy}
             bookmarked={bookmarked} selectedCourseId={selectedCourseId} onSelectCourse={setSelectedCourseId}
             lockedCourseIds={recommendedCourseIds}
             onToggleBookmark={toggleBookmark} onClearSearch={() => setSearchQuery("")} />
         ) : null}
+        {!isCoursesLoading && !coursesError && isModuleBased && otherSubjects.length === 0 && <p className="module-subjects__catalogue-note" role="status">Other subjects are not available in your current catalogue yet.</p>}
       </div>
     </section>
   );

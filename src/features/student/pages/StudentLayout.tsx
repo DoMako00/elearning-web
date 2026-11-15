@@ -9,6 +9,7 @@ import { useAuth } from "../../../app/providers/AuthProvider";
 import { useStudentProfile } from "../api/useStudentLearning";
 import { useStudentCourseDetail } from "../api/useStudentCourses";
 import { courseBreadcrumb } from "./courseBreadcrumb";
+import { ModuleSubjects } from "./ModuleSubjects";
 import { useMarkStudentNotificationsRead, useStudentNotifications } from "../api/useStudentNotifications";
 import { MessagesProvider } from "../../../app/providers/MessagesProvider";
 import { PageBreadcrumb } from "../../../components/ui/PageBreadcrumb";
@@ -41,6 +42,7 @@ function StudentLayoutContent() {
   if (isMobile) {
     const mobileCourseDetail = pathname.match(/^\/my-courses\/([^/]+)$/);
     if (mobileCourseDetail) {
+      if (courseDetail?.cataloguePresentation === "module_based" && !new URLSearchParams(location.search).get("subject")) return <ModuleSubjects course={courseDetail} />;
       return (
         <RouteErrorBoundary isMobile>
           <Suspense fallback={<RouteLoadingFallback isMobile message="Loading course..." />}>
@@ -70,6 +72,7 @@ function StudentLayoutContent() {
   }
 
   const { courseTitle: currentCourseTitle, selectionTitle } = courseBreadcrumb(courseDetail, courseRouteMatch?.[2]);
+  const selectedSubject = courseDetail?.cataloguePresentation === "module_based" ? courseDetail.chapters.find(chapter => chapter.chapterId === new URLSearchParams(location.search).get("subject")) : undefined;
 
   const isHome = pathname === "/" || pathname === "";
   const isProfile = pathname === "/profile";
@@ -114,7 +117,7 @@ function StudentLayoutContent() {
     }
 
     if (isCourseOverview) {
-      return <PageBreadcrumb trail={[{ label: "MY COURSES", to: "/my-courses" }]} title={currentCourseTitle} />;
+      return selectedSubject ? <PageBreadcrumb trail={[{ label: "MY COURSES", to: "/my-courses" }, { label: currentCourseTitle, to: `/my-courses/${currentCourseId}` }]} title={selectedSubject.title} /> : <PageBreadcrumb trail={[{ label: "MY COURSES", to: "/my-courses" }]} title={currentCourseTitle} />;
     }
 
     if (isLessonPlayer) {

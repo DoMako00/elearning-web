@@ -17,7 +17,7 @@ import {
   StickyNote,
 } from "lucide-react";
 import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import { CourseDiscussionPanel } from "../../../components/learning-space/CourseDiscussionPanel";
@@ -43,6 +43,7 @@ import "./CourseOverviewPage.css";
 
 import { CourseHeroArt, CourseMaterialsCard, CourseOverviewSkeleton } from "./CourseOverviewReferenceCards";
 import { toReferenceCourse } from "./referenceCourseMapper";
+import { ModuleSubjects } from "./ModuleSubjects";
 
 const TABS = [
   { id: "overview", label: "Overview", icon: LayoutGrid },
@@ -100,10 +101,14 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
   const auth = useAuth();
   const { slug } = useParams<{ slug: string }>();
   const courseId = slug ?? "";
+  const [searchParams] = useSearchParams();
+  const selectedSubjectId = searchParams.get("subject");
   const [activeTab, setActiveTab] = useState<CourseTabId>("overview");
   const [expandedModuleId, setExpandedModuleId] = useState<string | null>(null);
-  const [course, setCourse] = useState<StudentCourseDetail | null>(null);
-  const [lessons, setLessons] = useState<readonly StudentLessonItem[]>([]);
+  const [loadedCourse, setCourse] = useState<StudentCourseDetail | null>(null);
+  const selectedSubject = loadedCourse?.cataloguePresentation === "module_based" && selectedSubjectId ? loadedCourse.chapters.find(chapter => chapter.chapterId === selectedSubjectId) : undefined;
+  const course = useMemo(() => loadedCourse && selectedSubject ? { ...loadedCourse, chapters: [selectedSubject], chapterCount: 1, lessonCount: selectedSubject.lessons.length } : loadedCourse, [loadedCourse, selectedSubject]);
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [errorIsNotFound, setErrorIsNotFound] = useState(false);
@@ -129,7 +134,6 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
       .then((nextCourse) => {
         if (controller.signal.aborted) return;
         setCourse(nextCourse);
-        setLessons(nextCourse.chapters.flatMap((chapter) => chapter.lessons));
         const resumeLesson = nextCourse.chapters.flatMap((chapter) => chapter.lessons)
           .find((lesson) => lesson.progressStatus !== "completed" && lesson.playbackAvailable);
         setExpandedModuleId(resumeLesson?.chapterId ?? nextCourse.chapters[0]?.chapterId ?? null);
@@ -137,7 +141,6 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
       .catch((nextError: unknown) => {
         if (controller.signal.aborted) return;
         setCourse(null);
-        setLessons([]);
         // Decide "not available" from the HTTP status, never from message text.
         const classified = classifyStudentApiError(nextError);
         setErrorIsNotFound(classified.kind === "not_found" || classified.kind === "no_membership");
@@ -149,9 +152,11 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
     return () => controller.abort();
   }, [courseId, scope]);
 
+  useEffect(() => { if (selectedSubject) setExpandedModuleId(selectedSubject.chapterId); }, [selectedSubject?.chapterId]);
+
   const learningSpaceModules = useMemo(() => course ? mapCourseModules(course) : [], [course]);
   const learningSpaceResources = useMemo(() => course ? mapCourseResources(course) : [], [course]);
-  const totalLessons = lessons.length || course?.lessonCount || 0;
+  const totalLessons = course?.chapters.reduce((total, chapter) => total + chapter.lessons.length, 0) || course?.lessonCount || 0;
   const assignedInstructor = instructorQuery.data?.find((item) => item.courses.some((assigned) => assigned.courseId === courseId));
 
   // Only the server's access.canOpen grants lesson access; a course the
@@ -186,6 +191,8 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
   if (isLoading) return <CourseOverviewSkeleton />;
   if (error) return <FeedbackState message={error} tone="error" notFound={errorIsNotFound} />;
   if (!course) return <FeedbackState message="This course is not available for this student." />;
+  if (course.cataloguePresentation === "module_based" && !selectedSubjectId) return <ModuleSubjects course={course} />;
+  if (course.cataloguePresentation === "module_based" && !selectedSubject) return <FeedbackState message="This subject is not available in this module." notFound />;
 
   const allLessons = course.chapters.flatMap((chapter) => chapter.lessons);
   const completedCount = allLessons.filter((lesson) => lesson.progressStatus === "completed").length;
@@ -197,7 +204,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
   // Notes follow the lesson the student is working on, never blindly the
   // first lesson, and only for a released lesson they can open.
   const noteLesson = nextLesson ?? null;
-  const percent = progressPercent === null ? Math.round(totalLessons ? (completedCount / totalLessons) * 100 : 0) : Math.round(progressPercent);
+  const percent = selectedSubject ? Math.round(totalLessons ? (completedCount / totalLessons) * 100 : 0) : progressPercent === null ? Math.round(totalLessons ? (completedCount / totalLessons) * 100 : 0) : Math.round(progressPercent);
   const lessonStatusLabel = (lesson: StudentLessonItem) => lesson.progressStatus === "completed" ? "Completed"
     : lesson.progressStatus === "in_progress" ? "In progress"
       : lesson.playbackAvailable ? (lesson.resourceType === "pdf" ? "Reading" : "Ready") : toLessonLabel(lesson);
@@ -215,6 +222,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
     <section className="course-overview-page" aria-labelledby="course-overview-title">
       <div className="course-overview-layout">
         <div className={`course-overview-primary${activeTab === "overview" ? "" : " is-tab-expanded"}`}>
+          {selectedSubject && <button type="button" className="module-subjects__return" onClick={() => navigate(`/my-courses/${courseId}`)}>← All subjects</button>}
           {activeTab === "overview" ? (
             <article className="course-overview-hero" aria-labelledby="course-overview-title">
               <CourseHeroArt artwork={artwork} />
@@ -222,9 +230,9 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
                 <div className="course-overview-hero__intro">
                   <span className="course-overview-hero__status">
                     <CirclePlay aria-hidden="true" />
-                    {course.unitLabel} • {totalLessons} lessons
+                    {selectedSubject ? "Subject" : course.unitLabel} • {totalLessons} lessons
                   </span>
-                  <h2 id="course-overview-title">{course.title}</h2>
+                  <h2 id="course-overview-title">{selectedSubject?.title ?? course.title}</h2>
                   <p className="course-overview-hero__context">
                     <span>{course.academicInstitution.name}</span>
                     <i aria-hidden="true" />
@@ -257,14 +265,14 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
                 </button>
               </div>
               <dl className="course-overview-hero__meta">
-                <div><Clock3 aria-hidden="true" /><span><dt>Media</dt><dd>{course.mediaSummary.lessonsWithMedia}/{totalLessons} ready</dd></span></div>
+                <div><Clock3 aria-hidden="true" /><span><dt>Media</dt><dd>{selectedSubject ? selectedSubject.lessons.filter(lesson => lesson.playbackAvailable).length : course.mediaSummary.lessonsWithMedia}/{totalLessons} ready</dd></span></div>
                 <div><Gauge aria-hidden="true" /><span><dt>Level</dt><dd>{course.academicLevel.title}</dd></span></div>
                 <div><Sparkles aria-hidden="true" /><span><dt>Unit</dt><dd>{course.unitLabel}</dd></span></div>
               </dl>
             </article>
           ) : null}
 
-          {!canOpenCourse ? <p role="status" className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">This module is assigned to your account. Sessions will appear here when they are published and released for your account.</p> : null}
+          {!canOpenCourse ? <p role="status" className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">This course is assigned to your account. Sessions will appear here when they are published and released for your account.</p> : null}
           <div className="course-overview-tabs" role="tablist" aria-label="Course sections">
             {TABS.map(({ id, label, icon: Icon }, index) => (
               <button
@@ -346,7 +354,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
                           onClick={() => setExpandedModuleId(isExpanded ? null : module.id)}
                         >
                           <ChevronRight className="course-overview-module__leading-chevron" aria-hidden="true" />
-                          <span><strong>Chapter {module.number}: {module.title}</strong></span>
+                          <span><strong>{selectedSubject ? module.title : `Chapter ${module.number}: ${module.title}`}</strong></span>
                           <small>{module.lessonCount} lessons</small>
                           <ChevronDown className="course-overview-module__trailing-chevron" aria-hidden="true" />
                         </button>
@@ -381,8 +389,8 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
                 <dl className="course-overview-progress__metrics">
                   <div><dt>Lessons</dt><dd>{totalLessons}</dd></div>
                   <div><dt>Chapters</dt><dd>{course.chapterCount}</dd></div>
-                  <div><dt>Media ready</dt><dd>{course.mediaSummary.lessonsWithMedia}</dd></div>
-                  <div><dt>Pending</dt><dd>{course.mediaSummary.pendingMediaLessons}</dd></div>
+                  <div><dt>Media ready</dt><dd>{selectedSubject ? selectedSubject.lessons.filter(lesson => lesson.playbackAvailable).length : course.mediaSummary.lessonsWithMedia}</dd></div>
+                  <div><dt>Pending</dt><dd>{selectedSubject ? selectedSubject.lessons.filter(lesson => lesson.mediaStatus === "pending_media").length : course.mediaSummary.pendingMediaLessons}</dd></div>
                 </dl>
               </article>
             </>
