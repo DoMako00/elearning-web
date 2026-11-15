@@ -69,4 +69,11 @@ describe("Instructor lesson uploads", () => {
     expect((await screen.findByRole("alert")).textContent).toContain("Could not read this video's duration.");
     expect(api.createLessonResource).not.toHaveBeenCalled();
   });
+
+  it("submits the selected lesson for administrator review", async () => {
+    renderBuilder();
+    fireEvent.click(await screen.findByRole("button", { name: "Submit lesson for review" }));
+    await waitFor(() => expect(api.submitContentReview).toHaveBeenCalledWith("brand", "course", expect.objectContaining({ targetType: "lesson", targetId: "lesson" })));
+    expect(await screen.findByText(/Lesson submitted for administrator review/)).toBeTruthy();
+  });
 });
