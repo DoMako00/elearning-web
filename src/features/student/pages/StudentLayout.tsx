@@ -72,7 +72,7 @@ function StudentLayoutContent() {
   }
 
   const { courseTitle: currentCourseTitle, selectionTitle } = courseBreadcrumb(courseDetail, courseRouteMatch?.[2]);
-  const selectedSubject = courseDetail?.cataloguePresentation === "module_based" ? courseDetail.chapters.find(chapter => chapter.chapterId === new URLSearchParams(location.search).get("subject")) : undefined;
+  const selectedSubject = courseDetail?.cataloguePresentation === "module_based" ? (courseDetail.subjectSections ?? courseDetail.chapters.map(chapter => ({id: chapter.chapterId, title: chapter.title, sortOrder: chapter.sortOrder}))).find(chapter => chapter.id === new URLSearchParams(location.search).get("subject")) : undefined;
 
   const isHome = pathname === "/" || pathname === "";
   const isProfile = pathname === "/profile";

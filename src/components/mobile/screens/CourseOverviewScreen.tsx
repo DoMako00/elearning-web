@@ -29,8 +29,9 @@ export const CourseOverviewScreen: React.FC = () => {
   const [searchParams] = useSearchParams();
   const selectedSubjectId = searchParams.get("subject");
   const fullCourse = courseQuery.data;
-  const selectedSubject = fullCourse?.cataloguePresentation === "module_based" && selectedSubjectId ? fullCourse.chapters.find(chapter => chapter.chapterId === selectedSubjectId) : undefined;
-  const course = useMemo(() => fullCourse && selectedSubject ? { ...fullCourse, chapters: [selectedSubject], title: selectedSubject.title, lessonCount: selectedSubject.lessons.length } : fullCourse, [fullCourse, selectedSubject]);
+  const selectedSubject = fullCourse?.cataloguePresentation === "module_based" && selectedSubjectId ? (fullCourse.subjectSections ?? fullCourse.chapters.map(chapter => ({id: chapter.chapterId, title: chapter.title, sortOrder: chapter.sortOrder}))).find(subject => subject.id === selectedSubjectId) : undefined;
+  const selectedChapter = fullCourse?.chapters.find(chapter => chapter.chapterId === selectedSubject?.id);
+  const course = useMemo(() => fullCourse && selectedSubject ? { ...fullCourse, chapters: selectedChapter ? [selectedChapter] : [], title: selectedSubject.title, lessonCount: selectedChapter?.lessons.length ?? 0 } : fullCourse, [fullCourse, selectedSubject, selectedChapter]);
   const progress = progressQuery.data?.courses.find((item) => item.courseId === courseId);
   const modules = useMemo(() => course?.chapters.map((chapter, chapterIndex) => ({
     id: chapter.chapterId,

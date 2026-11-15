@@ -31,6 +31,7 @@ export interface StudentCourse {
   } | null;
   summary: string;
   slug: string;
+  subjectId?: string;
   access?: {
     isEnrolled: boolean;
     canOpen: boolean;

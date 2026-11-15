@@ -106,8 +106,9 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
   const [activeTab, setActiveTab] = useState<CourseTabId>("overview");
   const [expandedModuleId, setExpandedModuleId] = useState<string | null>(null);
   const [loadedCourse, setCourse] = useState<StudentCourseDetail | null>(null);
-  const selectedSubject = loadedCourse?.cataloguePresentation === "module_based" && selectedSubjectId ? loadedCourse.chapters.find(chapter => chapter.chapterId === selectedSubjectId) : undefined;
-  const course = useMemo(() => loadedCourse && selectedSubject ? { ...loadedCourse, chapters: [selectedSubject], chapterCount: 1, lessonCount: selectedSubject.lessons.length } : loadedCourse, [loadedCourse, selectedSubject]);
+  const selectedSubject = loadedCourse?.cataloguePresentation === "module_based" && selectedSubjectId ? (loadedCourse.subjectSections ?? loadedCourse.chapters.map(chapter => ({ id: chapter.chapterId, title: chapter.title, sortOrder: chapter.sortOrder }))).find(subject => subject.id === selectedSubjectId) : undefined;
+  const selectedChapter = loadedCourse?.chapters.find(chapter => chapter.chapterId === selectedSubject?.id);
+  const course = useMemo(() => loadedCourse && selectedSubject ? { ...loadedCourse, chapters: selectedChapter ? [selectedChapter] : [], chapterCount: selectedChapter ? 1 : 0, lessonCount: selectedChapter?.lessons.length ?? 0 } : loadedCourse, [loadedCourse, selectedSubject, selectedChapter]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -152,7 +153,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
     return () => controller.abort();
   }, [courseId, scope]);
 
-  useEffect(() => { if (selectedSubject) setExpandedModuleId(selectedSubject.chapterId); }, [selectedSubject?.chapterId]);
+  useEffect(() => { if (selectedChapter) setExpandedModuleId(selectedChapter.chapterId); }, [selectedChapter?.chapterId]);
 
   const learningSpaceModules = useMemo(() => course ? mapCourseModules(course) : [], [course]);
   const learningSpaceResources = useMemo(() => course ? mapCourseResources(course) : [], [course]);
@@ -265,7 +266,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
                 </button>
               </div>
               <dl className="course-overview-hero__meta">
-                <div><Clock3 aria-hidden="true" /><span><dt>Media</dt><dd>{selectedSubject ? selectedSubject.lessons.filter(lesson => lesson.playbackAvailable).length : course.mediaSummary.lessonsWithMedia}/{totalLessons} ready</dd></span></div>
+                <div><Clock3 aria-hidden="true" /><span><dt>Media</dt><dd>{selectedSubject ? (selectedChapter?.lessons ?? []).filter(lesson => lesson.playbackAvailable).length : course.mediaSummary.lessonsWithMedia}/{totalLessons} ready</dd></span></div>
                 <div><Gauge aria-hidden="true" /><span><dt>Level</dt><dd>{course.academicLevel.title}</dd></span></div>
                 <div><Sparkles aria-hidden="true" /><span><dt>Unit</dt><dd>{course.unitLabel}</dd></span></div>
               </dl>
@@ -389,8 +390,8 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
                 <dl className="course-overview-progress__metrics">
                   <div><dt>Lessons</dt><dd>{totalLessons}</dd></div>
                   <div><dt>Chapters</dt><dd>{course.chapterCount}</dd></div>
-                  <div><dt>Media ready</dt><dd>{selectedSubject ? selectedSubject.lessons.filter(lesson => lesson.playbackAvailable).length : course.mediaSummary.lessonsWithMedia}</dd></div>
-                  <div><dt>Pending</dt><dd>{selectedSubject ? selectedSubject.lessons.filter(lesson => lesson.mediaStatus === "pending_media").length : course.mediaSummary.pendingMediaLessons}</dd></div>
+                  <div><dt>Media ready</dt><dd>{selectedSubject ? (selectedChapter?.lessons ?? []).filter(lesson => lesson.playbackAvailable).length : course.mediaSummary.lessonsWithMedia}</dd></div>
+                  <div><dt>Pending</dt><dd>{selectedSubject ? (selectedChapter?.lessons ?? []).filter(lesson => lesson.mediaStatus === "pending_media").length : course.mediaSummary.pendingMediaLessons}</dd></div>
                 </dl>
               </article>
             </>

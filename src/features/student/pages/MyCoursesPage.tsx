@@ -12,7 +12,7 @@ import { useStudentCourseList } from "../api/useStudentCourses";
 import { useStudentProgress, useStudentSavedCourses, useToggleStudentSavedCourse } from "../api/useStudentLearning";
 import { classifyStudentApiError } from "../api/studentApiErrors";
 import type { StudentCourse } from "../../../components/ui/CourseLibrary/courses.data";
-import { toReferenceCourse } from "./referenceCourseMapper";
+import { toReferenceCourse, toSubjectCards } from "./referenceCourseMapper";
 export type { StudentCourse };
 
 function courseRouteState(course: StudentCourse) { return { courseTitle: course.title, courseId: course.id }; }
@@ -43,8 +43,8 @@ export function MyCoursesPage() {
   const recommendedCourses = useMemo(() => (explore.data ?? []).filter(course => !mine.data?.some(item => item.courseId === course.courseId)).map(course => toReferenceCourse(course, progressQuery.data)), [explore.data, mine.data, progressQuery.data]);
   const activeFocusCourse = enrolledCourses.find(course => course.id === selectedCourseId) ?? enrolledCourses[0] ?? null;
   const isModuleBased = activeFocusCourse?.categoryId === "module";
-  const otherSubjects = recommendedCourses.filter(course => course.categoryId === "subject");
-  const libraryRecommendations = isModuleBased ? otherSubjects : recommendedCourses;
+  const moduleSubjects = useMemo(() => (mine.data ?? []).flatMap(toSubjectCards), [mine.data]);
+  const libraryRecommendations = isModuleBased ? [] : recommendedCourses;
   const recommendedCourseIds = libraryRecommendations.map(course => course.id);
   const canViewFocusCourse = Boolean(activeFocusCourse?.access && canViewCourseDetails({access: activeFocusCourse.access}));
   const inProgressCount = enrolledCourses.filter(course => course.status === "in-progress").length;
@@ -364,12 +364,12 @@ export function MyCoursesPage() {
         )}
 
         {!isCoursesLoading && !coursesError && enrolledCourses.length > 0 ? (
-          <CourseLibrary courses={[...enrolledCourses, ...libraryRecommendations]} unitLabel="course" statusFilter={statusFilter} searchQuery={searchQuery} sortBy={sortBy}
+          <CourseLibrary courses={isModuleBased ? moduleSubjects : [...enrolledCourses, ...libraryRecommendations]} unitLabel={isModuleBased ? "subject" : "course"} statusFilter={statusFilter} searchQuery={searchQuery} sortBy={sortBy}
             bookmarked={bookmarked} selectedCourseId={selectedCourseId} onSelectCourse={setSelectedCourseId}
             lockedCourseIds={recommendedCourseIds}
             onToggleBookmark={toggleBookmark} onClearSearch={() => setSearchQuery("")} />
         ) : null}
-        {!isCoursesLoading && !coursesError && isModuleBased && otherSubjects.length === 0 && <p className="module-subjects__catalogue-note" role="status">Other subjects are not available in your current catalogue yet.</p>}
+        {!isCoursesLoading && !coursesError && isModuleBased && moduleSubjects.length === 0 && <p className="module-subjects__catalogue-note" role="status">Subjects will appear here when they are added to your modules.</p>}
       </div>
     </section>
   );

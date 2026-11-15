@@ -20,3 +20,14 @@ export function toReferenceCourse(course: StudentCourseItem, progress?: StudentP
     summary: course.code, access: course.access,
   };
 }
+
+/** Subject cards represent sections of an assigned module, never separate enrollments. */
+export function toSubjectCards(course: StudentCourseItem): StudentCourse[] {
+  if (course.cataloguePresentation !== "module_based") return [];
+  return (course.subjectSections ?? []).map(subject => {
+    const parent = toReferenceCourse({ ...course, title: subject.title });
+    return { ...parent, id: subject.id, slug: course.courseId, subjectId: subject.id, title: subject.title,
+      subtitle: `${course.title} · ${course.academicSemester.title}`, category: "Subject", categoryId: "subject",
+      progress: null, completedLessons: 0, totalLessons: 0, lessonText: "", opened: "Open subject details", status: "in-progress" };
+  });
+}

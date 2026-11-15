@@ -54,6 +54,7 @@ export interface StudentCourseItem {
   readonly academicLevel: { readonly levelNumber: number; readonly title: string };
   readonly academicSemester: { readonly semesterNumber: number; readonly title: string };
   readonly cataloguePresentation: CataloguePresentation;
+  readonly subjectSections?: readonly { readonly id: string; readonly title: string; readonly sortOrder: number }[];
   readonly unitLabel: "Subject" | "Module";
   readonly status: "draft" | "published";
   readonly chapterCount: number;

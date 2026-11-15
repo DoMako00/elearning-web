@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toReferenceCourse } from "./referenceCourseMapper";
+import { toReferenceCourse, toSubjectCards } from "./referenceCourseMapper";
 import type { StudentCourseItem } from "../api/studentCoursesApi";
 import type { StudentProgressSnapshotDto } from "../api/studentLearningApi";
 
@@ -62,5 +62,19 @@ describe("reference UI course mapping", () => {
     const mapped = toReferenceCourse({ ...course, title: "General Foundations", code: "NEX-Y1-DELTA-ANA1102" });
     expect(mapped.art).toBe("anatomy");
     expect(mapped.image).toContain("human-anatomy.webp");
+  });
+});
+
+describe("module subject cards", () => {
+  it("maps the module's real subject sections to subject links, without inventing progress", () => {
+    const cards = toSubjectCards({ ...course, title: "Basics 1", subjectSections: [
+      { id: "anatomy", title: "Anatomy — Theory", sortOrder: 1 },
+      { id: "histology", title: "Histology — Practical", sortOrder: 2 },
+    ] });
+    expect(cards.map(card => [card.id, card.slug, card.title, card.category, card.progress])).toEqual([
+      ["anatomy", "course-id", "Anatomy — Theory", "Subject", null],
+      ["histology", "course-id", "Histology — Practical", "Subject", null],
+    ]);
+    expect(toSubjectCards({ ...course, subjectSections: [] })).toEqual([]);
   });
 });

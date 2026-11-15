@@ -59,7 +59,7 @@ export function CourseLibrary({
 
   const openCourse = (course: StudentCourse) => {
     if (lockedIds.has(course.id) || !course.access || !canViewCourseDetails({access: course.access})) return;
-    navigate(`/my-courses/${course.slug}`, { state: { courseTitle: course.title, courseId: course.id } });
+    navigate(`/my-courses/${course.slug}${course.subjectId ? `?subject=${encodeURIComponent(course.subjectId)}` : ""}`, { state: { courseTitle: course.title, courseId: course.id } });
   };
 
   // Combine top search and local search
@@ -240,7 +240,7 @@ export function CourseLibrary({
                 key={course.id}
                 aria-label={course.title}
                 aria-description={isLocked ? lockedMessage : undefined}
-                onClick={() => { if (!isLocked) onSelectCourse(course.id); }}
+                onClick={() => { if (!isLocked) course.subjectId ? openCourse(course) : onSelectCourse(course.id); }}
               >
                 <div className={`course-library__list-art course-library__art--${course.art}`}>
                   <span><course.Icon aria-hidden="true" /></span>
@@ -264,7 +264,7 @@ export function CourseLibrary({
                   </div>
                 </div>
                 <div className="course-library__list-actions" onClick={(e) => e.stopPropagation()}>
-                  <button
+                  {!course.subjectId && <button
                     type="button"
                     className={`course-library__list-bookmark cursor-pointer ${isSaved ? "is-saved" : ""}`}
                     onClick={() => onToggleBookmark(course.id)}
@@ -272,7 +272,7 @@ export function CourseLibrary({
                     aria-pressed={isSaved}
                   >
                     <Bookmark aria-hidden="true" className={isSaved ? "fill-current text-[#16a34a]" : ""} />
-                  </button>
+                  </button>}
                   <button
                     type="button"
                     className="course-library__list-arrow cursor-pointer"
@@ -320,7 +320,7 @@ export function CourseLibrary({
                     key={course.id}
                     aria-label={course.title}
                     aria-description={isLocked ? lockedMessage : undefined}
-                    onClick={() => { if (!isLocked) onSelectCourse(course.id); }}
+                    onClick={() => { if (!isLocked) course.subjectId ? openCourse(course) : onSelectCourse(course.id); }}
                   >
                     <div className={`course-library__art course-library__art--${course.art}`}>
                       {course.image ? <img src={course.image} alt="" loading="lazy" /> : null}
@@ -329,7 +329,7 @@ export function CourseLibrary({
                         <em>{course.category}</em>
                         <em>{course.level}</em>
                       </div>
-                      <button
+                      {!course.subjectId && <button
                         type="button"
                         className={`cursor-pointer ${isSaved ? "is-bookmarked" : ""}`}
                         onClick={(e) => {
@@ -340,7 +340,7 @@ export function CourseLibrary({
                     aria-pressed={isSaved}
                       >
                         <Bookmark aria-hidden="true" className={isSaved ? "fill-current text-white" : ""} />
-                      </button>
+                      </button>}
                     </div>
                     <div className="course-library__card-body">
                       <div className="flex items-center justify-between">
