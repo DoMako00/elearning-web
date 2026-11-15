@@ -4,11 +4,13 @@ import { publicRoutes } from "./public.routes";
 import { studentRoutes } from "./student.routes";
 import { NotFoundPage } from "../pages/student/NotFoundPage";
 import { RouteSeo } from "../seo/RouteSeo";
+import { RouteErrorElement } from "../../components/layout/RouteErrorBoundary";
 
 export const router = createBrowserRouter([
   {
     // Pathless root route: sets the title, robots rule and share tags for whichever page is shown.
     element: <RouteSeo />,
+    errorElement: <RouteErrorElement />,
     children: [
       ...publicRoutes,
       ...studentRoutes,

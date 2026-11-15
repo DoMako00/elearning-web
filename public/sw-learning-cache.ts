@@ -363,7 +363,7 @@ self.addEventListener('install', (event: ExtendableEvent) => {
       return cache.addAll([
         '/',
         '/index.html',
-        '/manifest.json',
+        '/manifest.webmanifest',
       ]);
     }).then(() => self.skipWaiting())
   );
@@ -385,6 +385,10 @@ self.addEventListener('fetch', (event: FetchEvent) => {
   const { request } = event;
 
   if (request.method !== 'GET') return;
+
+  // Never intercept admin requests — admin operations are online-only and should not be cached or held stale.
+  const url = new URL(request.url);
+  if (url.pathname.startsWith('/admin')) return;
 
   event.respondWith(
     (async () => {

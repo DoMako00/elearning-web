@@ -1,10 +1,19 @@
 import { lazy, Suspense, type ComponentType } from "react";
 import { Navigate, type RouteObject } from "react-router-dom";
-import { RouteErrorBoundary } from "../../components/layout/RouteErrorBoundary";
+import { RouteErrorBoundary, RouteErrorElement } from "../../components/layout/RouteErrorBoundary";
 import { RouteLoadingFallback } from "../../components/layout/RouteLoadingFallback";
 
 const AdminV2Layout = lazy(() => import("../../features/admin-v2/layout/AdminV2Layout").then((m) => ({ default: m.AdminV2Layout })));
-const AdminLayout = () => <Suspense fallback={<RouteLoadingFallback withShell />}><AdminV2Layout /></Suspense>;
+const AdminLayout = () => (
+  <RouteErrorBoundary
+    fallbackTitle="Unable to load admin workspace"
+    fallbackMessage="A network error or updated deployment prevented the admin workspace from loading. Please reload."
+  >
+    <Suspense fallback={<RouteLoadingFallback withShell />}>
+      <AdminV2Layout />
+    </Suspense>
+  </RouteErrorBoundary>
+);
 
 const AdminV2InstructorsPage = lazy(() => import("../../features/admin-v2/instructors/InstructorsPage").then((m) => ({ default: m.InstructorsPage })));
 const AdminV2OverviewPage = lazy(() => import("../../features/admin-v2/overview/OverviewPage").then((m) => ({ default: m.OverviewPage })));
@@ -42,6 +51,12 @@ export const adminRoutes: RouteObject[] = [
   {
     path: "/admin",
     element: <AdminLayout />,
+    errorElement: (
+      <RouteErrorElement
+        fallbackTitle="Unable to load admin workspace"
+        fallbackMessage="A network error or updated deployment prevented the admin workspace from loading. Reloading the page usually resolves this."
+      />
+    ),
     children: [
       { index: true, element: withAdminSuspense(AdminV2OverviewPage, {}) },
       { path: "overview", element: withAdminSuspense(AdminV2OverviewPage, {}) },

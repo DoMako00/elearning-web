@@ -5,6 +5,19 @@ import { AppProviders } from "./app/providers/AppProviders";
 import { applyAppearancePreferences, loadAppearancePreferences } from "./features/settings/appearancePreferences";
 import "./styles/globals.css";
 
+// Auto-recover when dynamic module or CSS chunk preloading fails (e.g. following a new deployment).
+// Vite emits `vite:preloadError` before throwing. Suppressing it and refreshing fetches the new build manifest.
+window.addEventListener("vite:preloadError", (event) => {
+  event.preventDefault();
+  const reloadKey = "gl_vite_preload_reload_ts";
+  const lastReload = Number(sessionStorage.getItem(reloadKey) || 0);
+  const now = Date.now();
+  if (now - lastReload > 10000) {
+    sessionStorage.setItem(reloadKey, String(now));
+    window.location.reload();
+  }
+});
+
 applyAppearancePreferences(loadAppearancePreferences());
 
 const rootElement = document.getElementById("root");

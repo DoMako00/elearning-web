@@ -1,4 +1,5 @@
 import React, { Component, type ReactNode } from "react";
+import { useRouteError } from "react-router-dom";
 import { AlertCircle, RefreshCw } from "lucide-react";
 
 interface Props {
@@ -87,4 +88,40 @@ export class RouteErrorBoundary extends Component<Props, State> {
 
     return this.props.children;
   }
+}
+
+export function RouteErrorElement({
+  fallbackTitle = "Something went wrong",
+  fallbackMessage = "A network error or updated deployment prevented this page from loading. Reloading the page usually resolves this.",
+}: {
+  fallbackTitle?: string;
+  fallbackMessage?: string;
+}) {
+  const error = useRouteError();
+  console.error("[RouteErrorElement] Route caught error:", error);
+
+  const handleReload = () => {
+    window.location.reload();
+  };
+
+  return (
+    <div
+      role="alert"
+      className="w-full max-w-xl mx-auto my-12 p-8 rounded-2xl border border-rose-200/80 bg-rose-50/50 text-center shadow-xs"
+    >
+      <div className="size-12 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center mx-auto mb-4">
+        <AlertCircle className="size-6" />
+      </div>
+      <h2 className="text-lg font-bold text-slate-900 mb-2">{fallbackTitle}</h2>
+      <p className="text-sm text-slate-600 mb-6">{fallbackMessage}</p>
+      <button
+        type="button"
+        onClick={handleReload}
+        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-all cursor-pointer shadow-xs active:scale-98"
+      >
+        <RefreshCw className="size-4" />
+        <span>Reload Page</span>
+      </button>
+    </div>
+  );
 }
