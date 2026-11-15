@@ -1,10 +1,12 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RequireStudentAuth } from "./RequireStudentAuth";
 import { useAuth, type AuthState } from "../providers/AuthProvider";
+import { getAdminWorkspace } from "../../features/admin-v2/api/adminRolesApi";
 import { useIsMobile } from "../../hooks/useIsMobile";
 
+vi.mock("../../features/admin-v2/api/adminRolesApi", () => ({ getAdminWorkspace: vi.fn() }));
 vi.mock("../providers/AuthProvider", () => ({ useAuth: vi.fn() }));
 vi.mock("../../hooks/useIsMobile", () => ({ useIsMobile: vi.fn() }));
 vi.mock("../../components/layout/RouteLoadingFallback", () => ({
@@ -25,6 +27,8 @@ function renderAt(path: string) {
     <MemoryRouter initialEntries={[path]}>
       <Routes>
         <Route path="/auth/sign-in" element={<SignInProbe />} />
+        <Route path="/admin/instructor" element={<p>instructor workspace</p>} />
+        <Route path="/admin" element={<p>admin workspace</p>} />
         <Route path="/*" element={<RequireStudentAuth><p>private student data</p></RequireStudentAuth>} />
       </Routes>
     </MemoryRouter>,
@@ -32,7 +36,7 @@ function renderAt(path: string) {
 }
 
 describe.each([false, true])("RequireStudentAuth (mobile=%s)", (isMobile) => {
-  beforeEach(() => { vi.mocked(useIsMobile).mockReturnValue(isMobile); });
+  beforeEach(() => { vi.mocked(useIsMobile).mockReturnValue(isMobile); vi.mocked(getAdminWorkspace).mockReset(); });
 
   it("shows a loading state, not private content, while the session resolves", () => {
     vi.mocked(useAuth).mockReturnValue(authState("loading"));
@@ -48,9 +52,26 @@ describe.each([false, true])("RequireStudentAuth (mobile=%s)", (isMobile) => {
     expect(screen.queryByText("private student data")).toBeNull();
   });
 
-  it("renders the student area once authenticated", () => {
+  it("opens the student area when the workspace API denies admin access", async () => {
     vi.mocked(useAuth).mockReturnValue(authState("authenticated"));
+    vi.mocked(getAdminWorkspace).mockRejectedValue({ status: 403 });
     renderAt("/");
-    expect(screen.getByText("private student data")).toBeTruthy();
+    expect(await screen.findByText("private student data")).toBeTruthy();
+  });
+
+  it.each([["instructor", "instructor workspace"], ["super_admin", "admin workspace"]] as const)("routes %s to the correct workspace", async (workspace, label) => {
+    vi.mocked(useAuth).mockReturnValue(authState("authenticated"));
+    vi.mocked(getAdminWorkspace).mockResolvedValue({ workspace } as Awaited<ReturnType<typeof getAdminWorkspace>>);
+    renderAt("/");
+    expect(await screen.findByText(label)).toBeTruthy();
+    expect(screen.queryByText("private student data")).toBeNull();
+  });
+
+  it("does not show student data during a workspace service failure and can retry", async () => {
+    vi.mocked(useAuth).mockReturnValue(authState("authenticated"));
+    vi.mocked(getAdminWorkspace).mockRejectedValueOnce({ status: 503 }).mockResolvedValueOnce({ workspace: "instructor" } as Awaited<ReturnType<typeof getAdminWorkspace>>);
+    renderAt("/");
+    fireEvent.click(await screen.findByRole("button", { name: "Try again" }));
+    expect(await screen.findByText("instructor workspace")).toBeTruthy();
   });
 });
