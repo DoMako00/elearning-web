@@ -192,3 +192,11 @@
 .admin-v2--instructor .instructor-course-builder__metadata > div { padding-bottom: 10px; border-bottom: 1px solid #edf3ef; }
 .admin-v2--instructor .instructor-course-builder__materials-empty,
 .admin-v2--instructor .instructor-course-builder__approval { border-color: #dfebe3; border-radius: 12px; background: #f7fbf8; }
+
+/* Structure actions retain the existing tree and its interaction timing. */
+.instructor-course-builder__chapter > header { grid-template-columns: 24px 18px minmax(0, 1fr) auto auto; }
+.instructor-course-builder__lesson-row { display: flex; align-items: center; min-width: 0; }
+.instructor-course-builder__lesson-row .instructor-course-builder__lesson { min-width: 0; flex: 1; }
+.instructor-course-builder__archive { flex: 0 0 30px; width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 7px; background: transparent; color: #6f7f75; cursor: pointer; }
+.instructor-course-builder__archive:hover, .instructor-course-builder__archive:focus-visible { background: #eef5f0; color: #164c2d; }
+.instructor-course-builder__archive:disabled { opacity: .5; cursor: wait; }
