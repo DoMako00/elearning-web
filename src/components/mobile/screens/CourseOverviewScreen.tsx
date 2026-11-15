@@ -33,21 +33,22 @@ export const CourseOverviewScreen: React.FC = () => {
   const selectedChapter = fullCourse?.chapters.find(chapter => chapter.chapterId === selectedSubject?.id);
   const course = useMemo(() => fullCourse && selectedSubject ? { ...fullCourse, chapters: selectedChapter ? [selectedChapter] : [], title: selectedSubject.title, lessonCount: selectedChapter?.lessons.length ?? 0 } : fullCourse, [fullCourse, selectedSubject, selectedChapter]);
   const progress = progressQuery.data?.courses.find((item) => item.courseId === courseId);
-  const modules = useMemo(() => course?.chapters.map((chapter, chapterIndex) => ({
-    id: chapter.chapterId,
-    number: chapterIndex + 1,
-    title: chapter.title,
-    lessons: chapter.lessons.map((lesson, lessonIndex) => ({
-      id: lesson.lessonId,
-      number: lessonIndex + 1,
-      title: lesson.title,
-      isCompleted: lesson.progressStatus === "completed",
-      resourceTitle: lesson.resourceTitle,
-      resourceType: lesson.resourceType,
-      resourceId: lesson.resourceId,
-      playbackAvailable: lesson.playbackAvailable,
-    })),
-  })) ?? [], [course]);
+  const modules = useMemo(() => {
+    if (selectedSubject && "outline" in selectedSubject && selectedSubject.outline?.length) {
+      const released = new Map((selectedChapter?.lessons ?? []).map(lesson => [lesson.lessonId, lesson]));
+      return [{ id: selectedSubject.id, number: 1, title: selectedSubject.title, lessons: selectedSubject.outline.map((entry, index) => {
+        const lesson = released.get(entry.id);
+        return { id: entry.id, number: index + 1, title: entry.title, isCompleted: lesson?.progressStatus === "completed", resourceTitle: lesson?.resourceTitle ?? "Not released", resourceType: lesson?.resourceType ?? null, resourceId: lesson?.resourceId ?? null, playbackAvailable: lesson?.playbackAvailable ?? false };
+      }) }];
+    }
+    return course?.chapters.map((chapter, chapterIndex) => ({
+      id: chapter.chapterId, number: chapterIndex + 1, title: chapter.title,
+      lessons: chapter.lessons.map((lesson, lessonIndex) => ({
+        id: lesson.lessonId, number: lessonIndex + 1, title: lesson.title, isCompleted: lesson.progressStatus === "completed",
+        resourceTitle: lesson.resourceTitle, resourceType: lesson.resourceType, resourceId: lesson.resourceId, playbackAvailable: lesson.playbackAvailable,
+      })),
+    })) ?? [];
+  }, [course, selectedSubject, selectedChapter]);
   const resources = useMemo<DocumentItem[]>(() => course?.chapters.flatMap((chapter) => chapter.lessons
     .filter((lesson) => lesson.resourceId)
     .map((lesson) => ({ id: lesson.lessonId, filename: lesson.resourceTitle ?? lesson.title, extension: lesson.resourceType ?? "resource", courseTitle: course.title, fileSize: lesson.playbackAvailable ? "Available through protected delivery" : "Not currently released", timestamp: "" }))) ?? [], [course]);

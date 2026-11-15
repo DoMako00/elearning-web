@@ -44,6 +44,7 @@ import "./CourseOverviewPage.css";
 import { CourseHeroArt, CourseMaterialsCard, CourseOverviewSkeleton } from "./CourseOverviewReferenceCards";
 import { toReferenceCourse } from "./referenceCourseMapper";
 import { ModuleSubjects } from "./ModuleSubjects";
+import { subjectCurriculum } from "./subjectCurriculum";
 
 const TABS = [
   { id: "overview", label: "Overview", icon: LayoutGrid },
@@ -153,7 +154,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
     return () => controller.abort();
   }, [courseId, scope]);
 
-  useEffect(() => { if (selectedChapter) setExpandedModuleId(selectedChapter.chapterId); }, [selectedChapter?.chapterId]);
+  useEffect(() => { if (selectedSubject) setExpandedModuleId(selectedSubject.id); }, [selectedSubject?.id]);
 
   const learningSpaceModules = useMemo(() => course ? mapCourseModules(course) : [], [course]);
   const learningSpaceResources = useMemo(() => course ? mapCourseResources(course) : [], [course]);
@@ -212,7 +213,11 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
 
   const firstLesson = nextLesson;
   const canStartLesson = Boolean(firstLesson && canOpenCourse);
-  const courseModules = course.chapters.map((chapter,index) => ({
+  const previewOutline = selectedSubject && "outline" in selectedSubject ? selectedSubject.outline ?? [] : [];
+  const courseModules = selectedSubject && previewOutline.length ? [{
+    id: selectedSubject.id, number: 1, title: selectedSubject.title, lessonCount: previewOutline.length,
+    lessons: subjectCurriculum({ ...selectedSubject, outline: previewOutline }, selectedChapter, canOpenCourse),
+  }] : course.chapters.map((chapter,index) => ({
     id: chapter.chapterId, number: index+1, title: chapter.title, lessonCount: chapter.lessons.length,
     lessons: chapter.lessons.map((lesson,i) => ({id: lesson.lessonId, number: i+1, title: lesson.title,
       ready: canOpenCourse && lesson.playbackAvailable, mediaStatus: lessonStatusLabel(lesson)})),
@@ -223,12 +228,12 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
     <section className="course-overview-page" aria-labelledby="course-overview-title">
       <div className="course-overview-layout">
         <div className={`course-overview-primary${activeTab === "overview" ? "" : " is-tab-expanded"}`}>
-          {selectedSubject && <button type="button" className="module-subjects__return" onClick={() => navigate(`/my-courses/${courseId}`)}>← All subjects</button>}
           {activeTab === "overview" ? (
             <article className="course-overview-hero" aria-labelledby="course-overview-title">
               <CourseHeroArt artwork={artwork} />
               <div className="course-overview-hero__content">
                 <div className="course-overview-hero__intro">
+                  {selectedSubject && <button type="button" className="module-subjects__return" onClick={() => navigate(`/my-courses/${courseId}`)}>← All subjects</button>}
                   <span className="course-overview-hero__status">
                     <CirclePlay aria-hidden="true" />
                     {selectedSubject ? "Subject" : course.unitLabel} • {totalLessons} lessons
@@ -273,7 +278,6 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
             </article>
           ) : null}
 
-          {!canOpenCourse ? <p role="status" className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">This course is assigned to your account. Sessions will appear here when they are published and released for your account.</p> : null}
           <div className="course-overview-tabs" role="tablist" aria-label="Course sections">
             {TABS.map(({ id, label, icon: Icon }, index) => (
               <button
@@ -296,7 +300,8 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
           <div className="course-overview-panel course-overview-panel--overview" role="tabpanel" id="course-overview-panel-overview" aria-labelledby="course-overview-tab-overview" hidden={activeTab !== "overview"}>
             <div className="course-overview-info-row">
               <article className="course-overview-card course-overview-about">
-                <h2>About this {course.unitLabel.toLowerCase()}</h2>
+                <h2>About this {selectedSubject ? "subject" : course.unitLabel.toLowerCase()}</h2>
+                {!canOpenCourse && <p role="status">Lesson titles are shown below. Content becomes available after publication and release.</p>}
                 <p>{course.title} is assigned to {course.brand.name} students in {course.academicInstitution.name} {course.academicLevel.title}, {course.academicSemester.title}.</p>
                 <dl>
                   <div><Sparkles aria-hidden="true" /><span><dt>Presentation</dt><dd>{course.cataloguePresentation === "subject_based" ? "Subject based" : "Module based"}</dd></span></div>
@@ -339,10 +344,11 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
             <>
               <article className="course-overview-card course-overview-curriculum">
                 <header>
-                  <h2>{course.unitLabel} curriculum</h2>
-                  <span>{totalLessons} lessons</span>
+                  <h2>{selectedSubject ? "Subject" : course.unitLabel} curriculum</h2>
+                  <span>{selectedSubject && previewOutline.length ? previewOutline.length : totalLessons} lessons</span>
                 </header>
                 <div className="course-overview-curriculum__modules">
+                  {courseModules.length === 0 && <p role="status">No lessons are available in this subject yet.</p>}
                   {courseModules.map((module) => {
                     const isExpanded = expandedModuleId === module.id;
                     return (

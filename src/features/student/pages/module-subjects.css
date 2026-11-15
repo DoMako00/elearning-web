@@ -1,2 +1,5 @@
 .module-subjects__return { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; margin-bottom: 12px; border: 1px solid #b8d8c4; border-radius: 8px; padding: 7px 10px; background: #f5fbf7; color: #155b36; font-size: 12px; font-weight: 700; cursor: pointer; }
 .module-subjects__catalogue-note { margin: 14px 0; color: #62786a; font-size: 13px; }
+
+.course-overview-primary--module { display: flex; flex-direction: column; overflow-y: auto; }
+.course-overview-primary--module .course-overview-hero { min-height: clamp(285px, 34vh, 390px); flex-shrink: 0; }

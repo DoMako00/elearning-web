@@ -13,11 +13,11 @@ export function ModuleSubjects({ course }: { course: StudentCourseDetail }) {
   const subjects = toSubjectCards({ ...course, subjectSections: sections });
   const artwork = toReferenceCourse(course).heroOverlay;
   return <section className="course-overview-page" aria-labelledby="module-subjects-title">
-    <div className="course-overview-layout"><div className="course-overview-primary">
-      <button type="button" className="module-subjects__return" onClick={() => navigate("/my-courses")}><ArrowLeft size={14} /> My Courses</button>
+    <div className="course-overview-layout"><div className="course-overview-primary course-overview-primary--module">
       <article className="course-overview-hero" aria-labelledby="module-subjects-title">
         <CourseHeroArt artwork={artwork} />
         <div className="course-overview-hero__content"><div className="course-overview-hero__intro">
+          <button type="button" className="module-subjects__return" onClick={() => navigate("/my-courses")}><ArrowLeft size={14} /> My Courses</button>
           <span className="course-overview-hero__status"><CirclePlay aria-hidden="true" /> Module · {course.academicSemester.title}</span>
           <h2 id="module-subjects-title">{course.title}</h2>
           <p className="course-overview-hero__context"><span>{course.academicInstitution.name}</span><i aria-hidden="true" /><span>{course.academicLevel.title}</span><i aria-hidden="true" /><span>{course.academicSemester.title}</span></p>
