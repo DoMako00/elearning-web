@@ -37,7 +37,7 @@ export function InstructorCourseContentPage() {
   const [collapsed,setCollapsed]=useState<Set<string>>(()=>new Set());
   const [errorInfo,setErrorInfo]=useState<FriendlyErrorInfo|null>(null);
   const chapters=structure.data?.chapters.filter(item=>item.status!=="archived")??[];
-  const lessons=structure.data?.lessons.filter(item=>item.status!=="archived")??[];
+  const lessons=structure.data?.lessons.filter(item=>item.status!=="archived"&&chapters.some(chapter=>chapter.id===item.courseChapterId))??[];
   const selectedLesson=lessons.find(item=>item.id===selectedLessonId)??lessons[0];
   const selectedChapter=chapters.find(item=>item.id===selectedLesson?.courseChapterId);
   const resources=useQuery({queryKey:["instructor","lesson-resources",courseId,selectedLesson?.id],queryFn:()=>listLessonResources(course!.brandId,course!.id),enabled:Boolean(course&&selectedLesson)});
@@ -51,13 +51,17 @@ export function InstructorCourseContentPage() {
     const latest=await listStructure(course.brandId,course.id);
     const current=latest[entity].find(entry=>entry.id===item.id);
     if(!current||current.status!=="draft")throw new Error("This item is no longer a draft. Reload the course structure.");
-    if(entity==="chapters"&&latest.lessons.some(entry=>entry.courseChapterId===item.id&&entry.status!=="archived"))throw new Error("Archive this chapter's active lessons first.");
+    if(entity==="chapters"){
+      const children=latest.lessons.filter(entry=>entry.courseChapterId===item.id);
+      if(children.some(entry=>entry.status==="published"))throw new Error("This chapter contains published lessons. Contact an administrator before archiving it.");
+      const inventories=await Promise.all(children.map(lesson=>listLessonMedia({brand:{id:course.brandId},course:{id:course.id},lesson})));
+      if(inventories.some(inventory=>inventory.assets.length>0))throw new Error("This chapter contains files or upload records. Contact an administrator before archiving it.");
+    }
     await updateStructureRecord(course.brandId,course.id,entity,item.id,{status:"archived",expectedVersion:current.version,reason:`Instructor archived a ${entity==="chapters"?"chapter":"lesson"} draft`});
   },onSuccess:async(_,variables)=>{setErrorInfo(null);setNotice(`${variables.entity==="chapters"?"Chapter":"Lesson"} archived. Its history is retained.`);await refresh();},onError:e=>setErrorInfo(friendlyError(e))});
   const requestArchive=(entity:StructureEntity,item:StructureItem)=>{
     const kind=entity==="chapters"?"chapter":"lesson";
-    if(entity==="chapters"&&lessons.some(entry=>entry.courseChapterId===item.id)){setErrorInfo(friendlyError(new Error("Archive this chapter's active lessons first.")));return;}
-    if(window.confirm(`Archive "${item.title}"? This ${kind} will be removed from the active course, while its history is retained.`)){setNotice("");setErrorInfo(null);archiveStructure.mutate({entity,item});}
+    if(window.confirm(`Archive "${item.title}"? This ${kind}${entity==="chapters"?" and its lessons":""} will be removed from the active course, while its history is retained. A chapter containing files cannot be archived here.`)){setNotice("");setErrorInfo(null);archiveStructure.mutate({entity,item});}
   };
   const createChapter=useMutation({mutationFn:()=>{if(!course||!chapterTitle.trim())throw new Error("Enter a chapter title.");return createStructureRecord(course.brandId,course.id,"chapters",{title:chapterTitle.trim(),sortOrder:Math.max(0,...chapters.map(item=>item.sortOrder))+1,status:"draft",reason:"Instructor created a course chapter draft"});},onSuccess:async()=>{setChapterTitle("");setNotice("Chapter draft created.");setErrorInfo(null);await refresh();},onError:e=>setErrorInfo(friendlyError(e))});
   const createLesson=useMutation({mutationFn:()=>{if(!course||!selectedChapter||!lessonTitle.trim())throw new Error("Select a chapter and enter a lesson title.");return createStructureRecord(course.brandId,course.id,"lessons",{title:lessonTitle.trim(),description:lessonDescription.trim()||null,courseChapterId:selectedChapter.id,sortOrder:Math.max(0,...lessons.filter(item=>item.courseChapterId===selectedChapter.id).map(item=>item.sortOrder))+1,status:"draft",reason:"Instructor created a course lesson draft"});},onSuccess:async()=>{setLessonTitle("");setLessonDescription("");setNotice("Lesson draft created.");setErrorInfo(null);await refresh();},onError:e=>setErrorInfo(friendlyError(e))});
