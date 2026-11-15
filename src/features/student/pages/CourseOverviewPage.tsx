@@ -158,7 +158,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
 
   const learningSpaceModules = useMemo(() => course ? mapCourseModules(course) : [], [course]);
   const learningSpaceResources = useMemo(() => course ? mapCourseResources(course) : [], [course]);
-  const totalLessons = course?.chapters.reduce((total, chapter) => total + chapter.lessons.length, 0) || course?.lessonCount || 0;
+  const totalLessons = selectedSubject && "outline" in selectedSubject && selectedSubject.outline ? selectedSubject.outline.length : course?.chapters.reduce((total, chapter) => total + chapter.lessons.length, 0) || course?.lessonCount || 0;
   const assignedInstructor = instructorQuery.data?.find((item) => item.courses.some((assigned) => assigned.courseId === courseId));
 
   // Only the server's access.canOpen grants lesson access; a course the
@@ -305,7 +305,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
                 <p>{course.title} is assigned to {course.brand.name} students in {course.academicInstitution.name} {course.academicLevel.title}, {course.academicSemester.title}.</p>
                 <dl>
                   <div><Sparkles aria-hidden="true" /><span><dt>Presentation</dt><dd>{course.cataloguePresentation === "subject_based" ? "Subject based" : "Module based"}</dd></span></div>
-                  <div><LayoutGrid aria-hidden="true" /><span><dt>Includes</dt><dd>{course.chapterCount} chapters, {totalLessons} lessons</dd></span></div>
+                  <div><LayoutGrid aria-hidden="true" /><span><dt>Includes</dt><dd>{selectedSubject ? `${totalLessons} lessons` : `${course.chapterCount} chapters, ${totalLessons} lessons`}</dd></span></div>
                   <div><Clock3 aria-hidden="true" /><span><dt>Playback</dt><dd>{canStartLesson ? "Available" : "Not released yet"}</dd></span></div>
                   <div><ShieldCheck aria-hidden="true" /><span><dt>Access</dt><dd>Verified student scope</dd></span></div>
                 </dl>
