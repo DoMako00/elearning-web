@@ -1,6 +1,7 @@
 import React, { Component, type ReactNode } from "react";
 import { useRouteError } from "react-router-dom";
 import { AlertCircle, RefreshCw } from "lucide-react";
+import { isChunkLoadError, recoverMissingChunk } from "../../shared/utils/chunkRecovery";
 
 interface Props {
   children: ReactNode;
@@ -24,6 +25,7 @@ export class RouteErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    if (isChunkLoadError(error) && recoverMissingChunk()) return;
     console.error("[RouteErrorBoundary] Uncaught route load error:", error, errorInfo);
   }
 
