@@ -9,7 +9,7 @@ function FileGlyph({ extension: _extension }: { extension: LearningSpaceResource
   return <FileText aria-hidden="true" />;
 }
 
-export function CourseResourcesPanel({ resources: courseResources, courseTitle, onOpenLesson }: { resources: readonly LearningSpaceResource[]; courseTitle: string; onOpenLesson: (lessonId: string) => void }) {
+export function CourseResourcesPanel({ resources: courseResources, courseTitle, onOpenLesson }: { resources: readonly LearningSpaceResource[]; courseTitle: string; onOpenLesson: (lessonId: string, assetId?: string) => void }) {
   const [query, setQuery] = useState("");
   const [type, setType] = useState<(typeof TYPE_FILTERS)[number]>("All types");
   const [chapterId, setChapterId] = useState("all");
@@ -31,7 +31,7 @@ export function CourseResourcesPanel({ resources: courseResources, courseTitle, 
     if (!resource.available || openingId) return;
     setError(null);
     if (resource.extension === "video") {
-      onOpenLesson(resource.lessonId);
+      onOpenLesson(resource.lessonId, resource.id);
       return;
     }
     setOpeningId(resource.id);

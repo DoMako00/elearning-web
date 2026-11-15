@@ -7,6 +7,8 @@ import { useIsMobile } from "../../../hooks/useIsMobile";
 import { MobileLayout } from "../../../components/mobile/MobileLayout";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import { useStudentProfile } from "../api/useStudentLearning";
+import { useStudentCourseDetail } from "../api/useStudentCourses";
+import { courseBreadcrumb } from "./courseBreadcrumb";
 import { useMarkStudentNotificationsRead, useStudentNotifications } from "../api/useStudentNotifications";
 import { MessagesProvider } from "../../../app/providers/MessagesProvider";
 import { PageBreadcrumb } from "../../../components/ui/PageBreadcrumb";
@@ -31,6 +33,9 @@ function StudentLayoutContent() {
   const notifications = useMemo(() => (notificationsQuery.data ?? []).map((item) => ({ ...item, isUnread: item.readAt === null })), [notificationsQuery.data]);
   const unreadNotificationsCount = notifications.reduce((count, item) => count + Number(item.isUnread), 0);
   const pathname = location.pathname;
+  const courseRouteMatch = pathname.match(/^\/my-courses\/([^/]+)(?:\/lessons\/([^/]+))?$/);
+  const currentCourseId = courseRouteMatch?.[1] ?? "";
+  const courseDetail = useStudentCourseDetail(currentCourseId || undefined).data;
 
   // Render Mobile Layout when viewport matches <= 767px
   if (isMobile) {
@@ -64,10 +69,7 @@ function StudentLayoutContent() {
     return null;
   }
 
-  const courseRouteMatch = pathname.match(/^\/my-courses\/([^/]+)(?:\/lessons\/([^/]+))?$/);
-  const courseRouteState = location.state as { courseTitle?: unknown; courseId?: unknown } | null;
-  const currentCourseTitle = typeof courseRouteState?.courseTitle === "string" && courseRouteState.courseTitle.trim() ? courseRouteState.courseTitle : "Subject overview";
-  const currentCourseId = courseRouteMatch?.[1] ?? "";
+  const { courseTitle: currentCourseTitle, selectionTitle } = courseBreadcrumb(courseDetail, courseRouteMatch?.[2]);
 
   const isHome = pathname === "/" || pathname === "";
   const isProfile = pathname === "/profile";
@@ -122,7 +124,7 @@ function StudentLayoutContent() {
             { label: "MY COURSES", to: "/my-courses" },
             { label: currentCourseTitle.toUpperCase(), to: `/my-courses/${currentCourseId}` },
           ]}
-          title="Lesson Player"
+          title={selectionTitle}
         />
       );
     }

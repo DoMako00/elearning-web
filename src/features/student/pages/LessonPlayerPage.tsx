@@ -23,8 +23,9 @@ import {
   FolderOpen
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { fetchScopedCourseDetail } from "../api/useStudentCourses";
+import { selectLessonMedia } from "../api/selectLessonMedia";
 import { useStudentScope } from "../scope/StudentScopeProvider";
 import { completeStudentVideoPlayback, getStudentProtectedMedia, reportStudentVideoPlaybackHeartbeat, startStudentVideoPlayback, StudentCoursesApiError, type StudentCourseDetail, type StudentLessonItem, type StudentVideoPlaybackState } from "../api/studentCoursesApi";
 import { useStudentProgress, useStudentLessonProgressMutation } from "../api/useStudentLearning";
@@ -425,7 +426,7 @@ function MaterialsCard({ className = "", hidden = false, materials = [], onOpen 
   );
 }
 
-function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, videoPlayback }: { course: StudentCourseDetail; lessonId: string; mediaAssetId: string; mediaUrl: string; videoPlayback?: StudentVideoPlaybackState }) {
+function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, mediaType, videoPlayback }: { course: StudentCourseDetail; lessonId: string; mediaAssetId: string; mediaUrl: string; mediaType: "video" | "pdf"; videoPlayback?: StudentVideoPlaybackState }) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<LessonTabId>("overview");
   const modules: CourseModule[] = course.chapters.map((chapter, index) => ({
@@ -459,9 +460,8 @@ function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, 
   const percent = courseProgress?.completionPercent;
   const isAlreadyCompleted = progressStatus === "completed";
   const isComplete = isAlreadyCompleted;
-  const materials: LessonMaterial[] = current?.resourceId && current.resourceType
-    ? [{ id: current.resourceId, title: current.resourceTitle ?? current.title, extension: current.resourceType }]
-    : [];
+  const materials: LessonMaterial[] = learningSpaceResources.filter(resource => resource.lessonId === lessonId)
+    .map(resource => ({ id: resource.id, title: resource.title, extension: resource.extension }));
 
   useEffect(() => {
     setProgressStatus(current?.progressStatus ?? "not_started");
@@ -500,7 +500,7 @@ function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, 
   };
 
   const handleMarkComplete = () => void handleProgress("completed");
-  const openLesson = (id: string) => navigate(`/my-courses/${course.courseId}/lessons/${id}`);
+  const openLesson = (id: string, assetId?: string) => navigate(`/my-courses/${course.courseId}/lessons/${id}${assetId ? `?asset=${encodeURIComponent(assetId)}` : ""}`);
 
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, tabIndex: number) => {
     let nextIndex = tabIndex;
@@ -536,7 +536,7 @@ function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, 
       <div className="course-overview-layout">
         <div className={`course-overview-primary${activeTab === "overview" ? "" : " is-tab-expanded"}`}>
           <div className="lesson-player-slot h-full min-h-0" hidden={activeTab !== "overview"}>
-            <LessonVideoPlayer title={current.title} mediaUrl={mediaUrl} mediaType={current.resourceType ?? "video"} onStarted={() => void handleProgress("in_progress")} onHeartbeat={handlePlaybackHeartbeat} onComplete={(positionSeconds) => void handleVideoComplete(positionSeconds)} />
+            <LessonVideoPlayer title={current.title} mediaUrl={mediaUrl} mediaType={mediaType} onStarted={() => void handleProgress("in_progress")} onHeartbeat={handlePlaybackHeartbeat} onComplete={(positionSeconds) => void handleVideoComplete(positionSeconds)} />
           </div>
           <div className="course-overview-tabs" role="tablist" aria-label="Lesson sections">
             {TABS.map(({ id, label, icon: Icon }, index) => (
@@ -595,7 +595,7 @@ function StudentLessonPlayerContent({ course, lessonId, mediaAssetId, mediaUrl, 
           {activeTab === "notes" ? (
             <NotesWorkspaceRail modules={learningSpaceModules} onSelectModule={openLesson} onAction={() => setActiveTab("overview")} />
           ) : activeTab === "resources" ? (
-            <ResourcesWorkspaceRail modules={learningSpaceModules} resources={learningSpaceResources} onSelectModule={openLesson} onAction={() => setActiveTab("overview")} onOpenResource={(resource) => openLesson(resource.lessonId)} />
+            <ResourcesWorkspaceRail modules={learningSpaceModules} resources={learningSpaceResources} onSelectModule={openLesson} onAction={() => setActiveTab("overview")} onOpenResource={(resource) => openLesson(resource.lessonId, resource.id)} />
           ) : activeTab === "discussion" ? (
             <DiscussionWorkspaceRail modules={learningSpaceModules} onSelectModule={openLesson} />
           ) : (
@@ -701,9 +701,11 @@ function LessonUnavailable({ message, isError = false, loading = false }: { mess
 export function LessonPlayerPage() {
   const scope = useStudentScope();
   const { slug = "", lessonId = "" } = useParams();
+  const [searchParams] = useSearchParams();
+  const selectedAssetId = searchParams.get("asset");
   const [state, setState] = useState<
     | { status: "loading" }
-    | { status: "ready"; course: StudentCourseDetail; lesson: StudentLessonItem; mediaAssetId: string; mediaUrl: string; videoPlayback?: StudentVideoPlaybackState }
+    | { status: "ready"; course: StudentCourseDetail; lesson: StudentLessonItem; mediaAssetId: string; mediaUrl: string; mediaType: "video" | "pdf"; videoPlayback?: StudentVideoPlaybackState }
     | { status: "unavailable" | "error"; message: string }
   >({ status: "loading" });
 
@@ -723,11 +725,17 @@ export function LessonPlayerPage() {
           setState({ status: "unavailable", message: "This lesson has no published, authorized media resource yet." });
           return;
         }
-        const media = lesson.resourceType === "video"
-          ? await startStudentVideoPlayback({ assetId: lesson.resourceId, signal: controller.signal })
-          : await getStudentProtectedMedia({ assetId: lesson.resourceId, signal: controller.signal });
+        const selected = selectLessonMedia(lesson, selectedAssetId);
+        if (!selected) {
+          setState({ status: "unavailable", message: "This resource is not available in this lesson." });
+          return;
+        }
+        const { assetId, mediaType } = selected;
+        const media = mediaType === "video"
+          ? await startStudentVideoPlayback({ assetId, signal: controller.signal })
+          : await getStudentProtectedMedia({ assetId, signal: controller.signal });
         if (controller.signal.aborted) return;
-        setState({ status: "ready", course, lesson, mediaAssetId: lesson.resourceId!, mediaUrl: media.delivery.url, ...("playback" in media ? { videoPlayback: media.playback } : {}) });
+        setState({ status: "ready", course, lesson, mediaAssetId: assetId, mediaType, mediaUrl: media.delivery.url, ...("playback" in media ? { videoPlayback: media.playback } : {}) });
       })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
@@ -738,11 +746,11 @@ export function LessonPlayerPage() {
       });
 
     return () => controller.abort();
-  }, [scope, slug, lessonId]);
+  }, [scope, slug, lessonId, selectedAssetId]);
 
   if (state.status === "loading") return <LessonUnavailable loading message="Checking lesson access and media release." />;
   if (state.status === "error") return <LessonUnavailable message={state.message} isError />;
   if (state.status === "unavailable") return <LessonUnavailable message={state.message} />;
   if (state.status !== "ready") return <LessonUnavailable message="Lesson access could not be confirmed." isError />;
-  return <StudentLessonPlayerContent key={`${slug}:${lessonId}`} course={state.course} lessonId={lessonId} mediaAssetId={state.mediaAssetId} mediaUrl={state.mediaUrl} videoPlayback={state.videoPlayback} />;
+  return <StudentLessonPlayerContent key={`${slug}:${lessonId}:${state.mediaAssetId}`} course={state.course} lessonId={lessonId} mediaAssetId={state.mediaAssetId} mediaUrl={state.mediaUrl} mediaType={state.mediaType} videoPlayback={state.videoPlayback} />;
 }

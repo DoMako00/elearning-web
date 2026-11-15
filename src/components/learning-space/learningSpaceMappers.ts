@@ -29,16 +29,14 @@ export function mapCourseModules(course: StudentCourseDetail): LearningSpaceModu
 }
 
 export function mapCourseResources(course: StudentCourseDetail): LearningSpaceResource[] {
-  return course.chapters.flatMap((chapter) => chapter.lessons.flatMap((lesson) => {
+  return course.chapters.flatMap(chapter => chapter.lessons.flatMap(lesson => {
+    const items = (lesson.learningItems ?? []).filter(item => item.available && item.assetId && (item.kind === "pdf" || item.kind === "video"));
+    if (items.length) return items.map(item => ({
+      id: item.assetId!, title: item.title, extension: item.kind as "pdf" | "video", lessonId: lesson.lessonId,
+      chapterId: chapter.chapterId, chapterTitle: chapter.title, available: lesson.playbackAvailable,
+    }));
     if (!lesson.resourceId || !lesson.resourceType || lesson.mediaStatus !== "ready") return [];
-    return [{
-      id: lesson.resourceId,
-      title: lesson.resourceTitle || lesson.title,
-      extension: lesson.resourceType,
-      lessonId: lesson.lessonId,
-      chapterId: chapter.chapterId,
-      chapterTitle: chapter.title,
-      available: lesson.playbackAvailable,
-    }];
+    return [{ id: lesson.resourceId, title: lesson.resourceTitle || lesson.title, extension: lesson.resourceType,
+      lessonId: lesson.lessonId, chapterId: chapter.chapterId, chapterTitle: chapter.title, available: lesson.playbackAvailable }];
   }));
 }

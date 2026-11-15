@@ -8,7 +8,7 @@ interface LearningNotesPanelProps {
   lessonId?: string;
   lessonTitle?: string;
   resources: readonly LearningSpaceResource[];
-  onOpenLesson: (lessonId: string) => void;
+  onOpenLesson: (lessonId: string, assetId?: string) => void;
   onViewResources?: () => void;
 }
 
@@ -18,7 +18,7 @@ export function LearningNotesPanel({ lessonId, lessonTitle, resources, onOpenLes
   const openResource = async (resource: LearningSpaceResource) => {
     if (!resource.available || openingId) return;
     setError(null);
-    if (resource.extension === "video") { onOpenLesson(resource.lessonId); return; }
+    if (resource.extension === "video") { onOpenLesson(resource.lessonId, resource.id); return; }
     setOpeningId(resource.id);
     try {
       const delivery = await getStudentProtectedMedia({ assetId: resource.id });

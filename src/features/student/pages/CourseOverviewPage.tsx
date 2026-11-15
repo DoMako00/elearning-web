@@ -158,10 +158,10 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
   // student can view but not open never offers an actionable lesson.
   const canOpenCourse = course?.access?.canOpen === true;
 
-  const startLesson = (lessonId: string) => {
+  const startLesson = (lessonId: string, assetId?: string) => {
     if (!canOpenCourse) return;
     onStartLesson?.(lessonId);
-    navigate(`/my-courses/${courseId}/lessons/${lessonId}`, { state: { courseTitle: course?.title, courseId } });
+    navigate(`/my-courses/${courseId}/lessons/${lessonId}${assetId ? `?asset=${encodeURIComponent(assetId)}` : ""}`, { state: { courseTitle: course?.title, courseId } });
   };
 
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, tabIndex: number) => {
@@ -323,7 +323,7 @@ export function CourseOverviewPage({ onStartLesson }: CourseOverviewPageProps) {
           {activeTab === "notes" ? (
             <NotesWorkspaceRail modules={learningSpaceModules} onSelectModule={startLesson} onAction={() => setActiveTab("overview")} />
           ) : activeTab === "resources" ? (
-            <ResourcesWorkspaceRail modules={learningSpaceModules} resources={learningSpaceResources} onSelectModule={startLesson} onOpenResource={resource => startLesson(resource.lessonId)} />
+            <ResourcesWorkspaceRail modules={learningSpaceModules} resources={learningSpaceResources} onSelectModule={startLesson} onOpenResource={resource => startLesson(resource.lessonId, resource.id)} />
           ) : activeTab === "discussion" ? (
             <DiscussionWorkspaceRail modules={learningSpaceModules} onSelectModule={startLesson} />
           ) : (

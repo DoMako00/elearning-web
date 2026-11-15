@@ -15,7 +15,7 @@ export function CourseHeroArt({ artwork }: { artwork: string }) {
 interface CourseMaterialsCardProps {
   resources: ReturnType<typeof mapCourseResources>;
   canOpen: boolean;
-  onOpenLesson: (lessonId: string) => void;
+  onOpenLesson: (lessonId: string, assetId?: string) => void;
   onViewAll: () => void;
 }
 
@@ -29,7 +29,7 @@ export function CourseMaterialsCard({ resources, canOpen, onOpenLesson, onViewAl
       {resources.length ? (
         <div className="course-overview-materials__grid">
           {resources.slice(0, 3).map(resource => (
-            <button className="course-overview-material" key={resource.id} disabled={!canOpen || !resource.available} onClick={() => onOpenLesson(resource.lessonId)}>
+            <button className="course-overview-material" key={resource.id} disabled={!canOpen || !resource.available} onClick={() => onOpenLesson(resource.lessonId, resource.id)}>
               <span className="course-overview-material__icon"><Paperclip aria-hidden="true" /><small>{resource.extension}</small></span>
               <span className="course-overview-material__copy"><strong>{resource.title}</strong><small>{resource.chapterTitle}</small></span>
             </button>
