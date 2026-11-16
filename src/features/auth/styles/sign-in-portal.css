@@ -986,3 +986,14 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Carousel viewport/track: keep exactly three cards centered on desktop and one on small screens. */
+.signin-portal__carousel-viewport { width: min(100%, 1160px); overflow: hidden; touch-action: pan-y; }
+.signin-portal__carousel-track { display: flex; align-items: stretch; gap: clamp(14px, 1.8vw, 24px); width: 100%; will-change: transform; }
+.signin-portal__carousel-track.is-animated { transition: transform 420ms cubic-bezier(.2,.75,.25,1); }
+.signin-portal__carousel-track > .signin-portal__brand-card { flex: 0 0 calc((100% - 2 * clamp(14px, 1.8vw, 24px)) / 3); }
+@media (max-width: 900px) {
+  .signin-portal__carousel-viewport { width: min(100%, 460px); }
+  .signin-portal__carousel-track { gap: 16px; }
+  .signin-portal__carousel-track > .signin-portal__brand-card { flex-basis: 100%; }
+}
