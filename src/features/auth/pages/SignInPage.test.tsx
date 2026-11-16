@@ -7,7 +7,6 @@ import { activateProvisionedStudent, initiateOtpLogin, verifyOtp } from "../api/
 import { getAdminOverview } from "../../admin-v2/api/adminOperationsApi";
 import { getAdminWorkspace } from "../../admin-v2/api/adminRolesApi";
 import { assignLocation, reloadPage } from "../../../shared/utils/hardNavigation";
-import { NEXUS_LOGO_URL } from "../../../shared/brandAssets";
 
 vi.mock("../../../app/providers/AuthProvider", () => ({ useAuth: vi.fn() }));
 vi.mock("../api/identityApi", async (importOriginal) => ({
