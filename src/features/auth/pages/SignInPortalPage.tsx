@@ -16,9 +16,9 @@ import {
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getFallbackPublicBrands, listPublicBrands, type PublicBrand } from "../api/publicBrandCatalogApi";
 import { SignInPage } from "./SignInPage";
-import booksAndLeavesImg from "../../../assets/logins/books-and-leaves.webp";
-import graduationCapImg from "../../../assets/logins/graduation-cap-diploma.webp";
-import leafPlantImg from "../../../assets/logins/leaf-plant.webp";
+import booksAndLeavesImg from "../../../Assets/logins/books-and-leaves.webp";
+import graduationCapImg from "../../../Assets/logins/graduation-cap-diploma.webp";
+import leafPlantImg from "../../../Assets/logins/leaf-plant.webp";
 import "../styles/sign-in-portal.css";
 
 type PortalRole = "student" | "instructor" | "admin";
