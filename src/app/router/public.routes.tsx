@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 import type { RouteObject } from "react-router-dom";
 import { Navigate } from "react-router-dom";
-import { SignInPage } from "../../features/auth/pages/SignInPage";
+import { SignInPortalPage } from "../../features/auth/pages/SignInPortalPage";
 const MyProgressEmpty = lazy(() => import("../../features/student/components/MyProgress").then((m) => ({ default: m.MyProgressEmpty })));
 const WeeklyGoalCard = lazy(() => import("../../features/student/components/WeeklyGoalCard").then((m) => ({ default: m.WeeklyGoalCard })));
 // import { AssignmentsWorkspace } from "../../components/ui/Assignments";
@@ -309,7 +309,9 @@ export const publicRoutes: RouteObject[] = [
         // },
       ]
     : []),
-  { path: "/auth/sign-in", element: <SignInPage /> },
+  { path: "/auth/sign-in", element: <SignInPortalPage /> },
+  { path: "/auth/sign-in/:brandCode", element: <SignInPortalPage /> },
+  { path: "/auth/sign-in/:brandCode/:role", element: <SignInPortalPage /> },
   // Student accounts are provisioned by Admin; public signup/password auth is not supported.
   { path: "/auth/register", element: <Navigate to="/auth/sign-in" replace /> },
   // Legacy self-registration and phone-OTP onboarding are intentionally not valid auth flows.

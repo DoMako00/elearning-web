@@ -8,23 +8,25 @@ import {
 } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../app/providers/AuthProvider";
-import { activateProvisionedStudent, IdentityApiError, initiateOtpLogin, verifyOtp, type BrandCode } from "../api/identityApi";
+import { activateProvisionedStudent, IdentityApiError, initiateOtpLogin, verifyOtp } from "../api/identityApi";
 import { getAdminOverview } from "../../admin-v2/api/adminOperationsApi";
 import { getAdminWorkspace } from "../../admin-v2/api/adminRolesApi";
 import { assignLocation } from "../../../shared/utils/hardNavigation";
+import { toBrandCode } from "../../../shared/domain/brandInstitution";
 import authBotanicalBg from "../../../Assets/onboarding/auth-botanical-bg.jpg";
 import { BrandLogo } from "../../../components/brand/BrandLogo";
 import { NEXUS_LOGO_URL } from "../../../shared/brandAssets";
 import "../styles/SignInModern.css";
 
-export function SignInPage() {
+type PortalRole = "student" | "instructor" | "admin";
+interface SignInPageProps { brandCode?: string; brandName?: string; role?: PortalRole }
+
+export function SignInPage({ brandCode = "elite", brandName = "Elite", role = "student" }: SignInPageProps) {
   const location = useLocation();
   const auth = useAuth();
   const returnTo = (location.state as { from?: unknown } | null)?.from;
-  const adminReturn = typeof returnTo === "string" && returnTo.startsWith("/admin");
-
-  const [mode, setMode] = useState<"activate" | "signin">(adminReturn ? "signin" : "activate");
-  const [brand, setBrand] = useState<BrandCode>("elite");
+  const [studentMode, setStudentMode] = useState<"activate" | "signin">("activate");
+  const mode = role === "student" ? studentMode : "signin";
   const [identifier, setIdentifier] = useState("");
   const [accountIdentifier, setAccountIdentifier] = useState("");
   const [setupCode, setSetupCode] = useState("");
@@ -55,52 +57,46 @@ export function SignInPage() {
     setSubmitting(true);
     try {
       if(mode==="activate"){
-        await activateProvisionedStudent({brand,accountIdentifier,setupCode,remember});
+        await activateProvisionedStudent({brand: brandCode,accountIdentifier,setupCode,remember});
         setSetupCode("");
         assignLocation("/");
       }else if (!challengeId) {
-        const challenge = await initiateOtpLogin({ email: identifier, brand });
+        const challenge = await initiateOtpLogin({ email: identifier, brand: brandCode });
         setChallengeId(challenge.challengeId);
       } else {
         await verifyOtp({ challengeId, code: otp, email: identifier, remember });
         const savedDestination = typeof returnTo === "string" && returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : null;
-        // First: check the workspace endpoint — works for both super admins and instructors.
         let adminDestination: string | null = null;
         try {
           const workspace = await getAdminWorkspace();
-          if (workspace.workspace === "instructor") {
-            adminDestination = "/admin/instructor";
-          } else {
-            adminDestination = "/admin";
-          }
+          adminDestination = workspace.workspace === "instructor" ? "/admin/instructor" : "/admin";
         } catch (workspaceError) {
           const wsStatus = (workspaceError as { status?: number }).status;
-          if (wsStatus !== 403 && wsStatus !== 404) {
-            // Network / server error — fall back to optimistic /admin so the layout can decide.
-            adminDestination = "/admin";
-          }
-        }
-        // If workspace check didn't resolve, try the super-admin overview as a secondary check.
-        if (!adminDestination) {
-          for (const adminBrand of ["elite", "medway", "nexus"] as const) {
-            try { await getAdminOverview(adminBrand); adminDestination = "/admin"; break; }
-            catch (error) {
-              const status = (error as { status?: number }).status;
-              if (status !== 403 && status !== 404) { adminDestination = "/admin"; break; }
+          if (wsStatus !== 403 && wsStatus !== 404) throw workspaceError;
+          const knownBrandCode = toBrandCode(brandCode);
+          if (knownBrandCode) {
+            try { await getAdminOverview(knownBrandCode); adminDestination = "/admin"; }
+            catch (overviewError) {
+              const status = (overviewError as { status?: number }).status;
+              if (status !== 403 && status !== 404) throw overviewError;
             }
           }
         }
         if (adminDestination) {
-          assignLocation(savedDestination?.startsWith("/admin") ? savedDestination : adminDestination);
+          const isInstructorDestination = adminDestination === "/admin/instructor";
+          const canReturn = isInstructorDestination ? savedDestination?.startsWith("/admin/instructor") : savedDestination === "/admin" || savedDestination?.startsWith("/admin/");
+          assignLocation(canReturn ? savedDestination! : adminDestination);
         } else {
-          assignLocation(savedDestination?.startsWith("/admin") ? "/" : savedDestination ?? "/");
+          assignLocation(savedDestination?.startsWith("/") && !savedDestination.startsWith("//") && !savedDestination.startsWith("/admin") ? savedDestination : "/");
         }
       }
     } catch (error) {
       const loginEligibilityFailure = error instanceof IdentityApiError && error.code === "student_email_link_required";
-      const loginEligibilityMessage = adminReturn
-        ? "This email is not recognized as an active Admin for the selected brand. Choose the correct brand or ask the platform owner to review your Admin access."
-        : "Email sign-in is unavailable for the selected brand. Students must activate their provisioned account and link a verified real email; Admins must have current role access to that brand.";
+      const loginEligibilityMessage = role === "admin"
+        ? `This email is not recognized as an active Admin for ${brandName}. Ask your platform owner to review your Admin access.`
+        : role === "instructor"
+          ? `This email is not recognized as an active Instructor for ${brandName}. Ask your administrator to review your Instructor access.`
+          : `Email sign-in is unavailable for ${brandName}. Students must activate their provisioned account and link a verified real email.`;
       setErrors({ form: loginEligibilityFailure
         ? loginEligibilityMessage
         : error instanceof Error ? error.message : "Unable to complete sign-in." });
@@ -119,8 +115,8 @@ export function SignInPage() {
         {/* Left Column: Sign-in Form */}
         <div className="signin-form-col">
           {/* Logo */}
-          <a href="/auth/sign-in" className="signin-logo" aria-label={brand === "nexus" ? "Nexus sign in" : "GreenLearn home"}>
-            {brand === "nexus" ? (
+          <a href="/auth/sign-in" className="signin-logo" aria-label={brandCode === "nexus" ? "Nexus sign in" : "GreenLearn home"}>
+            {brandCode === "nexus" ? (
               <BrandLogo brandName="Nexus" src={NEXUS_LOGO_URL} className="signin-brand-logo" />
             ) : (
               <svg
@@ -142,22 +138,23 @@ export function SignInPage() {
                 />
               </svg>
             )}
-            {brand !== "nexus" ? <span className="signin-logo-text">GreenLearn</span> : null}
+            {brandCode !== "nexus" ? <span className="signin-logo-text">GreenLearn</span> : null}
           </a>
 
           {/* Heading */}
-          <h1 className="signin-title">{mode === "activate" ? "Activate your account" : "Sign in"}</h1>
-          <p className="signin-subtitle">{mode === "activate" ? "Use the one-time details provided by your Admin. You can link your real email in Settings after activation." : adminReturn ? "Use your verified Admin email to receive a one-time code." : "For students who have already linked and verified a real email."}</p>
-          <div className="flex gap-2 mb-5" role="tablist" aria-label="Account access type">
-            <button type="button" role="tab" aria-selected={mode === "activate"} onClick={() => {setMode("activate");setChallengeId(null);setErrors({});}} className="px-3 py-2 rounded-xl border border-emerald-700 text-sm font-semibold" style={{background:mode === "activate"?"#ecfdf3":"white",color:"#166534"}}>Activate your account</button>
-            <button type="button" role="tab" aria-selected={mode === "signin"} onClick={() => {setMode("signin");setChallengeId(null);setErrors({});}} className="px-3 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700">Sign in</button>
-          </div>
+          <a className="signin-selected-brand" href={`/auth/sign-in/${encodeURIComponent(brandCode)}`}><ArrowRight className="is-back" aria-hidden="true" /> {brandName} <span>·</span> Change role</a>
+          <h1 className="signin-title">{role === "student" ? mode === "activate" ? "Activate your account" : "Student sign in" : `${role === "admin" ? "Admin" : "Instructor"} sign in`}</h1>
+          <p className="signin-subtitle">{role === "student" ? mode === "activate" ? "Use the one-time details provided by your Admin. Link your verified email after activation." : "Sign in to your student learning workspace." : `Use your verified ${role === "admin" ? "Admin" : "Instructor"} email for ${brandName}.`}</p>
+          {role === "student" && <div className="signin-role-tabs" role="tablist" aria-label="Student account access type">
+            <button type="button" role="tab" aria-selected={mode === "activate"} onClick={() => {setStudentMode("activate");setChallengeId(null);setErrors({});}}>Activate account</button>
+            <button type="button" role="tab" aria-selected={mode === "signin"} onClick={() => {setStudentMode("signin");setChallengeId(null);setErrors({});}}>Sign in</button>
+          </div>}
 
           {auth.status === "authenticated" && !submitting ? (
             <div className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900" role="status">
               <p className="font-semibold">You&apos;re already signed in{auth.user?.name && auth.user.name !== "Authenticated user" ? ` as ${auth.user.name}` : ""}.</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <button type="button" className="min-h-11 rounded-xl bg-emerald-700 px-4 font-semibold text-white" onClick={() => assignLocation(adminReturn && typeof returnTo === "string" ? returnTo : typeof returnTo === "string" && returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : "/")}>Continue</button>
+                <button type="button" className="min-h-11 rounded-xl bg-emerald-700 px-4 font-semibold text-white" onClick={() => assignLocation(typeof returnTo === "string" && returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : role === "admin" ? "/admin" : role === "instructor" ? "/admin/instructor" : "/")}>Continue</button>
                 <button type="button" className="min-h-11 rounded-xl border border-emerald-300 bg-white px-4 font-semibold text-emerald-800" onClick={() => void auth.signOut({ revokeServerSession: true })}>Sign out</button>
               </div>
             </div>
@@ -165,12 +162,6 @@ export function SignInPage() {
 
           {/* Form */}
           <form className="signin-form" onSubmit={submit} noValidate>
-            <div className="signin-field-group">
-              <label htmlFor="signin-brand" className="signin-field-label">{mode === "activate" ? "Learning brand" : "Account brand"}</label>
-              <select id="signin-brand" value={brand} onChange={(e)=>setBrand(e.target.value as BrandCode)} className="signin-input">
-                <option value="medway">Medway</option><option value="elite">Elite</option><option value="nexus">Nexus</option>
-              </select>
-            </div>
             {mode === "activate" ? <>
             <div className="signin-field-group">
               <label htmlFor="signin-account-id" className="signin-field-label">Account Identifier</label>

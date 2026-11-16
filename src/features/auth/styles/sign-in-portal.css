@@ -1,0 +1,76 @@
+.signin-portal { --portal-green:#0b7746; --portal-deep:#075b38; --portal-ink:#14241b; --portal-muted:#66766d; min-height:100dvh; display:flex; flex-direction:column; overflow:hidden; background:radial-gradient(ellipse at 86% 15%,#e3f5e9 0,#f4faf6 33%,#f9fbf9 75%); color:var(--portal-ink); font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+.signin-portal__topbar { width:100%; min-height:76px; display:flex; align-items:center; justify-content:space-between; gap:18px; border-bottom:1px solid #e2ebe5; background:#ffffffc9; padding:12px clamp(20px,5vw,72px); }
+.signin-portal__wordmark { display:inline-flex; align-items:center; gap:11px; color:inherit; text-decoration:none; }
+.signin-portal__wordmark > span:last-child { display:grid; gap:2px; }
+.signin-portal__wordmark strong { color:#173027; font-size:18px; letter-spacing:-.04em; }
+.signin-portal__wordmark small { color:#718078; font-size:10px; }
+.signin-portal__brand-mark { width:40px; height:40px; display:grid; place-items:center; border-radius:12px; background:linear-gradient(140deg,#e1f6e8,#f3fbf5); color:#087744; }
+.signin-portal__brand-mark svg { width:23px; height:23px; }
+.signin-portal__secure { display:inline-flex; align-items:center; gap:7px; color:#587067; font-size:11px; font-weight:650; }
+.signin-portal__secure svg { color:#16864f; }
+.signin-portal__content { width:min(100% - 40px,860px); margin:auto; padding:48px 0 58px; }
+.signin-portal__content--brands { width:min(100% - 40px,1020px); }
+.signin-portal__eyebrow { display:block; margin-bottom:9px; color:#17834e; font-size:10px; font-weight:800; letter-spacing:.16em; }
+.signin-portal__content h1, .signin-portal__message h1 { margin:0; color:#12271d; font-size:clamp(28px,4vw,42px); font-weight:780; letter-spacing:-.055em; line-height:1.1; }
+.signin-portal__intro, .signin-portal__title-row p { margin:9px 0 27px; color:#697a70; font-size:14px; line-height:1.55; }
+.signin-portal__brand-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr)); gap:13px; }
+.signin-portal__brand-card { min-height:112px; display:grid; grid-template-columns:54px minmax(0,1fr) 20px; align-items:center; gap:14px; border:1px solid #dce9e0; border-radius:15px; background:#ffffffd9; box-shadow:0 5px 20px #193a2708; padding:16px; color:inherit; text-align:left; transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease; }
+.signin-portal__brand-card:hover { transform:translateY(-2px); border-color:#8dc9a2; box-shadow:0 10px 26px #1a684013; }
+.signin-portal__brand-card-mark { width:52px; height:52px; display:grid; place-items:center; border-radius:14px; background:#e7f7ec; color:#087a46; }
+.signin-portal__brand-card-mark.is-brand-1 { background:#eaf2ff; color:#315b9e; }
+.signin-portal__brand-card-mark.is-brand-2 { background:#f0edff; color:#6551a4; }
+.signin-portal__brand-card-mark.is-brand-3 { background:#fff4e4; color:#a96b16; }
+.signin-portal__brand-card-mark svg { width:24px; height:24px; }
+.signin-portal__brand-card-mark img { width:36px; height:36px; object-fit:contain; }
+.signin-portal__brand-card-copy, .signin-portal__role-copy { min-width:0; display:grid; gap:5px; }
+.signin-portal__brand-card-copy strong { color:#1e3529; font-size:16px; font-weight:750; }
+.signin-portal__brand-card-copy small { color:#6c7d73; font-size:11px; line-height:1.45; }
+.signin-portal__role-arrow { color:#16834d; transition:transform .18s ease; }
+.signin-portal__brand-card:hover .signin-portal__role-arrow, .signin-portal__role-card:hover .signin-portal__role-arrow { transform:translateX(3px); }
+.signin-portal__catalog-notice { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 15px; border:1px solid #e8d8b6; border-radius:9px; background:#fffbf2; color:#745b2c; padding:9px 12px; font-size:10px; line-height:1.45; }
+.signin-portal__catalog-notice button, .signin-portal__retry { display:inline-flex; align-items:center; justify-content:center; gap:6px; flex:0 0 auto; border:1px solid #d9e5dc; border-radius:7px; background:#fff; color:#176b41; padding:7px 10px; font-size:10px; font-weight:700; }
+.signin-portal__loading-note { color:#68796f; font-size:11px; }
+.signin-portal__footnote { margin:20px 0 0; color:#819087; font-size:10px; }
+.signin-portal__back { display:inline-flex; align-items:center; gap:7px; margin:0 0 28px; border:0; background:transparent; color:#4c6d5a; padding:4px 0; font-size:11px; font-weight:700; cursor:pointer; }
+.signin-portal__title-row { display:flex; align-items:center; justify-content:space-between; gap:20px; }
+.signin-portal__title-row p { margin-bottom:25px; }
+.signin-portal__selected-brand { display:inline-flex; align-items:center; gap:7px; flex:0 0 auto; border:1px solid #d9e9df; border-radius:999px; background:#f5fbf7; color:#236743; padding:8px 12px; font-size:10px; font-weight:700; }
+.signin-portal__role-grid { display:grid; gap:11px; }
+.signin-portal__role-card { width:100%; min-height:91px; display:grid; grid-template-columns:52px minmax(0,1fr) 24px; align-items:center; gap:15px; border:1px solid #dce8e0; border-radius:13px; background:#ffffffdc; box-shadow:0 4px 16px #193a2707; padding:15px 18px; color:inherit; text-align:left; transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease; cursor:pointer; }
+.signin-portal__role-card:hover { transform:translateY(-1px); border-color:#91c8a3; box-shadow:0 8px 21px #1a684012; }
+.signin-portal__role-icon { width:48px; height:48px; display:grid; place-items:center; border-radius:13px; background:#e5f6eb; color:#087744; }
+.signin-portal__role-icon svg { width:23px; height:23px; }
+.signin-portal__role-icon.is-instructor { background:#eaf1ff; color:#4168a8; }
+.signin-portal__role-icon.is-admin { background:#f0edff; color:#6858a0; }
+.signin-portal__role-copy strong { color:#1c3227; font-size:14px; font-weight:750; }
+.signin-portal__role-copy small { color:#6e7e74; font-size:11px; line-height:1.45; }
+.signin-portal__footer { width:100%; margin-top:auto; border-top:1px solid #e2ebe5; color:#849188; padding:15px 24px; text-align:center; font-size:10px; }
+.signin-portal__footer span { margin:0 5px; color:#b0bdb4; }
+.signin-portal__loading, .signin-portal__message { width:min(100% - 36px,500px); min-height:55vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:13px; margin:auto; text-align:center; }
+.signin-portal__loading strong { color:#365145; font-size:13px; }
+.signin-portal__message p { margin:0 0 8px; color:#6d7d73; font-size:12px; line-height:1.6; }
+.signin-portal__message small { color:#a07526; font-size:10px; }
+.signin-portal__primary { min-height:43px; display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid #087746; border-radius:8px; background:linear-gradient(135deg,#0a8950,#07653c); color:#fff; padding:0 16px; font-size:11px; font-weight:720; cursor:pointer; }
+.signin-portal__retry { min-height:34px; }
+.signin-portal button:focus-visible { outline:3px solid #22905755; outline-offset:3px; }
+.signin-portal__wordmark:focus-visible { outline:3px solid #22905755; outline-offset:4px; border-radius:6px; }
+@media (max-width:640px) {
+  .signin-portal__topbar { min-height:64px; padding:10px 16px; }
+  .signin-portal__secure { font-size:0; }
+  .signin-portal__secure svg { width:19px; height:19px; }
+  .signin-portal__content, .signin-portal__content--brands { width:calc(100% - 32px); padding:30px 0 40px; }
+  .signin-portal__content h1, .signin-portal__message h1 { font-size:29px; }
+  .signin-portal__intro, .signin-portal__title-row p { margin:8px 0 21px; font-size:12px; }
+  .signin-portal__brand-grid { grid-template-columns:minmax(0,1fr); gap:9px; }
+  .signin-portal__brand-card { min-height:88px; grid-template-columns:44px minmax(0,1fr) 18px; gap:11px; padding:12px; }
+  .signin-portal__brand-card-mark { width:42px; height:42px; border-radius:11px; }
+  .signin-portal__brand-card-mark svg { width:20px; height:20px; }
+  .signin-portal__brand-card-copy strong { font-size:14px; }
+  .signin-portal__brand-card-copy small { font-size:10px; }
+  .signin-portal__title-row { align-items:flex-start; }
+  .signin-portal__selected-brand { margin-top:2px; padding:7px 9px; font-size:9px; }
+  .signin-portal__role-card { min-height:83px; grid-template-columns:43px minmax(0,1fr) 18px; gap:11px; padding:11px 12px; }
+  .signin-portal__role-icon { width:41px; height:41px; border-radius:11px; }
+  .signin-portal__role-icon svg { width:20px; height:20px; }
+}
+@media (prefers-reduced-motion:reduce) { .signin-portal *, .signin-portal *::before, .signin-portal *::after { scroll-behavior:auto!important; transition-duration:.01ms!important; } }

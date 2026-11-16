@@ -34,7 +34,7 @@ function deviceClassification(){
   return {deviceKey:deviceKey(),platform,browser};
 }
 
-export async function activateProvisionedStudent(input:Readonly<{brand:BrandCode;accountIdentifier:string;setupCode:string;remember:boolean}>){
+export async function activateProvisionedStudent(input:Readonly<{brand:string;accountIdentifier:string;setupCode:string;remember:boolean}>){
   const claim=await request<{claimTicket:string}>("/v1/auth/account-claim",{brand:input.brand,accountIdentifier:input.accountIdentifier.trim(),setupCode:input.setupCode.trim()});
   const provider=await createAnonymousProviderSession();
   const device=deviceClassification();
@@ -42,7 +42,7 @@ export async function activateProvisionedStudent(input:Readonly<{brand:BrandCode
   persistProviderSession({...provider,remember:input.remember});
 }
 
-export async function initiateOtpLogin(input: Readonly<{ email: string; brand: BrandCode }>) {
+export async function initiateOtpLogin(input: Readonly<{ email: string; brand: string }>) {
   return request<{ challengeId: string }>("/v1/auth/login/initiate", { email: input.email.trim(), brand: input.brand });
 }
 
