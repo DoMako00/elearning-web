@@ -510,13 +510,6 @@ export function SignInPortalPage() {
                       navigateWithState(`/auth/sign-in/${encodeURIComponent(item.code)}`);
                     }}
                   >
-                    {/* Popular Badge for Elite */}
-                    {isElite && (
-                      <span className="signin-portal__popular-badge">
-                        <span className="signin-portal__popular-star">★</span> Popular
-                      </span>
-                    )}
-
                     {/* Organic Wave Mask inside Card Bottom */}
                     <svg
                       className="signin-portal__card-wave"
