@@ -1,3 +1,4 @@
+import { StudentPanelSkeleton } from "./StudentFeedback";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -352,7 +353,7 @@ export function AssessmentsWorkspace({ devState = "auto" }: AssessmentsWorkspace
 
         <div className={`assignments-grid${!hasAny ? " assignments-grid--empty" : ""}`} aria-label="Assessment list">
           {query.isLoading ? (
-            <p role="status" className="assignments-empty-state">Loading assessments…</p>
+            <StudentPanelSkeleton label="Loading assessments" rows={4} />
           ) : query.isError ? (
             <div role="alert" className="assignments-empty-state">
               <p>{query.error instanceof Error ? query.error.message : "Assessments could not be loaded."}</p>

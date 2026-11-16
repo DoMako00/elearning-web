@@ -2,6 +2,7 @@ import { ChevronRight, Leaf, LogIn } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useBrand } from "../../../app/providers/BrandProvider";
 import { useMessages } from "../../../app/providers/MessagesProvider";
+import { useStudentProfile } from "../../../features/student/api/useStudentLearning";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import { SidebarNavItem } from "./SidebarNavItem";
 import { BrandLogo } from "../../brand/BrandLogo";
@@ -42,7 +43,8 @@ export function Sidebar() {
   const { unreadChatsCount } = useMessages();
   const isProfileActive = location.pathname === "/profile";
   const isAuthenticated = auth.status === "authenticated";
-  const profileName = getDisplayName(auth.user?.name);
+  const profileQuery = useStudentProfile();
+  const profileName = profileQuery.data?.fullName?.trim() || getDisplayName(auth.user?.name);
   const profileInitials = getInitials(profileName);
 
   // Inject live unread-chats badge into the Messages nav item

@@ -1,3 +1,4 @@
+import { StudentPanelSkeleton } from "../../../features/student/components/StudentFeedback";
 import React, { useState, useRef, useEffect } from "react";
 import {
   Video,
@@ -207,7 +208,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         {/* Date Divider badge */}
         {messages.length > 0 && <div className="flex items-center justify-center my-2"><span className="px-3 py-1 rounded-full bg-slate-100 text-[#64748b] text-[11px] font-medium tracking-wide">Conversation history</span></div>}
 
-        {isLoading && <p role="status" className="py-8 text-center text-xs text-slate-400">Loading saved messages…</p>}
+        {isLoading && <StudentPanelSkeleton label="Loading messages" rows={3} />}
         {hasError && <p role="alert" className="py-8 text-center text-xs text-rose-600">Messages could not be loaded. Retry by reopening the conversation.</p>}
         {!isLoading && !hasError && messages.length === 0 && <p className="py-8 text-center text-xs text-slate-400">No messages yet. Send the first message to begin.</p>}
 

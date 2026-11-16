@@ -1,3 +1,4 @@
+import { CalendarSkeleton } from "../Skeleton";
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import type {
   CalendarEvent,
@@ -375,10 +376,11 @@ export function CalendarWorkspace() {
   const handleToday = () => setActiveDate(new Date());
 
   // ── Render ────────────────────────────────────────────────────────────────────
+  if (calendarQuery.isLoading) return <CalendarSkeleton />;
+
   return (
     <div className="calendar-container">
       {mutationError && <p role="alert" className="calendar-inline-error">{mutationError}</p>}
-      {calendarQuery.isLoading && <p role="status" className="calendar-inline-status">Loading your calendar…</p>}
       {calendarQuery.isError && <p role="alert" className="calendar-inline-error">{calendarQuery.error instanceof Error ? calendarQuery.error.message : "Your calendar could not be loaded."} <button type="button" onClick={() => void calendarQuery.refetch()}>Retry</button></p>}
       {progressQuery.isError && <p role="alert" className="calendar-inline-error">Study progress is temporarily unavailable.</p>}
       {/* Main Layout: Left Calendar Grid + Right Widgets */}

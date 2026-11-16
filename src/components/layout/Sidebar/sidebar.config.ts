@@ -58,7 +58,7 @@ export const secondarySidebarItems: SidebarItem[] = [
 ];
 
 export const sidebarProfile: SidebarProfile = {
-  name: "Juliana",
+  name: "Student",
   role: "Student",
-  initials: "J",
+  initials: "S",
 };

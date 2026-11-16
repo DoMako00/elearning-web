@@ -1,4 +1,5 @@
 import React from "react";
+import { MobileSkeleton, SkeletonCourseCard } from "../mobile/shared/SkeletonMobile";
 import { useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import {
@@ -57,10 +58,13 @@ export const RouteLoadingFallback: React.FC<RouteLoadingFallbackProps> = ({
       <div
         role="status"
         aria-live="polite"
-        className="flex-1 w-full flex flex-col items-center justify-center p-6 min-h-[40vh] text-slate-500"
+        aria-busy="true"
+        className="flex-1 w-full min-w-0 p-5 space-y-5"
       >
-        <Loader2 className="size-6 text-emerald-600 animate-spin mb-2" />
-        <span className="text-xs font-medium">{message}</span>
+        <span className="sr-only">{message}</span>
+        <MobileSkeleton width="65%" height={28} />
+        <MobileSkeleton width="100%" height={pathname.includes("/lessons/") ? 210 : 140} borderRadius={20} />
+        <SkeletonCourseCard /><SkeletonCourseCard /><SkeletonCourseCard />
       </div>
     );
   }

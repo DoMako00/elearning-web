@@ -991,3 +991,12 @@
   .home-hero__art { order: 0; height: 200px; padding: 16px 16px 0; }
   .home-dashboard__pair { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Short laptop viewports need natural room for the hero and activity cards. */
+@media (min-width: 768px) and (max-height: 760px) {
+  .home-dashboard { height: auto; min-height: 100%; grid-template-rows: auto auto; }
+  .home-dashboard__main { min-height: 340px; }
+  .home-dashboard__lower { min-height: 260px; }
+}
+.home-tile__title { line-height: 1.4; }
+.home-inline-error { line-height: 1.6; overflow-wrap: anywhere; }

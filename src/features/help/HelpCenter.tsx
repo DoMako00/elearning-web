@@ -1,3 +1,4 @@
+import { StudentPanelSkeleton } from "../student/components/StudentFeedback";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -175,7 +176,7 @@ export const HelpCenter: React.FC = () => {
           }}
           onSelectResource={handleResourceClick}
         />
-        {conversationsQuery.isLoading && <p role="status" className="px-2 text-xs text-gray-500">Loading saved support conversations…</p>}
+        {conversationsQuery.isLoading && <StudentPanelSkeleton label="Loading support conversations" rows={2} />}
         {conversationsQuery.isError && <p role="alert" className="px-2 text-xs text-rose-700">{conversationsQuery.error instanceof Error ? conversationsQuery.error.message : "Saved support conversations could not be loaded."} <button type="button" onClick={() => void conversationsQuery.refetch()}>Retry</button></p>}
       </div>
 

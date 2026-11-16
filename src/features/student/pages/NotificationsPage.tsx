@@ -1,3 +1,4 @@
+import { StudentPanelSkeleton } from "../components/StudentFeedback";
 import { Bell, CheckCheck, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMarkStudentNotificationsRead, useStudentNotifications } from "../api/useStudentNotifications";
@@ -42,7 +43,7 @@ export function NotificationsPage() {
           </p>
         ) : null}
 
-        {notificationsQuery.isPending ? <p role="status" className="student-extra-page__state">Loading notifications…</p> : null}
+        {notificationsQuery.isPending ? <StudentPanelSkeleton label="Loading notifications" rows={5} /> : null}
         {notificationsQuery.isError ? (
           <div role="alert" className="student-notifications__error">
             <p>Notifications could not be loaded.</p>

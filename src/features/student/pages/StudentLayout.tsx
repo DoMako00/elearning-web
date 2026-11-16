@@ -1,5 +1,6 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
+import { StudentConnectionNotice } from "../components/StudentFeedback";
 import { AppShell } from "../../../components/layout/AppShell";
 import { SearchBar } from "../../../components/ui/SearchBar";
 import { UserHeaderActions } from "../../../components/ui/UserHeaderActions";
@@ -266,5 +267,5 @@ function StudentLayoutContent() {
 }
 
 export function StudentLayout() {
-  return <MessagesProvider><StudentLayoutContent /></MessagesProvider>;
+  return <MessagesProvider><StudentConnectionNotice /><StudentLayoutContent /></MessagesProvider>;
 }

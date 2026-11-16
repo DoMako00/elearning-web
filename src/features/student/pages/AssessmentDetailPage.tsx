@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
+import { StudentConfirmDialog } from "../components/StudentFeedback";
 import { ArrowLeft } from "lucide-react";
 import { studentAssessmentApi, type StudentAssessmentQuestionDto } from "../api/studentAssessmentApi";
 import { clearAssessmentDraft, loadAssessmentDraft, saveAssessmentDraft } from "../api/assessmentDrafts";
@@ -84,6 +85,7 @@ export function AssessmentDetailPage() {
   const auth = useAuth();
   const userId = auth.user?.id ?? "anonymous";
   const client = useQueryClient();
+  const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [attemptVersion, setAttemptVersion] = useState<number | null>(null);
   const [attemptQuestions, setAttemptQuestions] = useState<StudentAssessmentQuestionDto[] | null>(null);
@@ -117,6 +119,7 @@ export function AssessmentDetailPage() {
   const submit = useMutation({
     mutationFn: () => studentAssessmentApi.submit(assessmentId, attemptId!, attemptVersion!, questions.map(question => ({ questionId: question.id, answer: answers[question.id] }))),
     onSuccess: data => {
+      setConfirmSubmit(false);
       clearAssessmentDraft(userId, attemptId!);
       // The attempt is closed server-side: it can no longer be resubmitted.
       setAttemptId(null);
@@ -203,10 +206,14 @@ export function AssessmentDetailPage() {
             </div>
           ) : null}
           {attemptId ? (
-            <button className="assessment-action assessment-action--submit" disabled={submit.isPending || !allAnswered} onClick={() => submit.mutate()}>
+            <button className="assessment-action assessment-action--submit" disabled={submit.isPending || !allAnswered} onClick={() => setConfirmSubmit(true)}>
               {submit.isPending ? "Submitting…" : "Submit answers"}
             </button>
           ) : null}
+          {attemptId && <p className="assessment-draft-note" role="status">{questions.filter(question => isAnswered(answers[question.id])).length} of {questions.length} questions answered. {!allAnswered && "Answer every question to submit."}</p>}
+          <StudentConfirmDialog open={confirmSubmit && Boolean(attemptId)} title="Submit your answers?" confirmLabel="Submit answers" pending={submit.isPending} error={submit.error?.message} onCancel={() => setConfirmSubmit(false)} onConfirm={() => { if (allAnswered && !submit.isPending) submit.mutate(); }}>
+            <p>You’ve answered all {questions.length} questions. Review your responses before submitting. You won’t be able to edit this attempt afterwards.</p>
+          </StudentConfirmDialog>
           {submit.error ? <p className="assessment-inline-error" role="alert">{submit.error.message}</p> : null}
         </>
       ) : null}

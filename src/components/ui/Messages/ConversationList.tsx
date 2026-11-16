@@ -1,3 +1,4 @@
+import { StudentPanelSkeleton } from "../../../features/student/components/StudentFeedback";
 import React, { useMemo } from "react";
 import { Search, Plus, Users } from "lucide-react";
 import type { Conversation, ConversationFilter } from "../../../types/chat";
@@ -144,7 +145,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
       {/* Conversation Cards List */}
       <div className="flex-1 overflow-y-auto divide-y divide-[#f1f5f3] px-1.5 py-1">
         {isLoading ? (
-          <div role="status" className="p-8 text-center text-[#94a3b8] text-xs">Loading persisted conversations…</div>
+          <StudentPanelSkeleton label="Loading conversations" rows={4} />
         ) : hasError ? (
           <div role="alert" className="p-8 text-center text-rose-600 text-xs">Conversations could not be loaded.</div>
         ) : filteredConversations.length === 0 ? (

@@ -1,3 +1,4 @@
+import { StudentPanelSkeleton } from "../student/components/StudentFeedback";
 import React, { useEffect, useState } from "react";
 import {
   SettingsLayout,
@@ -76,8 +77,8 @@ export const Settings: React.FC = () => {
 
   const handleSaveProfile=async()=>{const dto=profileQuery.data;if(!dto)throw new Error("Student profile is still loading.");const phone=normalizeStudentPhone(profile.phoneCountryCode,profile.phoneNumber);try{await studentLearningApi.updateProfile({fullName:profile.fullName.trim(),phone,expectedVersion:dto.version});await profileQuery.refetch();showToast("Profile updated from your account.");}catch(error){showToast(error instanceof Error?error.message:"Profile update failed.","error");throw error;}};
   const handleSignOut=()=>auth.signOut({revokeServerSession:true});
-  const handleDownloadData=async()=>{if(isExportingData)return;setIsExportingData(true);try{await downloadStudentAccountData();showToast("Your account data download is ready.");}catch(error){showToast(error instanceof Error?error.message:"Your account data could not be exported.");}finally{setIsExportingData(false);}};
-  const handleRevokeOtherSessions=async()=>{try{await revokeOtherSessions.mutateAsync();await Promise.all([devicesQuery.devices.refetch(),devicesQuery.session.refetch()]);showToast("Other active sessions were revoked. This device remains signed in.");}catch(error){showToast(error instanceof Error?error.message:"Other sessions could not be revoked.");}};
+  const handleDownloadData=async()=>{if(isExportingData)return;setIsExportingData(true);try{await downloadStudentAccountData();showToast("Your account data download is ready.");}catch(error){showToast(error instanceof Error?error.message:"Your account data could not be exported.","error");}finally{setIsExportingData(false);}};
+  const handleRevokeOtherSessions=async()=>{try{await revokeOtherSessions.mutateAsync();await Promise.all([devicesQuery.devices.refetch(),devicesQuery.session.refetch()]);showToast("Other active sessions were revoked. This device remains signed in.");}catch(error){showToast(error instanceof Error?error.message:"Other sessions could not be revoked.","error");}};
 
   const handleNotificationToggle=async(group:keyof typeof notifications,key:string,value:boolean)=>{
     const current=preferencesQuery.data;
@@ -185,7 +186,7 @@ export const Settings: React.FC = () => {
       >
         {/* Tab 1: Profile (Identity & Demographics) */}
         {activeTab === "profile" && (
-          profileQuery.isLoading ? <p role="status" className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">Loading your saved Student profile…</p> : profileQuery.isError ? <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">{profileQuery.error instanceof Error ? profileQuery.error.message : "Your Student profile could not be loaded."}</p> : <ProfileTab
+          profileQuery.isLoading ? <StudentPanelSkeleton label="Loading your saved Student profile…" rows={4} /> : profileQuery.isError ? <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">{profileQuery.error instanceof Error ? profileQuery.error.message : "Your Student profile could not be loaded."}</p> : <ProfileTab
             profile={profile}
             verifiedEmail={linkedEmail}
             onUpdateProfile={updateProfileField}
@@ -196,7 +197,7 @@ export const Settings: React.FC = () => {
 
         {/* Tab 2: Account (Lifecycle & Billing) */}
         {activeTab === "account" && (
-          commercialQuery.isLoading ? <p role="status" className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">Loading your saved Offering and Seat…</p> : <AccountTab
+          commercialQuery.isLoading ? <StudentPanelSkeleton label="Loading your saved Offering and Seat…" rows={4} /> : <AccountTab
             subscription={subscription}
             subscriptionDataUnavailable={commercialQuery.isError}
             onRetrySubscription={() => { void commercialQuery.refetch(); }}
@@ -223,7 +224,7 @@ export const Settings: React.FC = () => {
 
         {/* Tab 4: Devices (Session Management) */}
         {activeTab === "devices" && (
-          (devicesQuery.devices.isLoading || devicesQuery.session.isLoading) ? <p role="status" className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">Loading registered devices and current session…</p> : (devicesQuery.devices.isError || devicesQuery.session.isError) ? <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">Registered devices or the current session could not be loaded.</p> : <DevicesTab
+          (devicesQuery.devices.isLoading || devicesQuery.session.isLoading) ? <StudentPanelSkeleton label="Loading registered devices and current session…" rows={4} /> : (devicesQuery.devices.isError || devicesQuery.session.isError) ? <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">Registered devices or the current session could not be loaded.</p> : <DevicesTab
             devices={devices}
             onRevokeDevice={() => showToast("Ask an authorized Admin to revoke this device from Admin > Security.","info")}
             onRevokeAllOther={() => void handleRevokeOtherSessions()}
@@ -233,7 +234,7 @@ export const Settings: React.FC = () => {
 
         {/* Tab 5: Notifications (Communication Preferences) */}
         {activeTab === "notifications" && (
-          preferencesQuery.isLoading ? <p role="status" className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500">Loading saved notification preferences…</p> : preferencesQuery.isError ? <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">{preferencesQuery.error instanceof Error ? preferencesQuery.error.message : "Notification preferences could not be loaded."}</p> : <NotificationsTab
+          preferencesQuery.isLoading ? <StudentPanelSkeleton label="Loading saved notification preferences…" rows={4} /> : preferencesQuery.isError ? <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">{preferencesQuery.error instanceof Error ? preferencesQuery.error.message : "Notification preferences could not be loaded."}</p> : <NotificationsTab
             notifications={notifications}
             onToggle={(group, key, value) => {
               void handleNotificationToggle(group,key,value);

@@ -230,3 +230,12 @@
 
 .lesson-player-page .lesson-player-upnext__card b svg { width: 14px; height: 14px; fill: currentColor; }
 .lesson-player-page .lesson-player-upnext__card:hover { border-color: var(--color-brand-strong); }
+
+/* Allow long lesson names without crowding the next/previous controls. */
+.lp-bar__copy h1 { overflow-wrap: anywhere; line-height: 1.25; }
+.lp-bar__nav { flex-shrink: 0; }
+@media (min-width: 768px) and (max-width: 1100px) {
+  .lesson-player-page .course-overview-layout { grid-template-columns: minmax(0, 1fr); overflow-y: auto; }
+  .lesson-player-page .course-overview-primary { overflow-y: visible; }
+  .lesson-player-page .course-overview-rail { overflow: visible; }
+}

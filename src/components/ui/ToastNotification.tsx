@@ -49,7 +49,7 @@ export function ToastNotification({
       }}
     >
       <Icon size={16} className="shrink-0" aria-hidden="true" />
-      <span>{message}</span>
+      <span className="min-w-0 leading-relaxed wrap-anywhere">{message}</span>
       <style>{`
         @keyframes toastPop {
           from { opacity: 0; transform: translateY(-8px) scale(0.95); }

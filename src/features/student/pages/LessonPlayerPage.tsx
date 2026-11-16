@@ -1,3 +1,4 @@
+import { LessonPlayerSkeleton } from "../../../components/ui/Skeleton";
 import {
   ArrowRight,
   BookOpen,
@@ -751,7 +752,7 @@ export function LessonPlayerPage() {
     return () => controller.abort();
   }, [scope, slug, lessonId, selectedAssetId]);
 
-  if (state.status === "loading") return <LessonUnavailable loading message="Checking lesson access and media release." />;
+  if (state.status === "loading") return <LessonPlayerSkeleton />;
   if (state.status === "error") return <LessonUnavailable message={state.message} isError />;
   if (state.status === "unavailable") return <LessonUnavailable message={state.message} />;
   if (state.status !== "ready") return <LessonUnavailable message="Lesson access could not be confirmed." isError />;

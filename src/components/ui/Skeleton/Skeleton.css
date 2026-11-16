@@ -76,3 +76,7 @@
   }
 }
 
+
+.skeleton-shimmer, .skeleton-shimmer--hero, .skeleton-shimmer--contrast {
+  max-width: 100%;
+}

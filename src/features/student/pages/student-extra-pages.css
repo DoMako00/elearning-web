@@ -605,3 +605,40 @@
     flex-basis: 36px;
   }
 }
+
+/* Student feedback uses existing brand tokens, including dark surfaces. */
+.student-confirm {
+  width: min(460px, calc(100vw - 32px)); max-height: calc(100dvh - 48px);
+  margin: auto; padding: 28px; overflow-y: auto;
+  border: 1px solid var(--color-border-subtle); border-radius: 24px;
+  background: var(--color-surface, white); color: var(--color-text-primary);
+  box-shadow: 0 24px 80px rgb(15 23 42 / 24%);
+}
+.student-confirm::backdrop { background: rgb(6 35 28 / 48%); backdrop-filter: blur(4px); }
+.student-confirm__heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.student-confirm__icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; background: var(--color-brand-soft); color: var(--color-brand-strong); }
+.student-confirm__close { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--color-border-subtle); border-radius: 50%; background: var(--color-surface); color: var(--color-text-secondary); cursor: pointer; }
+.student-confirm h2 { margin: 22px 0 10px; font-size: 24px; line-height: 1.25; letter-spacing: -.025em; }
+.student-confirm__description { color: var(--color-text-secondary); font-size: 14px; line-height: 1.7; }
+.student-confirm__actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.student-confirm__actions > button { min-height: 44px; padding: 10px 18px; border: 1px solid var(--color-border-control); border-radius: 12px; font: inherit; font-weight: 650; cursor: pointer; }
+.student-confirm__actions > button:not(.assessment-action) { background: var(--color-surface); color: var(--color-text-primary); }
+.student-confirm button:disabled { opacity: .55; cursor: wait; }
+.student-confirm button:focus-visible { outline: 3px solid var(--color-focus-ring); outline-offset: 3px; }
+.student-panel-skeleton { display: grid; gap: 12px; width: 100%; min-width: 0; }
+.student-panel-skeleton__row { display: flex; align-items: center; gap: 16px; padding: 20px; border: 1px solid var(--color-border-subtle); border-radius: 16px; background: var(--color-surface); }
+.student-panel-skeleton__copy { display: grid; flex: 1; gap: 12px; min-width: 0; }
+.student-connection-notice { position: fixed; bottom: max(24px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 10001; display: flex; align-items: center; gap: 14px; width: min(460px, calc(100% - 32px)); padding: 16px 20px; border: 1px solid var(--color-warning-text); border-radius: 16px; background: var(--color-warning-soft); color: var(--color-warning-text); box-shadow: var(--shadow-tile); font-size: 14px; }
+.student-connection-notice svg { flex-shrink: 0; }
+.student-connection-notice p { margin: 4px 0 0; line-height: 1.5; }
+.student-notification__body { line-height: 1.65; overflow-wrap: anywhere; }
+.assessment-answer-option:has(input:checked) { border-color: var(--color-brand-strong); background: var(--color-brand-soft); }
+.assessment-answer-option:focus-within { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
+.assessment-answer-option { min-height: 48px; }
+.assessment-question h2 { line-height: 1.5; overflow-wrap: anywhere; }
+@media (max-width: 767px) {
+  .student-connection-notice { bottom: calc(88px + env(safe-area-inset-bottom)); }
+  .student-confirm { padding: 22px; }
+  .student-confirm__actions > button { flex: 1; }
+  .student-notifications__header { flex-wrap: wrap; gap: 12px; }
+}

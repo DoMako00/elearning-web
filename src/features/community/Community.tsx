@@ -1,3 +1,4 @@
+import { StudentPanelSkeleton } from "../student/components/StudentFeedback";
 import { useMemo, useState } from "react";
 import { ArrowRight, ChevronRight, GraduationCap, MessageCircle, MessagesSquare, Search, Users } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -155,7 +156,7 @@ export function Community() {
           </label>
 
           <div className="community-room-list">
-            {roomsQuery.isPending ? <p role="status" className="community-inline-state">Loading your course rooms…</p> : null}
+            {roomsQuery.isPending ? <StudentPanelSkeleton label="Loading course rooms" rows={3} /> : null}
             {roomsError ? (
               <div className="community-inline-state community-inline-state--error" role="alert">
                 <span>{roomsError}</span>

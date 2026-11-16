@@ -12,7 +12,7 @@ export function ModuleSubjects({ course }: { course: StudentCourseDetail }) {
   const sections = course.subjectSections ?? course.chapters.map(chapter => ({ id: chapter.chapterId, title: chapter.title, sortOrder: chapter.sortOrder }));
   const subjects = toSubjectCards({ ...course, subjectSections: sections });
   const artwork = toReferenceCourse(course).heroOverlay;
-  return <section className="course-overview-page" aria-labelledby="module-subjects-title">
+  return <section className="course-overview-page module-subjects-page" aria-labelledby="module-subjects-title">
     <div className="course-overview-layout"><div className="course-overview-primary course-overview-primary--module">
       <article className="course-overview-hero" aria-labelledby="module-subjects-title">
         <CourseHeroArt artwork={artwork} />

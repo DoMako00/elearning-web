@@ -838,7 +838,7 @@
 
   .course-library__track {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr));
     width: 100%;
     gap: 16px;
     padding-right: 0;
@@ -890,4 +890,17 @@
   .course-library__list-progress-wrap {
     display: none;
   }
+}
+
+/* Keep titles readable and card controls comfortably accessible. */
+.course-library__track { width: 100%; }
+.course-library__card :where(h3, h4) { line-height: 1.4; }
+.course-library__toolbar { flex-wrap: wrap; row-gap: 10px; }
+.course-library__filter { min-width: 0; }
+.course-library__card:focus-within { border-color: var(--color-brand-strong); }
+@media (max-width: 1023px) {
+  .course-library__header { flex-wrap: wrap; gap: 12px; }
+  .course-library__toolbar { width: 100%; }
+  .course-library__filter { flex: 1; }
+  .course-library-category-tab { min-height: 44px; }
 }

@@ -139,3 +139,11 @@
     display: none;
   }
 }
+
+.student-dashboard .page-breadcrumb__item--trail { min-width: 0; flex-shrink: 1; }
+.student-dashboard .page-breadcrumb__trail-link { max-width: 22ch; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 1023px) {
+  .student-dashboard .page-breadcrumb__list { flex-wrap: wrap; gap: 4px 8px; }
+  .student-dashboard .page-breadcrumb__item--current { flex-basis: 100%; }
+  .student-dashboard .page-breadcrumb__trail-link { font-size: 10px; letter-spacing: .08em; }
+}

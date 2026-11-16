@@ -1,3 +1,4 @@
+import { StudentPanelSkeleton } from "../../student/components/StudentFeedback";
 import {
   ArrowRight,
   BookOpen,
@@ -143,7 +144,7 @@ export function DiscussionFeed({
 
       {/* Scrollable Threads List */}
       <div className="flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col gap-2 scrollbar-thin scrollbar-thumb-slate-200 hover:scrollbar-thumb-slate-300">
-        {errorMessage ? <p role="alert" className="rounded-xl border border-rose-100 bg-rose-50 p-4 text-xs text-rose-700">{errorMessage}</p> : isLoading ? <p role="status" className="rounded-xl border border-slate-100 bg-white p-4 text-xs text-slate-500">Loading persisted discussions…</p> : discussions.length === 0 ? (
+        {errorMessage ? <p role="alert" className="rounded-xl border border-rose-100 bg-rose-50 p-4 text-xs text-rose-700">{errorMessage}</p> : isLoading ? <StudentPanelSkeleton label="Loading discussions" rows={3} /> : discussions.length === 0 ? (
           <div className="community-empty-state" role="status">
             <img src="/assets/community/discussion-empty-state.png" alt="" />
             <h3>{emptyTitle}</h3>
