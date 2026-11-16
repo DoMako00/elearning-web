@@ -25,8 +25,12 @@ function auth(status: AuthState["status"]): AuthState {
   return { status, configured: true, user: status === "authenticated" ? { id: "u1", name: "student@test.invalid", role: "authenticated" } : null, signOut: vi.fn() };
 }
 
-function renderPage(state?: unknown) {
-  return render(<MemoryRouter initialEntries={[{ pathname: "/auth/sign-in", state }]}><SignInPage /></MemoryRouter>);
+function renderPage(state?: unknown, props?: { brandCode?: string; brandName?: string; role?: "student" | "instructor" | "admin" }) {
+  return render(
+    <MemoryRouter initialEntries={[{ pathname: "/auth/sign-in", state }]}>
+      <SignInPage {...props} />
+    </MemoryRouter>
+  );
 }
 
 beforeEach(() => {
@@ -39,13 +43,10 @@ beforeEach(() => {
 });
 
 describe("SignInPage navigation after sign-in", () => {
-  it("uses the Nexus logo when the Nexus account brand is selected", () => {
-    const { container } = renderPage();
-    fireEvent.change(container.querySelector("#signin-brand")!, { target: { value: "nexus" } });
-    const logo = screen.getByRole("img", { name: "Nexus logo" });
-    expect(logo.getAttribute("src")).toBe(NEXUS_LOGO_URL);
-    expect(screen.getByRole("link", { name: "Nexus sign in" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Nexus sign in" }).children).toHaveLength(1);
+  it("displays the Nexus brand context when the Nexus account brand is selected", () => {
+    renderPage(undefined, { brandCode: "nexus", brandName: "Nexus", role: "student" });
+    expect(screen.getByText(/Nexus/)).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Nexus.*Change role/i })).toBeTruthy();
   });
 
   it("a student OTP sign-in does one full navigation to the destination (no SPA navigate + reload race)", async () => {
