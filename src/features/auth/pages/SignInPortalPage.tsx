@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, BookOpen, GraduationCap, Layers3, RefreshCw, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, ChevronLeft, ChevronRight, GraduationCap, Layers3, RefreshCw, ShieldCheck, UserRound } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getFallbackPublicBrands, listPublicBrands, type PublicBrand } from "../api/publicBrandCatalogApi";
 import { SignInPage } from "./SignInPage";
@@ -41,6 +41,8 @@ export function SignInPortalPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const catalog = usePublicBrands();
+  const [brandSlide, setBrandSlide] = useState(0);
+  const normalizedBrandSlide = catalog.brands.length ? brandSlide % catalog.brands.length : 0;
   const brand = catalog.brands.find((item) => item.code.toLowerCase() === brandCode?.toLowerCase());
   const role = roleParam?.toLowerCase() as PortalRole | undefined;
   const validRole = role === "student" || role === "instructor" || role === "admin";
@@ -82,16 +84,25 @@ export function SignInPortalPage() {
     <header className="signin-portal__topbar"><a className="signin-portal__wordmark" href="/auth/sign-in"><span className="signin-portal__brand-mark"><BookOpen aria-hidden="true" /></span><span><strong>GreenLearn</strong><small>Learning workspace</small></span></a><span className="signin-portal__secure"><ShieldCheck size={16} /> Secure sign in</span></header>
     <section className="signin-portal__content signin-portal__content--brands">
       <span className="signin-portal__eyebrow">WELCOME BACK</span>
-      <h1>Choose your learning brand</h1>
+      <h1>Choose your<br /><span className="accent">learning</span> brand</h1>
       <p className="signin-portal__intro">Select your organization to continue to the right sign-in options.</p>
       {catalog.error && <div className="signin-portal__catalog-notice" role="status"><span>{catalog.error} Showing the currently configured brands.</span><button type="button" onClick={catalog.refresh}><RefreshCw size={14} /> Retry</button></div>}
-      <div className="signin-portal__brand-grid" aria-label="Available learning brands" aria-busy={catalog.loading}>
-        {catalog.brands.map((item, index) => <button type="button" className="signin-portal__brand-card" key={item.code} onClick={() => navigateWithState(`/auth/sign-in/${encodeURIComponent(item.code)}`)}>
-          <span className={`signin-portal__brand-card-mark is-brand-${index % 4}`}>{item.logoUrl ? <img src={item.logoUrl} alt="" /> : <Layers3 aria-hidden="true" />}</span>
-          <span className="signin-portal__brand-card-copy"><strong>{item.name}</strong><small>{item.description}</small></span>
-          <ArrowRight className="signin-portal__role-arrow" size={18} />
-        </button>)}
+      <div className="signin-portal__brand-carousel" aria-label="Available learning brands" aria-busy={catalog.loading}>
+        {catalog.brands.length > 3 && <button type="button" className="signin-portal__carousel-arrow is-previous" aria-label="Previous brands" onClick={() => setBrandSlide((index) => (index - 1 + catalog.brands.length) % catalog.brands.length)}><ChevronLeft aria-hidden="true" /></button>}
+        <div className="signin-portal__brand-grid">
+          {Array.from({ length: Math.min(3, catalog.brands.length) }, (_, offset) => {
+            const index = (normalizedBrandSlide + offset) % catalog.brands.length;
+            const item = catalog.brands[index];
+            return <button type="button" className={`signin-portal__brand-card is-brand-${index % 3}`} key={item.code} onClick={() => navigateWithState(`/auth/sign-in/${encodeURIComponent(item.code)}`)}>
+              <span className="signin-portal__brand-card-mark">{item.logoUrl ? <img src={item.logoUrl} alt="" /> : <Layers3 aria-hidden="true" />}</span>
+              <span className="signin-portal__brand-card-copy"><strong>{item.name}</strong><small>{item.description}</small></span>
+              <span className="signin-portal__brand-card-next"><ArrowRight aria-hidden="true" /></span>
+            </button>;
+          })}
+        </div>
+        {catalog.brands.length > 3 && <button type="button" className="signin-portal__carousel-arrow is-next" aria-label="Next brands" onClick={() => setBrandSlide((index) => (index + 1) % catalog.brands.length)}><ChevronRight aria-hidden="true" /></button>}
       </div>
+      {catalog.brands.length > 1 && <div className="signin-portal__carousel-dots" aria-label="Brand carousel position">{catalog.brands.map((item, index) => <button type="button" key={item.code} className={index === normalizedBrandSlide ? "is-active" : ""} aria-label={`Show brands starting at ${item.name}`} aria-current={index === normalizedBrandSlide ? "true" : undefined} onClick={() => setBrandSlide(index)} />)}</div>}
       {catalog.loading && <p className="signin-portal__loading-note" role="status">Checking available brands…</p>}
       {catalog.source === "fallback" && !catalog.error && <p className="signin-portal__footnote">Brand options are ready to sync with the public brand catalog.</p>}
     </section>

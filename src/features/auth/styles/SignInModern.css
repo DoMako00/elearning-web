@@ -472,6 +472,97 @@
 .signin-role-tabs button[aria-selected="true"] { color: #116b3d; }
 .signin-role-tabs button[aria-selected="true"]::after { position: absolute; right: 7px; bottom: -1px; left: 7px; height: 2px; border-radius: 3px; background: #14804a; content: ""; }
 
+/* The credential step uses the same GreenLearn portal shell as brand and role selection. */
+.signin-portal--credentials {
+  height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.signin-portal--credentials .signin-layout {
+  display: block;
+  width: min(100% - 36px, 610px);
+  min-height: 0;
+  margin: auto;
+  padding: 28px 0 34px;
+}
+
+.signin-portal--credentials .signin-form-col {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border: 1px solid rgb(215 234 220 / 90%);
+  border-radius: 26px;
+  background: rgb(255 255 255 / 91%);
+  box-shadow: 0 24px 65px rgb(17 64 38 / 12%);
+  padding: clamp(24px, 4vw, 42px);
+  backdrop-filter: blur(15px);
+}
+
+.signin-portal--credentials .signin-selected-brand {
+  margin: 0 0 20px;
+  border: 1px solid #dcece0;
+  border-radius: 999px;
+  background: #f4fbf6;
+  padding: 9px 13px;
+}
+
+.signin-portal--credentials .signin-title {
+  margin: 0 0 9px;
+  color: #102a28;
+  font-size: clamp(30px, 4vw, 42px);
+  letter-spacing: -.05em;
+}
+
+.signin-portal--credentials .signin-subtitle {
+  margin: 0 0 24px;
+  color: #586d70;
+  font-size: 15px;
+}
+
+.signin-portal--credentials .signin-role-tabs {
+  margin: 0 0 24px;
+}
+
+.signin-portal--credentials .signin-form {
+  gap: 17px;
+}
+
+.signin-portal--credentials .signin-field-label {
+  color: #1c3832;
+}
+
+.signin-portal--credentials .signin-input-wrapper,
+.signin-portal--credentials .signin-input:not(.signin-input-wrapper .signin-input) {
+  border-radius: 12px;
+}
+
+.signin-portal--credentials .signin-submit-btn {
+  min-height: 51px;
+  border-radius: 13px;
+  background: linear-gradient(110deg, #0b8b4b, #08713e);
+  box-shadow: 0 8px 18px rgb(13 128 65 / 18%);
+}
+
+.signin-portal--credentials .signin-submit-btn:hover {
+  background: linear-gradient(110deg, #08783f, #075e35);
+}
+
+@media (max-width: 600px) {
+  .signin-portal--credentials .signin-layout {
+    width: calc(100% - 28px);
+    padding: 24px 0;
+  }
+  .signin-portal--credentials .signin-form-col {
+    border-radius: 20px;
+    padding: 23px 19px;
+  }
+  .signin-portal--credentials .signin-title { font-size: 31px; }
+  .signin-portal--credentials .signin-subtitle { font-size: 13px; }
+  .signin-portal--credentials .signin-utilities { align-items: flex-start; gap: 12px; }
+  .signin-portal--credentials .signin-forgot-link { text-align: right; font-size: 11px; }
+}
+
 /* Card 3: Protected Workspace */
 .signin-card-workspace {
   background: rgba(235, 240, 234, 0.92);

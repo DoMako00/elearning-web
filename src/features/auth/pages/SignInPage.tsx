@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import {
   ArrowRight,
-  BarChart3,
+  BookOpen,
   Check,
   Mail,
   ShieldCheck,
@@ -13,9 +13,6 @@ import { getAdminOverview } from "../../admin-v2/api/adminOperationsApi";
 import { getAdminWorkspace } from "../../admin-v2/api/adminRolesApi";
 import { assignLocation } from "../../../shared/utils/hardNavigation";
 import { toBrandCode } from "../../../shared/domain/brandInstitution";
-import authBotanicalBg from "../../../Assets/onboarding/auth-botanical-bg.jpg";
-import { BrandLogo } from "../../../components/brand/BrandLogo";
-import { NEXUS_LOGO_URL } from "../../../shared/brandAssets";
 import "../styles/SignInModern.css";
 
 type PortalRole = "student" | "instructor" | "admin";
@@ -104,43 +101,17 @@ export function SignInPage({ brandCode = "elite", brandName = "Elite", role = "s
   };
 
   return (
-    <div className="signin-page">
-      {/* Top Right Security Badge */}
-      <aside className="signin-security-badge" aria-label="Security status">
-        <ShieldCheck aria-hidden="true" />
-        <span>Secure learning platform</span>
-      </aside>
-
+    <main className="signin-page signin-portal signin-portal--credentials">
+      <header className="signin-portal__topbar">
+        <a className="signin-portal__wordmark" href="/auth/sign-in" aria-label="GreenLearn sign in">
+          <span className="signin-portal__brand-mark"><BookOpen aria-hidden="true" /></span>
+          <span><strong>GreenLearn</strong><small>Learning workspace</small></span>
+        </a>
+        <span className="signin-portal__secure"><ShieldCheck aria-hidden="true" /> Secure sign in</span>
+      </header>
       <div className="signin-layout">
         {/* Left Column: Sign-in Form */}
         <div className="signin-form-col">
-          {/* Logo */}
-          <a href="/auth/sign-in" className="signin-logo" aria-label={brandCode === "nexus" ? "Nexus sign in" : "GreenLearn home"}>
-            {brandCode === "nexus" ? (
-              <BrandLogo brandName="Nexus" src={NEXUS_LOGO_URL} className="signin-brand-logo" />
-            ) : (
-              <svg
-                className="w-10 h-10 shrink-0"
-                viewBox="0 0 44 44"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-              >
-                {/* Left darker leaf */}
-                <path
-                  d="M8 28C8 17 18 8 26 8C26 19 19 28 8 28Z"
-                  fill="#166534"
-                />
-                {/* Right lighter leaf */}
-                <path
-                  d="M17 34C17 22 28 14 36 14C36 26 29 34 17 34Z"
-                  fill="#22c55e"
-                />
-              </svg>
-            )}
-            {brandCode !== "nexus" ? <span className="signin-logo-text">GreenLearn</span> : null}
-          </a>
-
           {/* Heading */}
           <a className="signin-selected-brand" href={`/auth/sign-in/${encodeURIComponent(brandCode)}`}><ArrowRight className="is-back" aria-hidden="true" /> {brandName} <span>·</span> Change role</a>
           <h1 className="signin-title">{role === "student" ? mode === "activate" ? "Activate your account" : "Student sign in" : `${role === "admin" ? "Admin" : "Instructor"} sign in`}</h1>
@@ -300,77 +271,8 @@ export function SignInPage({ brandCode = "elite", brandName = "Elite", role = "s
           </form>
         </div>
 
-        {/* Right Column: 3D Botanical Art & Floating Cards */}
-        <aside className="signin-art-col" aria-hidden="true">
-          {/* Background image */}
-          <img
-            src={authBotanicalBg}
-            alt=""
-            className="signin-art-background"
-          />
-
-          {/* Smooth blend gradient on the left edge */}
-          <div className="signin-art-overlay-gradient" />
-
-          {/* 3 Floating Cards matching the design */}
-          <div className="signin-floating-cards">
-            {/* Card 1: Course Syllabus */}
-            <div className="signin-card-syllabus">
-              <div className="signin-card-syllabus-icon">
-                {/* Botanical leaf icon */}
-                <svg
-                  className="w-7 h-7"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#166534"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 2L12 22" />
-                  <path d="M12 6C15 6 18 8 18 11C15 11 12 9 12 6Z" fill="#bbf7d0" />
-                  <path d="M12 12C9 12 6 14 6 17C9 17 12 15 12 12Z" fill="#bbf7d0" />
-                  <path d="M12 15C15 15 17 16.5 17 19C15 19 12 17.5 12 15Z" fill="#86efac" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="signin-card-title">Course Syllabus</h3>
-                <div className="signin-skeleton-line wide" />
-                <div className="signin-skeleton-line short" />
-              </div>
-            </div>
-
-            {/* Card 2: Learning Progress */}
-            <div className="signin-card-progress">
-              <div className="signin-card-progress-icon">
-                <BarChart3 className="w-5 h-5" />
-              </div>
-              <div className="signin-card-progress-content">
-                <div className="signin-card-progress-header">
-                  <span>Learning Progress</span>
-                  <span>75%</span>
-                </div>
-                <div className="signin-progress-track">
-                  <div className="signin-progress-bar" />
-                </div>
-              </div>
-            </div>
-
-            {/* Card 3: Protected Workspace */}
-            <div className="signin-card-workspace">
-              <div className="signin-card-workspace-icon">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="signin-card-title">Protected workspace</h3>
-                <div className="signin-skeleton-line wide" />
-                <div className="signin-skeleton-line short" />
-              </div>
-            </div>
-          </div>
-        </aside>
       </div>
-
-    </div>
+      <footer className="signin-portal__footer">GreenLearn <span>·</span> Secure learning platform</footer>
+    </main>
   );
 }
