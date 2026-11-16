@@ -16,9 +16,9 @@ import {
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getFallbackPublicBrands, listPublicBrands, type PublicBrand } from "../api/publicBrandCatalogApi";
 import { SignInPage } from "./SignInPage";
-import booksAndLeavesImg from "../../../Assets/logins/books-and-leaves.webp";
-import graduationCapImg from "../../../Assets/logins/graduation-cap-diploma.webp";
-import leafPlantImg from "../../../Assets/logins/leaf-plant.webp";
+import booksAndLeavesImg from "../../../assets/logins/books-and-leaves.webp";
+import graduationCapImg from "../../../assets/logins/graduation-cap-diploma.webp";
+import leafPlantImg from "../../../assets/logins/leaf-plant.webp";
 import "../styles/sign-in-portal.css";
 
 type PortalRole = "student" | "instructor" | "admin";
@@ -130,62 +130,136 @@ export function SignInPortalPage() {
   const location = useLocation();
   const catalog = usePublicBrands();
 
-  // Initial slide: default to index 1 (Elite, the featured/popular center brand)
-  const [brandSlide, setBrandSlide] = useState(1);
-  const carouselTrackRef = useRef<HTMLDivElement>(null);
-  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
-
-  const brandCount = catalog.brands.length || 1;
-  const normalizedBrandSlide = ((brandSlide % brandCount) + brandCount) % brandCount;
   const brand = catalog.brands.find((item) => item.code.toLowerCase() === brandCode?.toLowerCase());
   const role = roleParam?.toLowerCase() as PortalRole | undefined;
   const validRole = role === "student" || role === "instructor" || role === "admin";
   const routeState = location.state;
   const navigateWithState = (path: string) => navigate(path, { state: routeState });
 
-  const goToNext = () => setBrandSlide((prev) => (prev + 1) % brandCount);
-  const goToPrev = () => setBrandSlide((prev) => (prev - 1 + brandCount) % brandCount);
+  // Responsive layout state (mobile stacked vs desktop horizontal)
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 900);
 
-  // Gesture handling for swipe navigation:
-  // - Horizontal swipes when cards are side-by-side (desktop / tablet)
-  // - Vertical swipes (top & bottom) when cards are stacked on top of each other (mobile)
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 900);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const N = catalog.brands.length || 1;
+  // Extended brands list repeated 5 times for seamless, infinite looping
+  const extendedBrands = Array.from({ length: 5 }, () => catalog.brands).flat();
+
+  // Slide offset index in extendedBrands
+  // Desktop: slideOffset = 3 places items [3: Medway, 4: Elite (center), 5: Nexus] in view!
+  // Mobile: slideOffset = 4 places Elite (featured brand) in view!
+  const [slideOffset, setSlideOffset] = useState(() => (typeof window !== "undefined" && window.innerWidth < 900 ? 4 : 3));
+  const [enableTransition, setEnableTransition] = useState(true);
+
+  // Dragging / swiping gesture state
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
+  const hasMovedRef = useRef(false);
+
+  // Active brand index in catalog.brands (0..N-1)
+  // On desktop, the active center brand is at (slideOffset + 1)
+  // On mobile, the active visible brand is at slideOffset
+  const activeBrandIndex = ((slideOffset + (isMobile ? 0 : 1)) % N + N) % N;
+
+  const goToNext = () => {
+    setEnableTransition(true);
+    setSlideOffset((prev) => prev + 1);
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStartRef.current) return;
-    const touch = e.changedTouches[0];
-    const deltaX = touch.clientX - touchStartRef.current.x;
-    const deltaY = touch.clientY - touchStartRef.current.y;
-    touchStartRef.current = null;
+  const goToPrev = () => {
+    setEnableTransition(true);
+    setSlideOffset((prev) => prev - 1);
+  };
 
-    const isStackedVertical = window.innerWidth < 900;
+  // Seamless wrap handler when sliding past boundaries
+  const handleTransitionEnd = () => {
+    if (slideOffset >= 3 * N) {
+      setEnableTransition(false);
+      setSlideOffset((prev) => prev - N);
+    } else if (slideOffset < N) {
+      setEnableTransition(false);
+      setSlideOffset((prev) => prev + N);
+    }
+  };
 
-    if (isStackedVertical) {
-      // Mobile / vertical stacked view:
-      // Vertical swipe takes priority
-      if (Math.abs(deltaY) > 35 && Math.abs(deltaY) > Math.abs(deltaX)) {
-        if (deltaY < 0) {
-          goToNext(); // Swiped up (bottom swipe) -> Next
-        } else {
-          goToPrev(); // Swiped down (top swipe) -> Prev
-        }
-      } else if (Math.abs(deltaX) > 35) {
-        // Horizontal swipe also supported on mobile
-        if (deltaX < 0) goToNext();
+  // Re-enable CSS transitions after silent teleport wrap
+  useEffect(() => {
+    if (!enableTransition) {
+      const timer = setTimeout(() => {
+        setEnableTransition(true);
+      }, 35);
+      return () => clearTimeout(timer);
+    }
+  }, [enableTransition]);
+
+  // Dot click navigation: takes the shortest circular path
+  const handleDotClick = (targetIndex: number) => {
+    if (targetIndex === activeBrandIndex) return;
+    let diff = targetIndex - activeBrandIndex;
+    if (diff > N / 2) diff -= N;
+    if (diff < -N / 2) diff += N;
+    setEnableTransition(true);
+    setSlideOffset((prev) => prev + diff);
+  };
+
+  // Gesture handling:
+  // - Horizontal swipes/drag when cards are next to each other (desktop)
+  // - Vertical (top & bottom) swipes when cards are stacked on top of each other (mobile)
+  const onStart = (clientX: number, clientY: number) => {
+    dragStartRef.current = { x: clientX, y: clientY };
+    setIsDragging(true);
+    setDragOffset(0);
+    hasMovedRef.current = false;
+  };
+
+  const onMove = (clientX: number, clientY: number) => {
+    if (!isDragging || !dragStartRef.current) return;
+    const dx = clientX - dragStartRef.current.x;
+    const dy = clientY - dragStartRef.current.y;
+    if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+      hasMovedRef.current = true;
+    }
+
+    if (isMobile) {
+      // In vertical layout, vertical movement takes priority
+      if (Math.abs(dy) > Math.abs(dx)) {
+        setDragOffset(dy);
+      } else {
+        setDragOffset(dx);
+      }
+    } else {
+      // In horizontal layout, horizontal movement takes priority
+      setDragOffset(dx);
+    }
+  };
+
+  const onEnd = (clientX: number, clientY: number) => {
+    if (!isDragging || !dragStartRef.current) return;
+    const dx = clientX - dragStartRef.current.x;
+    const dy = clientY - dragStartRef.current.y;
+    setIsDragging(false);
+    setDragOffset(0);
+    dragStartRef.current = null;
+
+    if (isMobile) {
+      // Mobile: vertical swipe (top/bottom) or horizontal swipe
+      if (Math.abs(dy) > 35 && Math.abs(dy) > Math.abs(dx)) {
+        if (dy < 0) goToNext(); // swiped up (bottom swipe) -> next
+        else goToPrev(); // swiped down (top swipe) -> prev
+      } else if (Math.abs(dx) > 35) {
+        if (dx < 0) goToNext();
         else goToPrev();
       }
     } else {
-      // Desktop / horizontal side-by-side view:
-      // Horizontal swipe takes priority
-      if (Math.abs(deltaX) > 35) {
-        if (deltaX < 0) {
-          goToNext(); // Swiped left -> Next
-        } else {
-          goToPrev(); // Swiped right -> Prev
-        }
+      // Desktop: horizontal swipe (left/right)
+      if (Math.abs(dx) > 35) {
+        if (dx < 0) goToNext();
+        else goToPrev();
       }
     }
   };
@@ -193,15 +267,15 @@ export function SignInPortalPage() {
   // Keyboard navigation support (Arrow keys)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      if (e.key === "ArrowLeft" || (isMobile && e.key === "ArrowUp")) {
         goToPrev();
-      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      } else if (e.key === "ArrowRight" || (isMobile && e.key === "ArrowDown")) {
         goToNext();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [brandCount]);
+  }, [isMobile, N]);
 
   if (brandCode && roleParam && validRole && brand) {
     return <SignInPage key={`${brand.code}:${role}`} brandCode={brand.code} brandName={brand.name} role={role} />;
@@ -316,6 +390,17 @@ export function SignInPortalPage() {
     );
   }
 
+  // Dynamic sliding track transform style
+  const trackStyle: React.CSSProperties = isMobile
+    ? {
+        transform: `translateY(calc(-1 * ${slideOffset} * (168px + 14px) + ${dragOffset}px))`,
+        transition: enableTransition && !isDragging ? "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)" : "none",
+      }
+    : {
+        transform: `translateX(calc(-1 * ${slideOffset} * (100% + 24px) / 3 + ${dragOffset}px))`,
+        transition: enableTransition && !isDragging ? "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)" : "none",
+      };
+
   // Brand Selector Main Screen (matches reference UI)
   return (
     <main className="signin-portal">
@@ -368,14 +453,11 @@ export function SignInPortalPage() {
           </div>
         )}
 
-        {/* Carousel Container with Left/Right Arrows & Touch Gestures */}
+        {/* Carousel Container with Left/Right Arrows & Touch/Mouse Drag Gestures */}
         <div
           className="signin-portal__brand-carousel"
           aria-label="Available learning brands"
           aria-busy={catalog.loading}
-          ref={carouselTrackRef}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
         >
           {/* Left Arrow Button */}
           <button
@@ -387,71 +469,91 @@ export function SignInPortalPage() {
             <ChevronLeft aria-hidden="true" size={24} />
           </button>
 
-          {/* Cards Grid / Track */}
-          <div className="signin-portal__brand-grid">
-            {catalog.brands.map((item, index) => {
-              const codeLower = item.code.toLowerCase();
-              const isElite = codeLower === "elite";
-              const isNexus = codeLower === "nexus";
+          {/* Carousel Viewport (Clips non-visible cards and handles swipes) */}
+          <div
+            className="signin-portal__carousel-viewport"
+            onTouchStart={(e) => onStart(e.touches[0].clientX, e.touches[0].clientY)}
+            onTouchMove={(e) => onMove(e.touches[0].clientX, e.touches[0].clientY)}
+            onTouchEnd={(e) => onEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY)}
+            onMouseDown={(e) => onStart(e.clientX, e.clientY)}
+            onMouseMove={(e) => onMove(e.clientX, e.clientY)}
+            onMouseUp={(e) => onEnd(e.clientX, e.clientY)}
+            onMouseLeave={(e) => onEnd(e.clientX, e.clientY)}
+          >
+            {/* Sliding Carousel Track */}
+            <div
+              className={`signin-portal__carousel-track ${enableTransition ? "is-animated" : ""}`}
+              style={trackStyle}
+              onTransitionEnd={handleTransitionEnd}
+            >
+              {extendedBrands.map((item, index) => {
+                const codeLower = item.code.toLowerCase();
+                const isElite = codeLower === "elite";
+                const isNexus = codeLower === "nexus";
 
-              const brandThemeClass = isElite
-                ? "is-brand-elite"
-                : isNexus
-                ? "is-brand-nexus"
-                : "is-brand-medway";
+                const brandThemeClass = isElite
+                  ? "is-brand-elite"
+                  : isNexus
+                  ? "is-brand-nexus"
+                  : "is-brand-medway";
 
-              const isCurrentActive = index === normalizedBrandSlide;
+                // Active card (the one in the center slot on desktop, or in view on mobile)
+                const isCenterCard = index === slideOffset + (isMobile ? 0 : 1);
 
-              return (
-                <button
-                  type="button"
-                  key={item.code}
-                  className={`signin-portal__brand-card ${brandThemeClass} ${isCurrentActive ? "is-active-slide" : ""}`}
-                  onClick={() => navigateWithState(`/auth/sign-in/${encodeURIComponent(item.code)}`)}
-                >
-                  {/* Popular Badge for Elite */}
-                  {isElite && (
-                    <span className="signin-portal__popular-badge">
-                      <span className="signin-portal__popular-star">★</span> Popular
-                    </span>
-                  )}
-
-                  {/* Organic Wave Mask inside Card Bottom */}
-                  <svg
-                    className="signin-portal__card-wave"
-                    viewBox="0 0 360 90"
-                    preserveAspectRatio="none"
-                    fill="none"
-                    aria-hidden="true"
+                return (
+                  <button
+                    type="button"
+                    key={`${item.code}-${index}`}
+                    className={`signin-portal__brand-card ${brandThemeClass} ${isCenterCard ? "is-active-slide" : ""}`}
+                    onClick={() => {
+                      if (hasMovedRef.current) return;
+                      navigateWithState(`/auth/sign-in/${encodeURIComponent(item.code)}`);
+                    }}
                   >
-                    <path
-                      d="M0,40 C90,12 210,65 360,28 L360,90 L0,90 Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-
-                  {/* Left Brand Mark */}
-                  <span className="signin-portal__brand-card-mark">
-                    {item.logoUrl ? (
-                      <img src={item.logoUrl} alt="" />
-                    ) : (
-                      <Layers3 aria-hidden="true" size={32} strokeWidth={2.4} />
+                    {/* Popular Badge for Elite */}
+                    {isElite && (
+                      <span className="signin-portal__popular-badge">
+                        <span className="signin-portal__popular-star">★</span> Popular
+                      </span>
                     )}
-                  </span>
 
-                  {/* Middle Copy */}
-                  <span className="signin-portal__brand-card-copy">
-                    <strong>{item.name}</strong>
-                    <small>{item.description || `${item.name} learning workspace`}</small>
-                  </span>
+                    {/* Organic Wave Mask inside Card Bottom */}
+                    <svg
+                      className="signin-portal__card-wave"
+                      viewBox="0 0 360 90"
+                      preserveAspectRatio="none"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M0,40 C90,12 210,65 360,28 L360,90 L0,90 Z"
+                        fill="currentColor"
+                      />
+                    </svg>
 
-                  {/* Right Circle Arrow Button */}
-                  <span className="signin-portal__brand-card-next">
-                    <ArrowRight aria-hidden="true" size={19} />
-                  </span>
-                </button>
-              );
-            })}
+                    {/* Left Brand Mark */}
+                    <span className="signin-portal__brand-card-mark">
+                      {item.logoUrl ? (
+                        <img src={item.logoUrl} alt="" />
+                      ) : (
+                        <Layers3 aria-hidden="true" size={32} strokeWidth={2.4} />
+                      )}
+                    </span>
+
+                    {/* Middle Copy */}
+                    <span className="signin-portal__brand-card-copy">
+                      <strong>{item.name}</strong>
+                      <small>{item.description || `${item.name} learning workspace`}</small>
+                    </span>
+
+                    {/* Right Circle Arrow Button */}
+                    <span className="signin-portal__brand-card-next">
+                      <ArrowRight aria-hidden="true" size={19} />
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Right Arrow Button */}
@@ -472,10 +574,10 @@ export function SignInPortalPage() {
               <button
                 type="button"
                 key={item.code}
-                className={index === normalizedBrandSlide ? "is-active" : ""}
+                className={index === activeBrandIndex ? "is-active" : ""}
                 aria-label={`Show ${item.name}`}
-                aria-current={index === normalizedBrandSlide ? "true" : undefined}
-                onClick={() => setBrandSlide(index)}
+                aria-current={index === activeBrandIndex ? "true" : undefined}
+                onClick={() => handleDotClick(index)}
               />
             ))}
           </div>

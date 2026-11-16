@@ -135,6 +135,7 @@
   aspect-ratio: 645 / 590;
   object-fit: contain;
   filter: drop-shadow(0 12px 26px rgba(10, 45, 25, 0.08));
+  transform: rotate(-90deg);
 }
 
 /* Bottom Hill Wave SVGs */
