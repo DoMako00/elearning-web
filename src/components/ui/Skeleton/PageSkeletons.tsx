@@ -1,5 +1,9 @@
 import React from "react";
 import { Skeleton, SkeletonText, SkeletonAvatar, SkeletonCard } from "./Skeleton";
+// The home skeleton uses the dashboard's exact bento grid classes; load the
+// grid stylesheet here as well because the route fallback can render before
+// DashboardBento itself (and its CSS) has been imported.
+import "../../../features/student/components/DashboardBento/DashboardBento.css";
 
 /**
  * Universal Card Skeleton container with customizable layout

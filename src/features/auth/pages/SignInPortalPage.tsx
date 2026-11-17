@@ -359,13 +359,13 @@ export function SignInPortalPage() {
               <Layers3 size={15} /> {brand.name}
             </span>
           </div>
-          <div className="signin-portal__role-grid">
+          <div className="signin-portal__role-grid signin-portal__role-grid--student-first">
             {roles.map((item) => {
               const Icon = item.icon;
               return (
                 <button
                   type="button"
-                  className="signin-portal__role-card"
+                  className={`signin-portal__role-card is-${item.id}`}
                   key={item.id}
                   onClick={() => navigateWithState(`/auth/sign-in/${encodeURIComponent(brand.code)}/${item.id}`)}
                 >

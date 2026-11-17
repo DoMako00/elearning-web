@@ -488,6 +488,7 @@
 }
 
 .signin-portal--credentials .signin-form-col {
+  position: relative;
   width: 100%;
   max-width: none;
   margin: 0;
@@ -499,6 +500,16 @@
   backdrop-filter: blur(15px);
 }
 
+.signin-credentials-art { position: absolute; z-index: 0; inset: 0; overflow: hidden; pointer-events: none; }
+.signin-credentials-art img { position: absolute; height: auto; object-fit: contain; opacity: .82; filter: drop-shadow(0 14px 24px rgb(18 102 49 / 12%)); }
+.signin-credentials-art__books { width: clamp(180px, 20vw, 330px); left: -30px; bottom: 8%; }
+.signin-credentials-art__cap { width: clamp(170px, 17vw, 285px); top: 12%; right: -18px; }
+.signin-credentials-art__leaves { width: clamp(150px, 15vw, 240px); right: -30px; bottom: -4%; opacity: .58 !important; }
+
+.signin-portal--credentials .signin-form-col { z-index: 1; }
+.signin-credentials-symbol { width: 72px; height: 72px; display: grid; place-items: center; margin: -72px auto 18px; border: 7px solid #f2fbf5; border-radius: 50%; background: linear-gradient(145deg, #d7f7e3, #b8edca); color: #0b8a4b; box-shadow: 0 8px 22px rgb(12 130 62 / 14%); }
+.signin-credentials-symbol svg { width: 32px; height: 32px; stroke-width: 2.3; }
+
 .signin-portal--credentials .signin-selected-brand {
   margin: 0 0 20px;
   border: 1px solid #dcece0;
@@ -508,21 +519,36 @@
 }
 
 .signin-portal--credentials .signin-title {
+  text-align: center;
   margin: 0 0 9px;
   color: #102a28;
   font-size: clamp(30px, 4vw, 42px);
   letter-spacing: -.05em;
 }
+.signin-portal--credentials .signin-title span { color: #128747; }
 
 .signin-portal--credentials .signin-subtitle {
+  max-width: 500px;
+  margin-right: auto;
+  margin-left: auto;
+  text-align: center;
   margin: 0 0 24px;
   color: #586d70;
   font-size: 15px;
 }
 
 .signin-portal--credentials .signin-role-tabs {
+  justify-content: stretch;
+  gap: 0;
   margin: 0 0 24px;
+  border: 1px solid #e0eae4;
+  border-radius: 14px;
+  background: #f6faf7;
+  padding: 4px;
 }
+.signin-portal--credentials .signin-role-tabs button { flex: 1; min-height: 42px; padding: 0 10px; border-radius: 10px; }
+.signin-portal--credentials .signin-role-tabs button[aria-selected="true"] { background: #fff; box-shadow: 0 2px 8px rgb(15 63 34 / 9%); }
+.signin-portal--credentials .signin-role-tabs button[aria-selected="true"]::after { display: none; }
 
 .signin-portal--credentials .signin-form {
   gap: 17px;
@@ -530,12 +556,16 @@
 
 .signin-portal--credentials .signin-field-label {
   color: #1c3832;
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .signin-portal--credentials .signin-input-wrapper,
 .signin-portal--credentials .signin-input:not(.signin-input-wrapper .signin-input) {
   border-radius: 12px;
 }
+.signin-portal--credentials .signin-form-col > .signin-form .signin-field-group > .signin-input { width: 100%; min-height: 54px; border: 1px solid #d8e2e6; border-radius: 13px; background: linear-gradient(180deg, #fff, #f9fbfc); padding: 0 16px; color: #132c32; box-shadow: inset 0 1px 2px rgb(17 45 51 / 3%); }
+.signin-portal--credentials .signin-input-wrapper { min-height: 54px; border-color: #d8e2e6; background: linear-gradient(180deg, #fff, #f9fbfc); }
 
 .signin-portal--credentials .signin-submit-btn {
   min-height: 51px;
@@ -549,6 +579,9 @@
 }
 
 @media (max-width: 600px) {
+  .signin-credentials-art__books { width: 125px; left: -50px; bottom: 4%; opacity: .35 !important; }
+  .signin-credentials-art__cap { width: 120px; top: 10%; right: -50px; opacity: .32 !important; }
+  .signin-credentials-art__leaves { display: none; }
   .signin-portal--credentials .signin-layout {
     width: calc(100% - 28px);
     padding: 24px 0;
@@ -557,6 +590,8 @@
     border-radius: 20px;
     padding: 23px 19px;
   }
+  .signin-credentials-symbol { margin-top: -51px; width: 58px; height: 58px; border-width: 5px; }
+  .signin-credentials-symbol svg { width: 26px; height: 26px; }
   .signin-portal--credentials .signin-title { font-size: 31px; }
   .signin-portal--credentials .signin-subtitle { font-size: 13px; }
   .signin-portal--credentials .signin-utilities { align-items: flex-start; gap: 12px; }

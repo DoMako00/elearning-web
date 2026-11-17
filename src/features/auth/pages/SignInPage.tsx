@@ -3,6 +3,7 @@ import {
   ArrowRight,
   BookOpen,
   Check,
+  CircleUserRound,
   Mail,
   ShieldCheck,
 } from "lucide-react";
@@ -13,6 +14,9 @@ import { getAdminOverview } from "../../admin-v2/api/adminOperationsApi";
 import { getAdminWorkspace } from "../../admin-v2/api/adminRolesApi";
 import { assignLocation } from "../../../shared/utils/hardNavigation";
 import { toBrandCode } from "../../../shared/domain/brandInstitution";
+import booksAndLeavesImg from "../../../Assets/logins/books-and-leaves.webp";
+import graduationCapImg from "../../../Assets/logins/graduation-cap-diploma.webp";
+import leafPlantImg from "../../../Assets/logins/leaf-plant.webp";
 import "../styles/SignInModern.css";
 
 type PortalRole = "student" | "instructor" | "admin";
@@ -102,6 +106,11 @@ export function SignInPage({ brandCode = "elite", brandName = "Elite", role = "s
 
   return (
     <main className="signin-page signin-portal signin-portal--credentials">
+      <div className="signin-credentials-art" aria-hidden="true">
+        <img className="signin-credentials-art__books" src={booksAndLeavesImg} alt="" />
+        <img className="signin-credentials-art__cap" src={graduationCapImg} alt="" />
+        <img className="signin-credentials-art__leaves" src={leafPlantImg} alt="" />
+      </div>
       <header className="signin-portal__topbar">
         <a className="signin-portal__wordmark" href="/auth/sign-in" aria-label="GreenLearn sign in">
           <span className="signin-portal__brand-mark"><BookOpen aria-hidden="true" /></span>
@@ -112,9 +121,10 @@ export function SignInPage({ brandCode = "elite", brandName = "Elite", role = "s
       <div className="signin-layout">
         {/* Left Column: Sign-in Form */}
         <div className="signin-form-col">
+          <span className="signin-credentials-symbol" aria-hidden="true"><CircleUserRound /></span>
           {/* Heading */}
           <a className="signin-selected-brand" href={`/auth/sign-in/${encodeURIComponent(brandCode)}`}><ArrowRight className="is-back" aria-hidden="true" /> {brandName} <span>·</span> Change role</a>
-          <h1 className="signin-title">{role === "student" ? mode === "activate" ? "Activate your account" : "Student sign in" : `${role === "admin" ? "Admin" : "Instructor"} sign in`}</h1>
+          <h1 className="signin-title">{role === "student" && mode === "activate" ? <>Activate <span>your account</span></> : <>{role === "student" ? "Student" : role === "admin" ? "Admin" : "Instructor"} <span>sign in</span></>}</h1>
           <p className="signin-subtitle">{role === "student" ? mode === "activate" ? "Use the one-time details provided by your Admin. Link your verified email after activation." : "Sign in to your student learning workspace." : `Use your verified ${role === "admin" ? "Admin" : "Instructor"} email for ${brandName}.`}</p>
           {role === "student" && <div className="signin-role-tabs" role="tablist" aria-label="Student account access type">
             <button type="button" role="tab" aria-selected={mode === "activate"} onClick={() => {setStudentMode("activate");setChallengeId(null);setErrors({});}}>Activate account</button>
