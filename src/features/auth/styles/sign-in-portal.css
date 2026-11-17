@@ -969,6 +969,513 @@
   }
 }
 
+/* Role selection: welcome copy, featured student portal, and compact role cards. */
+.signin-portal--roles {
+  overflow-x: hidden;
+  overflow-y: auto;
+  background:
+    radial-gradient(ellipse at 56% -12%, rgba(203, 247, 222, 0.76), transparent 44%),
+    radial-gradient(ellipse at 4% 100%, rgba(207, 247, 224, 0.72), transparent 36%),
+    linear-gradient(120deg, #f7fcf9 0%, #ffffff 47%, #f3fbf6 100%);
+}
+
+.signin-portal--roles .signin-portal__topbar {
+  min-height: 88px;
+  background: transparent;
+  border-bottom: 0;
+  backdrop-filter: none;
+}
+
+.signin-portal--roles .signin-portal__wordmark {
+  gap: 16px;
+}
+
+.signin-portal--roles .signin-portal__wordmark strong {
+  color: #086b3c;
+  font-size: 29px;
+  font-weight: 800;
+  letter-spacing: -0.055em;
+}
+
+.signin-portal--roles .signin-portal__brand-mark {
+  width: 58px;
+  height: 58px;
+  border-radius: 19px;
+  background: rgba(255, 255, 255, 0.64);
+  border-color: #a7e3bf;
+  color: #087744;
+  box-shadow: none;
+}
+
+.signin-portal--roles .signin-portal__brand-mark svg {
+  width: 29px;
+  height: 29px;
+}
+
+.signin-portal--roles .signin-portal__secure-badge {
+  width: 28px;
+  height: 30px;
+  border-radius: 5px 5px 11px 11px;
+}
+
+.signin-portal--roles .signin-portal__float-asset.is-grad-cap {
+  display: none;
+}
+
+.signin-portal__role-content {
+  position: relative;
+  z-index: 5;
+  width: min(100% - 80px, 1540px);
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.78fr) minmax(0, 2.22fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: clamp(38px, 4.2vw, 76px);
+  row-gap: 16px;
+  margin: 0 auto;
+  padding: 12px 0 18px;
+}
+
+.signin-portal__role-intro {
+  align-self: center;
+  padding: 8px 0 20px;
+}
+
+.signin-portal__role-intro .signin-portal__back {
+  margin: 0 0 clamp(24px, 5vh, 54px);
+}
+
+.signin-portal__role-intro .signin-portal__eyebrow-pill {
+  margin: 0 0 17px;
+  padding: 7px 13px;
+  font-size: 11px;
+  letter-spacing: 0.07em;
+}
+
+.signin-portal__role-intro h1 {
+  max-width: 460px;
+  margin: 0;
+  color: #111d29;
+  font-size: clamp(38px, 4.25vw, 68px);
+  font-weight: 800;
+  line-height: 0.99;
+  letter-spacing: -0.065em;
+}
+
+.signin-portal__role-intro h1 span {
+  display: block;
+  color: #079347;
+  font-size: 1.2em;
+  letter-spacing: -0.075em;
+}
+
+.signin-portal__role-intro > p {
+  max-width: 390px;
+  margin: 17px 0 25px;
+  color: #344255;
+  font-size: clamp(16px, 1.45vw, 21px);
+  font-weight: 550;
+  line-height: 1.35;
+}
+
+.signin-portal__benefits {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.signin-portal__benefits li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #2e4052;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.signin-portal__benefits li svg {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  padding: 8px;
+  border-radius: 50%;
+  background: #ddf8e9;
+  color: #087744;
+}
+
+.signin-portal__role-grid--showcase {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 0.98fr) minmax(0, 1.08fr);
+  grid-template-rows: repeat(2, minmax(230px, 1fr));
+  gap: clamp(14px, 1.6vw, 24px);
+  align-self: center;
+}
+
+.signin-portal__role-grid--showcase .signin-portal__role-card {
+  position: relative;
+  min-width: 0;
+  min-height: 230px;
+  overflow: hidden;
+  border: 1px solid #d4e9df;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.91);
+  box-shadow: 0 14px 34px rgba(26, 73, 48, 0.075);
+  padding: clamp(20px, 2vw, 30px);
+}
+
+.signin-portal__role-grid--showcase .signin-portal__role-card:hover {
+  transform: translateY(-3px);
+  border-color: #8fd4a8;
+  box-shadow: 0 20px 42px rgba(26, 104, 64, 0.13);
+}
+
+.signin-portal__role-grid--showcase .signin-portal__role-card.is-student {
+  grid-row: 1 / span 2;
+  min-height: 490px;
+  justify-content: flex-end;
+  gap: 17px;
+  border-color: #85d8a4;
+  background: linear-gradient(154deg, rgba(255,255,255,.97) 8%, rgba(243,253,247,.96) 72%, #fff 100%);
+  box-shadow: 0 18px 42px rgba(16, 123, 63, 0.12);
+  padding: 20px clamp(22px, 2.15vw, 34px) 25px;
+}
+
+.signin-portal__popular-badge {
+  position: absolute;
+  z-index: 2;
+  top: 18px;
+  left: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  background: linear-gradient(110deg, #099b4e, #007c3b);
+  color: #fff;
+  padding: 9px 16px;
+  font-size: 12px;
+  font-weight: 750;
+  box-shadow: 0 5px 14px rgba(0, 127, 57, 0.2);
+}
+
+.signin-portal__popular-badge > span {
+  color: #ffe44c;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.signin-portal__student-art {
+  position: absolute;
+  inset: 26px 9px 150px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 48% 48% 27% 27%;
+  background: radial-gradient(ellipse at 50% 61%, rgba(111, 238, 165, 0.34), rgba(186, 250, 215, 0.2) 54%, transparent 72%);
+  pointer-events: none;
+}
+
+.signin-portal__student-art::before {
+  position: absolute;
+  inset: 19% 5% 0;
+  border-radius: 48% 48% 24% 24%;
+  background: linear-gradient(145deg, rgba(209, 250, 225, .7), rgba(158, 241, 191, .45));
+  content: "";
+}
+
+.signin-portal__student-art img {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 440px);
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 16px 16px rgba(18, 75, 46, 0.12));
+}
+
+.signin-portal__student-info {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: auto;
+}
+
+.signin-portal__role-grid--showcase .signin-portal__role-icon {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  border-radius: 50%;
+}
+
+.signin-portal__role-grid--showcase .signin-portal__role-icon.is-student {
+  width: 64px;
+  height: 64px;
+  flex-basis: 64px;
+  border-radius: 50%;
+  background: #dbf8e8;
+}
+
+.signin-portal__role-grid--showcase .signin-portal__role-icon svg {
+  width: 25px;
+  height: 25px;
+}
+
+.signin-portal__role-grid--showcase .signin-portal__role-icon.is-student svg {
+  width: 31px;
+  height: 31px;
+}
+
+.signin-portal__role-grid--showcase .signin-portal__role-copy {
+  gap: 5px;
+}
+
+.signin-portal__role-grid--showcase .signin-portal__role-copy strong {
+  color: #111d29;
+  font-size: clamp(21px, 2vw, 29px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.signin-portal__role-grid--showcase .signin-portal__role-copy small {
+  color: #59677a;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.signin-portal__role-grid--showcase .signin-portal__role-card.is-student .signin-portal__role-copy small {
+  max-width: 300px;
+  font-size: 14px;
+}
+
+.signin-portal__role-grid--showcase .signin-portal__role-card:not(.is-student) {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px 17px;
+  padding: clamp(18px, 1.7vw, 26px);
+}
+
+.signin-portal__role-card:not(.is-student) .signin-portal__role-copy strong {
+  font-size: clamp(20px, 1.8vw, 26px);
+}
+
+.signin-portal__role-action {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(110deg, #06b955, #00863e);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 750;
+  box-shadow: 0 8px 18px rgba(0, 137, 63, 0.16);
+}
+
+.signin-portal__role-action svg {
+  transition: transform .2s ease;
+}
+
+.signin-portal__role-card:hover .signin-portal__role-action svg {
+  transform: translateX(4px);
+}
+
+.signin-portal__role-action.is-outline {
+  grid-column: 1 / -1;
+  min-height: 42px;
+  border-color: #9eb9ba;
+  background: rgba(255, 255, 255, .82);
+  color: #132129;
+  box-shadow: none;
+  font-size: 13px;
+}
+
+.signin-portal__role-action.is-outline svg {
+  color: #078347;
+}
+
+.signin-portal__footnote--roles {
+  grid-column: 1 / -1;
+  margin-top: 2px;
+  color: #344255;
+}
+
+@media (max-width: 1050px) {
+  .signin-portal__role-content {
+    width: min(100% - 48px, 900px);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    row-gap: 22px;
+    padding-top: 20px;
+  }
+
+  .signin-portal__role-intro {
+    padding: 0;
+  }
+
+  .signin-portal__role-intro .signin-portal__back {
+    margin-bottom: 18px;
+  }
+
+  .signin-portal__role-intro h1 {
+    max-width: none;
+    font-size: clamp(38px, 6vw, 58px);
+  }
+
+  .signin-portal__role-intro h1 span {
+    display: inline;
+    font-size: 1em;
+  }
+
+  .signin-portal__role-intro > p {
+    margin: 10px 0 13px;
+  }
+
+  .signin-portal__benefits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+  }
+
+  .signin-portal__benefits li {
+    font-size: 12px;
+  }
+
+  .signin-portal__benefits li svg {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+  }
+
+  .signin-portal__role-grid--showcase {
+    grid-template-rows: repeat(2, minmax(210px, 1fr));
+  }
+
+  .signin-portal__role-grid--showcase .signin-portal__role-card.is-student {
+    min-height: 440px;
+  }
+
+  .signin-portal__footnote--roles {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 620px) {
+  .signin-portal--roles .signin-portal__topbar {
+    min-height: 70px;
+    padding: 8px 18px;
+  }
+
+  .signin-portal--roles .signin-portal__wordmark strong {
+    font-size: 21px;
+  }
+
+  .signin-portal--roles .signin-portal__brand-mark {
+    width: 44px;
+    height: 44px;
+    border-radius: 15px;
+  }
+
+  .signin-portal--roles .signin-portal__brand-mark svg {
+    width: 23px;
+    height: 23px;
+  }
+
+  .signin-portal--roles .signin-portal__secure {
+    gap: 6px;
+    font-size: 11px;
+  }
+
+  .signin-portal--roles .signin-portal__secure-badge {
+    width: 22px;
+    height: 24px;
+  }
+
+  .signin-portal__role-content {
+    width: min(100% - 36px, 480px);
+    row-gap: 18px;
+    padding: 12px 0 24px;
+  }
+
+  .signin-portal__role-intro .signin-portal__back {
+    margin-bottom: 16px;
+  }
+
+  .signin-portal__role-intro .signin-portal__eyebrow-pill {
+    margin-bottom: 12px;
+    font-size: 9px;
+  }
+
+  .signin-portal__role-intro h1 {
+    font-size: clamp(36px, 10vw, 48px);
+  }
+
+  .signin-portal__role-intro > p {
+    font-size: 16px;
+  }
+
+  .signin-portal__benefits {
+    gap: 7px 11px;
+  }
+
+  .signin-portal__benefits li {
+    gap: 7px;
+    font-size: 10px;
+  }
+
+  .signin-portal__benefits li svg {
+    width: 27px;
+    height: 27px;
+    flex-basis: 27px;
+    padding: 6px;
+  }
+
+  .signin-portal__role-grid--showcase {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    gap: 13px;
+  }
+
+  .signin-portal__role-grid--showcase .signin-portal__role-card.is-student {
+    grid-row: auto;
+    min-height: 450px;
+    padding: 18px 20px 21px;
+  }
+
+  .signin-portal__student-art {
+    inset: 35px 0 142px;
+  }
+
+  .signin-portal__student-art img {
+    width: min(100%, 390px);
+  }
+
+  .signin-portal__role-grid--showcase .signin-portal__role-card:not(.is-student) {
+    min-height: 185px;
+  }
+
+  .signin-portal__footnote--roles {
+    font-size: 11px;
+  }
+
+  .signin-portal__footnote--roles::before,
+  .signin-portal__footnote--roles::after {
+    width: 24px;
+  }
+}
+
 @media (max-width: 600px) {
   .signin-portal__topbar {
     min-height: 64px;

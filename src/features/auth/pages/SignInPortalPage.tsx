@@ -11,6 +11,7 @@ import {
   Layers3,
   RefreshCw,
   ShieldCheck,
+  Sprout,
   UserRound,
 } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -19,6 +20,7 @@ import { SignInPage } from "./SignInPage";
 import booksAndLeavesImg from "../../../Assets/logins/books-and-leaves.webp";
 import graduationCapImg from "../../../Assets/logins/graduation-cap-diploma.webp";
 import leafPlantImg from "../../../Assets/logins/leaf-plant.webp";
+import studentDoctorImg from "../../../Assets/logins/student-doctor.png";
 import "../styles/sign-in-portal.css";
 
 type PortalRole = "student" | "instructor" | "admin";
@@ -326,17 +328,14 @@ export function SignInPortalPage() {
       { id: "admin", title: "Admin", detail: "Manage your learning organization and review activity.", icon: ShieldCheck },
     ];
     return (
-      <main className="signin-portal">
+      <main className="signin-portal signin-portal--roles">
         <PortalBackgroundDecorations />
         <header className="signin-portal__topbar">
           <a className="signin-portal__wordmark" href="/auth/sign-in">
             <span className="signin-portal__brand-mark">
-              <BookOpen aria-hidden="true" />
+              <Sprout aria-hidden="true" />
             </span>
-            <span>
-              <strong>GreenLearn</strong>
-              <small>Learning workspace</small>
-            </span>
+            <strong>{brand.name}</strong>
           </a>
           <span className="signin-portal__secure">
             <span className="signin-portal__secure-badge">
@@ -345,21 +344,21 @@ export function SignInPortalPage() {
             <span>Secure sign in</span>
           </span>
         </header>
-        <section className="signin-portal__content">
-          <button type="button" className="signin-portal__back" onClick={() => navigateWithState("/auth/sign-in")}>
-            <ArrowLeft size={16} /> Change brand
-          </button>
-          <span className="signin-portal__eyebrow-pill">SELECT YOUR PORTAL</span>
-          <div className="signin-portal__title-row">
-            <div>
-              <h1>Welcome to {brand.name}</h1>
-              <p>Choose the workspace that matches your account.</p>
-            </div>
-            <span className="signin-portal__selected-brand">
-              <Layers3 size={15} /> {brand.name}
-            </span>
-          </div>
-          <div className="signin-portal__role-grid signin-portal__role-grid--student-first">
+        <section className="signin-portal__role-content">
+          <aside className="signin-portal__role-intro">
+            <button type="button" className="signin-portal__back" onClick={() => navigateWithState("/auth/sign-in")}>
+              <ArrowLeft size={16} /> Change brand
+            </button>
+            <span className="signin-portal__eyebrow-pill">YOUR NEXT CHAPTER STARTS HERE</span>
+            <h1>Welcome to <span>{brand.name}</span></h1>
+            <p>Your personalized learning journey starts here.</p>
+            <ul className="signin-portal__benefits">
+              <li><GraduationCap aria-hidden="true" /><span>Learn at your own pace</span></li>
+              <li><Layers3 aria-hidden="true" /><span>Track your progress</span></li>
+              <li><ShieldCheck aria-hidden="true" /><span>Achieve your goals</span></li>
+            </ul>
+          </aside>
+          <div className="signin-portal__role-grid signin-portal__role-grid--showcase">
             {roles.map((item) => {
               const Icon = item.icon;
               return (
@@ -369,21 +368,38 @@ export function SignInPortalPage() {
                   key={item.id}
                   onClick={() => navigateWithState(`/auth/sign-in/${encodeURIComponent(brand.code)}/${item.id}`)}
                 >
-                  <span className={`signin-portal__role-icon is-${item.id}`}>
-                    <Icon aria-hidden="true" />
-                  </span>
-                  <span className="signin-portal__role-copy">
-                    <strong>{item.title}</strong>
-                    <small>{item.detail}</small>
-                  </span>
-                  <ArrowRight className="signin-portal__role-arrow" size={18} />
+                  {item.id === "student" ? (
+                    <>
+                      <span className="signin-portal__popular-badge"><span aria-hidden="true">★</span> Most popular</span>
+                      <span className="signin-portal__student-art" aria-hidden="true">
+                        <img src={studentDoctorImg} alt="" />
+                      </span>
+                      <span className="signin-portal__student-info">
+                        <span className="signin-portal__role-icon is-student"><Icon aria-hidden="true" /></span>
+                        <span className="signin-portal__role-copy">
+                          <strong>{item.title}</strong>
+                          <small>Access your courses, track progress and achieve your goals.</small>
+                        </span>
+                      </span>
+                      <span className="signin-portal__role-action">Continue as Student <ArrowRight size={20} /></span>
+                    </>
+                  ) : (
+                    <>
+                      <span className={`signin-portal__role-icon is-${item.id}`}><Icon aria-hidden="true" /></span>
+                      <span className="signin-portal__role-copy">
+                        <strong>{item.title}</strong>
+                        <small>{item.id === "instructor" ? "Create courses, manage your classes and inspire students." : "Manage the platform, users and system settings."}</small>
+                      </span>
+                      <span className="signin-portal__role-action is-outline">Continue as {item.title} <ArrowRight size={18} /></span>
+                    </>
+                  )}
                 </button>
               );
             })}
           </div>
-          <div className="signin-portal__footnote">
+          <div className="signin-portal__footnote signin-portal__footnote--roles">
             <Info size={15} className="signin-portal__footnote-icon" aria-hidden="true" />
-            <span>Your account access is verified securely for the selected brand.</span>
+            <span>Your account is secure and protected</span>
           </div>
         </section>
       </main>
