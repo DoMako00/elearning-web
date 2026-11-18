@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Email Templates Brand Preview</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      background: #1e293b;
+      padding: 10px 16px;
+      border-radius: 9999px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .brand-btn {
+      padding: 8px 18px;
+      border-radius: 9999px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      color: #94a3b8;
+      background: transparent;
+    }
+    .brand-btn:hover {
+      color: #ffffff;
+      background: #334155;
+    }
+    .brand-btn.active.nexus {
+      background: #059669;
+      color: #ffffff;
+      border-color: #34d399;
+    }
+    .brand-btn.active.medway {
+      background: #16a34a;
+      color: #ffffff;
+      border-color: #4ade80;
+    }
+    .brand-btn.active.elite {
+      background: #059669;
+      color: #ffffff;
+      border-color: #34d399;
+    }
+    .viewport-controls {
+      display: flex;
+      gap: 8px;
+      border-left: 1px solid #334155;
+      padding-left: 12px;
+    }
+    .view-btn {
+      background: #0f172a;
+      color: #94a3b8;
+      border: 1px solid #334155;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .view-btn.active {
+      background: #38bdf8;
+      color: #0f172a;
+      border-color: #38bdf8;
+    }
+    iframe {
+      border: none;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      transition: width 0.3s ease;
+      height: 980px;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <span style="font-size: 13px; font-weight: 600; color: #94a3b8; margin-right: 4px;">Brand:</span>
+    <button class="brand-btn active nexus" onclick="loadBrand('nexus')">Nexus</button>
+    <button class="brand-btn medway" onclick="loadBrand('medway')">Medway</button>
+    <button class="brand-btn elite" onclick="loadBrand('elite')">Elite</button>
+
+    <div class="viewport-controls">
+      <button class="view-btn active" onclick="setViewport(680, this)">Desktop (680px)</button>
+      <button class="view-btn" onclick="setViewport(390, this)">Mobile (390px)</button>
+    </div>
+  </div>
+
+  <iframe id="previewFrame" width="680" src="preview_nexus_rendered.html"></iframe>
+
+  <script>
+    function loadBrand(brand) {
+      document.querySelectorAll('.brand-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector('.brand-btn.' + brand).classList.add('active');
+      document.getElementById('previewFrame').src = 'preview_' + brand + '_rendered.html';
+    }
+
+    function setViewport(width, btn) {
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('previewFrame').width = width;
+    }
+  </script>
+</body>
+</html>

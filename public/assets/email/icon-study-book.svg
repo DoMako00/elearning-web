@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 60 60" fill="none">
+      <rect x="1.5" y="1.5" width="57" height="57" rx="14" fill="#f8fdfa" stroke="#d1fae5" stroke-width="1.8"/>
+      <!-- Open book -->
+      <path d="M16 22C21 19 26 19 30 22.5C34 19 39 19 44 22V39C39 36 34 36 30 39.5C26 36 21 36 16 39V22Z" stroke="#059669" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <line x1="30" y1="22.5" x2="30" y2="39.5" stroke="#059669" stroke-width="2.4" stroke-linecap="round"/>
+    </svg>
