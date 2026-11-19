@@ -9,6 +9,7 @@ import {
   GraduationCap,
   Info,
   Layers3,
+  Search,
   RefreshCw,
   ShieldCheck,
   Sprout,
@@ -197,7 +198,11 @@ function BrandCarousel({
     return 3;
   });
   const [startIndex, setStartIndex] = useState(0);
-  const isCarousel = brands.length > 3;
+  const [query, setQuery] = useState("");
+  const filteredBrands = brands.filter((brand) =>
+    `${brand.name} ${brand.code} ${brand.description}`.toLowerCase().includes(query.trim().toLowerCase()),
+  );
+  const isCarousel = filteredBrands.length > 3;
 
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -220,11 +225,11 @@ function BrandCarousel({
     const observer = new ResizeObserver(updateVisibleCount);
     observer.observe(viewport);
     return () => observer.disconnect();
-  }, [brands.length, isCarousel]);
+  }, [filteredBrands.length, isCarousel]);
 
-  const maxStart = Math.max(0, brands.length - visibleCount);
+  const maxStart = Math.max(0, filteredBrands.length - visibleCount);
   const pageStarts = Array.from(
-    { length: Math.ceil(brands.length / visibleCount) },
+    { length: Math.ceil(filteredBrands.length / visibleCount) },
     (_, page) => Math.min(page * visibleCount, maxStart),
   ).filter((start, index, all) => index === 0 || start !== all[index - 1]);
   const currentPage = pageStarts.reduce(
@@ -287,21 +292,39 @@ function BrandCarousel({
     );
   }
 
+  const brandSelector = (
+    <>
+      <label className="signin-portal__brand-search">
+        <Search size={19} aria-hidden="true" />
+        <span className="signin-portal__visually-hidden">Search brands</span>
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search brands…" />
+        {query && <button type="button" onClick={() => setQuery("")} aria-label="Clear brand search">×</button>}
+      </label>
+      {!filteredBrands.length ? (
+        <div className="signin-portal__empty-brands" role="status">No brands match “{query}”.</div>
+      ) : null}
+    </>
+  );
+
   if (!isCarousel) {
     return (
-      <div
-        className={`signin-portal__brand-grid ${brands.length === 3 ? "has-three-brands" : ""}`}
-        role="group"
-        aria-label="Available learning brands"
-        aria-busy={loading}
-      >
-        {brands.map((brand) => <BrandCard key={brand.code} brand={brand} onSelect={onSelect} />)}
-      </div>
+      <>
+        {brandSelector}
+        {filteredBrands.length > 0 && <div
+          className={`signin-portal__brand-grid ${filteredBrands.length === 3 ? "has-three-brands" : ""}`}
+          role="group"
+          aria-label="Available learning brands"
+          aria-busy={loading}
+        >
+          {filteredBrands.map((brand) => <BrandCard key={brand.code} brand={brand} onSelect={onSelect} />)}
+        </div>}
+      </>
     );
   }
 
   return (
     <>
+      {brandSelector}
       <div
         className="signin-portal__brand-carousel"
         role="group"
@@ -329,7 +352,7 @@ function BrandCarousel({
           onKeyDown={handleKeyDown}
         >
           <div className="signin-portal__carousel-track">
-            {brands.map((brand) => <BrandCard key={brand.code} brand={brand} onSelect={onSelect} />)}
+            {filteredBrands.map((brand) => <BrandCard key={brand.code} brand={brand} onSelect={onSelect} />)}
           </div>
         </div>
 
@@ -348,13 +371,13 @@ function BrandCarousel({
         {visiblePages.map((pageStart) => {
           const pageIndex = pageStarts.indexOf(pageStart);
           const firstBrand = pageStart + 1;
-          const lastBrand = Math.min(brands.length, pageStart + visibleCount);
+          const lastBrand = Math.min(filteredBrands.length, pageStart + visibleCount);
           return (
             <button
               type="button"
               key={pageStart}
               className={pageIndex === currentPage ? "is-active" : ""}
-              aria-label={`Show brands ${firstBrand} through ${lastBrand} of ${brands.length}`}
+              aria-label={`Show brands ${firstBrand} through ${lastBrand} of ${filteredBrands.length}`}
               aria-current={pageIndex === currentPage ? "page" : undefined}
               onClick={() => scrollToIndex(pageStart)}
             />
