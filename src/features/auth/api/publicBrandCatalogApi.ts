@@ -16,8 +16,8 @@ const fallbackBrands: PublicBrand[] = BRAND_CODES.map((code) => ({
   status: "active",
 }));
 
-/** Set this to the backend's public, unauthenticated brand-catalog route when confirmed. */
-export const PUBLIC_BRAND_CATALOG_ENDPOINT: string | null = null;
+/** Public catalog contract: { ok, correlationId, data: { brands: [...] } }. */
+export const PUBLIC_BRAND_CATALOG_ENDPOINT = "/v1/public/brands";
 
 function brandRows(payload: unknown): unknown[] {
   if (Array.isArray(payload)) return payload;
