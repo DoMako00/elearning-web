@@ -1015,6 +1015,29 @@
   pointer-events: none;
 }
 
+.explore-card-art__icon {
+  position: absolute;
+  z-index: 1;
+  right: 10px;
+  bottom: 10px;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 82%);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 90%);
+  color: #174b35;
+  box-shadow: 0 3px 12px rgb(15 50 42 / 15%);
+  backdrop-filter: blur(8px);
+}
+
+.explore-card-art__icon svg {
+  width: 17px;
+  height: 17px;
+  stroke-width: 1.8;
+}
+
 .explore-card-art__tag {
   position: absolute;
   top: 7px;

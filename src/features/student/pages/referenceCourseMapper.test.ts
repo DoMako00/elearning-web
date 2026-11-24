@@ -32,8 +32,8 @@ describe("reference UI course mapping", () => {
     expect(mapped.progress).toBeNull();
     expect(mapped.instructor).toBeNull();
     expect(mapped.art).toBe("english");
-    expect(mapped.image).toContain("english-language.jpg");
-    expect(mapped.heroOverlay).toContain("english-language-cutout.png");
+    expect(mapped.image).toContain("english.webp");
+    expect(mapped.heroOverlay).toContain("english.webp");
     expect(mapped.opened).toBe("No lesson activity yet");
   });
   it("uses the academic unit from the API even for a medical title", () => {
@@ -61,7 +61,24 @@ describe("reference UI course mapping", () => {
   it("recognizes subject artwork from the course code as well as its title", () => {
     const mapped = toReferenceCourse({ ...course, title: "General Foundations", code: "NEX-Y1-DELTA-ANA1102" });
     expect(mapped.art).toBe("anatomy");
-    expect(mapped.image).toContain("human-anatomy.webp");
+    expect(mapped.image).toContain("anatomy.webp");
+  });
+  it("resolves common course aliases to the shared subject artwork", () => {
+    const aliases = [
+      ["Anatomy Foundations", "anatomy"],
+      ["Skeletal System", "anatomy"],
+      ["Biochemistry Fundamentals", "biochemistry"],
+      ["Cellular Biology and Genetics", "cell-biology-genetics"],
+      ["Tissue Structure & Function", "tissue-structure-function"],
+      ["Introduction to Physiology & Clinical Pharmacology", "physiology-clinical-pharmacology"],
+      ["Professional Medical Development", "professional-medical-development"],
+      ["Medical Communication and Ethics", "medical-communication-ethics"],
+      ["Social & Behavioural Sciences", "social-behavioural-sciences"],
+    ] as const;
+
+    for (const [title, art] of aliases) {
+      expect(toReferenceCourse({ ...course, title }).art).toBe(art);
+    }
   });
 });
 

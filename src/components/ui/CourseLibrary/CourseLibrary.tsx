@@ -242,6 +242,7 @@ export function CourseLibrary({
                 onClick={() => { if (!isLocked) onSelectCourse(course.id); }}
               >
                 <div className={`course-library__list-art course-library__art--${course.art}`}>
+                  <img src={course.image} alt="" loading="lazy" />
                   <span><course.Icon aria-hidden="true" /></span>
                 </div>
                 <div className="course-library__list-content">

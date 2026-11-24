@@ -25,6 +25,7 @@ export function ExploreCourseArt({ artType }: CourseArtProps) {
         className="explore-card-art__overlay"
         style={{ "--art-accent": config.accentColor } as React.CSSProperties}
       />
+      <span className="explore-card-art__icon"><config.Icon aria-hidden="true" /></span>
     </div>
   );
 }
