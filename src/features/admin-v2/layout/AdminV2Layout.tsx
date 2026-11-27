@@ -9,7 +9,7 @@ import { resetAdminV2, updateAdminV2, useAdminV2Store } from "../data/adminV2.st
 import { ConfirmDialog } from "../shared/AdminV2Primitives";
 import type { AdminV2Data, BrandFilter } from "../types/adminV2.types";
 import { emptyAdminV2ServerDomainData } from "../api/adminV2Mappers";
-import { adminV2ServerDomainsChanged, loadAdminV2ServerData, persistAdminV2ServerChanges, type ServerDomainData } from "../api/adminV2ServerData";
+import { adminV2ServerDomainsChanged, loadAdminV2ServerData, loadBrandAdminServerData, persistAdminV2ServerChanges, type ServerDomainData } from "../api/adminV2ServerData";
 import { loadAdminOverviewData, loadAdminSecurityData, loadAdminSecurityEvents, type AdminOverviewView } from "../api/adminV2OperationalData";
 import { clearAdminOperationsCache } from "../api/adminOperationsApi";
 import { AdminV2UiProvider } from "../shared/adminV2Theme";
@@ -109,24 +109,27 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
     const saved = window.localStorage.getItem(BRAND_FILTER_STORAGE_KEY) as BrandFilter | null;
     return saved && brandChoices.includes(saved) ? saved : "all";
   });
-  const routeBrand = workspace?.workspace === "instructor" ? workspace.brands[0]?.code ?? "all" : brand;
-  const routeBrandChoices = workspace?.workspace === "super_admin" ? brandChoices : [];
+  const assignedBrandChoices = workspace?.workspace === "brand_admin" ? workspace.brands.map((item) => item.code) : [];
+  const routeBrand = workspace?.workspace === "instructor" ? workspace.brands[0]?.code ?? "all" : workspace?.workspace === "brand_admin" ? (brand !== "all" && assignedBrandChoices.includes(brand) ? brand : assignedBrandChoices[0] ?? "all") : brand;
+  const routeBrandChoices = workspace?.workspace === "super_admin" ? brandChoices : assignedBrandChoices;
   const [globalSearch, setGlobalSearch] = useState("");
   const [noticeOpen, setNoticeOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
-  const navigation = workspace?.workspace === "instructor" ? instructorNavigation : adminNavigation;
+  const brandAdminNavigation = adminNavigation.filter((item) => ["/admin", "/admin/students", "/admin/payments", "/admin/subscriptions", "/admin/content", "/admin/security", "/admin/support"].includes(item.path));
+  const navigation = workspace?.workspace === "instructor" ? instructorNavigation : workspace?.workspace === "brand_admin" ? brandAdminNavigation : adminNavigation;
   const routeLabel = useMemo(() => {
     if (workspace?.workspace === "super_admin" && (pathname === "/admin" || pathname === "/admin/overview")) return "Super Admin overview";
+    if (workspace?.workspace === "brand_admin" && (pathname === "/admin" || pathname === "/admin/overview")) return "Brand Admin overview";
     if (workspace?.workspace === "instructor" && pathname === "/admin/instructor") return "Home";
     if (workspace?.workspace === "instructor" && /^\/admin\/instructor\/courses\/[^/]+$/.test(pathname)) return "Course builder";
     return navigation.find((route) => route.path === pathname)?.label ?? workspace?.displayRole ?? "Admin";
   }, [navigation, pathname, workspace?.displayRole, workspace?.workspace]);
-  const routeSubtitle = navigation.find((route) => route.path === pathname)?.description ?? (routeLabel === "Super Admin overview" ? "Run platform operations, configure courses, and review instructor submissions." : routeLabel === "Instructor dashboard" || routeLabel === "Home" ? "Follow your teaching workflow from course setup to grading." : routeLabel === "Course builder" || routeLabel === "Course content" ? "Build chapters and lessons, then send videos or PDFs for approval." : routeLabel === "Dashboard" ? "Your next teaching tasks and course activity." : routeLabel === "My courses" ? "Build lessons and learning materials for assigned courses." : routeLabel === "Assignments & grading" ? "Publish coursework and review submitted student work." : routeLabel === "Exams & quizzes" ? "Create questions, set availability, and publish assessments." : routeLabel === "Course setup" ? "Create course offerings, map curriculum, and assign instructors." : routeLabel === "Instructors" ? "Manage teaching profiles, account access, and course assignments." : routeLabel === "Content approvals" ? "Review videos and documents sent by instructors before student release." : routeLabel === "Roles & Permissions" ? "Choose who can teach and manage the learning platform." : routeLabel === "Security" ? "Monitor persisted devices, sessions, and security events." : routeLabel === "Students" ? "Manage student identity, access, devices, and sessions." : routeLabel === "Payments" ? "Review manual payment submissions and approve or reject pending reviews." : routeLabel === "Curriculum" ? "Manage approved academic structures by institution." : routeLabel === "Support Inbox" ? "Read and reply to persisted student support conversations." : "Manage subscription plans, seats, and student lifecycle.");
+  const routeSubtitle = navigation.find((route) => route.path === pathname)?.description ?? (routeLabel === "Super Admin overview" ? "Run platform operations, configure courses, and review instructor submissions." : routeLabel === "Brand Admin overview" ? "Manage your brand workspace and review its activity." : routeLabel === "Instructor dashboard" || routeLabel === "Home" ? "Follow your teaching workflow from course setup to grading." : routeLabel === "Course builder" || routeLabel === "Course content" ? "Build chapters and lessons, then send videos or PDFs for approval." : routeLabel === "Dashboard" ? "Your next teaching tasks and course activity." : routeLabel === "My courses" ? "Build lessons and learning materials for assigned courses." : routeLabel === "Assignments & grading" ? "Publish coursework and review submitted student work." : routeLabel === "Exams & quizzes" ? "Create questions, set availability, and publish assessments." : routeLabel === "Course setup" ? "Create course offerings, map curriculum, and assign instructors." : routeLabel === "Instructors" ? "Manage teaching profiles, account access, and course assignments." : routeLabel === "Content approvals" ? "Review videos and documents sent by instructors before student release." : routeLabel === "Roles & Permissions" ? "Choose who can teach and manage the learning platform." : routeLabel === "Security" ? "Monitor persisted devices, sessions, and security events." : routeLabel === "Students" ? "Manage student identity, access, devices, and sessions." : routeLabel === "Payments" ? "Review manual payment submissions and approve or reject pending reviews." : routeLabel === "Curriculum" ? "Manage approved academic structures by institution." : routeLabel === "Support Inbox" ? "Read and reply to persisted student support conversations." : "Manage subscription plans, seats, and student lifecycle.");
   const reportDomainError = (message: string) => setDomainError(message);
   // Overview, Security and Instructors load extra data for their own route, so they are ready per route and brand; every other screen is ready per brand.
-  const loadsOwnData = workspace?.workspace === "super_admin" && (pathname === "/admin" || pathname === "/admin/overview" || pathname === "/admin/security" || pathname === "/admin/instructors");
-  const readyKey = loadsOwnData ? `${brand}|${pathname}` : brand;
+  const loadsOwnData = Boolean(workspace && workspace.workspace !== "instructor" && (pathname === "/admin" || pathname === "/admin/overview" || pathname === "/admin/security" || pathname === "/admin/instructors"));
+  const readyKey = loadsOwnData ? `${routeBrand}|${pathname}` : routeBrand;
   const showFirstLoad = !readyKeys.has(readyKey);
   const context = useMemo(() => workspace ? ({ data, setData, brand: routeBrand, setBrand, globalSearch, setGlobalSearch, domainLoading, domainError, refreshServerDomains, reportDomainError, overview, workspace }) : null, [data, routeBrand, globalSearch, domainLoading, domainError, overview, workspace]);
   useEffect(() => {
@@ -147,7 +150,7 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
   }, [auth.status, auth.user?.id]);
   useEffect(() => {
     if (adminAccess !== "allowed") return;
-    const sharedKey = `${workspace?.workspace ?? ""}|${brand}|${refreshSequence}`;
+    const sharedKey = `${workspace?.workspace ?? ""}|${routeBrand}|${refreshSequence}`;
     // The shared data is already current for this brand and no save happened since: a screen that loads nothing of its own needs no reload.
     if (!loadsOwnData && sharedLoadedFor.current === sharedKey) return;
     if (refreshSequence > clearedForSave.current) { clearedForSave.current = refreshSequence; clearAdminOperationsCache(); }
@@ -156,12 +159,12 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
     (async () => {
       let refreshResult: AdminV2RefreshResult;
       try {
-        const loaded = workspace?.workspace === "instructor" ? emptyAdminV2ServerDomainData() : await loadAdminV2ServerData();
+        const loaded = workspace?.workspace === "instructor" ? emptyAdminV2ServerDomainData() : workspace?.workspace === "brand_admin" ? await loadBrandAdminServerData(workspace.brands) : await loadAdminV2ServerData();
         let operational: Partial<AdminV2Data> = {};
         let overviewResult: AdminOverviewView | null = null;
-        if (workspace?.workspace === "super_admin" && pathname === "/admin/security") operational = await loadAdminSecurityData(brand);
-        if (workspace?.workspace === "super_admin" && pathname === "/admin/instructors") operational = { auditEvents: await loadAdminSecurityEvents(brand) };
-        if (workspace?.workspace === "super_admin" && (pathname === "/admin" || pathname === "/admin/overview")) { const result = await loadAdminOverviewData(brand, loaded.courses); operational = result.data; overviewResult = result.overview; }
+        if (workspace && workspace.workspace !== "instructor" && pathname === "/admin/security") operational = await loadAdminSecurityData(routeBrand);
+        if (workspace?.workspace === "super_admin" && pathname === "/admin/instructors") operational = { auditEvents: await loadAdminSecurityEvents(routeBrand) };
+        if (workspace && workspace.workspace !== "instructor" && (pathname === "/admin" || pathname === "/admin/overview")) { const result = await loadAdminOverviewData(routeBrand, loaded.courses, workspace.workspace === "brand_admin" ? workspace.brands.map((item) => ({ ...item, status: "active" as const })) : undefined); operational = result.data; overviewResult = result.overview; }
         if (!controller.signal.aborted) {
           const refreshed = { ...loaded, ...operational } as ServerDomainData;
           refreshResult = { ok: true, data: refreshed };
@@ -173,7 +176,7 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
       } finally {
         if (!controller.signal.aborted) {
           if (refreshResult!.ok) sharedLoadedFor.current = sharedKey; // a failed load is retried on the next navigation
-          setReadyKeys((current) => { const next = new Set(current); next.add(brand); next.add(`${brand}|${pathname}`); return next; });
+          setReadyKeys((current) => { const next = new Set(current); next.add(routeBrand); next.add(`${routeBrand}|${pathname}`); return next; });
           setDomainLoading(false);
           const result = refreshResult!;
           for (const resolve of refreshWaiters.current.splice(0)) resolve(result);
@@ -181,7 +184,7 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
       }
     })();
     return () => controller.abort();
-  }, [adminAccess, pathname, brand, refreshSequence, workspace, loadsOwnData]);
+  }, [adminAccess, pathname, routeBrand, refreshSequence, workspace, loadsOwnData]);
   useEffect(() => {
     const focusSearch = (event: KeyboardEvent) => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); searchRef.current?.focus(); } };
     window.addEventListener("keydown", focusSearch);
@@ -230,7 +233,7 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
       </aside>
       <div className="admin-v2__workspace">
         <header className="admin-v2__topbar">
-          {isInstructor ? <div className="admin-v2__instructor-breadcrumb"><PageBreadcrumb trail={pathname === "/admin/instructor" ? [{ label: "WORKSPACE", to: "/admin/instructor" }] : pathname.startsWith("/admin/instructor/courses/") ? [{ label: "WORKSPACE", to: "/admin/instructor" }, { label: "MY COURSES", to: "/admin/instructor/courses" }, { label: workspace.courses.find(course => pathname === `/admin/instructor/courses/${course.id}`)?.title ?? "COURSE", to: pathname }] : [{ label: "WORKSPACE", to: "/admin/instructor" }]} title={routeLabel} /></div> : <div className="admin-v2__route-title"><span className="admin-v2__workspace-kicker">{copy.topbar.kicker}</span><h1>{routeLabel}</h1><p>{routeSubtitle}</p></div>}
+          {isInstructor ? <div className="admin-v2__instructor-breadcrumb"><PageBreadcrumb trail={pathname === "/admin/instructor" ? [{ label: "WORKSPACE", to: "/admin/instructor" }] : pathname.startsWith("/admin/instructor/courses/") ? [{ label: "WORKSPACE", to: "/admin/instructor" }, { label: "MY COURSES", to: "/admin/instructor/courses" }, { label: workspace.courses.find(course => pathname === `/admin/instructor/courses/${course.id}`)?.title ?? "COURSE", to: pathname }] : [{ label: "WORKSPACE", to: "/admin/instructor" }]} title={routeLabel} /></div> : <div className="admin-v2__route-title"><span className="admin-v2__workspace-kicker">{workspace.workspace === "brand_admin" ? "BRAND ADMIN WORKSPACE" : copy.topbar.kicker}</span><h1>{routeLabel}</h1><p>{routeSubtitle}</p></div>}
           {!isInstructor ? (
             <label className="admin-v2__global-search"><Search aria-hidden="true" /><input ref={searchRef} value={globalSearch} onChange={(event) => setGlobalSearch(event.target.value)} placeholder={copy.topbar.searchPlaceholder} aria-label={copy.topbar.searchAriaLabel} /><kbd>Ctrl K</kbd></label>
           ) : null}

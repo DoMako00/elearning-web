@@ -1,6 +1,6 @@
 import type { AdminV2Data, AuditEvent, BrandCode, BrandFilter, ContentResource, CourseRecord, StudentDevice, StudentRecord, StudentSession } from "../types/adminV2.types";
 import { mapChapterDto, mapLessonDto } from "./adminV2Mappers";
-import { listBrandAccess, listStructure } from "./adminAcademicApi";
+import { listBrandAccess, listStructure, type BrandAccess } from "./adminAcademicApi";
 import { listLessonResources, listLessonMedia, type LessonResourceDto, type MediaAssetDto } from "./adminContentApi";
 import { getAdminOverview, listAdminSecurityEvents, listAllAdminStudents, loadAdminStudentDetails, type AdminOverviewSnapshot, type AdminSecurityEventDto } from "./adminOperationsApi";
 import { listSemesterOfferingOrders } from "./adminCommercialApi";
@@ -73,8 +73,8 @@ function countOverview(snapshots:AdminOverviewSnapshot[],students:AdminStudentLi
   return{counts:{...counts,totalStudents:students.length,activeStudents:students.filter((student)=>student.status==="active").length,publishedCourses:courses.filter((course)=>course.status==="Published").length,activeDevices:students.reduce((sum,item)=>sum+item.activeDeviceCount,0),activeSessions:students.reduce((sum,item)=>sum+item.activeSessionCount,0),approvedRevenueMinor:null},securityEvents:[],paymentCoverage:"unavailable"};
 }
 
-export async function loadAdminOverviewData(brand:BrandFilter,courses:CourseRecord[]):Promise<{data:OperationalServerData;overview:AdminOverviewView}>{
-  const [students,events,brands]=await Promise.all([listAllAdminStudents(brand),allSecurityEvents(brand),listBrandAccess()]);
+export async function loadAdminOverviewData(brand:BrandFilter,courses:CourseRecord[],scopedBrands?:readonly Pick<BrandAccess,"id"|"code"|"name"|"status">[]):Promise<{data:OperationalServerData;overview:AdminOverviewView}>{
+  const [students,events,brands]=await Promise.all([listAllAdminStudents(brand),allSecurityEvents(brand),scopedBrands?Promise.resolve(scopedBrands):listBrandAccess()]);
   const targetBrands=brand==="all"?(["medway","elite","nexus"] as const):([brand] as const);
   const available=brands.filter((item)=>targetBrands.includes(item.code as never)&&item.status.toLowerCase()==="active");
   const [snapshots,orderPages]=await Promise.all([Promise.all(available.map((item)=>getAdminOverview(item.code))),Promise.all(available.map((item)=>listSemesterOfferingOrders({brand:item.code})))]);

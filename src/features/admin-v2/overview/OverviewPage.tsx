@@ -6,13 +6,15 @@ import "./admin-overview.css";
 type Step = { title: string; detail: string; to: string; icon: LucideIcon; chip?: { label: string; alert?: boolean } };
 
 export function OverviewPage() {
-  const { overview, domainLoading, domainError } = useAdminV2();
+  const { overview, domainLoading, domainError, workspace } = useAdminV2();
+  const isBrandAdmin = workspace.workspace === "brand_admin";
+  const assignedBrandName = workspace.brands.map((brand) => brand.name).join(", ") || "your Brand";
   const counts = overview?.counts;
   const show = (value: number | undefined) => value === undefined ? (domainLoading ? "…" : "—") : value.toLocaleString();
 
   const metrics: Array<{ label: string; value: string; note: string; to: string; icon: LucideIcon }> = [
     { label: "Student accounts", value: show(counts?.totalStudents), note: counts ? `${counts.activeStudents.toLocaleString()} active` : "Records unavailable", to: "/admin/students", icon: UsersRound },
-    { label: "Published courses", value: show(counts?.publishedCourses), note: "In the course catalogue", to: "/admin/courses", icon: BookOpen },
+    { label: "Published courses", value: show(counts?.publishedCourses), note: isBrandAdmin ? "In your Brand catalogue" : "In the course catalogue", to: isBrandAdmin ? "/admin/content" : "/admin/courses", icon: BookOpen },
     { label: "Content to review", value: show(counts?.contentAwaitingRelease), note: "Instructor submissions", to: "/admin/content", icon: FileCheck2 },
     { label: "Payments to review", value: show(counts?.pendingPaymentReviews), note: "Pending decisions", to: "/admin/payments?status=pending_review", icon: CreditCard },
   ];
@@ -20,10 +22,16 @@ export function OverviewPage() {
   const awaitingContent = counts?.contentAwaitingRelease ?? 0;
   const awaitingPayments = counts?.pendingPaymentReviews ?? 0;
   const steps: Step[] = [
-    { title: "Set the curriculum", detail: "Confirm the university, year, semester and approved subjects.", to: "/admin/curriculum", icon: BookOpen },
-    { title: "Set up a course", detail: "Create the brand course, map it to a subject and assign its instructor.", to: "/admin/courses", icon: GraduationCap, chip: counts ? { label: `${counts.publishedCourses.toLocaleString()} published` } : undefined },
-    { title: "Review lesson files", detail: "Approve or return instructor videos and PDFs before students see them.", to: "/admin/content", icon: FileCheck2, chip: counts ? { label: awaitingContent ? `${awaitingContent.toLocaleString()} waiting` : "Up to date", alert: awaitingContent > 0 } : undefined },
-    { title: "Manage people and access", detail: "Create instructor credentials and manage student accounts and seats.", to: "/admin/instructors", icon: UsersRound, chip: counts ? { label: `${counts.totalStudents.toLocaleString()} students` } : undefined },
+    ...(isBrandAdmin ? [
+      { title: "Review learning content", detail: `Check submitted materials for ${assignedBrandName}.`, to: "/admin/content", icon: FileCheck2, chip: counts ? { label: awaitingContent ? `${awaitingContent.toLocaleString()} waiting` : "Up to date", alert: awaitingContent > 0 } : undefined },
+      { title: "Review payments", detail: "Follow pending student payment requests for your Brand.", to: "/admin/payments", icon: CreditCard, chip: counts ? { label: awaitingPayments ? `${awaitingPayments.toLocaleString()} pending` : "Up to date", alert: awaitingPayments > 0 } : undefined },
+      { title: "Manage student access", detail: "Review student accounts and access within your Brand.", to: "/admin/students", icon: UsersRound, chip: counts ? { label: `${counts.totalStudents.toLocaleString()} students` } : undefined },
+    ] : [
+      { title: "Set the curriculum", detail: "Confirm the university, year, semester and approved subjects.", to: "/admin/curriculum", icon: BookOpen },
+      { title: "Set up a course", detail: "Create the brand course, map it to a subject and assign its instructor.", to: "/admin/courses", icon: GraduationCap, chip: counts ? { label: `${counts.publishedCourses.toLocaleString()} published` } : undefined },
+      { title: "Review lesson files", detail: "Approve or return instructor videos and PDFs before students see them.", to: "/admin/content", icon: FileCheck2, chip: counts ? { label: awaitingContent ? `${awaitingContent.toLocaleString()} waiting` : "Up to date", alert: awaitingContent > 0 } : undefined },
+      { title: "Manage people and access", detail: "Create instructor credentials and manage student accounts and seats.", to: "/admin/instructors", icon: UsersRound, chip: counts ? { label: `${counts.totalStudents.toLocaleString()} students` } : undefined },
+    ]),
   ];
 
   const attention = [
@@ -32,14 +40,21 @@ export function OverviewPage() {
   ].filter((item): item is { label: string; to: string; icon: LucideIcon } => Boolean(item));
 
   const shortcuts: Array<{ title: string; to: string; icon: LucideIcon }> = [
-    { title: "Instructor accounts", to: "/admin/instructors", icon: UserRound },
-    { title: "Student access", to: "/admin/students", icon: GraduationCap },
-    { title: "Payments", to: "/admin/payments", icon: CreditCard },
-    { title: "Security", to: "/admin/security", icon: ShieldCheck },
+    ...(isBrandAdmin ? [
+      { title: "Student access", to: "/admin/students", icon: GraduationCap },
+      { title: "Payments", to: "/admin/payments", icon: CreditCard },
+      { title: "Security", to: "/admin/security", icon: ShieldCheck },
+      { title: "Support Inbox", to: "/admin/support", icon: UserRound },
+    ] : [
+      { title: "Instructor accounts", to: "/admin/instructors", icon: UserRound },
+      { title: "Student access", to: "/admin/students", icon: GraduationCap },
+      { title: "Payments", to: "/admin/payments", icon: CreditCard },
+      { title: "Security", to: "/admin/security", icon: ShieldCheck },
+    ]),
   ];
 
   return (
-    <section className={`admin-v2__page admin-overview-v2${domainError ? " has-status" : ""}`} aria-label="Super Admin overview">
+    <section className={`admin-v2__page admin-overview-v2${domainError ? " has-status" : ""}`} aria-label={isBrandAdmin ? "Brand Admin overview" : "Super Admin overview"}>
       {domainError && <AdminV2DomainStatus />}
 
       <div className="admin-overview-v2__metrics" data-admin-guide-target="overview-metrics">
@@ -52,7 +67,7 @@ export function OverviewPage() {
 
       <div className="admin-overview-v2__main">
         <section data-admin-guide-target="overview-flow" className="admin-overview-v2__card admin-overview-v2__flow" aria-labelledby="admin-overview-flow">
-          <header><h2 id="admin-overview-flow">Run a course, setup to release</h2><p>Day-to-day teaching stays with the instructor. You configure access and approve materials.</p></header>
+          <header><h2 id="admin-overview-flow">{isBrandAdmin ? `${assignedBrandName} workspace` : "Run a course, setup to release"}</h2><p>{isBrandAdmin ? "Review Brand activity, payments, and student access from one place." : "Day-to-day teaching stays with the instructor. You configure access and approve materials."}</p></header>
           <ol>
             {steps.map((step, index) => {
               const Icon = step.icon;
@@ -75,7 +90,7 @@ export function OverviewPage() {
           </section>
 
           <section data-admin-guide-target="overview-shortcuts" className="admin-overview-v2__card admin-overview-v2__shortcuts" aria-labelledby="admin-overview-shortcuts">
-            <header><h2 id="admin-overview-shortcuts">Platform operations</h2></header>
+            <header><h2 id="admin-overview-shortcuts">{isBrandAdmin ? "Brand operations" : "Platform operations"}</h2></header>
             <ul>{shortcuts.map(({ title, to, icon: Icon }) => <li key={to}><Link to={to}><Icon size={17} aria-hidden="true" /><span>{title}</span><ArrowUpRight size={15} aria-hidden="true" /></Link></li>)}</ul>
           </section>
         </div>

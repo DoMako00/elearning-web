@@ -228,7 +228,7 @@ export function ContentPage() {
   };
   return <section className="admin-v2__page admin-v2__content-page">
     <AdminV2DomainStatus />
-    {workspace.workspace === "super_admin" && <ContentReviewQueue />}
+    {workspace.workspace !== "instructor" && <ContentReviewQueue />}
     <nav className="v2-phase-tabs v2-content-tabs" aria-label="Content sections">
       <button type="button" className={libraryTab === "Content Library" ? "is-active" : ""} aria-current={libraryTab === "Content Library" ? "page" : undefined} onClick={() => setLibraryTab("Content Library")}><FolderOpen size={15} />Content Library</button>
       <button type="button" className={libraryTab === "Media Library" ? "is-active" : ""} aria-current={libraryTab === "Media Library" ? "page" : undefined} onClick={() => setLibraryTab("Media Library")}><HardDrive size={15} />Media Library</button>

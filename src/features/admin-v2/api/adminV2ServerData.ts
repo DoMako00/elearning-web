@@ -1,5 +1,5 @@
 import type { AdminV2Data, CourseChapter, CourseLesson, CourseRecord } from "../types/adminV2.types";
-import { assignInstructor, assignInstructorToBrand, getCourse, getInstructor, listBrandAccess, listCourseInstructors, listCourses, listInstructorBrands, listInstitutions, listInstructors, listStructure, setCourseInstructorStatus, setCourseStatus, setInstructorBrandStatus, setInstructorStatus, writeCourse, writeInstructor, writeStructure, type BrandCourse, type InstructorBrand } from "./adminAcademicApi";
+import { assignInstructor, assignInstructorToBrand, getCourse, getInstructor, listBrandAccess, listCourseInstructors, listCourses, listInstructorBrands, listInstitutions, listInstructors, listStructure, setCourseInstructorStatus, setCourseStatus, setInstructorBrandStatus, setInstructorStatus, writeCourse, writeInstructor, writeStructure, type BrandAccess, type BrandCourse, type InstructorBrand } from "./adminAcademicApi";
 import { emptyAdminV2ServerDomainData, mapBrandAssignments, mapChapterDto, mapCourseDtoToAdminCourse, mapInstructorDto, mapInstitutionsToCurriculum, mapLessonDto } from "./adminV2Mappers";
 
 export type ServerDomainData = ReturnType<typeof emptyAdminV2ServerDomainData>;
@@ -34,6 +34,16 @@ export async function loadAdminV2ServerData(builderCourseId?:string):Promise<Ser
     if(course&&brand){const structure=await listStructure(brand.id,course.id);chapters=structure.chapters.map((item)=>mapChapterDto(item,course.id));lessons=structure.lessons.map((item)=>mapLessonDto(item,course.id));}
   }
   return {...empty,...mapInstitutionsToCurriculum(institutions),courses,instructors,instructorBrandAssignments,chapters,lessons};
+}
+
+export async function loadBrandAdminServerData(brands:readonly Pick<BrandAccess,"id"|"code"|"name">[]):Promise<ServerDomainData>{
+  const empty=emptyAdminV2ServerDomainData();
+  const groups=await Promise.all(brands.map(async(brand)=>({brand,courses:await listCourses(brand.id)})));
+  const courses=groups.flatMap(({brand,courses})=>{
+    const scopedBrand:BrandAccess={...brand,status:"active",allowedAcademicInstitutions:[]};
+    return courses.map((course)=>mapCourseDtoToAdminCourse(course,scopedBrand));
+  });
+  return{...empty,courses};
 }
 
 function byId<T extends {id:string}>(items:T[]){return new Map(items.map((item)=>[item.id,item]));}

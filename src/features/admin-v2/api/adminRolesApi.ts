@@ -24,8 +24,8 @@ export interface AdminWorkspaceCourseDto {
   status: string;
 }
 export interface AdminWorkspaceDto {
-  workspace: "super_admin" | "instructor";
-  displayRole: "Super Admin" | "Instructor";
+  workspace: "super_admin" | "brand_admin" | "instructor";
+  displayRole: "Super Admin" | "Brand Admin" | "Instructor";
   isGlobal: boolean;
   activeBrandId: string;
   brands: Array<{ id: string; code: "medway" | "elite" | "nexus"; name: string }>;
