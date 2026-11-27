@@ -83,7 +83,7 @@ export function StudentsPage() {
   const [createdStudent, setCreatedStudent] = useState<{
     student: StudentRecord;
     setupCode: string;
-    setupExpiresAt: string;
+    setupExpiresAt: string | null;
   } | null>(null);
   const [remoteRows, setRemoteRows] = useState<StudentRecord[]>([]);
   const [remoteDetail, setRemoteDetail] = useState<AdminStudentDetail | null>(
@@ -1118,9 +1118,9 @@ export function StudentsPage() {
             </span>
             <h3>{createdStudent.student.fullName}</h3>
             <p>
-              Give these one-time credentials to the Student through an approved
-              secure channel. The setup code is not retrievable after this
-              notice closes.
+              Give these activation credentials to the Student through an approved
+              secure channel. The setup code is shown once and remains valid until
+              the Student verifies an email address.
             </p>
             <Credential
               label="Account identifier"
@@ -1128,13 +1128,13 @@ export function StudentsPage() {
               onCopy={copyText}
             />
             <Credential
-              label="Temporary setup code"
+              label="Setup code"
               value={createdStudent.setupCode}
               onCopy={copyText}
             />
             <Credential
-              label="Setup code expires"
-              value={new Date(createdStudent.setupExpiresAt).toLocaleString()}
+              label="Setup code validity"
+              value="Until the Student verifies an email address"
             />
           </div>
         </Drawer>

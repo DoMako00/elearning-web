@@ -164,6 +164,39 @@
   color: #94a3b8;
 }
 
+.signin-input-wrapper--otp {
+  min-height: 58px;
+  padding: 0 10px;
+  border-color: #cfe3d6;
+  background: linear-gradient(180deg, #ffffff, #f7fbf8);
+}
+
+.signin-input--otp {
+  padding: 12px;
+  color: #176b3a;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3em;
+}
+
+.signin-input--otp::placeholder {
+  color: #9aa8a0;
+  letter-spacing: 0.2em;
+}
+
+@media (max-width: 520px) {
+  .signin-input-wrapper--otp {
+    min-height: 54px;
+  }
+
+  .signin-input--otp {
+    font-size: 21px;
+    letter-spacing: 0.25em;
+  }
+}
+
 .signin-password-toggle {
   background: transparent;
   border: none;

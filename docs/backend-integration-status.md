@@ -5,8 +5,8 @@ This document records source-level integration truth.  A page is not marked as A
 | Area | Real API | Auth | Reads | Mutations | Loading/errors | Fixture fallback |
 | --- | --- | --- | --- | --- | --- | --- |
 | Shared API client | yes | real provider bearer token | yes | yes | normalized HTTP/network errors | none |
-| Shared auth state | yes | restored provider session after backend session acceptance | n/a | OTP and email-free account activation | yes | none |
-| Student account activation | yes | Account Identifier + one-time Setup Code, then anonymous provider identity bound by backend | n/a | `/v1/auth/account-claim` + `/v1/auth/account-claim/complete` | yes | none |
+| Shared auth state | yes | restored provider session after backend session acceptance | n/a | OTP sign-in and email-verified account activation | yes | none |
+| Student account activation | yes | Account Identifier + setup code, followed by verified email OTP before the first app session | n/a | `/v1/auth/account-claim` + `/v1/auth/account-claim/email/initiate` + `/v1/auth/email/link/complete` | yes | none |
 | Student Settings email link/change | yes | active backend-bound provider session; current-email OTP step-up for changes | verified auth methods | `/v1/auth/email/link/initiate` + `/v1/auth/email/link/complete` | yes | none for email identity |
 | Admin + Student OTP sign-in | yes | Students require a verified linked real email; Admins require a confirmed provider email plus current persisted role authority for the selected brand or platform-owner authority | n/a | `/v1/auth/login/initiate`, `/v1/auth/otp/verify`, `/v1/auth/login/complete` | activation/linking or Admin brand-access errors are shown without treating an Admin as an unclaimed Student | none; OTP mode includes brand selection |
 | Student course reads | yes | Supabase bearer refreshed for each request | Home (`mine`), My Courses (`explore`), Course detail, lessons | n/a | loading, empty, and safe error states | none; demo course fallback removed |

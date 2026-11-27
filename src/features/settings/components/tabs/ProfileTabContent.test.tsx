@@ -45,4 +45,15 @@ describe("ProfileTabContent commercial summary", () => {
     expect(screen.getByText("Checking your current Offering and seat details.")).toBeTruthy();
     expect(screen.queryByText(/0 seats? •/i)).toBeNull();
   });
+
+  it("accepts the full 8-digit email verification code", () => {
+    const onVerifyEmail = vi.fn();
+    render(<ProfileTabContent {...baseProps} rightColumnOnly={false} emailFlowStep="new" emailCode="12345678" onVerifyEmail={onVerifyEmail} />);
+
+    const codeInput = screen.getByPlaceholderText("8-digit code sent to your new email") as HTMLInputElement;
+    expect(codeInput.maxLength).toBe(8);
+    expect(codeInput.value).toBe("12345678");
+    fireEvent.click(screen.getByRole("button", { name: "Verify new email" }));
+    expect(onVerifyEmail).toHaveBeenCalledOnce();
+  });
 });

@@ -75,7 +75,7 @@ export interface InstructorStudentCredentials {
   studentProfileId: string;
   accountIdentifier: string;
   setupCode: string;
-  setupExpiresAt: string;
+  setupExpiresAt: string | null;
 }
 
 export async function createInstructorStudent(input: { courseId: string; fullName: string; phone?: string }) {

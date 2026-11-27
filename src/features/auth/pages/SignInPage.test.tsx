@@ -3,7 +3,7 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SignInPage } from "./SignInPage";
 import { useAuth, type AuthState } from "../../../app/providers/AuthProvider";
-import { activateProvisionedStudent, initiateOtpLogin, verifyOtp } from "../api/identityApi";
+import { completeStudentEmailLink, initiateOtpLogin, initiateProvisionedStudentEmailLink, verifyOtp } from "../api/identityApi";
 import { getAdminOverview } from "../../admin-v2/api/adminOperationsApi";
 import { getAdminWorkspace } from "../../admin-v2/api/adminRolesApi";
 import { assignLocation, reloadPage } from "../../../shared/utils/hardNavigation";
@@ -11,7 +11,8 @@ import { assignLocation, reloadPage } from "../../../shared/utils/hardNavigation
 vi.mock("../../../app/providers/AuthProvider", () => ({ useAuth: vi.fn() }));
 vi.mock("../api/identityApi", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../api/identityApi")>()),
-  activateProvisionedStudent: vi.fn(),
+  initiateProvisionedStudentEmailLink: vi.fn(),
+  completeStudentEmailLink: vi.fn(),
   initiateOtpLogin: vi.fn(),
   verifyOtp: vi.fn(),
 }));
@@ -82,13 +83,32 @@ describe("SignInPage navigation after sign-in", () => {
     await waitFor(() => expect(assignLocation).toHaveBeenCalledWith("/assessments/abc"));
   });
 
-  it("account activation also finishes with one full navigation", async () => {
-    vi.mocked(activateProvisionedStudent).mockResolvedValue(undefined);
+  it("verifies the student's email before finishing account activation", async () => {
+    vi.mocked(initiateProvisionedStudentEmailLink).mockResolvedValue({ linkTicket: "ticket-1", expiresAt: new Date(Date.now() + 600_000).toISOString() });
+    vi.mocked(completeStudentEmailLink).mockResolvedValue({} as never);
     const { container } = renderPage();
     fireEvent.change(container.querySelector("#signin-account-id")!, { target: { value: "ACC-1" } });
     fireEvent.change(container.querySelector("#signin-setup-code")!, { target: { value: "SETUP-1" } });
+    fireEvent.change(container.querySelector("#activation-email")!, { target: { value: "student@gmail.com" } });
+    fireEvent.submit(container.querySelector("form")!);
+    await waitFor(() => expect(screen.getByLabelText("Email verification code")).toBeTruthy());
+    expect(assignLocation).not.toHaveBeenCalled();
+    expect(initiateProvisionedStudentEmailLink).toHaveBeenCalledWith({ brand: "elite", accountIdentifier: "ACC-1", setupCode: "SETUP-1", email: "student@gmail.com" });
+  });
+
+  it("creates the student session only after email OTP verification", async () => {
+    vi.mocked(initiateProvisionedStudentEmailLink).mockResolvedValue({ linkTicket: "ticket-1", expiresAt: new Date(Date.now() + 600_000).toISOString() });
+    vi.mocked(completeStudentEmailLink).mockResolvedValue({} as never);
+    const { container } = renderPage();
+    fireEvent.change(container.querySelector("#signin-account-id")!, { target: { value: "ACC-1" } });
+    fireEvent.change(container.querySelector("#signin-setup-code")!, { target: { value: "SETUP-1" } });
+    fireEvent.change(container.querySelector("#activation-email")!, { target: { value: "student@gmail.com" } });
+    fireEvent.submit(container.querySelector("form")!);
+    await waitFor(() => expect(container.querySelector("#activation-otp")).toBeTruthy());
+    fireEvent.change(container.querySelector("#activation-otp")!, { target: { value: "12345678" } });
     fireEvent.submit(container.querySelector("form")!);
     await waitFor(() => expect(assignLocation).toHaveBeenCalledWith("/"));
+    expect(completeStudentEmailLink).toHaveBeenCalledWith({ linkTicket: "ticket-1", code: "12345678", remember: true });
     expect(reloadPage).not.toHaveBeenCalled();
   });
 

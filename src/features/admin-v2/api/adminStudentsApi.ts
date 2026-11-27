@@ -119,7 +119,7 @@ export async function createAdminStudent(
     studentProfileId: string;
     accountIdentifier: string;
     setupCode: string;
-    setupExpiresAt: string;
+    setupExpiresAt: string | null;
   }>(
     api.POST("/v1/admin/students" as never, {
       headers: { "Idempotency-Key": key() },
@@ -163,7 +163,7 @@ export async function resetAdminStudentClaim(
   return unwrap<{
     accountIdentifier: string;
     setupCode: string;
-    setupExpiresAt: string;
+    setupExpiresAt: string | null;
   }>(
     api.POST("/v1/admin/students/{studentId}/claim/reset" as never, {
       params: { path: { studentId }, query: { brand } },
@@ -182,7 +182,7 @@ export async function bootstrapAdminStudentClaim(
   return unwrap<{
     accountIdentifier: string;
     setupCode: string;
-    setupExpiresAt: string;
+    setupExpiresAt: string | null;
   }>(
     api.POST("/v1/admin/students/{studentId}/claim/bootstrap" as never, {
       params: { path: { studentId }, query: { brand } },

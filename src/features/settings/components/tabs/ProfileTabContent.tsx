@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { EMAIL_OTP_LENGTH } from "../../../auth/emailOtp";
 import {
   FileText,
   Edit2,
@@ -146,8 +147,8 @@ export const ProfileTabContent: React.FC<ProfileTabContentProps> = ({
           {/* Form Input + CTA */}
           <div className="flex flex-col sm:flex-row items-center gap-2.5">
             {contactSubTab === "email" && emailFlowStep !== "idle" ? <>
-            <input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={emailCode} onChange={e=>setEmailCode(e.target.value.replace(/\D/g,"").slice(0,6))} placeholder={emailFlowStep === "current" ? "6-digit code sent to your current email" : "6-digit code sent to your new email"} className="flex-1 w-full h-9.5 px-3.5 text-xs bg-gray-50/70 border border-gray-200/90 rounded-xl text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white placeholder-gray-400 shadow-2xs transition-all" disabled={isEmailBusy} />
-            <button type="button" onClick={onVerifyEmail} disabled={isEmailBusy || emailCode.length !== 6} className="w-full sm:w-auto h-9.5 px-4 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 disabled:opacity-60 rounded-xl shadow-xs transition-all cursor-pointer whitespace-nowrap">{isEmailBusy ? "Verifying…" : emailFlowStep === "current" ? "Continue securely" : "Verify new email"}</button>
+            <input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={EMAIL_OTP_LENGTH} value={emailCode} onChange={e=>setEmailCode(e.target.value.replace(/\D/g,"").slice(0,EMAIL_OTP_LENGTH))} placeholder={emailFlowStep === "current" ? "8-digit code sent to your current email" : "8-digit code sent to your new email"} className="flex-1 w-full h-10 px-3.5 text-sm font-bold tracking-[0.28em] text-center tabular-nums bg-gray-50/70 border border-gray-200/90 rounded-xl text-emerald-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white placeholder-gray-400 shadow-2xs transition-all" disabled={isEmailBusy} />
+            <button type="button" onClick={onVerifyEmail} disabled={isEmailBusy || emailCode.length !== EMAIL_OTP_LENGTH} className="w-full sm:w-auto h-9.5 px-4 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 disabled:opacity-60 rounded-xl shadow-xs transition-all cursor-pointer whitespace-nowrap">{isEmailBusy ? "Verifying…" : emailFlowStep === "current" ? "Continue securely" : "Verify new email"}</button>
             </> : <>
             <input
               type={contactSubTab === "email" ? "email" : "tel"}

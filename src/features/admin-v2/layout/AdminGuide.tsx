@@ -43,7 +43,7 @@ const adminRouteGuides: RouteGuide[] = [
   ] },
   { matches: path => path === "/admin/students", id: "students", steps: [
     { title: "Student counts", description: "Total, active and pending students for the brand you have selected.", selector: "[data-admin-guide-target='students-metrics']", options: ".admin-v2__student-stat" },
-    { title: "Find and add students", description: "Search, filter by brand, level and status, open More filters for institution and semester, or add a student. A new student gets a one-time setup code.", selector: "[data-admin-guide-target='students-tools']", options: "input, select, button" },
+    { title: "Find and add students", description: "Search, filter by brand, level and status, open More filters for institution and semester, or add a student. A new student gets a setup code that stays valid until they verify an email address.", selector: "[data-admin-guide-target='students-tools']", options: "input, select, button" },
     { title: "Browse the students", description: "Each row shows brand, academic placement, status and registered devices. Select a row, or View, to open the student's panel.", selector: "[data-admin-guide-target='students-table']", options: "tbody tr" },
     { title: "Review a student", description: "The panel on the right holds the student's profile, access, devices and sessions.", selector: "[data-admin-guide-target='students-inspector']", hint: "Select a student to open the panel." },
     { title: "Switch views", description: "Profile has identity and placement, Access shows subscriptions and grants, Devices lists registered hardware, and Sessions lists sign-ins.", selector: "[data-admin-guide-target='students-tabs']", options: "button", hint: "Select a student to see these views." },

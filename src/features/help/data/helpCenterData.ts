@@ -110,7 +110,7 @@ export const POPULAR_ARTICLES: HelpArticle[] = [
     isPopular: true,
     content: {
       overview:
-        "The platform does not use password sign-in. First-time Students claim their provisioned account with an Account Identifier and Setup Code. Returning Students and Admins use email verification codes.",
+        "The platform does not use password sign-in. First-time Students claim their provisioned account with an Account Identifier and Setup Code, then verify their email before the account is activated. Returning Students and Admins use email verification codes.",
       steps: [
         {
           stepNumber: 1,
@@ -120,17 +120,17 @@ export const POPULAR_ARTICLES: HelpArticle[] = [
         {
           stepNumber: 2,
           title: "Activate a provisioned Student account",
-          description: "Enter the Account Identifier and one-time Setup Code provided by the Admin. No email or phone is required for the first claim."
+          description: "Enter the Account Identifier and Setup Code provided by the Admin, then enter an email address where you can receive a verification code. The Setup Code stays valid until you verify that email."
         },
         {
           stepNumber: 3,
           title: "Sign in after activation",
-          description: "After a Student links and verifies a real email in Settings, future sign-in uses an email verification code. Admin sign-in also uses email verification."
+          description: "After a Student verifies an email during activation or links one in Settings, future sign-in uses an email verification code. Admin sign-in also uses email verification."
         },
         {
           stepNumber: 4,
           title: "Keep the Setup Code private",
-          description: "The one-time Setup Code is only for first-time activation. Contact an Admin if the code expires or was already used."
+          description: "Keep the Setup Code private. It remains valid until your email is verified. If you cannot find it, ask an Admin to issue a replacement."
         }
       ],
       callout: {

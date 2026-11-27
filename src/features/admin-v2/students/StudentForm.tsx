@@ -275,7 +275,7 @@ export function StudentForm({
       <div className="admin-v2__student-form-security">
         <Building2 size={15} />
         <span>
-          <strong>The backend generates a one-time setup credential.</strong>
+          <strong>The backend generates a setup code that stays valid until the student verifies an email address.</strong>
           <small>
             It is shown only after successful provisioning; email linking and
             OTP happen only after the Student links a real email in Settings.

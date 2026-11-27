@@ -1,4 +1,5 @@
 import { StudentPanelSkeleton } from "../student/components/StudentFeedback";
+import { EMAIL_OTP_PATTERN } from "../auth/emailOtp";
 import React, { useEffect, useState } from "react";
 import {
   SettingsLayout,
@@ -123,7 +124,7 @@ export const Settings: React.FC = () => {
 
   const handleVerifyEmail=async()=>{
     if (isEmailBusy) return;
-    if(!/^\d{6}$/.test(emailCode.trim())){showToast("Enter the 6-digit verification code from your email.","error");return;}
+    if(!EMAIL_OTP_PATTERN.test(emailCode.trim())){showToast("Enter the 8-digit verification code from your email.","error");return;}
     setIsEmailBusy(true);
     try{
       if(emailStage==="current"){

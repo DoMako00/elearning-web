@@ -9,7 +9,8 @@ import {
 } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../app/providers/AuthProvider";
-import { activateProvisionedStudent, IdentityApiError, initiateOtpLogin, verifyOtp } from "../api/identityApi";
+import { EMAIL_OTP_LENGTH, EMAIL_OTP_PATTERN } from "../emailOtp";
+import { completeStudentEmailLink, IdentityApiError, initiateOtpLogin, initiateProvisionedStudentEmailLink, verifyOtp } from "../api/identityApi";
 import { getAdminOverview } from "../../admin-v2/api/adminOperationsApi";
 import { getAdminWorkspace } from "../../admin-v2/api/adminRolesApi";
 import { assignLocation } from "../../../shared/utils/hardNavigation";
@@ -31,6 +32,9 @@ export function SignInPage({ brandCode = "elite", brandName = "Elite", role = "s
   const [identifier, setIdentifier] = useState("");
   const [accountIdentifier, setAccountIdentifier] = useState("");
   const [setupCode, setSetupCode] = useState("");
+  const [activationEmail, setActivationEmail] = useState("");
+  const [activationLinkTicket, setActivationLinkTicket] = useState<string | null>(null);
+  const [activationOtp, setActivationOtp] = useState("");
   const [challengeId, setChallengeId] = useState<string | null>(null);
   const [otp, setOtp] = useState("");
   const [remember, setRemember] = useState(true);
@@ -40,12 +44,15 @@ export function SignInPage({ brandCode = "elite", brandName = "Elite", role = "s
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextErrors: Record<string, string> = {};
-    if(mode==="activate"){
+    if(mode==="activate" && !activationLinkTicket){
       if(!accountIdentifier.trim())nextErrors.accountIdentifier="Enter the Account Identifier provided by your Admin.";
-      if(!setupCode.trim())nextErrors.setupCode="Enter your one-time Setup Code.";
+      if(!setupCode.trim())nextErrors.setupCode="Enter your Setup Code.";
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(activationEmail.trim()))nextErrors.activationEmail="Enter an email address you can open.";
+    }else if(mode==="activate"){
+      if(!EMAIL_OTP_PATTERN.test(activationOtp.trim()))nextErrors.activationOtp="Enter the 8-digit code sent to your email.";
     }else{
       if (!identifier.trim()) nextErrors.identifier = "Enter your verified email address.";
-      if (challengeId && !/^\d{6,8}$/.test(otp.trim())) nextErrors.otp = "Enter the one-time code sent to your email.";
+      if (challengeId && !EMAIL_OTP_PATTERN.test(otp.trim())) nextErrors.otp = "Enter the 8-digit code sent to your email.";
     }
     if (!auth.configured) {
       nextErrors.form =
@@ -57,9 +64,15 @@ export function SignInPage({ brandCode = "elite", brandName = "Elite", role = "s
 
     setSubmitting(true);
     try {
-      if(mode==="activate"){
-        await activateProvisionedStudent({brand: brandCode,accountIdentifier,setupCode,remember});
+      if(mode==="activate" && !activationLinkTicket){
+        const link=await initiateProvisionedStudentEmailLink({brand:brandCode,accountIdentifier,setupCode,email:activationEmail});
+        setActivationLinkTicket(link.linkTicket);
         setSetupCode("");
+        setActivationOtp("");
+      }else if(mode==="activate" && activationLinkTicket){
+        await completeStudentEmailLink({linkTicket:activationLinkTicket,code:activationOtp,remember});
+        setActivationLinkTicket(null);
+        setActivationOtp("");
         assignLocation("/");
       }else if (!challengeId) {
         const challenge = await initiateOtpLogin({ email: identifier, brand: brandCode });
@@ -124,10 +137,10 @@ export function SignInPage({ brandCode = "elite", brandName = "Elite", role = "s
           <span className="signin-credentials-symbol" aria-hidden="true"><CircleUserRound /></span>
           {/* Heading */}
           <a className="signin-selected-brand" href={`/auth/sign-in/${encodeURIComponent(brandCode)}`}><ArrowRight className="is-back" aria-hidden="true" /> {brandName} <span>·</span> Change role</a>
-          <h1 className="signin-title">{role === "student" && mode === "activate" ? <>Activate <span>your account</span></> : <>{role === "student" ? "Student" : role === "admin" ? "Admin" : "Instructor"} <span>sign in</span></>}</h1>
-          <p className="signin-subtitle">{role === "student" ? mode === "activate" ? "Use the one-time details provided by your Admin. Link your verified email after activation." : "Sign in to your student learning workspace." : `Use your verified ${role === "admin" ? "Admin" : "Instructor"} email for ${brandName}.`}</p>
+          <h1 className="signin-title">{role === "student" && mode === "activate" ? <>{activationLinkTicket ? "Verify your " : "Activate "}<span>{activationLinkTicket ? "email" : "account"}</span></> : <>{role === "student" ? "Student" : role === "admin" ? "Admin" : "Instructor"} <span>sign in</span></>}</h1>
+          <p className="signin-subtitle">{role === "student" ? mode === "activate" ? activationLinkTicket ? `Enter the 8-digit code sent to ${activationEmail}. Your setup code stays valid until this email is verified.` : "Enter the setup details from your Admin and an email address. We’ll verify the email before activating your account." : "Sign in to your student learning workspace." : `Use your verified ${role === "admin" ? "Admin" : "Instructor"} email for ${brandName}.`}</p>
           {role === "student" && <div className="signin-role-tabs" role="tablist" aria-label="Student account access type">
-            <button type="button" role="tab" aria-selected={mode === "activate"} onClick={() => {setStudentMode("activate");setChallengeId(null);setErrors({});}}>Activate account</button>
+            <button type="button" role="tab" aria-selected={mode === "activate"} onClick={() => {setStudentMode("activate");setChallengeId(null);setActivationLinkTicket(null);setActivationOtp("");setErrors({});}}>Activate account</button>
             <button type="button" role="tab" aria-selected={mode === "signin"} onClick={() => {setStudentMode("signin");setChallengeId(null);setErrors({});}}>Sign in</button>
           </div>}
 
@@ -143,23 +156,38 @@ export function SignInPage({ brandCode = "elite", brandName = "Elite", role = "s
 
           {/* Form */}
           <form className="signin-form" onSubmit={submit} noValidate>
-            {mode === "activate" ? <>
+            {mode === "activate" && !activationLinkTicket ? <>
             <div className="signin-field-group">
               <label htmlFor="signin-account-id" className="signin-field-label">Account Identifier</label>
-              <input id="signin-account-id" value={accountIdentifier} onChange={e=>setAccountIdentifier(e.target.value)} className="signin-input" autoComplete="off" />
+              <input id="signin-account-id" value={accountIdentifier} onChange={e=>{setAccountIdentifier(e.target.value);setErrors(prev=>({...prev,accountIdentifier:"",form:""}));}} className="signin-input" autoComplete="off" />
               {errors.accountIdentifier && <span className="signin-field-error" role="alert">{errors.accountIdentifier}</span>}
             </div>
             <div className="signin-field-group">
-              <label htmlFor="signin-setup-code" className="signin-field-label">One-time Setup Code</label>
-              <input id="signin-setup-code" type="password" value={setupCode} onChange={e=>setSetupCode(e.target.value)} className="signin-input" autoComplete="one-time-code" />
+              <label htmlFor="signin-setup-code" className="signin-field-label">Setup Code</label>
+              <input id="signin-setup-code" type="password" value={setupCode} onChange={e=>{setSetupCode(e.target.value);setErrors(prev=>({...prev,setupCode:"",form:""}));}} className="signin-input" autoComplete="one-time-code" />
               {errors.setupCode && <span className="signin-field-error" role="alert">{errors.setupCode}</span>}
             </div>
-            </> : <div className="signin-field-group">
+            <div className="signin-field-group">
+              <label htmlFor="activation-email" className="signin-field-label">Email address</label>
+              <div className={`signin-input-wrapper ${errors.activationEmail ? "has-error" : ""}`}>
+                <Mail className="signin-input-icon" aria-hidden="true" />
+                <input id="activation-email" type="email" name="activationEmail" autoComplete="email" placeholder="name@gmail.com" value={activationEmail} onChange={e=>{setActivationEmail(e.target.value);setErrors(prev=>({...prev,activationEmail:"",form:""}));}} className="signin-input" aria-invalid={Boolean(errors.activationEmail)} />
+              </div>
+              {errors.activationEmail && <span className="signin-field-error" role="alert">{errors.activationEmail}</span>}
+            </div>
+            </> : mode === "activate" ? <div className="signin-field-group">
+              <label htmlFor="activation-otp" className="signin-field-label">Email verification code</label>
+              <div className={`signin-input-wrapper signin-input-wrapper--otp ${errors.activationOtp ? "has-error" : ""}`}>
+                <input id="activation-otp" type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={EMAIL_OTP_LENGTH} placeholder="12345678" value={activationOtp} onChange={e=>{setActivationOtp(e.target.value.replace(/\D/g,"").slice(0,EMAIL_OTP_LENGTH));setErrors(prev=>({...prev,activationOtp:"",form:""}));}} className="signin-input signin-input--otp" aria-invalid={Boolean(errors.activationOtp)} />
+              </div>
+              {errors.activationOtp && <span className="signin-field-error" role="alert">{errors.activationOtp}</span>}
+              <button type="button" className="signin-forgot-link self-start" onClick={()=>{setActivationLinkTicket(null);setActivationOtp("");setSetupCode("");setErrors({});}}>Use different activation details</button>
+            </div> : <div className="signin-field-group">
               <label htmlFor="signin-email" className="signin-field-label">
                 Email address
               </label>
               <div
-                className={`signin-input-wrapper ${
+                className={`signin-input-wrapper signin-input-wrapper--otp ${
                   errors.identifier ? "has-error" : ""
                 }`}
               >
@@ -175,7 +203,7 @@ export function SignInPage({ brandCode = "elite", brandName = "Elite", role = "s
                     setIdentifier(e.target.value);
                     setErrors((prev) => ({ ...prev, identifier: "", form: "" }));
                   }}
-                  className="signin-input"
+                  className="signin-input signin-input--otp"
                   aria-invalid={Boolean(errors.identifier)}
                 />
               </div>
@@ -202,10 +230,11 @@ export function SignInPage({ brandCode = "elite", brandName = "Elite", role = "s
                   type="text"
                   inputMode="numeric"
                   autoComplete="one-time-code"
-                  placeholder="123456"
+                  maxLength={EMAIL_OTP_LENGTH}
+                  placeholder="12345678"
                   value={otp}
                   onChange={(e) => {
-                    setOtp(e.target.value.replace(/\D/g, ""));
+                    setOtp(e.target.value.replace(/\D/g, "").slice(0, EMAIL_OTP_LENGTH));
                     setErrors((prev) => ({ ...prev, otp: "", form: "" }));
                   }}
                   className="signin-input"
@@ -273,7 +302,7 @@ export function SignInPage({ brandCode = "elite", brandName = "Elite", role = "s
                   <span>{challengeId ? "Verifying…" : "Sending code…"}</span>
               ) : (
                 <>
-                  <span>{mode === "activate" ? "Activate account" : challengeId ? "Verify code" : "Send code"}</span>
+                  <span>{mode === "activate" ? activationLinkTicket ? "Verify email" : "Send verification code" : challengeId ? "Verify code" : "Send code"}</span>
                   <ArrowRight className="w-4 h-4" aria-hidden="true" />
                 </>
               )}

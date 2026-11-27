@@ -1,5 +1,5 @@
 import { env } from "../../../app/config/env";
-import { createAnonymousProviderSession, getSupabaseAccessToken, persistProviderSession, type ProviderSessionBundle } from "./supabaseAuth";
+import { getSupabaseAccessToken, persistProviderSession, type ProviderSessionBundle } from "./supabaseAuth";
 
 import type { BrandCode } from "../../../shared/domain/brandInstitution";
 
@@ -34,12 +34,9 @@ function deviceClassification(){
   return {deviceKey:deviceKey(),platform,browser};
 }
 
-export async function activateProvisionedStudent(input:Readonly<{brand:string;accountIdentifier:string;setupCode:string;remember:boolean}>){
+export async function initiateProvisionedStudentEmailLink(input:Readonly<{brand:string;accountIdentifier:string;setupCode:string;email:string}>){
   const claim=await request<{claimTicket:string}>("/v1/auth/account-claim",{brand:input.brand,accountIdentifier:input.accountIdentifier.trim(),setupCode:input.setupCode.trim()});
-  const provider=await createAnonymousProviderSession();
-  const device=deviceClassification();
-  await request("/v1/auth/account-claim/complete",{claimTicket:claim.claimTicket,...device},{token:provider.accessToken});
-  persistProviderSession({...provider,remember:input.remember});
+  return request<{linkTicket:string;expiresAt:string}>("/v1/auth/account-claim/email/initiate",{claimTicket:claim.claimTicket,email:input.email.trim()});
 }
 
 export async function initiateOtpLogin(input: Readonly<{ email: string; brand: string }>) {

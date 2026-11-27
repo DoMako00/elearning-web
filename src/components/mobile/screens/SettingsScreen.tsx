@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { EMAIL_OTP_LENGTH, EMAIL_OTP_PATTERN } from "../../../features/auth/emailOtp";
 import { useToast } from "../../../hooks/useToast";
 import {
   MessageSquare,
@@ -627,7 +628,7 @@ const EditProfileSubScreen: React.FC<{
   };
 
   const verifyEmailCode=async()=>{
-    if(!/^\d{6}$/.test(emailCode)){setError("Enter the 6-digit code sent to your email.");return;}
+    if(!EMAIL_OTP_PATTERN.test(emailCode.trim())){setError("Enter the 8-digit code sent to your email.");return;}
     try{
       if(emailStage==="current"){
         const proof=await verifyOtpProof({challengeId,code:emailCode});
@@ -678,7 +679,7 @@ const EditProfileSubScreen: React.FC<{
 
         <div className="bg-white rounded-3xl border border-slate-100 p-4 space-y-3 shadow-2xs">
           <div><h3 className="text-xs font-bold text-slate-800">Link or change verified email</h3><p className="text-[10.5px] text-slate-500 mt-1">Ownership is verified by email code. The email is not changed until verification succeeds.</p></div>
-          {emailStage==="idle"?<div className="flex gap-2"><input type="email" value={emailToLink} onChange={event=>setEmailToLink(event.target.value)} placeholder="Your real email address" className="min-w-0 flex-1 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs focus:outline-emerald-500"/><button type="button" disabled={!emailToLink.trim()} onClick={()=>void startEmailVerification()} className="px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold disabled:opacity-50">Send code</button></div>:<div className="flex gap-2"><input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={emailCode} onChange={event=>setEmailCode(event.target.value.replace(/\D/g,"").slice(0,6))} placeholder={emailStage==="current"?"6-digit code to current email":"6-digit code to new email"} className="min-w-0 flex-1 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs focus:outline-emerald-500"/><button type="button" onClick={()=>void verifyEmailCode()} className="px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold">{emailStage==="current"?"Continue":"Verify email"}</button></div>}
+          {emailStage==="idle"?<div className="flex gap-2"><input type="email" value={emailToLink} onChange={event=>setEmailToLink(event.target.value)} placeholder="Your real email address" className="min-w-0 flex-1 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs focus:outline-emerald-500"/><button type="button" disabled={!emailToLink.trim()} onClick={()=>void startEmailVerification()} className="px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold disabled:opacity-50">Send code</button></div>:<div className="flex gap-2"><input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={EMAIL_OTP_LENGTH} value={emailCode} onChange={event=>setEmailCode(event.target.value.replace(/\D/g,"").slice(0,EMAIL_OTP_LENGTH))} placeholder={emailStage==="current"?"8-digit code to current email":"8-digit code to new email"} className="min-w-0 flex-1 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-sm font-bold tracking-[0.24em] text-center tabular-nums text-emerald-800 focus:outline-emerald-500"/><button type="button" onClick={()=>void verifyEmailCode()} className="px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold">{emailStage==="current"?"Continue":"Verify email"}</button></div>}
           {error&&<p role="alert" className="text-xs text-rose-600">{error}</p>}
         </div>
 
