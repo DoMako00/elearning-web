@@ -116,7 +116,7 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
   const [noticeOpen, setNoticeOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
-  const brandAdminNavigation = adminNavigation.filter((item) => ["/admin", "/admin/students", "/admin/payments", "/admin/subscriptions", "/admin/content", "/admin/security", "/admin/support"].includes(item.path));
+  const brandAdminNavigation = adminNavigation.filter((item) => ["/admin", "/admin/instructors", "/admin/students", "/admin/payments", "/admin/subscriptions", "/admin/content", "/admin/security", "/admin/support"].includes(item.path));
   const navigation = workspace?.workspace === "instructor" ? instructorNavigation : workspace?.workspace === "brand_admin" ? brandAdminNavigation : adminNavigation;
   const routeLabel = useMemo(() => {
     if (workspace?.workspace === "super_admin" && (pathname === "/admin" || pathname === "/admin/overview")) return "Super Admin overview";
@@ -159,7 +159,7 @@ export function AdminV2Layout({ children }: PropsWithChildren) {
     (async () => {
       let refreshResult: AdminV2RefreshResult;
       try {
-        const loaded = workspace?.workspace === "instructor" ? emptyAdminV2ServerDomainData() : workspace?.workspace === "brand_admin" ? await loadBrandAdminServerData(workspace.brands) : await loadAdminV2ServerData();
+        const loaded = workspace?.workspace === "instructor" ? emptyAdminV2ServerDomainData() : workspace?.workspace === "brand_admin" ? await loadBrandAdminServerData(workspace.brands, pathname === "/admin/instructors") : await loadAdminV2ServerData();
         let operational: Partial<AdminV2Data> = {};
         let overviewResult: AdminOverviewView | null = null;
         if (workspace && workspace.workspace !== "instructor" && pathname === "/admin/security") operational = await loadAdminSecurityData(routeBrand);

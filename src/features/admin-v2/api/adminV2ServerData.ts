@@ -1,5 +1,5 @@
 import type { AdminV2Data, CourseChapter, CourseLesson, CourseRecord } from "../types/adminV2.types";
-import { assignInstructor, assignInstructorToBrand, getCourse, getInstructor, listBrandAccess, listCourseInstructors, listCourses, listInstructorBrands, listInstitutions, listInstructors, listStructure, setCourseInstructorStatus, setCourseStatus, setInstructorBrandStatus, setInstructorStatus, writeCourse, writeInstructor, writeStructure, type BrandAccess, type BrandCourse, type InstructorBrand } from "./adminAcademicApi";
+import { assignInstructor, assignInstructorToBrand, getCourse, getInstructor, listBrandAccess, listBrandInstructorDirectory, listCourseInstructors, listCourses, listInstructorBrands, listInstitutions, listInstructors, listStructure, setCourseInstructorStatus, setCourseStatus, setInstructorBrandStatus, setInstructorStatus, writeCourse, writeInstructor, writeStructure, type BrandAccess, type BrandCourse, type InstructorBrand } from "./adminAcademicApi";
 import { emptyAdminV2ServerDomainData, mapBrandAssignments, mapChapterDto, mapCourseDtoToAdminCourse, mapInstructorDto, mapInstitutionsToCurriculum, mapLessonDto } from "./adminV2Mappers";
 
 export type ServerDomainData = ReturnType<typeof emptyAdminV2ServerDomainData>;
@@ -36,14 +36,20 @@ export async function loadAdminV2ServerData(builderCourseId?:string):Promise<Ser
   return {...empty,...mapInstitutionsToCurriculum(institutions),courses,instructors,instructorBrandAssignments,chapters,lessons};
 }
 
-export async function loadBrandAdminServerData(brands:readonly Pick<BrandAccess,"id"|"code"|"name">[]):Promise<ServerDomainData>{
+export async function loadBrandAdminServerData(brands:readonly Pick<BrandAccess,"id"|"code"|"name">[],includeInstructorDirectory=false):Promise<ServerDomainData>{
   const empty=emptyAdminV2ServerDomainData();
   const groups=await Promise.all(brands.map(async(brand)=>({brand,courses:await listCourses(brand.id)})));
   const courses=groups.flatMap(({brand,courses})=>{
     const scopedBrand:BrandAccess={...brand,status:"active",allowedAcademicInstitutions:[]};
     return courses.map((course)=>mapCourseDtoToAdminCourse(course,scopedBrand));
   });
-  return{...empty,courses};
+  if(!includeInstructorDirectory)return{...empty,courses};
+  const scopedBrands:BrandAccess[]=brands.map((brand)=>({...brand,status:"active",allowedAcademicInstitutions:[]}));
+  const directoryGroups=await Promise.all(brands.map((brand)=>listBrandInstructorDirectory(brand.id)));
+  const directoryRows=directoryGroups.flat();
+  const instructors=[...new Map(directoryRows.map((row)=>[row.instructor.id,mapInstructorDto(row.instructor)])).values()];
+  const instructorBrandAssignments=mapBrandAssignments(directoryRows.map((row)=>row.assignment),scopedBrands);
+  return{...empty,courses,instructors,instructorBrandAssignments};
 }
 
 function byId<T extends {id:string}>(items:T[]){return new Map(items.map((item)=>[item.id,item]));}
